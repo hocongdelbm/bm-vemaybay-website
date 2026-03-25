@@ -169,7 +169,7 @@ SugarWidgetSchedulerSearch.submit = function(form) {
 	}
 
 	var query = {
-        "modules":["Users","Contacts","Leads"],
+        "modules":["Users","Contacts"],
         "group":"and",
         "field_list":['id','full_name','email1','phone_work'],
         "conditions":conditions

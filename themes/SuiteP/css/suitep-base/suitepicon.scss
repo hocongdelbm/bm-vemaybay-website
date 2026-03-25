@@ -55,16 +55,8 @@
     @extend .suitepicon-action-add;
 }
 
-.suitepicon-action-create-lead-vcard {
-    @extend .suitepicon-action-create-contact-vcard;
-}
-
 .suitepicon-module-sugarfeed {
     @extend .suitepicon-action-alerts-small
-}
-
-.suitepicon-module-jjwg-areas {
-    @extend .suitepicon-module-areas-maps;
 }
 
 .suitepicon-module-outboundemailaccounts {
@@ -96,23 +88,6 @@
     @extend .suitepicon-module-project-tasks;
 }
 
-.suitepicon-module-surveyquestionoptions {
-    @extend .suitepicon-module-surveys;
-}
-
-.suitepicon-module-surveyquestionresponses {
-    @extend .suitepicon-module-surveys;
-}
-
-.suitepicon-module-surveyresponses {
-    @extend .suitepicon-module-surveys;
-}
-
-
-.suitepicon-module-surveyquestions {
-    @extend .suitepicon-module-surveys;
-}
-
 .suitepicon-dashlet-invadersdashlet {
     @extend .suitepicon-action-invade;
 }
@@ -139,19 +114,6 @@
 
 .suitepicon-module-contact {
     @extend .suitepicon-module-contacts;
-}
-
-.suitepicon-module-lead {
-    @extend .suitepicon-module-leads;
-}
-
-// Charts
-.suitepicon-module-opportunitiesbyleadsourcebyoutcomedashlet {
-    @extend .suitepicon-dashlet-charts-horizontal;
-}
-
-.suitepicon-module-opportunitiesbyleadsourcedashlet {
-    @extend .suitepicon-dashlet-charts-pie;
 }
 
 .suitepicon-module-campaignroichartdashlet {

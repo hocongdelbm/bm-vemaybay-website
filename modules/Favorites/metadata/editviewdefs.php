@@ -43,9 +43,7 @@ array(
         0 =>
         array(
           0 => 'name',
-          1 =>
           array(
-            'name' => 'fp_event_locations_fp_events_1_name',
           ),
         ),
         1 =>
@@ -78,7 +76,6 @@ array(
                 @@FIELD@@
                 <input id="duration_hours" name="duration_hours" type="hidden" value="{$fields.duration_hours.value}">
                 <input id="duration_minutes" name="duration_minutes" type="hidden" value="{$fields.duration_minutes.value}">
-                {sugar_getscript file="modules/FP_events/duration_dependency.js"}
                 <script type="text/javascript">
                     var date_time_format = "{$CALENDAR_FORMAT}";
                     {literal}

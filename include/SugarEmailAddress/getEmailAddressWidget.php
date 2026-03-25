@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
@@ -53,9 +54,6 @@ function getEmailAddressWidget($focus, $field, $value, $view, $tabindex = '0')
 
     if ($view == 'EditView' || $view == 'QuickCreate' || $view == 'ConvertLead') {
         $module = $focus->module_dir;
-        if ($view == 'ConvertLead' && $module == "Contacts") {
-            $module = "Leads";
-        }
 
         return $sea->getEmailAddressWidgetEditView($focus->id, $module, false, '', $tabindex);
     }

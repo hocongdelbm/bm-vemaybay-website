@@ -11,8 +11,6 @@
             YAHOO.util.Event.onContentReady('ajaxUI-history-field', SUGAR.ajaxUI.firstLoad);
 
         $(function(){
-
-            // fix for campaign wizard
             if($('#wizard').length) {
 
                 // footer fix
@@ -33,15 +31,6 @@
     </script>
 {/literal}
 </div>
-
-    <!-- <footer class="footer">
-        {if $STATISTICS}
-            <div class="serverstats">
-                <span class="glyphicon glyphicon-globe"></span> {$STATISTICS}
-            </div>
-        {/if}
-    </footer> -->
-
     <div class="modal fade modal-generic" tabindex="-1" role="dialog">
         <div class="modal-dialog">
             <div class="modal-content">

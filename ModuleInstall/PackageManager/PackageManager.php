@@ -442,11 +442,12 @@ class PackageManager
      */
     private function validateManifestVersion($versions, $key)
     {
-        global $mod_strings, $sugar_version, $suitecrm_version;
+        global $mod_strings, $sugar_config;
 
-        $checkedVersion = $suitecrm_version;
+        $checkedVersion = $sugar_config['suitecrm_version'];
+
         if ($key === 'acceptable_sugar_versions') {
-            $checkedVersion = $sugar_version;
+            $checkedVersion = $sugar_config['sugar_version'];
         }
 
         if (!empty($versions)) {
@@ -475,7 +476,7 @@ class PackageManager
 
             if (!$matchesEmpty) {
                 LoggerManager::getLogger()->error("Error with $key");
-                echo($mod_strings['ERROR_VERSION_INCOMPATIBLE'] . $suitecrm_version);
+                echo($mod_strings['ERROR_VERSION_INCOMPATIBLE'] . $sugar_config['suitecrm_version']);
 
                 return false;
             }

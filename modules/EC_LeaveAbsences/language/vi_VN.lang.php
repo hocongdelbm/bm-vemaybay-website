@@ -1,6 +1,6 @@
 <?php
 
-$mod_strings = array (
+$mod_strings = array(
   'LBL_ASSIGNED_TO_ID' => 'Giao cho',
   'LBL_ASSIGNED_TO_NAME' => 'Người xin nghỉ',
   'LBL_ASSIGNED_TO_2ND_ID' => 'Phân cho Người duyệt',
@@ -47,5 +47,6 @@ $mod_strings = array (
   'LBL_REMARK' => 'Phê duyệt',
   'LBL_DETAIL_LEAVE_DAYS' => 'Chi tiết nghỉ phép',
   'LBL_USED_LEAVE_DAYS' => 'Ngày phép đã dùng',
+
+  'LNK_LIST_TYPES' => 'D/s Loại nghỉ phép',
 );
-?>

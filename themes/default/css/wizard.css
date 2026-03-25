@@ -60,15 +60,6 @@ color: #C60C30;
 	border: 0px none;
 }
 
-.dashletPanelMenu .bd .screen {
-	background-color: transparent;
-    display: none;
-    width: 820px;
-	margin: 0px;
-	padding: 0px; 
-	border: 0px none;
-}
-
 .edit td[scope="row"] 
 {
 color: #666;
@@ -113,10 +104,6 @@ div.screen div.edit.view td i
 div.screen div.edit.view th h2
 {
     padding-bottom: 10px;
-}
-
-.dashletPanelMenu .bd .bd-center {
-padding-top: 0px;
 }
 
 .edit, .detail, .detail > table {

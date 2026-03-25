@@ -317,14 +317,6 @@ class Meeting extends SugarBean
                             unset($reminderData[$r]['invitees'][$i]);
                         }
                         break;
-                    case "Leads":
-                        if (in_array($invitee['module_id'], $this->leads_arr) === false) {
-                            // add to uninvited
-                            $uninvited[] = $reminderData[$r]['invitees'][$i];
-                            // remove lead
-                            unset($reminderData[$r]['invitees'][$i]);
-                        }
-                        break;
                 }
             }
         }
@@ -709,16 +701,10 @@ class Meeting extends SugarBean
 
         $path = SugarConfig::getInstance()->get('upload_dir', 'upload/') . $this->id;
 
-        require_once("modules/vCals/vCal.php");
-        $content = vCal::get_ical_event($this, $GLOBALS['current_user']);
-
         if (is_dir($path)) {
             LoggerManager::getLogger()->warn('file_put_contents(' . $path . '): failed to open stream: Is a directory ');
-        } else {
-            if (file_put_contents($path, $content)) {
-                $notify_mail->AddAttachment($path, 'meeting.ics', 'base64', 'text/calendar');
-            }
-        }
+        } 
+        
         return $notify_mail;
     }
 

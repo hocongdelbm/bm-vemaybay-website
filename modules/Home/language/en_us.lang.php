@@ -70,10 +70,6 @@ $mod_strings = array(
     'LBL_NO_RESULTS' => '<h2>There were no results found. Please search again.</h2><br>',
     'LBL_NO_RESULTS_TIPS' => '<h3>Search Tips:</h3><ul><li>Make sure you have the proper categories selected above.</li><li>Broaden your search criteria.</li><li>If you still cannot find any results try the advanced search option.</li></ul>',
 
-    'LBL_ADD_DASHLETS' => 'Add SuiteCRM Dashlets',
-    'LBL_WEBSITE_TITLE' => 'Website',
-    'LBL_RSS_TITLE' => 'News Feed',
-    'LBL_CLOSE_DASHLETS' => 'Close',
     'LBL_OPTIONS' => 'Options',
     // dashlet search fields
     'LBL_TODAY' => 'Today',

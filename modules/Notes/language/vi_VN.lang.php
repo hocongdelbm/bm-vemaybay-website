@@ -56,7 +56,6 @@ $mod_strings = array(
     'LBL_MODIFIED_BY' => 'Được sửa bởi',
     'LBL_SEND_ANYWAYS' => 'Email này không có chủ đề.  Bạn muốn tiếp tục Gửi/lưu?',
     'LBL_NOTE_INFORMATION' => 'Tổng quát', //No need to be translated in all caps. Translation used just in menu action items when using the SuiteP template
-    'LBL_MY_NOTES_DASHLETNAME' => 'Ghi chú của tôi',
     'LBL_EDITLAYOUT' => 'Sửa khung' /*for 508 compliance fix*/,
     //For export labels
     'LBL_FIRST_NAME' => 'Tên',

@@ -1,14 +1,9 @@
-<<<<<<< HEAD
 .report {
     background: #fff;
     border: none;
     border-radius: 5px;
     box-shadow: rgba(50, 50, 105, 0.15) 0px 2px 5px 0px, rgba(0, 0, 0, 0.05) 0px 1px 1px 0px;
     padding: 15px 20px;
-}
-
-.report .title {
-    text-align: center;
 }
 
 .report .search {
@@ -21,57 +16,15 @@
     justify-content: center;
     margin-top: 15px;
 }
+
 .wrap-choose-date .label {
     padding: 0 5px;
 }
+
 .wrap-choose-date .input-date {
     width: 200px;
 }
 
 .table-cost tr .td-name {
     font-weight: 600;
-}
-
-.table-cost tfoot .total-cost {
-    color: red;
-=======
-.report {
-    background: #fff;
-    border: none;
-    border-radius: 5px;
-    box-shadow: rgba(50, 50, 105, 0.15) 0px 2px 5px 0px, rgba(0, 0, 0, 0.05) 0px 1px 1px 0px;
-    padding: 15px 20px;
-}
-
-.report .title {
-    text-align: center;
-}
-.report .subtitle {
-    text-align: left;
-}
-
-.report .search {
-    padding: 15px 0;
-}
-
-.report .search .wrap-choose-date {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    margin-top: 15px;
-}
-.wrap-choose-date .label {
-    padding: 0 5px;
-}
-.wrap-choose-date .input-date {
-    width: 200px;
-}
-
-.table-cost tr .td-name {
-    font-weight: 600;
-}
-
-.table-cost tfoot .total-cost {
-    color: red;
->>>>>>> 8201700091c3488d9a9fb900f7efbbfebbcecfff
 }

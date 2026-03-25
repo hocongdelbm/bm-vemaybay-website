@@ -78,7 +78,6 @@ $mod_strings = array(
     'LBL_LIST_RELATED_TO' => 'Liên quan tới',
     'LBL_LIST_STATUS' => 'Tình trạng',
     'LBL_LIST_SUBJECT' => 'Chủ đề',
-    'LBL_LEADS_SUBPANEL_TITLE' => 'Đầu mối',
     'LBL_LOCATION' => 'Thời lượng:',
     'LBL_MINSS_ABBREV' => 'm',
     'LBL_MODIFIED_BY' => 'Được sửa bởi',

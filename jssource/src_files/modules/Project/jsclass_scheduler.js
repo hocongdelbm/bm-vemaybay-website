@@ -324,14 +324,6 @@ SugarWidgetSchedulerSearch.prototype.display = function() {
 	button1.innerHTML = GLOBAL_REGISTRY['meeting_strings']['LBL_CREATE_CONTACT'];
 	create_invitees_buttons.appendChild(button1);
 
-	/*
-	var button2 = document.createElement("button");
-	button2.setAttribute('id', 'create_invitee_as_lead');
-	button2.setAttribute('type', 'button');
-	button2.setAttribute('onclick', 'SugarWidgetSchedulerSearch.showCreateForm(\'Leads\');');
-	button2.innerHTML = GLOBAL_REGISTRY['meeting_strings']['LBL_CREATE_LEAD'];
-	create_invitees_buttons.appendChild(button2);
-	*/
 	create_invitees.appendChild(create_invitees_buttons);
 	
 	

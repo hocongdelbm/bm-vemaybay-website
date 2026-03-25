@@ -21,7 +21,6 @@ $job_strings[] = 'checkStatusOnlineUser'; // Kiểm tra user còn online hay kh�
 $job_strings[] = 'reAssignBooking'; // lặp lại việc giao booking nếu gặp booking chưa được giao
 $job_strings[] = 'calculateCashFlow'; // Tính toán dòng tiền trong 3 ngày trước
 $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
-$job_strings[] = 'updateLogAutocall'; // Cập nhật log cho cuôc gọi tự động
 $job_strings[] = 'sendAutoCheapPriceMessageZalo'; // Tự động gửi tin về giá vé rẻ qua ZBS template Zalo
 $job_strings[] = 'maintainZaloChat'; // Tự động gửi tin tư vấn Zalo để duy trì tương tác
 $job_strings[] = 'resetRewardPoints'; // Reset lại điểm tích lũy của liên hệ qua booking hằng năm
@@ -133,11 +132,6 @@ function saveRevenueBookingJob()
 	}
 
 	return true;
-}
-
-function updateLogAutocall()
-{
-	return update_log_autocall();
 }
 
 function checkExpirationDateVoucher()

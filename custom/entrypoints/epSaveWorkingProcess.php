@@ -67,18 +67,15 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 			// myRemoveWorkingProcess($module, $record, 'paid');
 			echo 1;
 			exit();
-		} 
-		else if (!is_null($is_invoice_export) && $is_invoice_export == 0) {
+		} else if (!is_null($is_invoice_export) && $is_invoice_export == 0) {
 			myRemoveWorkingProcess($module, $record, 'invoice_issued');
 			echo 1;
 			exit();
-		} 
-		else if (!is_null($is_invoice_input_export) && $is_invoice_input_export == 0) {
+		} else if (!is_null($is_invoice_input_export) && $is_invoice_input_export == 0) {
 			myRemoveWorkingProcess($module, $record, 'invoice_input_issued');
 			echo 1;
 			exit();
-		} 
-		else {
+		} else {
 			$work = new EC_Working_Process();
 			$work->id = '';
 			$work->name = $record_name;
@@ -96,27 +93,23 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 							,description = CONCAT(IFNULL(description, ''), IF(description IS NOT NULL AND description <> '', ', ', ''), '$txtWorkingProcessNote') 
 						WHERE id = '$record' AND deleted = 0";
 				$db->query($update);
-			} 
-			else if (!is_null($is_invoice_export) && $is_invoice_export == 1) {
+			} else if (!is_null($is_invoice_export) && $is_invoice_export == 1) {
 				$work->invoice_issued = 1;
 				update_field_booking($record, 'is_invoice_export', $is_invoice_export);
-			} 
-			else if (!is_null($is_invoice_input_export) && $is_invoice_input_export == 1) {
+			} else if (!is_null($is_invoice_input_export) && $is_invoice_input_export == 1) {
 				$work->invoice_input_issued = 1;
 				update_field_booking($record, 'is_invoice_input_export', $is_invoice_input_export);
-			} 
-			else if ($booking_status == '4' && !empty($txtWorkingProcessNote)) {
+			} else if ($booking_status == '4' && !empty($txtWorkingProcessNote)) {
 				// Update booking description when cancel or complete
 				$update = "UPDATE ec_flight_bookings 
 						   SET description = '$txtWorkingProcessNote'
 						   WHERE id = '$record'";
 				$db->query($update);
-			} 
-			else {
+			} else {
 				// if ($booking_status == '6') // Called
 				// 	$work->called = 1;
 				// else 
-				
+
 				if ($booking_status == '3') // Confirmed
 					$work->confirmed = 1;
 				else if ($booking_status == '8' && is_null($support_customer)) // Completed
@@ -126,7 +119,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 					$work->recheck = 1;
 
 				// if ($recall_status == '2') // Đã recall
-					// $work->recall = 1;
+				// $work->recall = 1;
 
 				if ($check_debt == '2') // Đối chiếu công nợ
 					$work->check_debt = 1;
@@ -145,7 +138,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 			// Save ok
 			if (!empty($work->id)) {
 				// Kiểm tra nếu booking hoàn tất thì recheck x2
-				if(!is_null($booking_status) && $booking_status == '8'){
+				if (!is_null($booking_status) && $booking_status == '8') {
 					$sql_udt_recheck = "UPDATE ec_working_process 
 									SET recheck = IF(recheck > 0, 2, recheck) 
 									WHERE parent_id = '$record' AND deleted = 0";
@@ -153,17 +146,17 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 				}
 
 				// Cập nhật hỗ trợ xong thì chuyển sang status "Đã TT"
-				if($support_customer == '2' && !is_null($booking_status) && $booking_status == '1'){
+				if ($support_customer == '2' && !is_null($booking_status) && $booking_status == '1') {
 					update_field_booking($record, 'booking_status', '2');
 					update_field_booking($record, 'assigned_user_id', $current_user->id);
 				} else {
-					if($record && $booking_status){
+					if ($record && $booking_status) {
 						update_field_booking($record, 'booking_status', $booking_status);
 					}
 				}
-				
+
 				// Cập nhật giao cho khi bấm Đã gọi lần đầu
-				if($booking_status == '6') update_field_booking($record, 'assigned_user_id', $current_user->id);
+				if ($booking_status == '6') update_field_booking($record, 'assigned_user_id', $current_user->id);
 
 				// Add attribute for notes
 				$note->working_process_id = $work->id;
@@ -174,7 +167,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 				try {
 					if (!is_null($is_paid) && $is_paid == 1) {
 						$con_id = $con_phone = $con_name = '';
-						$sql_get_phone_and_zalo = 
+						$sql_get_phone_and_zalo =
 							"SELECT c.id, bk.phone
 							FROM ec_flight_bookings bk
 								LEFT JOIN contacts c ON c.phone_mobile = bk.phone AND c.deleted = 0
@@ -191,11 +184,11 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 							// 	$con_name = 'bạn';
 							// }
 						}
-	
-						if(!empty($con_phone)) {
+
+						if (!empty($con_phone)) {
 							// Update point to contact
 							$point = calculatePointsFromBooking($record);
-							if($point > 0) {
+							if ($point > 0) {
 								$sql_update_point = "UPDATE contacts SET points = points + $point WHERE id = '$con_id' AND deleted = 0";
 								$db->query($sql_update_point);
 
@@ -215,7 +208,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 								$point_log->parent_type = 'EC_Flight_Bookings';
 								$point_log->parent_id = $record;
 								$point_log->save();
-								
+
 								// Send point info to customer via Zalo
 								$entry = new entryFactory();
 								$entryOA = $entry->create('entryZaloOAClass');
@@ -241,25 +234,22 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
 									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
 									NotificationService::sendMessage($content, '', ['threadKey' => 'system']);
-								}
-								else {
+								} else {
 									$content = "Failed to send point-accumulation ZBS message";
 									$content .= "\nBooking: <b>$record_name</b>";
 									$content .= "\nPhone: <b>$con_phone</b>";
 									$content .= "\nExtra points: <b>$point</b>";
 									$content .= "\nTotal points: <b>$total_point</b>";
-									$content .= "\n<pre>". json_encode($sendResult) ."</pre>";
+									$content .= "\n<pre>" . json_encode($sendResult) . "</pre>";
 									NotificationService::sendWarningMessage($content, '', ['threadKey' => 'logs']);
 								}
 							}
 						}
 					}
-				}
-				catch(Exception $e) {
+				} catch (Exception $e) {
 					$GLOBALS['log']->error("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
 				}
-			} 
-			else echo 0;
+			} else echo 0;
 		}
 
 		// Save note
@@ -271,21 +261,21 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 			$channel = $sugar_config['notification_channel'] ?? 'Telegram';
 
 			$m = '';
-			if($note->hasMoney($txtWorkingProcessNote)) $m = trim("$record_name - $contact_name - $txtWorkingProcessNote");
+			if ($note->hasMoney($txtWorkingProcessNote)) $m = trim("$record_name - $contact_name - $txtWorkingProcessNote");
 			else {
 				$total_amount_format = !is_null($total_amount) ? number_format($total_amount, 0) : '';
 				$m = trim("$record_name - $contact_name - $txtWorkingProcessNote $total_amount_format ($total_qty vé)");
 			}
 
 			$customer_source = $db->getOne("SELECT customer_source FROM ec_flight_bookings WHERE id = '$record' AND deleted = 0");
-			if(isset($app_list_strings['booking_customer_source_list'][$customer_source])) {
+			if (isset($app_list_strings['booking_customer_source_list'][$customer_source])) {
 				$c = $app_list_strings['booking_customer_source_list'][$customer_source];
-				if($c == 'Mới') $c = 'KH ' . strtolower($c);
+				if ($c == 'Mới') $c = 'KH ' . strtolower($c);
 				$m .= " - <b>$c</b>";
 			}
-			
-			if($channel == 'Mattermost') {}
-			else {
+
+			if ($channel == 'Mattermost') {
+			} else {
 				$botToken = $sugar_config['telegram']['bot_token'] ?? '';
 				$chatId   = $sugar_config['telegram']['thongbao']['chat_id'];
 				Telegram::sendMessage($m, $botToken, $chatId);

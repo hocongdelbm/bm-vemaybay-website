@@ -226,18 +226,6 @@ class BeanJsonSerializer
             }
             //endregion
 
-            //region campaign
-            if ($key === 'campaign_id') {
-                $prettyBean['campaign']['id'] = $value;
-                continue;
-            }
-
-            if ($key === 'campaign_name') {
-                $prettyBean['campaign']['name'] = $value;
-                continue;
-            }
-            //endregion
-
             //region name
             if ($key === 'first_name') {
                 $prettyBean['name']['first'] = $value;

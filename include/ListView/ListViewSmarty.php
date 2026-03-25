@@ -179,8 +179,7 @@ class ListViewSmarty extends ListViewDisplay
             $this->ss->assign('multiSelectData', '<textarea style="display: none" name="uid"></textarea>');
         }
         // include button for Adding to Target List if in one of four applicable modules
-        if (isset($_REQUEST['module']) && in_array($_REQUEST['module'], array( 'Contacts','Prospects','Leads','Accounts' ))
-            && ACLController::checkAccess('ProspectLists', 'edit', true)) {
+        if (isset($_REQUEST['module']) && in_array($_REQUEST['module'], array( 'Contacts','Accounts' )) && ACLController::checkAccess('ProspectLists', 'edit', true)) {
             $this->ss->assign('targetLink', $this->buildTargetList()) ;
         }
 

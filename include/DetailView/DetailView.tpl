@@ -188,7 +188,3 @@ class="yui-navset detailview_tabs"
 	{{$module}}_detailview_tabs.selectTab(0);
 </script>
 {{/if}}
-<script type="text/javascript" src="include/InlineEditing/inlineEditing.js"></script>
-
-<!-- OFF -->
-<!-- <script type="text/javascript" src="modules/Favorites/favorites.js"></script> -->

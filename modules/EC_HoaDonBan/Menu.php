@@ -16,7 +16,7 @@ if ($editing_rights) {
 
     $module_menu[] = [
         "index.php?module=EC_HoaDonBan&action=checkinvoiceamount",
-        "Kiểm tra HĐ ra",
+        "Đối chiếu HĐ",
         "EC_HoaDonBan",
         "EC_HoaDonBan"
     ];

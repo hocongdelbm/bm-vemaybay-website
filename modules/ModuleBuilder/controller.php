@@ -129,10 +129,6 @@ class ModuleBuilderController extends SugarController
                 case MB_ADVANCEDSEARCH:
                     $this->view = 'searchView' ;
                     break ;
-                case MB_DASHLET:
-                case MB_DASHLETSEARCH:
-                    $this->view = 'dashlet' ;
-                    break ;
                 case MB_POPUPLIST:
                 case MB_POPUPSEARCH:
                     $this->view = 'popupview' ;
@@ -748,15 +744,6 @@ class ModuleBuilderController extends SugarController
         require_once 'modules/ModuleBuilder/parsers/ParserFactory.php' ;
         $parser = ParserFactory::getParser($_REQUEST [ 'view' ], $_REQUEST [ 'view_module' ], $packageName, $subpanelName) ;
         $this->view = 'listView' ;
-        $parser->handleSave() ;
-    }
-
-    public function action_dashletSave()
-    {
-        $this->view = 'dashlet' ;
-        $packageName = (isset($_REQUEST [ 'view_package' ]) && (strtolower($_REQUEST['view_package']) != 'studio')) ? $_REQUEST [ 'view_package' ] : null ;
-        require_once 'modules/ModuleBuilder/parsers/ParserFactory.php' ;
-        $parser = ParserFactory::getParser($_REQUEST [ 'view' ], $_REQUEST [ 'view_module' ], $packageName) ;
         $parser->handleSave() ;
     }
 

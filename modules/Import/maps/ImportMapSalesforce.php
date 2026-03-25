@@ -81,7 +81,6 @@ class ImportMapSalesforce extends ImportMapOther
         $return_array = parent::getMapping($module);
         switch ($module) {
         case 'Contacts':
-        case 'Leads':
             return $return_array + array(
                 "Description"=>"description",
                 "Birthdate"=>"birthdate",

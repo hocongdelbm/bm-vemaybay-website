@@ -91,7 +91,7 @@ CAL.init_edit_dialog = function (params) {
   var rd = CAL.get("cal-edit");
 }
 CAL.open_edit_dialog = function (params) {
-// Open modal dialog
+  // Open modal dialog
   $('.modal-cal-edit').modal('show');
 }
 CAL.close_edit_dialog = function () {
@@ -219,13 +219,13 @@ CAL.GR_update_user = function (user_id) {
       GLOBAL_REGISTRY.focus.users_arr_hash = undefined;
     }
   };
-  var data = {"users": user_id};
+  var data = { "users": user_id };
   var url = "index.php?module=Calendar&action=GetGRUsers&sugar_body_only=true";
   YAHOO.util.Connect.asyncRequest('POST', url, callback, CAL.toURI(data));
 }
 CAL.GR_update_focus = function (module, record) {
   if (record == "") {
-    GLOBAL_REGISTRY["focus"] = {"module": module, users_arr: [], fields: {"id": "-1"}};
+    GLOBAL_REGISTRY["focus"] = { "module": module, users_arr: [], fields: { "id": "-1" } };
     SugarWidgetScheduler.update_time();
   } else {
     var callback = {
@@ -310,8 +310,8 @@ CAL.load_form = function (module_name, record, edit_all_recurrences, cal_event) 
       .fail(function () {
         $('.modal-cal-tasks-edit .modal-body .container-fluid').html(SUGAR.language.translate('app_strings', 'LBL_EMAIL_ERROR_GENERAL_TITLE'));
       }).always(function () {
-      //console.log("complete");
-    });
+        //console.log("complete");
+      });
 
     $('.modal-cal-tasks-edit .modal-body .container-fluid').html(body);
     $('.modal-cal-tasks-edit').modal('show');
@@ -319,29 +319,6 @@ CAL.load_form = function (module_name, record, edit_all_recurrences, cal_event) 
       window.location.assign('index.php?module=' + cal_event.module + '&action=DetailView&record=' + cal_event.record);
     });
     $('#btn-tasks-full-form').unbind().click(function () {
-      window.location.assign('index.php?module=' + cal_event.module + '&action=EditView&record=' + cal_event.record);
-    });
-  } else if (module_name == "FP_events") {
-    var url = 'index.php?to_pdf=1&module=Home&action=AdditionalDetailsRetrieve&bean=' + cal_event.module + '&id=' + cal_event.record;
-    var body = SUGAR.language.translate('app_strings', 'LBL_LOADING_PAGE');
-
-    $.ajax(url)
-      .done(function (data) {
-        SUGAR.util.globalEval(data); // produces var result = {body:{}, caption:"", width:300}
-        $('.modal-cal-events-edit .modal-body .container-fluid').html(result.body);
-      })
-      .fail(function () {
-        $('.modal-cal-events-edit .modal-body .container-fluid').html(SUGAR.language.translate('app_strings', 'LBL_EMAIL_ERROR_GENERAL_TITLE'));
-      }).always(function () {
-      //console.log("complete");
-    });
-
-    $('.modal-cal-events-edit .modal-body .container-fluid').html(body);
-    $('.modal-cal-events-edit').modal('show');
-    $('#btn-view-events').unbind().click(function () {
-      window.location.assign('index.php?module=' + cal_event.module + '&action=DetailView&record=' + cal_event.record);
-    });
-    $('#btn-events-full-form').unbind().click(function () {
       window.location.assign('index.php?module=' + cal_event.module + '&action=EditView&record=' + cal_event.record);
     });
   }
@@ -355,7 +332,7 @@ CAL.load_form = function (module_name, record, edit_all_recurrences, cal_event) 
     params = {};
 
     if (edit_all_recurrences) {
-      params = {stay_on_tab: true};
+      params = { stay_on_tab: true };
     }
 
     CAL.open_edit_dialog(params);
@@ -425,7 +402,7 @@ CAL.load_form = function (module_name, record, edit_all_recurrences, cal_event) 
       }
     };
     var url = "index.php?module=Calendar&action=QuickEdit&sugar_body_only=true";
-    var data = {"current_module": module_name, "record": record, "edit_all_recurrences": edit_all_recurrences};
+    var data = { "current_module": module_name, "record": record, "edit_all_recurrences": edit_all_recurrences };
     YAHOO.util.Connect.asyncRequest('POST', url, callback, CAL.toURI(data));
   }
 }
@@ -460,9 +437,9 @@ CAL.remove_shared = function (record_id, edit_all_recurrences) {
       CAL.destroy_ui(e.id);
       e.parentNode.removeChild(e);
     }
-    CAL.basic.remove({record: record_id, user_id: user_id});
+    CAL.basic.remove({ record: record_id, user_id: user_id });
     CAL.each(arr, function (i, id) {
-      CAL.basic.remove({record: id, user_id: user_id});
+      CAL.basic.remove({ record: id, user_id: user_id });
     });
   });
 }
@@ -659,12 +636,12 @@ CAL.dialog_save = function () {
         // If there's more than one calendar ("shared calendar separate" is active) use the one related to the event user
         var thisCal = $('div[id^="calendar"].fc');
         if (thisCal.length > 1) {
-            // Let's look for the user ID
-            var user_id = res.user_id;
-            if (user_id === ""){
-                user_id = res.users[0];
-            }
-            thisCal = $("#calendar" + user_id);
+          // Let's look for the user ID
+          var user_id = res.user_id;
+          if (user_id === "") {
+            user_id = res.users[0];
+          }
+          thisCal = $("#calendar" + user_id);
         }
 
         thisCal.fullCalendar("removeEvents", res['record']);
@@ -770,7 +747,7 @@ CAL.refresh = function () {
       CAL.update_dd.fire();
     }
   }
-  var data = {"view": CAL.view, "year": CAL.year, "month": CAL.month, "day": CAL.day};
+  var data = { "view": CAL.view, "year": CAL.year, "month": CAL.month, "day": CAL.day };
   var url = "index.php?module=Calendar&action=getActivities&sugar_body_only=true";
   YAHOO.util.Connect.asyncRequest('POST', url, callback, CAL.toURI(data));
   CAL.clear();
@@ -822,7 +799,7 @@ CAL.toURI = function (a) {
 CAL.each = function (object, callback) {
   if (typeof object == "undefined")
     return;
-  var name, i = 0, length = object.length, isObj = (length === undefined) || (typeof(object) === "function");
+  var name, i = 0, length = object.length, isObj = (length === undefined) || (typeof (object) === "function");
   if (isObj) {
     for (name in object) {
       if (callback.call(object[name], name, object[name]) === false) {
@@ -960,9 +937,9 @@ $($.fullCalendar).ready(function () {
           var date_end = jsEvent.format(global_datetime_format);
           var date_duration = jsEvent.diff(date);
 
-           if (date.hasTime() == false) {
-             var date_end = date.add(1, 'days').format(global_datetime_format);
-           }
+          if (date.hasTime() == false) {
+            var date_end = date.add(1, 'days').format(global_datetime_format);
+          }
 
           /*
            * When user clicks on the top of the date in the month view
@@ -1068,7 +1045,7 @@ $($.fullCalendar).ready(function () {
           + '</div>';
         var body = SUGAR.language.translate('app_strings', 'LBL_LOADING_PAGE');
 
-        if ($('#cal_module').val() != "Home" && typeof(event.id) !== 'undefined') {
+        if ($('#cal_module').val() != "Home" && typeof (event.id) !== 'undefined') {
           element.qtip({
             content: {
               title: {
@@ -1101,7 +1078,7 @@ $($.fullCalendar).ready(function () {
               my: 'bottom left',
               at: 'top left'
             },
-            show: {solo: true},
+            show: { solo: true },
             hide: {
               event: 'mouseleave',
               fixed: true,

@@ -23,15 +23,6 @@ array(
     'width' => '15%',
     'default' => true,
   ),
-  'FP_EVENT_LOCATIONS_FP_EVENTS_1_NAME' =>
-  array(
-    'type' => 'relate',
-    'link' => true,
-    'label' => 'LBL_FP_EVENT_LOCATIONS_FP_EVENTS_1_FROM_FP_EVENT_LOCATIONS_TITLE',
-    'id' => 'FP_EVENT_LOCATIONS_FP_EVENTS_1FP_EVENT_LOCATIONS_IDA',
-    'width' => '15%',
-    'default' => true,
-  ),
   'BUDGET' =>
   array(
     'type' => 'currency',

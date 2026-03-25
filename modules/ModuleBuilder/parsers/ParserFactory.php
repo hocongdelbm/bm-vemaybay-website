@@ -97,11 +97,6 @@ class ParserFactory
                     require_once 'modules/ModuleBuilder/parsers/views/SubpanelMetaDataParser.php' ;
                     return new SubpanelMetaDataParser($subpanelName, $moduleName, $packageName) ;
                 }
-                // no break
-            case MB_DASHLET:
-            case MB_DASHLETSEARCH:
-                require_once 'modules/ModuleBuilder/parsers/views/DashletMetaDataParser.php' ;
-                return new DashletMetaDataParser($view, $moduleName, $packageName);
             case MB_POPUPLIST:
             case MB_POPUPSEARCH:
                 require_once 'modules/ModuleBuilder/parsers/views/PopupMetaDataParser.php' ;

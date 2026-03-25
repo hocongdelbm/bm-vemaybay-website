@@ -44,12 +44,6 @@ class RepairAndClear
             case 'clearJsFiles':
                 $this->clearJsFiles();
                 break;
-            case 'clearDashlets':
-                $this->clearDashlets();
-                break;
-            case 'clearSugarFeedCache':
-                $this->clearSugarFeedCache();
-                break;
             case 'clearThemeCache':
                 $this->clearThemeCache();
                 break;
@@ -71,8 +65,6 @@ class RepairAndClear
                 $this->clearVardefs();
                 $this->clearJsLangFiles();
                 $this->clearLanguageCache();
-                $this->clearDashlets();
-                $this->clearSugarFeedCache();
                 $this->clearSmarty();
                 $this->clearThemeCache();
                 $this->clearXMLfiles();
@@ -215,14 +207,6 @@ class RepairAndClear
         }
         $this->_clearCache(sugar_cached("xml"), '.xml');
     }
-    public function clearDashlets()
-    {
-        global $mod_strings;
-        if ($this->show_output) {
-            echo "<h3>{$mod_strings['LBL_QR_CLEARDASHLET']}</h3>";
-        }
-        $this->_clearCache(sugar_cached('dashlets'), '.php');
-    }
     public function clearThemeCache()
     {
         global $mod_strings;
@@ -231,15 +215,7 @@ class RepairAndClear
         }
         SugarThemeRegistry::clearAllCaches();
     }
-    public function clearSugarFeedCache()
-    {
-        global $mod_strings;
-        if ($this->show_output) {
-            echo "<h3>{$mod_strings['LBL_QR_CLEARSUITEFEEDCACHE']}</h3>";
-        }
 
-        SugarFeed::flushBackendCache();
-    }
     public function clearTpls()
     {
         global $mod_strings;
@@ -252,7 +228,6 @@ class RepairAndClear
             }
         } else {
             $this->_clearCache(sugar_cached('modules/'), '.tpl');
-            $this->_clearCache(sugar_cached('include/InlineEditing/'), '.tpl');
         }
     }
     public function clearVardefs()

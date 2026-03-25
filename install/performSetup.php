@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
@@ -46,14 +47,14 @@ function installStatus($msg, $cmd = null, $overwrite = false, $before = '[ok]<br
 {
     $fname = 'install/status.json';
     if (!$overwrite && file_exists($fname)) {
-        $stat = json_decode(file_get_contents($fname));
+        $stat = json_decode(file_get_contents($fname), null, 512, JSON_THROW_ON_ERROR);
         //$msg = json_encode($stat);
         $msg = $stat->message . $before . $msg;
     }
     file_put_contents($fname, json_encode(array(
         'message' => $msg,
         'command' => $cmd,
-    )));
+    ), JSON_THROW_ON_ERROR));
 }
 installStatus($mod_strings['LBL_START'], null, true, '');
 
@@ -100,12 +101,12 @@ $setup_site_admin_user_name         = $_SESSION['setup_site_admin_user_name'];
 $setup_site_admin_password          = $_SESSION['setup_site_admin_password'];
 $setup_site_guid                    = (isset($_SESSION['setup_site_specify_guid']) && $_SESSION['setup_site_specify_guid'] != '') ? $_SESSION['setup_site_guid'] : '';
 $setup_site_url                     = $_SESSION['setup_site_url'];
-$parsed_url                         = parse_url($setup_site_url);
+$parsed_url                         = parse_url((string) $setup_site_url);
 $setup_site_host_name               = $parsed_url['host'];
 $setup_site_log_dir                 = isset($_SESSION['setup_site_custom_log_dir']) ? $_SESSION['setup_site_log_dir'] : '.';
 $setup_site_log_file                = 'suitecrm.log';  // may be an option later
 $setup_site_session_path            = isset($_SESSION['setup_site_custom_session_path']) ? $_SESSION['setup_site_session_path'] : '';
-$setup_site_log_level				='fatal';
+$setup_site_log_level                = 'fatal';
 
 /*sugar_cache_clear('TeamSetsCache');
 if ( file_exists($cache_dir .'modules/Teams/TeamSetCache.php') ) {
@@ -117,7 +118,7 @@ if ( file_exists($cache_dir.'modules/Teams/TeamSetMD5Cache.php') ) {
     unlink($cache_dir.'modules/Teams/TeamSetMD5Cache.php');
 }*/
 $langHeader = get_language_header();
-$out =<<<EOQ
+$out = <<<EOQ
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <!DOCTYPE HTML>
 <html {$langHeader}>
@@ -158,7 +159,7 @@ $bottle = handleSugarConfig();
 //handleLog4Php();
 
 $server_software = $_SERVER["SERVER_SOFTWARE"];
-if (strpos($server_software, 'Microsoft-IIS') !== false) {
+if (strpos((string) $server_software, 'Microsoft-IIS') !== false) {
     installLog("calling handleWebConfig()");
     handleWebConfig();
 } else {
@@ -180,7 +181,7 @@ if ($setup_db_create_database) {
     installerHook('post_handleDbCreateDatabase');
 } else {
 
-// ensure the charset and collation are utf8
+    // ensure the charset and collation are utf8
     installLog("calling handleDbCharsetCollation()");
     installerHook('pre_handleDbCharsetCollation');
     handleDbCharsetCollation();
@@ -232,14 +233,14 @@ $nonStandardModules = array(
  * loop through all the Beans and create their tables
  */
 installStatus($mod_strings['STAT_CREATE_DB']);
- installLog("looping through all the Beans and create their tables");
- //start by clearing out the vardefs
- VardefManager::clearVardef();
+installLog("looping through all the Beans and create their tables");
+//start by clearing out the vardefs
+VardefManager::clearVardef();
 installerHook('pre_createAllModuleTables');
 
 
 foreach ($beanFiles as $bean => $file) {
-    $doNotInit = array('Scheduler', 'SchedulersJob', 'ProjectTask','jjwg_Maps','jjwg_Address_Cache','jjwg_Areas','jjwg_Markers');
+    $doNotInit = array('Scheduler', 'SchedulersJob', 'ProjectTask', 'jjwg_Maps', 'jjwg_Address_Cache', 'jjwg_Areas', 'jjwg_Markers');
 
     if (in_array($bean, $doNotInit)) {
         $focus = new $bean(false);
@@ -253,14 +254,14 @@ foreach ($beanFiles as $bean => $file) {
 
     $table_name = $focus->table_name;
     //installStatus(sprintf($mod_strings['STAT_CREATE_DB_TABLE'], $focus->table_name ));
-    installLog("processing table ".$focus->table_name);
+    installLog("processing table " . $focus->table_name);
     // check to see if we have already setup this table
     if (!in_array($table_name, $processed_tables)) {
-        if (!file_exists("modules/".$focus->module_dir."/vardefs.php")) {
+        if (!file_exists("modules/" . $focus->module_dir . "/vardefs.php")) {
             continue;
         }
         if (!in_array($bean, $nonStandardModules)) {
-            require_once("modules/".$focus->module_dir."/vardefs.php"); // load up $dictionary
+            require_once("modules/" . $focus->module_dir . "/vardefs.php"); // load up $dictionary
             if (isset($dictionary[$focus->object_name]['table']) && $dictionary[$focus->object_name]['table'] == 'does_not_exist') {
                 continue; // support new vardef definitions
             }
@@ -275,11 +276,11 @@ foreach ($beanFiles as $bean => $file) {
 
         if ($setup_db_drop_tables) {
             drop_table_install($focus);
-            installLog("dropping table ".$focus->table_name);
+            installLog("dropping table " . $focus->table_name);
         }
 
         if (create_table_if_not_exist($focus)) {
-            installLog("creating table ".$focus->table_name);
+            installLog("creating table " . $focus->table_name);
             if ($bean == "User") {
                 $new_tables = 1;
             }
@@ -288,7 +289,7 @@ foreach ($beanFiles as $bean => $file) {
             }
         }
 
-        installLog("creating Relationship Meta for ".$focus->getObjectName());
+        installLog("creating Relationship Meta for " . $focus->getObjectName());
         installerHook('pre_createModuleTable', array('module' => $focus->getObjectName()));
         SugarBean::createRelationshipMeta($focus->getObjectName(), $db, $table_name, $empty, $focus->module_dir);
         installerHook('post_createModuleTable', array('module' => $focus->getObjectName()));
@@ -305,171 +306,158 @@ echo "<br>";
 ///////////////////////////////////////////////////////////////////////////////
 ////    START RELATIONSHIP CREATION
 
-    ksort($rel_dictionary);
-    foreach ($rel_dictionary as $rel_name => $rel_data) {
-        $table = $rel_data['table'];
+ksort($rel_dictionary);
+foreach ($rel_dictionary as $rel_name => $rel_data) {
+    $table = $rel_data['table'];
 
-        if ($setup_db_drop_tables) {
-            if ($db->tableExists($table)) {
-                $db->dropTableName($table);
-            }
+    if ($setup_db_drop_tables) {
+        if ($db->tableExists($table)) {
+            $db->dropTableName($table);
         }
-
-        if (!$db->tableExists($table)) {
-            $db->createTableParams($table, $rel_data['fields'], $rel_data['indices']);
-        }
-
-        SugarBean::createRelationshipMeta($rel_name, $db, $table, $rel_dictionary, '');
     }
+
+    if (!$db->tableExists($table)) {
+        $db->createTableParams($table, $rel_data['fields'], $rel_data['indices']);
+    }
+
+    SugarBean::createRelationshipMeta($rel_name, $db, $table, $rel_dictionary, '');
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ////    START CREATE DEFAULTS
-    echo "<br>";
-    echo "<b>{$mod_strings['LBL_PERFORM_CREATE_DEFAULT']}</b><br>";
-    echo "<br>";
+echo "<br>";
+echo "<b>{$mod_strings['LBL_PERFORM_CREATE_DEFAULT']}</b><br>";
+echo "<br>";
 installStatus($mod_strings['STAT_CREATE_DEFAULT_SETTINGS']);
-    installLog("Begin creating Defaults");
-    installerHook('pre_createDefaultSettings');
-    if ($new_config) {
-        installLog("insert defaults into config table");
-        insert_default_settings();
-    }
-    installerHook('post_createDefaultSettings');
+installLog("Begin creating Defaults");
+installerHook('pre_createDefaultSettings');
+if ($new_config) {
+    installLog("insert defaults into config table");
+    insert_default_settings();
+}
+installerHook('post_createDefaultSettings');
 
 
 
 
 
-    installerHook('pre_createUsers');
-    if ($new_tables) {
-        echo $line_entry_format.$mod_strings['LBL_PERFORM_DEFAULT_USERS'].$line_exit_format;
-        installLog($mod_strings['LBL_PERFORM_DEFAULT_USERS']);
-        create_default_users();
-        echo $mod_strings['LBL_PERFORM_DONE'];
-    } else {
-        echo $line_entry_format.$mod_strings['LBL_PERFORM_ADMIN_PASSWORD'].$line_exit_format;
-        installLog($mod_strings['LBL_PERFORM_ADMIN_PASSWORD']);
-        $db->setUserName($setup_db_sugarsales_user);
-        $db->setUserPassword($setup_db_sugarsales_password);
-        set_admin_password($setup_site_admin_password);
-        echo $mod_strings['LBL_PERFORM_DONE'];
-    }
-    installerHook('post_createUsers');
-
-
-
-
-    // default OOB schedulers
-
-    echo $line_entry_format.$mod_strings['LBL_PERFORM_DEFAULT_SCHEDULER'].$line_exit_format;
-    installLog($mod_strings['LBL_PERFORM_DEFAULT_SCHEDULER']);
-    $scheduler = BeanFactory::newBean('Schedulers');
-    installerHook('pre_createDefaultSchedulers');
-    $scheduler->rebuildDefaultSchedulers();
-    installerHook('post_createDefaultSchedulers');
-
-
+installerHook('pre_createUsers');
+if ($new_tables) {
+    echo $line_entry_format . $mod_strings['LBL_PERFORM_DEFAULT_USERS'] . $line_exit_format;
+    installLog($mod_strings['LBL_PERFORM_DEFAULT_USERS']);
+    create_default_users();
     echo $mod_strings['LBL_PERFORM_DONE'];
+} else {
+    echo $line_entry_format . $mod_strings['LBL_PERFORM_ADMIN_PASSWORD'] . $line_exit_format;
+    installLog($mod_strings['LBL_PERFORM_ADMIN_PASSWORD']);
+    $db->setUserName($setup_db_sugarsales_user);
+    $db->setUserPassword($setup_db_sugarsales_password);
+    set_admin_password($setup_site_admin_password);
+    echo $mod_strings['LBL_PERFORM_DONE'];
+}
+installerHook('post_createUsers');
 
 
 
-// Enable Sugar Feeds and add all feeds by default
-installLog("Enable SugarFeeds");
-enableSugarFeeds();
+
+// default OOB schedulers
+
+echo $line_entry_format . $mod_strings['LBL_PERFORM_DEFAULT_SCHEDULER'] . $line_exit_format;
+installLog($mod_strings['LBL_PERFORM_DEFAULT_SCHEDULER']);
+$scheduler = BeanFactory::newBean('Schedulers');
+installerHook('pre_createDefaultSchedulers');
+$scheduler->rebuildDefaultSchedulers();
+installerHook('post_createDefaultSchedulers');
+
+
+echo $mod_strings['LBL_PERFORM_DONE'];
 
 ///////////////////////////////////////////////////////////////////////////
 ////    FINALIZE LANG PACK INSTALL
-    if (isset($_SESSION['INSTALLED_LANG_PACKS']) && is_array($_SESSION['INSTALLED_LANG_PACKS']) && !empty($_SESSION['INSTALLED_LANG_PACKS'])) {
-        updateUpgradeHistory();
-    }
+if (isset($_SESSION['INSTALLED_LANG_PACKS']) && is_array($_SESSION['INSTALLED_LANG_PACKS']) && !empty($_SESSION['INSTALLED_LANG_PACKS'])) {
+    updateUpgradeHistory();
+}
 
 
-    //require_once('modules/Connectors/InstallDefaultConnectors.php');
+//require_once('modules/Connectors/InstallDefaultConnectors.php');
 
-    ///////////////////////////////////////////////////////////////////////////////
-    ////    INSTALL PASSWORD TEMPLATES
-    include('install/seed_data/Advanced_Password_SeedData.php');
+///////////////////////////////////////////////////////////////////////////////
+////    INSTALL PASSWORD TEMPLATES
+include('install/seed_data/Advanced_Password_SeedData.php');
 
 ///////////////////////////////////////////////////////////////////////////////
 ////    SETUP DONE
 installLog("Installation has completed *********");
 
-    $memoryUsed = '';
-    if (function_exists('memory_get_usage')) {
-        $memoryUsed = $mod_strings['LBL_PERFORM_OUTRO_5'] . memory_get_usage() . $mod_strings['LBL_PERFORM_OUTRO_6'];
-    }
+$memoryUsed = '';
+if (function_exists('memory_get_usage')) {
+    $memoryUsed = $mod_strings['LBL_PERFORM_OUTRO_5'] . memory_get_usage() . $mod_strings['LBL_PERFORM_OUTRO_6'];
+}
 
 
-    $errTcpip = '';
-    $fp = @fsockopen("www.suitecrm.com", 80, $errno, $errstr, 3);
-    if (!$fp) {
-        $errTcpip = "<p>{$mod_strings['ERR_PERFORM_NO_TCPIP']}</p>";
+$errTcpip = '';
+$fp = @fsockopen("www.suitecrm.com", 80, $errno, $errstr, 3);
+if (!$fp) {
+    $errTcpip = "<p>{$mod_strings['ERR_PERFORM_NO_TCPIP']}</p>";
+}
+if ($fp && (!isset($_SESSION['oc_install']) || $_SESSION['oc_install'] == false)) {
+    @fclose($fp);
+    if ($next_step == 9999) {
+        $next_step = 8;
     }
-    if ($fp && (!isset($_SESSION['oc_install']) || $_SESSION['oc_install'] == false)) {
-        @fclose($fp);
-        if ($next_step == 9999) {
-            $next_step = 8;
-        }
-        $fpResult = <<<FP
+    $fpResult = <<<FP
      <form action="install.php" method="post" name="form" id="form">
      <input type="hidden" name="current_step" value="{$next_step}">
      <input class="button" type="submit" name="goto" value="{$mod_strings['LBL_NEXT']}" id="button_next2"/>
      </form>
 FP;
-    } else {
-        $fpResult = <<<FP
+} else {
+    $fpResult = <<<FP
             <form action="index.php" method="post" name="formFinish" id="formFinish">
                 <input type="hidden" name="default_user_name" value="admin" />
                 <input class="button" type="submit" name="next" value="{$mod_strings['LBL_PERFORM_FINISH']}" id="button_next2"/>
             </form>
 FP;
-    }
+}
 
-    if (isset($_SESSION['setup_site_sugarbeet_automatic_checks']) && $_SESSION['setup_site_sugarbeet_automatic_checks'] == true) {
-        set_CheckUpdates_config_setting('automatic');
-    } else {
-        set_CheckUpdates_config_setting('manual');
-    }
-    if (!empty($_SESSION['setup_system_name'])) {
-        $admin=BeanFactory::newBean('Administration');
-        $admin->saveSetting('system', 'name', $_SESSION['setup_system_name']);
-    }
+if (isset($_SESSION['setup_site_sugarbeet_automatic_checks']) && $_SESSION['setup_site_sugarbeet_automatic_checks'] == true) {
+    set_CheckUpdates_config_setting('automatic');
+} else {
+    set_CheckUpdates_config_setting('manual');
+}
+if (!empty($_SESSION['setup_system_name'])) {
+    $admin = BeanFactory::newBean('Administration');
+    $admin->saveSetting('system', 'name', $_SESSION['setup_system_name']);
+}
 
-    // Bug 28601 - Set the default list of tabs to show
-    $enabled_tabs = array();
-    $enabled_tabs[] = 'Home';
-    $enabled_tabs[] = 'Accounts';
-    $enabled_tabs[] = 'Contacts';
-    $enabled_tabs[] = 'Opportunities';
-    $enabled_tabs[] = 'Leads';
-    $enabled_tabs[] = 'AOS_Quotes';
-    $enabled_tabs[] = 'Calendar';
-    $enabled_tabs[] = 'Documents';
-    $enabled_tabs[] = 'Emails';
-    $enabled_tabs[] = 'Spots';
-    $enabled_tabs[] = 'Campaigns';
-    $enabled_tabs[] = 'Calls';
-    $enabled_tabs[] = 'Meetings';
-    $enabled_tabs[] = 'Tasks';
-    $enabled_tabs[] = 'Notes';
-    $enabled_tabs[] = 'AOS_Invoices';
-    $enabled_tabs[] = 'AOS_Contracts';
-    $enabled_tabs[] = 'Cases';
-    $enabled_tabs[] = 'Prospects';
-    $enabled_tabs[] = 'ProspectLists';
-    $enabled_tabs[] = 'Project';
-    $enabled_tabs[] = 'AM_ProjectTemplates';
-    $enabled_tabs[] = 'AM_TaskTemplates';
-    $enabled_tabs[] = 'FP_events';
-    $enabled_tabs[] = 'FP_Event_Locations';
-    $enabled_tabs[] = 'AOS_Products';
-    $enabled_tabs[] = 'AOS_Product_Categories';
-    $enabled_tabs[] = 'AOS_PDF_Templates';
-    $enabled_tabs[] = 'AOR_Reports';
-    $enabled_tabs[] = 'AOK_KnowledgeBase';
-    $enabled_tabs[] = 'AOK_Knowledge_Base_Categories';
-    $enabled_tabs[] = 'EmailTemplates';
-    $enabled_tabs[] = 'Surveys';
+// Bug 28601 - Set the default list of tabs to show
+$enabled_tabs = array();
+$enabled_tabs[] = 'Home';
+$enabled_tabs[] = 'Accounts';
+$enabled_tabs[] = 'Contacts';
+$enabled_tabs[] = 'Opportunities';
+$enabled_tabs[] = 'AOS_Quotes';
+$enabled_tabs[] = 'Calendar';
+$enabled_tabs[] = 'Documents';
+$enabled_tabs[] = 'Emails';
+$enabled_tabs[] = 'Spots';
+$enabled_tabs[] = 'Campaigns';
+$enabled_tabs[] = 'Calls';
+$enabled_tabs[] = 'Meetings';
+$enabled_tabs[] = 'Tasks';
+$enabled_tabs[] = 'Notes';
+$enabled_tabs[] = 'AOS_Invoices';
+$enabled_tabs[] = 'AOS_Contracts';
+$enabled_tabs[] = 'Cases';
+$enabled_tabs[] = 'Project';
+$enabled_tabs[] = 'AM_ProjectTemplates';
+$enabled_tabs[] = 'AM_TaskTemplates';
+$enabled_tabs[] = 'AOS_Products';
+$enabled_tabs[] = 'AOS_Product_Categories';
+$enabled_tabs[] = 'AOS_PDF_Templates';
+$enabled_tabs[] = 'AOK_KnowledgeBase';
+$enabled_tabs[] = 'AOK_Knowledge_Base_Categories';
+$enabled_tabs[] = 'EmailTemplates';
 
 //Beginning of the scenario implementations
 //We need to load the tabs so that we can remove those which are scenario based and un-selected
@@ -500,7 +488,7 @@ if (isset($_SESSION['installation_scenarios'])) {
         //If the item is not in $_SESSION['scenarios'], then unset them as they are not required
         if (!in_array($scenario['key'], $_SESSION['scenarios'])) {
             foreach ($scenario['modules'] as $module) {
-                if (($removeKey = array_search($module, $enabled_tabs)) !== false) {
+                if (($removeKey = array_search($module, $enabled_tabs, true)) !== false) {
                     unset($enabled_tabs[$removeKey]);
                 }
             }
@@ -530,11 +518,11 @@ if (!is_null($_SESSION['scenarios'])) {
 
 
 //Write the tabstructure to custom so that the grouping are not shown for the un-selected scenarios
-$fileContents = "<?php \n" .'$GLOBALS["tabStructure"] ='.var_export($GLOBALS['tabStructure'], true).';';
+$fileContents = "<?php \n" . '$GLOBALS["tabStructure"] =' . var_export($GLOBALS['tabStructure'], true) . ';';
 sugar_file_put_contents('custom/include/tabConfig.php', $fileContents);
 
 //Write the dashlets to custom so that the dashlets are not shown for the un-selected scenarios
-$fileContents = "<?php \n" .'$defaultDashlets ='.var_export($defaultDashlets, true).';';
+$fileContents = "<?php \n" . '$defaultDashlets =' . var_export($defaultDashlets, true) . ';';
 sugar_file_put_contents('custom/modules/Home/dashlets.php', $fileContents);
 
 
@@ -663,9 +651,11 @@ installLog('new Currency');
 $currency = new Currency;
 installLog('retrieve');
 $currency->retrieve($currency->retrieve_id_by_name($_REQUEST['default_currency_name']));
-if (!empty($currency->id)
+if (
+    !empty($currency->id)
     && $currency->symbol == $_REQUEST['default_currency_symbol']
-    && $currency->iso4217 == $_REQUEST['default_currency_iso4217']) {
+    && $currency->iso4217 == $_REQUEST['default_currency_iso4217']
+) {
     $currency->deleted = 1;
     installLog('DBG: save currency');
     $currency->save();
@@ -712,7 +702,9 @@ $_POST['user_theme'] = (string) SugarThemeRegistry::getDefault();
 $_REQUEST['do_not_redirect'] = true;
 
 // restore superglobals and vars
-$GLOBALS = $varStack['GLOBALS'];
+foreach ($varStack['GLOBALS'] ?? [] as $index => $item) {
+    $GLOBALS[$index] = $item;
+}
 foreach ($varStack['defined_vars'] as $__key => $__value) {
     $$__key = $__value;
 }
@@ -723,12 +715,12 @@ $endTime = microtime(true);
 $deltaTime = $endTime - $startTime;
 
 if (!is_array($bottle) || !is_object($bottle)) {
-    $bottle = (array)$bottle;
+    $bottle = $bottle;
     LoggerManager::getLogger()->warn('Bottle needs to be an array to perform setup');
 }
 
 
-if (count($bottle) > 0) {
+if (is_countable($bottle) && count($bottle) > 0) {
     foreach ($bottle as $bottle_message) {
         $bottleMsg .= "{$bottle_message}\n";
     }
@@ -737,7 +729,7 @@ if (count($bottle) > 0) {
 }
 installerHook('post_installModules');
 
-$out =<<<EOQ
+$out = <<<EOQ
 <br><p><b>{$mod_strings['LBL_PERFORM_OUTRO_1']} {$setup_sugar_version} {$mod_strings['LBL_PERFORM_OUTRO_2']}</b></p>
 
 {$mod_strings['LBL_PERFORM_OUTRO_3']} {$deltaTime} {$mod_strings['LBL_PERFORM_OUTRO_4']}<br />
