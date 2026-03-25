@@ -48,7 +48,6 @@ class EC_Flight_Bookings extends Basic
 	public $flight_type;
 	public $luggage_fee;
 	public $discount_amount;
-	public $country;
 	public $city;
 	public $airline;
 	public $airline_inbound;

@@ -262,10 +262,9 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		}
 
 		// Nơi đặt vé của Booking
-		$location_booking = '
-			<div class="ui-widget">
-				<input placeholder="Hồ Chí Minh, Hà Nội,..." type="text" class="location_booking" name="country" id="location_booking" value="' . $this->bean->country . '">
-			</div>';
+		$location_booking = '<div class="ui-widget">
+			<input placeholder="Hồ Chí Minh, Hà Nội,..." type="text" class="location_booking" name="city" id="location_booking" value="' . $this->bean->city . '">
+		</div>';
 		$this->ss->assign('LOCATION_BOOKING', $location_booking);
 	}
 

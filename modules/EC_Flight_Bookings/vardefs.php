@@ -335,26 +335,26 @@ $dictionary['EC_Flight_Bookings'] = array(
         ),
 
         'city' => array(
-            'name'       => 'city',
-            'vname'      => 'LBL_CITY',
-            'type'       => 'varchar',
-            'len'        => 80,
-            'default'    => '',
+            'name' => 'city',
+            'vname' => 'LBL_CITY',
+            'type' => 'varchar',
+            'len' => 60,
+            'default' => '',
             'importable' => true,
             'reportable' => false,
             'audited' => 1,
         ),
 
-        'country' => array(
-            'name'       => 'country',
-            'vname'      => 'LBL_COUNTRY',
-            'type'       => 'varchar',
-            'len'        => 50,
-            'default'    => '',
-            'importable' => true,
-            'reportable' => false,
-            'audited' => 1,
-        ),
+        // 'country' => array(
+        //     'name'       => 'country',
+        //     'vname'      => 'LBL_COUNTRY',
+        //     'type'       => 'varchar',
+        //     'len'        => 50,
+        //     'default'    => '',
+        //     'importable' => true,
+        //     'reportable' => false,
+        //     'audited' => 1,
+        // ),
 
         'airline' => array(
             'name'       => 'airline',

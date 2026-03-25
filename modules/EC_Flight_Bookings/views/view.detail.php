@@ -4,6 +4,9 @@ require_once('modules/EC_Messages/SMS.php');
 
 class EC_Flight_BookingsViewDetail extends ViewDetail
 {
+	/**
+	 * @var EC_Flight_Bookings
+	 */
 	public $bean;
 	private $_outbound_airline = '';
 	private $_inbound_airline = '';
@@ -662,6 +665,18 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			</div>
 		</div>';
 		$this->ss->assign('CONTACT_PHONE', $contact_phone);
+
+		// // LOCATION
+		// $location = '';
+		// $coordinates = explode(",", $this->bean->city);
+		// if(is_array($coordinates) && count($coordinates) == 2) {
+		// 	$lat = trim($coordinates[0]);
+		// 	$long = trim($coordinates[1]);
+		// 	// Call API to get location name
+		// 	$location = '';
+		// }
+		// else $location = $this->bean->city;
+		// $this->ss->assign('LOCATION', $location);
 
 		// Check is paid - is agent (Là đại lý)
 		if (!$this->checkIsPaidNote($this->bean->id)) {
