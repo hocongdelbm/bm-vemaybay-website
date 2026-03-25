@@ -2907,11 +2907,6 @@ button.list-group-item-danger.active:focus {
      content: ""
 }
 
-.suitepicon-module-leads:before,
-.suitepicon-module-lead:before {
-     content: ""
-}
-
 .suitepicon-module-listview:before {
      content: ""
 }

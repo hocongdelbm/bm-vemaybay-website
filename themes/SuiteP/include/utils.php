@@ -1692,7 +1692,6 @@ function get_workflow_admin_modules_for_user($user)
     $workflow_mod_list['Calls'] = 'Calls';
     $workflow_mod_list['Meetings'] = 'Meetings';
     $workflow_mod_list['Notes'] = 'Notes';
-    $workflow_mod_list['Leads'] = 'Leads';
     $workflow_mod_list['Opportunities'] = 'Opportunities';
     // End of list
 
@@ -2904,11 +2903,7 @@ function values_to_keys($array)
 function clone_relationship(&$db, $tables, $from_column = null, $from_id = null, $to_id = null)
 {
     foreach ((array) $tables as $table) {
-        if ($table == 'emails_beans') {
-            $query = "SELECT * FROM $table WHERE $from_column='$from_id' and bean_module='Leads'";
-        } else {
-            $query = "SELECT * FROM $table WHERE $from_column='$from_id'";
-        }
+        $query = "SELECT * FROM $table WHERE $from_column='$from_id'";
         $results = $db->query($query);
         while ($row = $db->fetchByAssoc($results)) {
             $query = "INSERT INTO $table ";

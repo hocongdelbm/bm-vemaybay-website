@@ -126,7 +126,6 @@ $mod_strings = array(
     'NTC_OPPORTUNITY_REQUIRES_ACCOUNT' => 'Creating an opportunity requires an account.\n Please either create a new account or select an existing one.',
     'NTC_REMOVE_CONFIRMATION' => 'Are you sure you want to remove this contact from the case?',
 
-    'LBL_LEADS_SUBPANEL_TITLE' => 'Leads',
     'LBL_OPPORTUNITIES_SUBPANEL_TITLE' => 'Opportunities',
     'LBL_DOCUMENTS_SUBPANEL_TITLE' => 'Documents',
     'LBL_COPY_ADDRESS_CHECKED_PRIMARY' => 'Copy to Primary Address',

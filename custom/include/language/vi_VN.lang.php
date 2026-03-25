@@ -8,7 +8,6 @@ $app_list_strings['moduleList']['EmailMarketing']         = 'Email tiếp thị'
 $app_list_strings['moduleList']['Calls']                  = 'Cuộc gọi';
 $app_list_strings['moduleList']['Calls_Reschedule']       = 'Lịch gọi';
 $app_list_strings['moduleList']['Alerts']                 = 'Thông báo';
-$app_list_strings['moduleList']['Leads']                  = 'Đầu mối';
 $app_list_strings['moduleList']['TemplateSectionLine']    = 'Bản mẫu phần dòng';
 $app_list_strings['moduleList']['Schedulers']             = 'Lịch biểu';
 $app_list_strings['moduleList']['OAuth2Clients']          = 'OAuth2Clients';

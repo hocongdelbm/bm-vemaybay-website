@@ -1478,8 +1478,6 @@ class ListView
                 $html_text = '';
                 $html_text .= "<tr class='pagination' role='presentation'>\n";
                 $html_text .= "<td COLSPAN=\"$col_count\" align=\"right\">\n";
-                //$html_text .= "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"  >$export_link$merge_link$selected_objects_span</td>\n";
-                //$html_text .= "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"  >";
                 if ($subpanel_def != null) {
                     include_once('include/SubPanel/SubPanelTiles.php');
                     $subpanelTiles = new SubPanelTiles($sugarbean);

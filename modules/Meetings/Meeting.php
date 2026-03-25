@@ -317,14 +317,6 @@ class Meeting extends SugarBean
                             unset($reminderData[$r]['invitees'][$i]);
                         }
                         break;
-                    case "Leads":
-                        if (in_array($invitee['module_id'], $this->leads_arr) === false) {
-                            // add to uninvited
-                            $uninvited[] = $reminderData[$r]['invitees'][$i];
-                            // remove lead
-                            unset($reminderData[$r]['invitees'][$i]);
-                        }
-                        break;
                 }
             }
         }

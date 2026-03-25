@@ -12,7 +12,6 @@ $app_list_strings['moduleList'] = array(
   'Meetings' => 'Meetings',
   'Tasks' => 'Tasks',
   'Calendar' => 'Calendar',
-  'Leads' => 'Leads',
   'Currencies' => 'Currencies',
   'Activities' => 'Activities',
   'Bugs' => 'Bug Tracker',

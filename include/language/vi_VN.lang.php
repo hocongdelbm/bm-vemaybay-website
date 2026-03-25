@@ -25,7 +25,6 @@ $app_list_strings = array(
         'Meetings' => 'Hội họp',
         'Tasks' => 'Công việc',
         'Calendar' => 'Lịch',
-        'Leads' => 'Đầu mối',
         'Currencies' => 'Tiền tệ',
         'Activities' => 'Hoạt động',
         'Bugs' => 'Lỗi',
@@ -384,7 +383,6 @@ $app_list_strings = array(
         'Accounts' => 'Tài khoản',
         'Opportunities' => 'Cơ hội',
         'Cases' => 'Kịch bản',
-        'Leads' => 'Đối tác tiềm năng',
         'Contacts' => 'Liên hệ', // cn (11/22/2005) added to support Emails
 
         'Bugs' => 'Phát sinh',
@@ -422,11 +420,8 @@ $app_list_strings = array(
         'Accounts' => 'Tài khoản',
         'Tasks' => 'Công việc',
         'Opportunities' => 'Cơ hội',
-
         'Bugs' => 'Phát sinh',
         'Cases' => 'Kịch bản',
-        'Leads' => 'Đầu mối',
-
         'AOS_Contracts' => 'Hợp đồng',
         'AOS_Invoices' => 'Hoá đơn',
         'AOS_Quotes' => 'Báo giá',
@@ -529,7 +524,6 @@ $app_list_strings = array(
         'Forecasts' => 'Dự báo',
         'Help' => 'Giúp đỡ',
         'Home' => 'Trang chủ',
-        'Leads' => 'Đầu mối',
         'Meetings' => 'Hội họp',
         'Notes' => 'Ghi chú',
         'Opportunities' => 'Cơ hội',
@@ -1178,7 +1172,6 @@ $app_strings = array(
 
     'LBL_EMAIL_QC_BUGS' => 'Phát sinh',
     'LBL_EMAIL_QC_CASES' => 'Kịch bản',
-    'LBL_EMAIL_QC_LEADS' => 'Đối tác tiềm năng',
     'LBL_EMAIL_QC_CONTACTS' => 'Liên hệ',
     'LBL_EMAIL_QC_TASKS' => 'Công việc',
     'LBL_EMAIL_QC_OPPORTUNITIES' => 'Cơ hội',
@@ -1401,7 +1394,6 @@ $app_strings = array(
     'LBL_IMPORT' => 'Nhập',
     'LBL_IMPORT_STARTED' => 'Bắt đầu nhập: ',
     'LBL_LAST_VIEWED' => 'Vừa xem qua',
-    'LBL_LEADS' => 'Đầu mối',
     'LBL_LESS' => 'ít hơn',
     'LBL_THEME' => 'Giao diện:',
     'LBL_FOUND_IN_RELEASE' => 'Tìm thấy trong bản phát hành',
@@ -1954,8 +1946,6 @@ $app_strings = array(
 
     'ANNUAL_REVENUE_BY_ACCOUNTS' => 'Doanh thu hàng năm theo Tài khoản',
     'PIPELINE_BY_SALES_STAGE' => 'hành trình bởi giai đoạn',
-    'LEADS_BY_SOURCE' => 'Các khách hàng tiềm năng theo nguồn',
-    'LEADS_BY_STATUS' => 'Các khách hàng tiềm năng theo trạng thái',
     'ACCOUNT_TYPES_PER_MONTH' => 'Tài khoản mới theo tháng',
 
     'ERR_CONNECTOR_NOT_ARRAY' => 'đầu nối mảng trong {0} định nghĩa không chính xác hoặc có sản phẩm nào và không được sử dụng.',
@@ -2901,7 +2891,6 @@ $app_list_strings['pdf_template_type_dom']['AOS_Invoices'] = 'Hóa đơn';
 $app_list_strings['pdf_template_type_dom']['AOS_Contracts'] = 'Hợp đồng';
 $app_list_strings['pdf_template_type_dom']['Accounts'] = 'Tài khoản';
 $app_list_strings['pdf_template_type_dom']['Contacts'] = 'Khách hàng';
-$app_list_strings['pdf_template_type_dom']['Leads'] = 'Đầu mối';
 $app_list_strings['pdf_template_type_dom']['EC_Flight_Booking'] = 'In vé';
 
 $app_list_strings['pdf_template_sample_dom'][''] = '';
@@ -2996,14 +2985,12 @@ $app_list_strings['map_unit_type_list']['km'] = 'Cây số';
 $app_list_strings['map_module_type_list']['Accounts'] = 'Tài khoản';
 $app_list_strings['map_module_type_list']['Contacts'] = 'Liên hệ';
 $app_list_strings['map_module_type_list']['Cases'] = 'Kịch bản';
-$app_list_strings['map_module_type_list']['Leads'] = 'Đầu mối';
 $app_list_strings['map_module_type_list']['Meetings'] = 'Hội họp';
 $app_list_strings['map_module_type_list']['Opportunities'] = 'Cơ hội';
 
 $app_list_strings['map_relate_type_list']['Accounts'] = 'Tài khoản';
 $app_list_strings['map_relate_type_list']['Contacts'] = 'Liên hệ';
 $app_list_strings['map_relate_type_list']['Cases'] = 'Kịch bản';
-$app_list_strings['map_relate_type_list']['Leads'] = 'Đầu mối';
 $app_list_strings['map_relate_type_list']['Meetings'] = 'Hội họp';
 $app_list_strings['map_relate_type_list']['Opportunities'] = 'Cơ hội';
 

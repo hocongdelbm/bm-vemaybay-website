@@ -1459,10 +1459,7 @@ class ListView
                     $selected_objects_span = '';
                 }
                 $export_link = "&nbsp;";
-                $merge_link = "&nbsp;";
-            } elseif ($_REQUEST['module'] != "Accounts" && $_REQUEST['module'] != "Cases" && $_REQUEST['module'] != "Contacts" && $_REQUEST['module'] != "Leads" && $_REQUEST['module'] != "Opportunities") {
-                $merge_link = "&nbsp;";
-            }
+            } 
 
             if ($this->show_paging == true) {
                 if (!empty($sugar_config['disable_count_query'])) {
@@ -1474,8 +1471,6 @@ class ListView
                 $html_text = '';
                 $html_text .= "<tr class='pagination' role='presentation'>\n";
                 $html_text .= "<td COLSPAN=\"$col_count\" align=\"right\">\n";
-                //$html_text .= "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"  >$export_link$merge_link$selected_objects_span</td>\n";
-                //$html_text .= "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"  >";
                 if ($subpanel_def != null) {
                     include_once('include/SubPanel/SubPanelTiles.php');
                     $subpanelTiles = new SubPanelTiles($sugarbean);

@@ -21,10 +21,6 @@ $unified_search_modules_display = array (
   array (
     'visible' => true,
   ),
-  'Leads' => 
-  array (
-    'visible' => true,
-  ),
   'Meetings' => 
   array (
     'visible' => true,

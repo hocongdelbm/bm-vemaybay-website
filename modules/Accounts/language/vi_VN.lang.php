@@ -55,7 +55,6 @@ $mod_strings = array(
     'LBL_INDUSTRY' => 'Loại hình:',
     'LBL_INVALID_EMAIL' => 'Email không tồn tại:',
     'LBL_INVITEE' => 'Liên hệ',
-    'LBL_LEADS_SUBPANEL_TITLE' => 'Đầu mối',
     'LBL_LIST_ACCOUNT_NAME' => 'Tên',
     'LBL_LIST_CITY' => 'Thành phố',
     'LBL_LIST_CONTACT_NAME' => 'Tên liên lạc',

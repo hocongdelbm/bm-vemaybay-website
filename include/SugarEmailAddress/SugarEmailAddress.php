@@ -2023,7 +2023,7 @@ class SugarEmailAddress extends SugarBean
     }
 
     /**
-     * It returns a ViewDefs for Confirm Opt In action link on DetailViews, specially for Accounts/Contacts/Leads
+     * It returns a ViewDefs for Confirm Opt In action link on DetailViews, specially for Accounts/Contacts
      *
      * @param string $module module name
      * @param string $returnModule optional, using module name if null

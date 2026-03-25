@@ -217,13 +217,6 @@ $dictionary['Contact'] = array(
             'source' => 'non-db',
             'vname' => 'LBL_DOCUMENTS_SUBPANEL_TITLE',
         ),
-        'leads' => array(
-            'name' => 'leads',
-            'type' => 'link',
-            'relationship' => 'contact_leads',
-            'source' => 'non-db',
-            'vname' => 'LBL_LEADS',
-        ),
         'meetings' => array(
             'name' => 'meetings',
             'type' => 'link',
@@ -489,15 +482,6 @@ $dictionary['Contact'] = array(
             'rhs_module' => 'Contacts',
             'rhs_table' => 'contacts',
             'rhs_key' => 'reports_to_id',
-            'relationship_type' => 'one-to-many'
-        ),
-        'contact_leads' => array(
-            'lhs_module' => 'Contacts',
-            'lhs_table' => 'contacts',
-            'lhs_key' => 'id',
-            'rhs_module' => 'Leads',
-            'rhs_table' => 'leads',
-            'rhs_key' => 'contact_id',
             'relationship_type' => 'one-to-many'
         ),
         'contact_notes' => array(

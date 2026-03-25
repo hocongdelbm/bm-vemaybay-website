@@ -13,17 +13,14 @@ $installation_scenarios = array(
         'modules' =>
         array(
             0 => 'Opportunities',
-            1 => 'Leads'
         ),
         'modulesScenarioDisplayName' =>
         array(
             0 => $app_strings['LBL_OPPORTUNITIES'],
-            1 => $app_strings['LBL_LEADS']
         ),
         'dashlets' =>
         array(
             0 => 'MyOpportunitiesDashlet',
-            1 => 'MyLeadsDashlet'
         )
     ),
     array(

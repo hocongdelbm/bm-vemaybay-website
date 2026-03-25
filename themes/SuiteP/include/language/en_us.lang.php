@@ -24,7 +24,6 @@ $app_list_strings = array(
         'Meetings' => 'Meetings',
         'Tasks' => 'Tasks',
         'Calendar' => 'Calendar',
-        'Leads' => 'Leads',
         'Currencies' => 'Currencies',
         'Activities' => 'Activities',
         'Bugs' => 'Bugs',
@@ -77,7 +76,6 @@ $app_list_strings = array(
         'Meetings' => 'Meeting',
         'Tasks' => 'Task',
         'Calendar' => 'Calendar',
-        'Leads' => 'Lead',
         'Activities' => 'Activity',
         'Bugs' => 'Bug',
         'KBDocuments' => 'KBDocument',
@@ -347,7 +345,6 @@ $app_list_strings = array(
         'Accounts' => 'Account',
         'Opportunities' => 'Opportunity',
         'Cases' => 'Case',
-        'Leads' => 'Lead',
         'Contacts' => 'Contact', // cn (11/22/2005) added to support Emails
         'Bugs' => 'Bug',
         'Tasks' => 'Task',
@@ -355,7 +352,6 @@ $app_list_strings = array(
         'AOS_Invoices' => 'Invoice',
         'AOS_Quotes' => 'Quote',
         'AOS_Products' => 'Product',
-
     ),
 
     'record_type_display_notes' => array(
@@ -364,14 +360,10 @@ $app_list_strings = array(
         'Opportunities' => 'Opportunity',
         'Tasks' => 'Task',
         'Emails' => 'Email',
-
         'Bugs' => 'Bug',
         'Cases' => 'Case',
-        'Leads' => 'Lead',
-
         'Meetings' => 'Meeting',
         'Calls' => 'Call',
-
         'AOS_Contracts' => 'Contract',
         'AOS_Invoices' => 'Invoice',
         'AOS_Quotes' => 'Quote',
@@ -383,15 +375,12 @@ $app_list_strings = array(
         'Contacts' => 'Contact',
         'Tasks' => 'Task',
         'Opportunities' => 'Opportunity',
-
         'Bugs' => 'Bug',
         'Cases' => 'Case',
-        'Leads' => 'Lead',
         'AOS_Contracts' => 'Contract',
         'AOS_Invoices' => 'Invoice',
         'AOS_Quotes' => 'Quote',
         'AOS_Products' => 'Product',
-
     ),
     'parent_line_items' => array(
         'AOS_Quotes' => 'Quotes',
@@ -487,7 +476,6 @@ $app_list_strings = array(
         'Forecasts' => 'Forecasts',
         'Help' => 'Help',
         'Home' => 'Home',
-        'Leads' => 'Leads',
         'Meetings' => 'Meetings',
         'Notes' => 'Notes',
         'Opportunities' => 'Opportunities',
@@ -796,25 +784,6 @@ $app_list_strings = array(
         'inactive' => 'Inactive',
     ),
 
-    'campainglog_activity_type_dom' => array(
-        '' => '',
-        'targeted' => 'Message Sent/Attempted',
-        'send error' => 'Bounced Messages,Other',
-        'invalid email' => 'Bounced Messages,Invalid Email',
-        'link' => 'Click-thru Link',
-        'viewed' => 'Viewed Message',
-        'removed' => 'Opted Out',
-        'lead' => 'Leads Created',
-        'contact' => 'Contacts Created',
-        'blocked' => 'Suppressed by address or domain',
-    ),
-
-    'campainglog_target_type_dom' => array(
-        'Contacts' => 'Contacts',
-        'Users' => 'Users',
-        'Leads' => 'Leads',
-        'Accounts' => 'Accounts',
-    ),
     'merge_operators_dom' => array(
         'like' => 'Contains',
         'exact' => 'Exactly',
@@ -1162,7 +1131,6 @@ $app_strings = array(
 
     'LBL_EMAIL_QC_BUGS' => 'Bug',
     'LBL_EMAIL_QC_CASES' => 'Case',
-    'LBL_EMAIL_QC_LEADS' => 'Lead',
     'LBL_EMAIL_QC_CONTACTS' => 'Contact',
     'LBL_EMAIL_QC_TASKS' => 'Task',
     'LBL_EMAIL_QC_OPPORTUNITIES' => 'Opportunity',
@@ -1392,7 +1360,6 @@ $app_strings = array(
     'LBL_IMPORT' => 'Import',
     'LBL_IMPORT_STARTED' => 'Import Started: ',
     'LBL_LAST_VIEWED' => 'Recently Viewed',
-    'LBL_LEADS' => 'Leads',
     'LBL_LESS' => 'less',
     'LBL_THEME' => 'Theme:',
     'LBL_FOUND_IN_RELEASE' => 'Found In Release',
@@ -1984,7 +1951,7 @@ $app_strings = array(
     'LBL_SUITE_DESC3' => 'SuiteCRM is a trademark of SalesAgility Ltd. All other company and product names may be trademarks of the respective companies with which they are associated.',
     'LBL_GENERATE_PASSWORD_BUTTON_TITLE' => 'Reset Password',
     'LBL_SEND_CONFIRM_OPT_IN_EMAIL' => 'Send Confirm Opt In Email',
-    'LBL_CONFIRM_OPT_IN_ONLY_FOR_PERSON' => 'Confirm Opt In Email sending only for Accounts/Contacts/Leads',
+    'LBL_CONFIRM_OPT_IN_ONLY_FOR_PERSON' => 'Confirm Opt In Email sending only for Accounts/Contacts',
     'LBL_CONFIRM_OPT_IN_IS_DISABLED' => 'Confirm Opt In Email sending is disabled, enable Confirm Opt In option in Email Settings or contact your Administrator.',
     'LBL_CONTACT_HAS_NO_PRIMARY_EMAIL' => 'Confirm Opt In Email sending is not possible because the Contact has not Primary Email Address',
     'LBL_CONFIRM_EMAIL_SENDING_FAILED' => 'Confirm Opt In Email sending failed',
@@ -2859,7 +2826,6 @@ $app_list_strings['pdf_template_type_dom']['AOS_Invoices'] = 'Invoices';
 $app_list_strings['pdf_template_type_dom']['AOS_Contracts'] = 'Contracts';
 $app_list_strings['pdf_template_type_dom']['Accounts'] = 'Accounts';
 $app_list_strings['pdf_template_type_dom']['Contacts'] = 'Contacts';
-$app_list_strings['pdf_template_type_dom']['Leads'] = 'Leads';
 $app_list_strings['pdf_template_sample_dom'][''] = '';
 $app_list_strings['contract_status_list']['Not Started'] = 'Not Started';
 $app_list_strings['contract_status_list']['In Progress'] = 'In Progress';
@@ -2952,14 +2918,12 @@ $app_list_strings['map_unit_type_list']['km'] = 'Kilometers';
 $app_list_strings['map_module_type_list']['Accounts'] = 'Accounts';
 $app_list_strings['map_module_type_list']['Contacts'] = 'Contacts';
 $app_list_strings['map_module_type_list']['Cases'] = 'Cases';
-$app_list_strings['map_module_type_list']['Leads'] = 'Leads';
 $app_list_strings['map_module_type_list']['Meetings'] = 'Meetings';
 $app_list_strings['map_module_type_list']['Opportunities'] = 'Opportunities';
 
 $app_list_strings['map_relate_type_list']['Accounts'] = 'Account';
 $app_list_strings['map_relate_type_list']['Contacts'] = 'Contact';
 $app_list_strings['map_relate_type_list']['Cases'] = 'Case';
-$app_list_strings['map_relate_type_list']['Leads'] = 'Lead';
 $app_list_strings['map_relate_type_list']['Meetings'] = 'Meeting';
 $app_list_strings['map_relate_type_list']['Opportunities'] = 'Opportunity';
 
@@ -3259,7 +3223,6 @@ $app_strings['LBL_LOADING_ERROR_INLINE_EDITING'] = "There was an error loading t
 $app_list_strings['spots_areas'] = array(
     'getSalesSpotsData' => 'Sales',
     'getAccountsSpotsData' => 'Accounts',
-    'getLeadsSpotsData' => 'Leads',
     'getServiceSpotsData' => 'Service',
     'getMarketingSpotsData' => 'Marketing',
     'getMarketingActivitySpotsData' => 'Marketing Activity',

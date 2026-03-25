@@ -834,7 +834,6 @@ class MssqlManager extends DBManager
             $col_name = substr($psql, 0, $comma_pos);
 
             //make sure the string does not have an end parenthesis
-            //and is not part of a function (i.e. "ISNULL(leads.last_name,'') as name"  )
             //this is especially true for unified search from home screen
 
             $alias_beg_pos = 0;

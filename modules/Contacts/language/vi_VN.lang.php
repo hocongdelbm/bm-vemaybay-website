@@ -128,7 +128,6 @@ $mod_strings = array(
     'NTC_OPPORTUNITY_REQUIRES_ACCOUNT' => 'Việc tạo ra một cơ hội yêu cầu một tài khoản. \n hãy tạo tài khoản mới hoặc chọn có sẵn.',
     'NTC_REMOVE_CONFIRMATION' => 'Bạn có chắc bạn muốn loại bỏ Liên hệ này khỏi Vụ việc?',
 
-    'LBL_LEADS_SUBPANEL_TITLE' => 'Đầu mối',
     'LBL_OPPORTUNITIES_SUBPANEL_TITLE' => 'Cơ hội',
     'LBL_DOCUMENTS_SUBPANEL_TITLE' => 'Tài liệu',
     'LBL_COPY_ADDRESS_CHECKED_PRIMARY' => 'Copy đến địa chỉ chính',

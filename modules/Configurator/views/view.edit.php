@@ -14,7 +14,6 @@ require_once('modules/Configurator/Forms.php');
 require_once('modules/Administration/Forms.php');
 require_once('modules/Configurator/Configurator.php');
 require_once('include/SugarLogger/SugarLogger.php');
-require_once('modules/Leads/Lead.php');
 
 class ConfiguratorViewEdit extends ViewEdit
 {

@@ -64,7 +64,6 @@ $mod_strings = array(
     'LNK_SELECT_ACCOUNT' => 'Select Account',
     'LNK_NEW_ACCOUNT' => 'New Account',
     'LNK_NEW_OPPORTUNITY' => 'New Opportunity',
-    'LBL_LEADS_SUBPANEL_TITLE' => 'Leads',
     'LBL_CONTACTS_SUBPANEL_TITLE' => 'Contacts',
     'LBL_USERS_SUBPANEL_TITLE' => 'Users',
     'LBL_OUTLOOK_ID' => 'Outlook ID',

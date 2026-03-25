@@ -376,15 +376,6 @@ $dictionary['Note'] = array(
       'vname' => 'LBL_OPPORTUNITIES',
     ],
 
-    'leads' =>
-    [
-      'name' => 'leads',
-      'type' => 'link',
-      'relationship' => 'lead_notes',
-      'source' => 'non-db',
-      'vname' => 'LBL_LEADS',
-    ],
-
     'bugs' =>
     [
       'name' => 'bugs',

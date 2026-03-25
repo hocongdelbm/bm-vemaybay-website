@@ -18,7 +18,6 @@ $entry_point_registry = array(
     'TreeData' => array('file' => 'TreeData.php', 'auth' => true),
     'ConfirmOptIn' => array('file' => 'include/entryPointConfirmOptInConnector.php', 'auth' => false),
     'acceptDecline' => array('file' => 'modules/Contacts/AcceptDecline.php', 'auth' => false),
-    'leadCapture' => array('file' => 'modules/Leads/Capture.php', 'auth' => false),
     'process_queue' => array('file' => 'process_queue.php', 'auth' => true),
     'zipatcher' => array('file' => 'zipatcher.php', 'auth' => true),
     'mm_get_doc' => array('file' => 'modules/MailMerge/get_doc.php', 'auth' => true),
