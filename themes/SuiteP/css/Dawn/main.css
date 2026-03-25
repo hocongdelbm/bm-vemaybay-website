@@ -2176,8 +2176,11 @@ select#editor_type,
 
 #popup_query_form select,
 .panel select {
-  /* min-width: 25%; */
   cursor: pointer;
+}
+
+.panel select:focus {
+  border-color: var(--bs-red);
 }
 
 .table-change-booking select.tbl_line_details_select,

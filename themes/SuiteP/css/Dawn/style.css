@@ -7149,16 +7149,6 @@ input[type=reset]:focus {
      font-size: 13px
 }
 
-select:focus {
-     border-color: #A5E8D6;
-     border-style: solid;
-     border-radius: 4px;
-     -moz-appearance: none;
-     -webkit-appearance: none;
-     appearance: none;
-     border-width: 1px;
-}
-
 select#user_theme_picker {
      background-image: none
 }
