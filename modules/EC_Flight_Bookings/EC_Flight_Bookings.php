@@ -139,7 +139,7 @@ class EC_Flight_Bookings extends Basic
 		// After save
 		$this->_postSave($recordId);
 
-		return $recordId;
+		// return $recordId;
 	}
 
 	public function save2($check_notify = FALSE)
@@ -1304,34 +1304,84 @@ class EC_Flight_Bookings extends Basic
 	}
 
 	// Lưu thông tin hoá đơn
+	// public function saveInvoiceInf($post_fields, $booking_id)
+	// {
+	// 	global $current_user;
+
+	// 	if (isset($post_fields['action']) && $post_fields['action'] == 'Save') {
+	// 		if (isset($post_fields['iv_account_name'])) {
+	// 			$invoice_inf = [
+	// 				'iv_account_name' => $post_fields['iv_account_name'],
+	// 				'iv_email' => $post_fields['iv_email'],
+	// 				'iv_identity_number' => $post_fields['iv_identity_number'],
+	// 				'iv_payment_method' => $post_fields['iv_payment_method'],
+	// 				'iv_bank_account' => $post_fields['iv_bank_account'],
+	// 				'iv_name_banks' => $post_fields['iv_name_banks']
+	// 			];
+
+	// 			$json = json_encode($invoice_inf, JSON_UNESCAPED_UNICODE);
+	// 			$sql = '
+	// 				UPDATE ec_flight_bookings 
+	// 				SET shipping_address = "' . $this->db->quote($json) . '"
+	// 				WHERE id = "' . $this->db->quote($booking_id) . '" AND deleted = 0';
+
+	// 			$result = $this->db->query($sql);
+
+	// 			if (!$result) {
+	// 				$GLOBALS['log']->fatal("Failed to update shipping_address for booking $booking_id: " . $this->db->lastError() . " $sql");
+	// 			}
+	// 		}
+	// 	}
+	// }
 	public function saveInvoiceInf($post_fields, $booking_id)
 	{
 		global $current_user;
 
-		if (isset($post_fields['action']) && $post_fields['action'] == 'Save' && isset($post_fields['iv_account_name'])) {
-			$invoice_inf = [
-				'iv_account_name' => $post_fields['iv_account_name'],
-				'iv_email' => $post_fields['iv_email'],
-				'iv_identity_number' => $post_fields['iv_identity_number'],
-				'iv_payment_method' => $post_fields['iv_payment_method'],
-				'iv_bank_account' => $post_fields['iv_bank_account'],
-				'iv_name_banks' => $post_fields['iv_name_banks']
-			];
+		if ($current_user->user_name == 'hungnh') {
+			pr($post_fields);
+		}
 
-			// if ($current_user->user_name == 'hungnh') {
-			// 	pr($invoice_inf);
-			// }
+		if (
+			!isset($post_fields['action']) ||
+			$post_fields['action'] !== 'Save' ||
+			!isset($post_fields['iv_account_name'])
+		) {
+			return;
+		}
 
-			$sql = '
-				UPDATE ec_flight_bookings 
-				SET shipping_address = \'' . preg_replace('/\\\\u([0-9a-z]{4})/', '&#x$1;', json_encode($invoice_inf)) . '\'
-				WHERE id = "' . $booking_id . '" AND deleted = 0';
-			$result = $this->db->query($sql);
+		$invoice_inf = [
+			'iv_account_name'    => $post_fields['iv_account_name']    ?? '',
+			'iv_email'           => $post_fields['iv_email']           ?? '',
+			'iv_identity_number' => $post_fields['iv_identity_number'] ?? '',
+			'iv_payment_method'  => $post_fields['iv_payment_method']  ?? '',
+			'iv_bank_account'    => $post_fields['iv_bank_account']    ?? '',
+			'iv_name_banks'      => $post_fields['iv_name_banks']      ?? '',
+		];
 
-			if (!$result) {
-				$GLOBALS['log']->fatal("Failed to update shipping_address for booking $booking_id: " . $this->db->lastError() . " $sql");
+		$json = json_encode($invoice_inf, JSON_UNESCAPED_UNICODE);
+		if ($current_user->user_name == 'hungnh') {
+			pr($json);
+		}
+
+		$sql = "UPDATE ec_flight_bookings SET shipping_address = '" . $this->db->quote($json) . "' WHERE id = '" . $this->db->quote($booking_id) . "' AND deleted = 0";
+
+		$result = $this->db->query($sql);
+
+		if (!$result) {
+			$GLOBALS['log']->fatal(
+				"Failed to update shipping_address for booking {$booking_id}: " . $this->db->lastError() . " | SQL: $sql"
+			);
+		} else {
+			if ($current_user->user_name == 'hungnh') {
+				pr($sql);
 			}
 		}
+
+		// if ($current_user->user_name == 'hungnh') {
+		// 	die;
+		// }
+
+		return true;
 	}
 
 	// Tính số lượng vé của 1 booking

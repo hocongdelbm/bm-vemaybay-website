@@ -46,6 +46,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 			// Quét và cập nhật booking tham khảo - cận
 			// $this->rebuildBookingFlagsByYear(2026);
+
+			pr($this->bean->shipping_address);
 		}
 
 		parent::display();
