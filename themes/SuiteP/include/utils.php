@@ -142,7 +142,7 @@ function make_sugar_config(&$sugar_config)
         'portal_view' => 'single_user',
         'resource_management' => array(
             'special_query_limit' => 50000,
-            'special_query_modules' => array('AOR_Reports', 'Export', 'Import', 'Administration', 'Sync'),
+            'special_query_modules' => array('Export', 'Import', 'Administration', 'Sync'),
             'default_limit' => 1000,
         ),
         'require_accounts' => empty($requireAccounts) ? true : $requireAccounts,
@@ -202,8 +202,6 @@ function make_sugar_config(&$sugar_config)
         'import_max_execution_time' => empty($import_max_execution_time) ? 3600 : $import_max_execution_time,
         'lock_homepage' => false,
         'lock_subpanels' => false,
-        'max_dashlets_homepage' => 15,
-        'dashlet_display_row_options' => array('1', '3', '5', '10'),
         'default_max_tabs' => empty($max_tabs) ? 10 : $max_tabs,
         'default_subpanel_tabs' => empty($subpanel_tabs) ? true : $subpanel_tabs,
         'default_subpanel_links' => empty($subpanel_links) ? false : $subpanel_links,
@@ -339,7 +337,6 @@ function get_sugar_config_defaults(): array
         'disable_export' => false,
         'disable_persistent_connections' => return_session_value_or_default('disable_persistent_connections', false),
         'default_module_favicon' => false,
-        'dashlet_auto_refresh_min' => 30,
         'stack_trace_errors' => false,
         'developerMode' => false,
         'stackTrace' => false,
@@ -405,7 +402,7 @@ function get_sugar_config_defaults(): array
         ],
         'resource_management' => [
             'special_query_limit' => 50000,
-            'special_query_modules' => ['AOR_Reports', 'Export', 'Import', 'Administration', 'Sync'],
+            'special_query_modules' => ['Export', 'Import', 'Administration', 'Sync'],
             'default_limit' => 1000,
         ],
         'require_accounts' => true,
@@ -480,9 +477,7 @@ function get_sugar_config_defaults(): array
         'lead_conv_activity_opt' => 'donothing',
         'lock_homepage' => false,
         'lock_subpanels' => false,
-        'max_dashlets_homepage' => '15',
         'default_max_tabs' => 10,
-        'dashlet_display_row_options' => ['1', '3', '5', '10'],
         'default_subpanel_tabs' => true,
         'default_subpanel_links' => false,
         'default_swap_last_viewed' => false,
@@ -1697,8 +1692,6 @@ function get_workflow_admin_modules_for_user($user)
     $workflow_mod_list['Calls'] = 'Calls';
     $workflow_mod_list['Meetings'] = 'Meetings';
     $workflow_mod_list['Notes'] = 'Notes';
-    $workflow_mod_list['ProjectTask'] = 'Project Tasks';
-    $workflow_mod_list['Leads'] = 'Leads';
     $workflow_mod_list['Opportunities'] = 'Opportunities';
     // End of list
 
@@ -2910,11 +2903,7 @@ function values_to_keys($array)
 function clone_relationship(&$db, $tables, $from_column = null, $from_id = null, $to_id = null)
 {
     foreach ((array) $tables as $table) {
-        if ($table == 'emails_beans') {
-            $query = "SELECT * FROM $table WHERE $from_column='$from_id' and bean_module='Leads'";
-        } else {
-            $query = "SELECT * FROM $table WHERE $from_column='$from_id'";
-        }
+        $query = "SELECT * FROM $table WHERE $from_column='$from_id'";
         $results = $db->query($query);
         while ($row = $db->fetchByAssoc($results)) {
             $query = "INSERT INTO $table ";
@@ -3172,11 +3161,6 @@ function parse_list_modules(&$listArray)
     foreach ($listArray as $optionName => $optionVal) {
         if (array_key_exists($optionName, $modListHeader)) {
             $returnArray[$optionName] = $optionVal;
-        }
-
-        // special case for projects
-        if (array_key_exists('Project', $modListHeader)) {
-            $returnArray['ProjectTask'] = $listArray['ProjectTask'];
         }
     }
     $acldenied = ACLController::disabledModuleList($listArray, false);
@@ -3962,10 +3946,6 @@ function convert_module_to_singular($module_array)
 
         if ($value == 'Cases') {
             $module_array[$key] = 'Case';
-        }
-        if ($key == 'projecttask') {
-            $module_array['ProjectTask'] = 'Project Task';
-            unset($module_array[$key]);
         }
     }
 
@@ -4812,32 +4792,6 @@ function getStudioIcon($iconFileName = '', $altFileName = '', $width = '48', $he
     }
 
     return SugarThemeRegistry::current()->getImage($iconName, "align=\"$align\" border=\"0\"", $width, $height);
-}
-
-/**
- * Function to grab the correct icon image for Dashlets Dialog.
- *
- * @param string $filename Location of the icon file
- * @param string $module   Name of the module to fall back onto if file does not exist
- * @param string $width    Width of image
- * @param string $height   Height of image
- * @param string $align    Alignment of image
- * @param string $alt      Alt tag of image
- *
- * @return string $string <img> tag with corresponding image
- */
-function get_dashlets_dialog_icon($module = '', $width = '32', $height = '32', $align = 'absmiddle', $alt = '')
-{
-    global $app_strings, $theme;
-    $iconName = _getIcon($module . '_32');
-    if (empty($iconName)) {
-        $iconName = _getIcon($module);
-    }
-    if (empty($iconName)) {
-        return $app_strings['LBL_NO_IMAGE'];
-    }
-
-    return $iconName;
 }
 
 // works nicely to change UTF8 strings that are html entities - good for PDF conversions

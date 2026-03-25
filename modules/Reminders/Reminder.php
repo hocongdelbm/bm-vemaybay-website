@@ -798,7 +798,6 @@ class Reminder extends Basic
      */
     public static function getRemindersListInlineEditView(SugarBean $event)
     {
-        // TODO: getEditFieldHTML() function in InlineEditing.php:218 doesn't pass the Bean ID to this custom inline edit view function but we have to know which Bean are in the focus to editing.
         if (!$event->id) {
             throw new Exception("No GUID for edit.");
         }

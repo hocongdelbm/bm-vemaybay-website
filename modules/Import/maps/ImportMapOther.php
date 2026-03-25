@@ -78,7 +78,6 @@ class ImportMapOther
         ) {
         switch ($module) {
         case 'Contacts':
-        case 'Leads':
             return array(
                 "Salutation"=>"salutation",
                 "Full Name"=>"full_name",

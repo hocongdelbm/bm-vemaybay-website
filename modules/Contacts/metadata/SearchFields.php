@@ -98,7 +98,6 @@ $searchFields['Contacts'] = array(
     ),
     'assigned_user_id' => array('query_type' => 'default'),
     'account_id' => array('query_type' => 'default', 'db_field' => array('accounts.id')),
-    'campaign_name' => array('query_type' => 'default'),
     //Range Search Support
     'range_date_entered' => array(
         'query_type' => 'default',

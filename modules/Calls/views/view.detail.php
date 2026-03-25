@@ -239,13 +239,6 @@ class CallsViewDetail extends ViewDetail
 
 		$this->ss->assign('REPORT_BUG', $report_bug);
 
-		$call_automation = '';
-		if($current_user->user_name == 'hungnh') {
-			$phone = ((string)$this->bean->direction === 'outbound') ? $this->bean->call_to : $this->bean->call_from;
-			$call_automation = '<button type="button" class="btn btn-success voiceip-autocall" phone="' . $phone . '">Gọi tự động</button>';
-		}
-		$this->ss->assign('CALLS_AUTOMATION', $call_automation);
-
 		if (isset($this->bean->log) && !empty($this->bean->log)) {
 			$log_call = json_decode(html_entity_decode($this->bean->log), true);
 

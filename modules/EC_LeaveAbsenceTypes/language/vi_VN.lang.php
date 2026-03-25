@@ -1,5 +1,5 @@
 <?php
-$mod_strings = array (
+$mod_strings = array(
   'LBL_ASSIGNED_TO_ID' => 'Giao cho',
   'LBL_ASSIGNED_TO_NAME' => 'Giao cho',
   'LBL_ASSIGNED_TO_2ND_ID' => 'Phân cho Người duyệt',
@@ -30,4 +30,6 @@ $mod_strings = array (
   'LBL_EC_LEAVEABSENCETYPES_SUBPANEL_TITLE' => 'Loại nghỉ phép',
   'LBL_NEW_FORM_TITLE' => 'New Loại nghỉ phép',
   'LBL_DAY_OFF' => 'Số ngày nghỉ',
+
+  'LNK_LIST_LEAVE' => 'D/s Nghỉ phép',
 );

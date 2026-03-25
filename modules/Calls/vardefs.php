@@ -249,21 +249,6 @@ $dictionary['Call'] = array(
             'link_type' => 'one',
             'vname' => 'LBL_OPPORTUNITY',
         ),
-        'leads' => array(
-            'name' => 'leads',
-            'type' => 'link',
-            'relationship' => 'calls_leads',
-            'source' => 'non-db',
-            'vname' => 'LBL_LEADS',
-        ),
-        // Bug #42619 Missed back-relation from Project module
-        'project' => array(
-            'name' => 'project',
-            'type' => 'link',
-            'relationship' => 'projects_calls',
-            'source' => 'non-db',
-            'vname' => 'LBL_PROJECTS'
-        ),
         'case' => array(
             'name' => 'case',
             'type' => 'link',

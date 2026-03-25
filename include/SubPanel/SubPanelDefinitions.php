@@ -790,9 +790,6 @@ class SubPanelDefinitions
 
         //change case to match subpanel processing later on
         $modules_to_check = array_change_key_case($modules_to_check);
-        // Append on the CampaignLog module, because that is where the subpanels point, not directly to Campaigns
-        $modules_to_check['campaignlog'] = "CampaignLog";
-
 
         $spd = '';
         $spd_arr = array();

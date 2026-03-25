@@ -141,10 +141,6 @@ class ConfiguratorController extends SugarController
                 unlink('custom/include/tabConfig.php');
             }
             require_once('include/tabConfig.php');
-            //Remove the custom dashlet so that we can use the complete list of defaults to filter by category
-            if (file_exists('custom/modules/Home/dashlets.php')) {
-                unlink('custom/modules/Home/dashlets.php');
-            }
             //Check if the folder is in place
             if (!file_exists('custom/modules/Home')) {
                 sugar_mkdir('custom/modules/Home', 0775);
@@ -153,7 +149,6 @@ class ConfiguratorController extends SugarController
             if (!file_exists('custom/include')) {
                 sugar_mkdir('custom/include', 0775);
             }
-            require_once 'modules/Home/dashlets.php';
 
             require_once 'install/suite_install/scenarios.php';
 
@@ -163,15 +158,6 @@ class ConfiguratorController extends SugarController
                     foreach ($scenario['modules'] as $module) {
                         if (($removeKey = array_search($module, $enabled_tabs)) !== false) {
                             unset($enabled_tabs[$removeKey]);
-                        }
-                    }
-                    //Loop through the dashlets to remove from the default home page based on this scenario
-                    foreach ($scenario['dashlets'] as $dashlet) {
-                        //if (($removeKey = array_search($dashlet, $defaultDashlets)) !== false) {
-                        //    unset($defaultDashlets[$removeKey]);
-                        // }
-                        if (isset($defaultDashlets[$dashlet])) {
-                            unset($defaultDashlets[$dashlet]);
                         }
                     }
                     //If the scenario has an associated group tab, remove accordingly (by not adding to the custom tabconfig.php
@@ -187,9 +173,6 @@ class ConfiguratorController extends SugarController
             //Write the tabstructure to custom so that the grouping are not shown for the un-selected scenarios
             $fileContents = "<?php \n" .'$GLOBALS["tabStructure"] ='.var_export($GLOBALS['tabStructure'], true).';';
             sugar_file_put_contents('custom/include/tabConfig.php', $fileContents);
-            //Write the dashlets to custom so that the dashlets are not shown for the un-selected scenarios
-            $fileContents = "<?php \n" .'$defaultDashlets ='.var_export($defaultDashlets, true).';';
-            sugar_file_put_contents('custom/modules/Home/dashlets.php', $fileContents);
             // End of the scenario implementations
         }
 

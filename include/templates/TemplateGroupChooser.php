@@ -71,7 +71,6 @@ class TemplateGroupChooser extends Template
 
         $str = '';
         if ($js_loaded == false) {
-//            $this->template_groups_chooser_js();
             $js_loaded = true;
         }
         if (!isset($this->args['display'])) {
@@ -170,16 +169,5 @@ EOQ;
 
 
         return $str;
-    }
-
-
-
-    /*
-     * All Moved to sugar_3.js in class tabChooser;
-     * Please follow style that Dashlet configuration is done.
-     */
-    public function template_groups_chooser_js()
-    {
-        //return '<script>var object_refs = new Object();</script>';
     }
 }

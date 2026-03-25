@@ -4,14 +4,8 @@ if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
 
-include_once("include/InlineEditing/InlineEditing.php");
-
 class HomeController extends SugarController
 {
-
-    function action_baocaongay() {
-		$this->view = 'baocaongay';
-	}
     
     public function action_getEditFieldHTML()
     {

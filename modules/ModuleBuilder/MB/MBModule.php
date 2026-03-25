@@ -323,10 +323,8 @@ class MBModule
             $this->saveConfig() ;
             $this->getVardefs() ;
             $this->mbvardefs->save($this->key_name) ;
-            //           $this->mbrelationship->save ( $this->key_name ) ;
             $this->relationships->save() ;
             $this->copyMetaData() ;
-            $this->copyDashlet() ;
             $this->copyViews() ;
             if (0 != strcmp($old_config_md5, $this->config_md5)) {
                 $this->mblanguage->reload() ;
@@ -340,16 +338,6 @@ class MBModule
             }
 
             $this->errors = array_merge($this->errors, $this->mbvardefs->errors) ;
-        }
-    }
-
-    public function copyDashlet()
-    {
-        $templates = array_reverse($this->config [ 'templates' ], true) ;
-        foreach ($templates as $template => $a) {
-            if (file_exists(MB_TEMPLATES . '/' . $template . '/Dashlets/Dashlet')) {
-                $this->copyMetaRecursive(MB_TEMPLATES . '/' . $template . '/Dashlets/Dashlet', $this->path . '/Dashlets/' . $this->key_name . 'Dashlet/') ;
-            }
         }
     }
 
@@ -370,7 +358,7 @@ class MBModule
             if (substr($filename, 0, 1) == '.') {
                 continue ;
             }
-            if ($filename != 'metadata' && $filename != 'Dashlets' && $filename != 'relationships' && $filename != 'language' && $filename != 'config.php' && $filename != 'relationships.php' && $filename != 'vardefs.php') {
+            if ($filename != 'metadata' && $filename != 'relationships' && $filename != 'language' && $filename != 'config.php' && $filename != 'relationships.php' && $filename != 'vardefs.php') {
                 copy_recursive("$from/$filename", "$to/$filename") ;
             }
         }
@@ -440,12 +428,7 @@ class MBModule
             $this->createClasses($path) ;
             $this->createMenu($path);
             $this->copyCustomFiles($this->path, $path) ;
-            $this->copyMetaRecursive($this->path . '/metadata/', $path . '/metadata/', true) ;
-            $this->copyMetaRecursive(
-                $this->path . '/Dashlets/' . $this->key_name . 'Dashlet/',
-                $path . '/Dashlets/' . $this->key_name . 'Dashlet/',
-                true
-            ) ;
+            $this->copyMetaRecursive($this->path . '/metadata/', $path . '/metadata/', true);
             $app_list_strings['moduleList'][$this->key_name] = $this->mblanguage->label;
             $this->relationships->build($basepath) ;
             $this->mblanguage->build($path) ;
@@ -551,9 +534,6 @@ class MBModule
         $searchSubs = array( ) ;
         $searchSubs [] = array( 'name' => translate('LBL_BASIC_SEARCH') , 'type' => 'list' , 'action' => "module=ModuleBuilder&MB=true&action=editLayout&view=basic_search&view_module={$this->name}&view_package={$this->package}"  ) ;
         $searchSubs [] = array( 'name' => translate('LBL_ADVANCED_SEARCH') , 'type' => 'list' , 'action' => 'module=ModuleBuilder&MB=true&action=editLayout&view=advanced_search&view_module=' . $this->name . '&view_package=' . $this->package  ) ;
-        $dashlets = array( );
-        $dashlets [] = array('name' => translate('LBL_DASHLETLISTVIEW') , 'type' => 'dashlet' , 'action' => 'module=ModuleBuilder&MB=true&action=editLayout&view=dashlet&view_module=' . $this->name . '&view_package=' . $this->package );
-        $dashlets [] = array('name' => translate('LBL_DASHLETSEARCHVIEW') , 'type' => 'dashletsearch' , 'action' => 'module=ModuleBuilder&MB=true&action=editLayout&view=dashletsearch&view_module=' . $this->name . '&view_package=' . $this->package );
 
         $popups = array( );
         $popups [] = array('name' => translate('LBL_POPUPLISTVIEW') , 'type' => 'popuplistview' , 'action' => 'module=ModuleBuilder&action=editLayout&view=popuplist&view_module=' . $this->name . '&view_package=' . $this->package );
@@ -564,7 +544,6 @@ class MBModule
             array( 'name' => translate('LBL_DETAILVIEW') , 'type' => 'detail' , 'action' => 'module=ModuleBuilder&MB=true&action=editLayout&view='.MB_DETAILVIEW.'&view_module=' . $this->name . '&view_package=' . $this->package ) ,
             array( 'name' => translate('LBL_LISTVIEW') , 'type' => 'list' , 'action' => 'module=ModuleBuilder&MB=true&action=editLayout&view='.MB_LISTVIEW.'&view_module=' . $this->name . '&view_package=' . $this->package ) ,
             array( 'name' => translate('LBL_QUICKCREATE') , 'type' => MB_QUICKCREATE,  'action' => 'module=ModuleBuilder&MB=true&action=editLayout&view='.MB_QUICKCREATE.'&view_module=' . $this->name . '&view_package=' . $this->package ) ,
-            array( 'name' => translate('LBL_DASHLET') , 'type' => 'Folder', 'children' => $dashlets, 'action' => 'module=ModuleBuilder&MB=true&action=wizard&view=dashlet&view_module=' . $this->name . '&view_package=' . $this->package  ),
             array( 'name' => translate('LBL_POPUP') , 'type' => 'Folder', 'children' => $popups, 'action' => 'module=ModuleBuilder&MB=true&action=wizard&view=popup&view_module=' . $this->name . '&view_package=' . $this->package  ),
             array( 'name' => translate('LBL_SEARCH_FORMS') , 'action' => 'module=ModuleBuilder&MB=true&action=wizard&view=search&view_module=' . $this->name . '&view_package=' . $this->package , 'type' => 'folder' , 'children' => $searchSubs )
             ) ;
