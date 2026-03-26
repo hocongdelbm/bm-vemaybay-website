@@ -1,6 +1,6 @@
 <?php
 
-use Custom\Services\Notification\NotificationService;
+use custom\services\Notification\NotificationService;
 
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 

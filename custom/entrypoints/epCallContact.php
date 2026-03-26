@@ -1,5 +1,5 @@
 <?php
-use Services\Notification\NotificationService;
+use custom\services\Notification\NotificationService;
 
 if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
     $type = isset($_POST['type']) ? $_POST['type'] : "";
