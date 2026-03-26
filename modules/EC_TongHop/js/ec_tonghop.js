@@ -17,6 +17,8 @@ $(document).ready(function () {
     let hourlyHistoryCache = [];
     let currentHourlyChartType = 'line';
     let currentHourlyMode = 'live';
+    let currentHourlyCompare = false; // so sánh ngày chọn vs hôm nay
+    let peakHoursChartInstance = null; // chart giờ cao điểm
 
     // ── Init ────────────────────────────────────────────────
     init();
@@ -193,6 +195,15 @@ $(document).ready(function () {
 
         $('#ec_hourly_mode_btn').on('click', function () {
             currentHourlyMode = currentHourlyMode === 'live' ? 'history' : 'live';
+            // Reset so sánh khi chuyển mode
+            currentHourlyCompare = false;
+            renderHourlyTraffic();
+        });
+
+        $('#ec_hourly_compare_btn').on('click', function () {
+            // Chỉ hoạt động khi đang ở mode history
+            if (currentHourlyMode !== 'history') return;
+            currentHourlyCompare = !currentHourlyCompare;
             renderHourlyTraffic();
         });
     }
@@ -637,63 +648,119 @@ $(document).ready(function () {
             hourlyChartInstance = null;
         }
 
-        const dataArr = currentHourlyMode === 'live' ? hourlyLiveCache : hourlyHistoryCache;
-        const labels = [];
-        const data = [];
+        const isLive = currentHourlyMode === 'live';
+        const dataArr = isLive ? hourlyLiveCache : hourlyHistoryCache;
 
-        if (dataArr && dataArr.length > 0) {
-            dataArr.forEach(item => {
-                labels.push(item.hour);
-                data.push(item.sessions);
+        // Build labels từ union của cả 2 dataset (nếu compare)
+        const allHours = new Set();
+        (dataArr || []).forEach(item => allHours.add(item.hour));
+        if (!isLive && currentHourlyCompare) {
+            (hourlyLiveCache || []).forEach(item => allHours.add(item.hour));
+        }
+        const labels = Array.from(allHours).sort();
+
+        // Map data chính
+        const dataMap = {};
+        (dataArr || []).forEach(item => { dataMap[item.hour] = item.sessions; });
+        const data = labels.map(h => dataMap[h] ?? null);
+
+        const ctx = canvas.getContext('2d');
+        const color = isLive ? '#10b981' : '#8b5cf6';
+        const bg = isLive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(139, 92, 246, 0.15)';
+
+        const datasets = [{
+            label: isLive ? 'Hôm nay (Live)' : `Ngày được chọn`,
+            data: data,
+            borderColor: color,
+            backgroundColor: currentHourlyChartType === 'bar' ? color : bg,
+            borderWidth: 2,
+            fill: currentHourlyChartType === 'line',
+            tension: 0.3,
+            pointRadius: 3,
+            pointHoverRadius: 5
+        }];
+
+        // Dataset thứ 2: Hôm nay (compare mode)
+        if (!isLive && currentHourlyCompare && hourlyLiveCache && hourlyLiveCache.length > 0) {
+            const liveMap = {};
+            hourlyLiveCache.forEach(item => { liveMap[item.hour] = item.sessions; });
+            const liveData = labels.map(h => liveMap[h] ?? null);
+            datasets.push({
+                label: 'Hôm nay (Live)',
+                data: liveData,
+                borderColor: '#10b981',
+                backgroundColor: currentHourlyChartType === 'bar' ? 'rgba(16, 185, 129, 0.7)' : 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2,
+                borderDash: currentHourlyChartType === 'line' ? [5, 3] : [],
+                fill: false,
+                tension: 0.3,
+                pointRadius: 3,
+                pointHoverRadius: 5
             });
         }
 
-        const ctx = canvas.getContext('2d');
-        const color = currentHourlyMode === 'live' ? '#10b981' : '#8b5cf6';
-        const bg = currentHourlyMode === 'live' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(139, 92, 246, 0.2)';
-
         hourlyChartInstance = new Chart(ctx, {
             type: currentHourlyChartType,
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Sessions',
-                    data: data,
-                    borderColor: color,
-                    backgroundColor: currentHourlyChartType === 'bar' ? color : bg,
-                    borderWidth: 2,
-                    fill: currentHourlyChartType === 'line',
-                    tension: 0.3
-                }]
-            },
+            data: { labels, datasets },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
                 plugins: {
-                    legend: { display: false },
+                    legend: {
+                        display: !isLive && currentHourlyCompare,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 14,
+                            font: { size: 12, weight: '600' }
+                        }
+                    },
                     tooltip: {
                         mode: 'index',
-                        intersect: false
+                        intersect: false,
+                        backgroundColor: 'rgba(15, 23, 42, 0.88)',
+                        padding: 10,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y ?? '—'} sessions`
+                        }
                     }
                 },
                 scales: {
-                    y: { beginAtZero: true }
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
                 }
             }
         });
 
+        // ── Update button states ──────────────────────────────
         if (currentHourlyChartType === 'line') {
             $('#ec_hourly_toggle_btn').text('Đổi sang Bar Chart');
         } else {
             $('#ec_hourly_toggle_btn').text('Đổi sang Line Chart');
         }
 
-        if (currentHourlyMode === 'live') {
+        if (isLive) {
             $('#ec_hourly_mode_btn').text('Xem dữ liệu Lịch sử');
             $('#ec_hourly_mode_btn').css({ 'background': '#d1fae5', 'color': '#047857', 'border': '1px solid #a7f3d0' });
+            // Ẩn nút compare khi đang live
+            $('#ec_hourly_compare_btn').hide();
         } else {
             $('#ec_hourly_mode_btn').text('Xem dữ liệu Trực tiếp');
             $('#ec_hourly_mode_btn').css({ 'background': '#e0e7ff', 'color': '#4338ca', 'border': '1px solid #c7d2fe' });
+            // Hiện nút compare
+            $('#ec_hourly_compare_btn').show();
+            if (currentHourlyCompare) {
+                $('#ec_hourly_compare_btn').text('✕ Tắt So sánh');
+                $('#ec_hourly_compare_btn').css({ 'background': '#fef2f2', 'color': '#dc2626', 'border': '1px solid #fca5a5' });
+            } else {
+                $('#ec_hourly_compare_btn').text('So sánh với Hôm nay');
+                $('#ec_hourly_compare_btn').css({ 'background': '#f0fdf4', 'color': '#16a34a', 'border': '1px solid #86efac' });
+            }
         }
     }
 
@@ -855,6 +922,13 @@ $(document).ready(function () {
         $('#ec_s2d_rate').text(((s2d.value || 0) * 100).toFixed(1) + '%');
         $('#ec_s2d_sess').text(fmt(s2d.session_count) + ' sess');
 
+        // Lưu full hourly map để chart 24h có đủ dữ liệu
+        const allHourlyArr = hourlyHistoryCache.length > 0 ? hourlyHistoryCache : (hourlyLiveCache || []);
+        window._ec_last_fl_hourly = {};
+        allHourlyArr.forEach(function (h) {
+            if (h.hour) window._ec_last_fl_hourly[h.hour] = h.sessions || 0;
+        });
+
         // Journey types
         const $jt = $('#ec_journey_types');
         $jt.empty();
@@ -898,6 +972,218 @@ $(document).ready(function () {
 
         // Airlines
         renderProgressList('#ec_airlines', fl.airline_filters || [], 'bg-purple', 10);
+
+        // ── NEW: Peak Hour Intelligence ──────────────────────────
+        renderPeakHours(fl.peak_hours || []);
+
+        // ── NEW: Popular vs Niche Routes ─────────────────────────
+        renderRouteIntelList('#ec_popular_routes_list', fl.popular_routes || [], '#3b82f6');
+        renderRouteIntelList('#ec_niche_routes_list', fl.niche_routes || [], '#8b5cf6');
+
+        // ── NEW: Peak IPs ────────────────────────────────────────
+        renderPeakIPs(fl.peak_ips || []);
+    }
+
+    // ── Peak Hours: Chart.js bar chart với highlight top 3 ──────
+    function renderPeakHours(peakHours) {
+        const $chips = $('#ec_peak_stat_chips');
+        const canvas = document.getElementById('ec_peak_hours_chart');
+        $chips.empty();
+
+        if (!peakHours || peakHours.length === 0 || !canvas) {
+            $chips.html('<span style="color:#94a3b8;font-size:12px;">Chưa có dữ liệu</span>');
+            return;
+        }
+
+        // Chips thống kê top 3
+        const chipColors = [
+            { bg: '#fffbeb', border: '#f59e0b', text: '#92400e', label: 'Top 1' },
+            { bg: '#f1f5f9', border: '#94a3b8', text: '#334155', label: 'Top 2' },
+            { bg: '#fdf6ec', border: '#cd7c2f', text: '#7c3f0e', label: 'Top 3' },
+        ];
+        peakHours.forEach(function (ph, i) {
+            const c = chipColors[i] || { bg: '#f8fafc', border: '#e2e8f0', text: '#475569', label: '#' + (i + 1) };
+            $chips.append(`<span style="background:${c.bg}; border:1px solid ${c.border}; color:${c.text};
+                padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700;">
+                ${c.label} &nbsp;${escH(ph.hour)}&nbsp;
+                <span style="font-weight:400; opacity:.75;">(${fmt(ph.sessions)} sess)</span>
+            </span>`);
+        });
+
+        // Tạo labels + data cho 24h (0-23)
+        const sessionsByHour = {};
+        // peak_hours chỉ có top 3; để chart đầy đủ 24h cần hourly data
+        // Dùng all_hourly nếu có, fallback về peak_hours
+        const allHourly = window._ec_last_fl_hourly || {};
+        const peakSet = new Set(peakHours.map(h => h.hour));
+        peakHours.forEach(ph => { sessionsByHour[ph.hour] = ph.sessions; });
+        Object.keys(allHourly).forEach(h => { if (!sessionsByHour[h]) sessionsByHour[h] = allHourly[h]; });
+
+        const labels = [];
+        const data = [];
+        const bgArr = [];
+        const borderArr = [];
+
+        for (let i = 0; i < 24; i++) {
+            const label = String(i).padStart(2, '0') + ':00';
+            labels.push(label);
+            data.push(sessionsByHour[label] || 0);
+            if (peakSet.has(label)) {
+                bgArr.push('rgba(245,158,11,0.85)');
+                borderArr.push('#d97706');
+            } else {
+                bgArr.push('rgba(148,163,184,0.35)');
+                borderArr.push('rgba(148,163,184,0.6)');
+            }
+        }
+
+        if (peakHoursChartInstance) {
+            peakHoursChartInstance.destroy();
+            peakHoursChartInstance = null;
+        }
+
+        peakHoursChartInstance = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Sessions',
+                    data: data,
+                    backgroundColor: bgArr,
+                    borderColor: borderArr,
+                    borderWidth: 1.5,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: ctx => ctx[0].label,
+                            label: ctx => ` ${ctx.raw} sessions` + (peakSet.has(ctx.label) ? 'Cao điểm' : '')
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 0 } },
+                    y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } }, beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // ── Route Intel List: dùng chung cho popular & niche ───────────
+    function renderRouteIntelList(selector, routes, accentColor) {
+        const $wrap = $(selector);
+        $wrap.empty();
+
+        if (!routes || routes.length === 0) {
+            $wrap.html('<p style="color:#94a3b8; font-style:italic; font-size:13px;">Chưa có dữ liệu.</p>');
+            return;
+        }
+
+        routes.forEach(function (r, idx) {
+            // departure_dates: {date: {total: N, hours: {hh:mm: count}}}
+            const datesMap = r.departure_dates || {};
+            const dateEntries = Object.entries(datesMap).slice(0, 5);
+
+            const border = idx < routes.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
+            const itemId = 'route_det_' + Math.random().toString(36).substr(2, 9);
+
+            // Build expandable detail HTML cho từng ngày
+            let detailHtml = '';
+            if (dateEntries.length === 0) {
+                detailHtml = '<p style="color:#cbd5e1; font-size:12px; font-style:italic;">Chưa có dữ liệu chi tiết.</p>';
+            } else {
+                dateEntries.forEach(([date, info]) => {
+                    const total = info.total || 0;
+                    const hours = Object.entries(info.hours || {});
+
+                    // Lấy tối đa 5 giờ cao nhất
+                    const hourRows = hours.slice(0, 5).map(([h, cnt]) =>
+                        `<div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0;">
+                            <span style="font-family:monospace; font-size:12px; color:#475569;">${escH(h)}</span>
+                            <span style="font-size:12px; color:#0f172a; font-weight:600;">${cnt} <span style="color:#94a3b8; font-weight:400; font-size:10px;">sess</span></span>
+                        </div>`
+                    ).join('');
+
+                    detailHtml += `
+                        <div style="margin-bottom:10px;">
+                            <!-- Ngày khởi hành header -->
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border-radius:6px; padding:6px 10px; margin-bottom:4px;">
+                                <span style="font-size:13px; font-weight:700; color:#1e293b;">KH: ${escH(date)}</span>
+                                <span style="font-size:11px; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px; font-weight:600;">${total} sess</span>
+                            </div>
+                            <!-- Các giờ tìm kiếm trong ngày đó -->
+                            <div style="padding:2px 10px 2px 12px; border-left:2px solid #e2e8f0;">
+                                ${hourRows || '<em style="font-size:11px; color:#cbd5e1;">Không rõ giờ</em>'}
+                            </div>
+                        </div>`;
+                });
+            }
+
+            $wrap.append(`
+                <div style="padding:12px 0; ${border}">
+                    <!-- Title Row -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;"
+                        onclick="$('#${itemId}').slideToggle(200); const $a=$(this).find('.uat-arr'); $a.text($a.text()==='▼'?'▲':'▼');">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:15px; font-weight:700; color:${accentColor}; letter-spacing:0.5px;">${escH(r.route)}</span>
+                            <span class="uat-arr" style="font-size:9px; color:#cbd5e1; user-select:none;">▼</span>
+                        </div>
+                        <span style="font-size:12px; color:#64748b; background:#f8fafc; padding:2px 8px; border-radius:12px; border:1px solid #e2e8f0;">
+                            ${fmt(r.sessions)} sess · ${fmt(r.events)} lượt
+                        </span>
+                    </div>
+
+                    <!-- Expandable chi tiết ngày × giờ -->
+                    <div id="${itemId}" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed #e2e8f0;">
+                        ${detailHtml}
+                    </div>
+                </div>`);
+        });
+    }
+
+    // ── Peak IPs: list layout cho cột hẹp (uat-col-4) ─────────────────────────
+    function renderPeakIPs(ips) {
+        const $grid = $('#ec_peak_ips_grid');
+        $grid.empty();
+
+        if (!ips || ips.length === 0) {
+            $grid.html('<p style="color:#94a3b8; font-style:italic; font-size:13px;">Chưa có dữ liệu IP trong giờ cao điểm.</p>');
+            $('#ec_peak_ips_count').text('');
+            return;
+        }
+
+        $('#ec_peak_ips_count').text(ips.length + ' IPs');
+
+        ips.forEach(function (entry, idx) {
+            const isTop3 = idx < 3;
+            const rankChip = isTop3 ? `background:#dbeafe; color:#1d4ed8; font-weight:700;` : `background:#f1f5f9; color:#64748b; font-weight:600;`;
+            const border = idx < ips.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
+
+            $grid.append(`
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; ${border}">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="display:flex; justify-content:center; align-items:center; width:22px; height:22px; border-radius:12px; font-size:11px; ${rankChip}">
+                            ${idx + 1}
+                        </span>
+                        <div style="display:flex; flex-direction:column;">
+                            <span class="uat-ip-link" data-ip="${escH(entry.ip)}" style="font-family:monospace; font-size:13px; color:#1e293b; font-weight:600; cursor:pointer;" title="Bấm để xem lịch sử IP">
+                                ${escH(entry.ip)}
+                            </span>
+                            <span style="font-size:11px; color:#64748b;">${fmt(entry.sessions)} lượt tìm</span>
+                        </div>
+                    </div>
+                    <button class="uat-copy-ip" data-ip="${escH(entry.ip)}" title="Copy IP" style="background:none; border:none; padding:4px; cursor:pointer; color:#64748b; display:flex; align-items:center; transition:color 0.2s; outline:none;"
+                        onclick="navigator.clipboard.writeText('${escH(entry.ip)}').then(() => { let o=this.innerHTML; this.innerHTML='<span style=\\'color:#10b981;font-weight:700;display:flex;align-items:center;justify-content:center;width:14px;height:14px;\\'>✓</span>'; setTimeout(()=>this.innerHTML=o,1500); })">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>`);
+        });
     }
 
     function renderSimpleTable(tbodySelector, items, countField, limit, labelFn) {

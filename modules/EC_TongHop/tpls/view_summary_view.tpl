@@ -175,10 +175,14 @@
                             <div class="uat-card-title">Hourly Traffic Analytics</div>
                             <div class="uat-card-des">Lưu lượng truy cập theo từng khung giờ trong ngày</div>
                         </div>
-                        <div style="display: flex; gap: 8px;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
                             <button id="ec_hourly_toggle_btn" class="uat-btn uat-btn-sm"
                                 style="background:#f8fafc; color:#334155; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
                                 Đổi sang Bar Chart
+                            </button>
+                            <button id="ec_hourly_compare_btn" class="uat-btn uat-btn-sm"
+                                style="display:none; background:#f0fdf4; color:#16a34a; border:1px solid #86efac; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
+                                So sánh với Hôm nay
                             </button>
                             <button id="ec_hourly_mode_btn" class="uat-btn uat-btn-sm"
                                 style="background:#d1fae5; color:#047857; border:1px solid #a7f3d0; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
@@ -366,6 +370,87 @@
                 </div>
             </div>
         </div>
+
+        <!-- ── Peak Hour Intelligence ───────────────────────────── -->
+        <div class="uat-grid-row" style="margin-top:8px;">
+            <div class="uat-col-12">
+                <div class="uat-card" style="border-top:4px solid #f59e0b;">
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div>
+                            <div class="uat-card-title">Peak Hour Intelligence</div>
+                            <div class="uat-card-des">Phân phối lưu lượng theo giờ — highlight 3 khung giờ cao điểm
+                            </div>
+                        </div>
+                        <div id="ec_peak_stat_chips" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+                    </div>
+                    <div class="uat-card-divider"></div>
+                    <div style="position:relative; height:180px;">
+                        <canvas id="ec_peak_hours_chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── 3 Panels: Popular Routes, Niche Routes, Peak IPs ──────────────────────────── -->
+        <div class="uat-grid-row" style="margin-top:8px;">
+            <!-- Popular Routes -->
+            <div class="uat-col-4">
+                <div class="uat-card"
+                    style="padding:0; overflow:hidden; border-top:4px solid #3b82f6; display:flex; flex-direction:column;">
+                    <div style="padding:18px 20px 10px 20px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                            <span
+                                style="background:#dbeafe; color:#1d4ed8; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; letter-spacing:.5px;">HOT</span>
+                            <div class="uat-card-title" style="color:#1d4ed8; margin:0;">Hành trình Phổ biến</div>
+                        </div>
+                        <div class="uat-card-des">Route hot trong giờ cao điểm</div>
+                        <div class="uat-card-divider"></div>
+                    </div>
+                    <div id="ec_popular_routes_list"
+                        style="padding:0 20px 18px; flex:1; max-height:400px; overflow-y:auto;"></div>
+                </div>
+            </div>
+            <!-- Niche Routes -->
+            <div class="uat-col-4">
+                <div class="uat-card"
+                    style="padding:0; overflow:hidden; border-top:4px solid #8b5cf6; display:flex; flex-direction:column;">
+                    <div style="padding:18px 20px 10px 20px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                            <span
+                                style="background:#ede9fe; color:#6d28d9; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; letter-spacing:.5px;">TIỀM
+                                NĂNG</span>
+                            <div class="uat-card-title" style="color:#6d28d9; margin:0;">Hành trình Khác</div>
+                        </div>
+                        <div class="uat-card-des">Nhu cầu tiềm ẩn chưa khai thác</div>
+                        <div class="uat-card-divider"></div>
+                    </div>
+                    <div id="ec_niche_routes_list"
+                        style="padding:0 20px 18px; flex:1; max-height:400px; overflow-y:auto;"></div>
+                </div>
+            </div>
+            <!-- Peak IPs -->
+            <div class="uat-col-4">
+                <div class="uat-card"
+                    style="padding:0; overflow:hidden; border-top:4px solid #ef4444; display:flex; flex-direction:column;">
+                    <div style="padding:18px 20px 10px 20px;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:2px;">
+                            <div class="uat-card-title" style="margin:0;">IP Hoạt động Giờ Cao Điểm</div>
+                            <span id="ec_peak_ips_count"
+                                style="font-size:11px; font-weight:600; color:#ef4444; background:#fef2f2; padding:3px 8px; border-radius:12px; border:1px solid #fecaca; white-space:nowrap;"></span>
+                        </div>
+                        <div class="uat-card-des">IP có hành vi tìm chuyến bay lúc cao điểm</div>
+                        <div class="uat-card-divider"></div>
+                    </div>
+                    <div id="ec_peak_ips_grid"
+                        style="display:flex; flex-direction:column; gap:8px; padding:0 20px 18px; flex:1; max-height:400px; overflow-y:auto;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
     </div><!-- END TAB FLIGHTS -->
 
     <!-- TAB: TOP ELEMENTS -->
