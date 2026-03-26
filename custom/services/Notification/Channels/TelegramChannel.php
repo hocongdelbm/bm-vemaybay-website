@@ -1,4 +1,8 @@
 <?php
+namespace Custom\Services\Notification\Channels;
+
+use Custom\Services\Notification\NotificationChannelInterface;
+
 class TelegramChannel implements NotificationChannelInterface {
     public string $parseMode;
     private string $botToken;
@@ -159,7 +163,7 @@ class TelegramChannel implements NotificationChannelInterface {
 
             return $response;
         }
-        catch (Throwable $th) {
+        catch (\Throwable $th) {
             $message = "Exception error {$th->getCode()}: {$th->getMessage()} on line {$th->getLine()}";
             // LoggerHelper::error("{$method} {$this->ENDPOINT}/{$path} $message");
             return $this->returnError("An exception error has occurred: $message");

@@ -172,7 +172,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// External file
 		$js = '
-			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.0.3"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.0.4"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.0.2"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.0.3"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.0.2"></script>
@@ -663,18 +663,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			</div>
 		</div>';
 		$this->ss->assign('CONTACT_PHONE', $contact_phone);
-
-		// // LOCATION
-		// $location = '';
-		// $coordinates = explode(",", $this->bean->city);
-		// if(is_array($coordinates) && count($coordinates) == 2) {
-		// 	$lat = trim($coordinates[0]);
-		// 	$long = trim($coordinates[1]);
-		// 	// Call API to get location name
-		// 	$location = '';
-		// }
-		// else $location = $this->bean->city;
-		// $this->ss->assign('LOCATION', $location);
 
 		// Check is paid - is agent (Là đại lý)
 		if (!$this->checkIsPaidNote($this->bean->id)) {

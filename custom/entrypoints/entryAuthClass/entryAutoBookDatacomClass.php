@@ -2,6 +2,8 @@
 require_once "custom/entrypoints/entryClass.php";
 require_once "custom/include/helpers/api/APIDatacom.php";
 
+use Custom\Services\Notification\NotificationService;
+
 /**
  * Class entryAutoBookDatacomClass
  * 

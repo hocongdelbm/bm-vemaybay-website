@@ -1,6 +1,12 @@
 <?php
+namespace Custom\Services\Notification;
+
+use Custom\Services\Notification\NotificationChannelInterface;
+use Custom\Services\Notification\Channels\MattermostChannel;
+use Custom\Services\Notification\Channels\TelegramChannel;
+
 class NotificationService {
-    private static ?NotificationChannelInterface $channel = null;
+    /** @var NotificationChannelInterface[] */
     private static array $channels = []; // Cache changes from single to array
 
     public static function getChannel(string $profile = 'default'): NotificationChannelInterface {

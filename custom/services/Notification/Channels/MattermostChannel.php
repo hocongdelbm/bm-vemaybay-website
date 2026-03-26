@@ -1,4 +1,8 @@
 <?php
+namespace Custom\Services\Notification\Channels;
+
+use Custom\Services\Notification\NotificationChannelInterface;
+
 class MattermostChannel implements NotificationChannelInterface {
     private string $channelId;
     private string $logsChannelId;

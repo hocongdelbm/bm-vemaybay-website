@@ -1,23 +1,21 @@
 <?php
-date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once 'custom/entrypoints/entryClass.php';
+
+use Custom\Services\Notification\NotificationService;
 
 /**
  * Class entryBookingClass
  * 
  * Xử lý ajax cho booking
  */
-class entryBookingClass extends entryClass
-{
+class entryBookingClass extends entryClass {
     /**
      * Update fields
      *
-     * @param string $bookingId
-     * @param array $fields
+     * @param array $params
      * @return array
      */
-    public function updateFields($params = [])
-    {
+    public function updateFields($params = []) {
         $bookingId = $params['bookingId'] ?? '';
         $fields = $params['fields'] ?? [];
 
@@ -41,8 +39,13 @@ class entryBookingClass extends entryClass
         }
     }
 
-    public function getUploadedDocuments($params = [])
-    {
+    /**
+     * Get uploaded documents
+     *
+     * @param array $params
+     * @return string
+     */
+    public function getUploadedDocuments($params = []) {
         header('Content-Type: application/json');
         $booking_id = $params['booking_id'] ?? '';
 
@@ -99,5 +102,75 @@ class entryBookingClass extends entryClass
             'success' => true,
             'documents' => $documents
         ]);
+    }
+
+    /**
+     * Get lotion (address) by geocode
+     * @param array $params
+     * @return array
+     */
+    public function getLocation($params = []) {
+        $lat = $params['lat'] ?? '';
+        $long = $params['long'] ?? '';
+        $bookingId = $params['bookingId'] ?? '';
+
+        if(empty($lat) || empty($long) || empty($bookingId)) {
+            return ["status" => 0, "message" => "Tọa độ không hợp lệ", "data" => null];
+        }
+
+        try {
+            $locationService = new \Custom\Services\Location\LocationService();
+            $res = $locationService->reverseGeocode($lat, $long);
+
+            if(isset($res['status']) && $res['status']) {
+                $city = trim($res['data']['city'] ?? '');
+                if(empty($city)) $city = trim($res['data']['ward'] ?? '');
+
+                if(!empty($city)) {
+                    global $db;
+
+                    // Cleaned
+                    $city = str_replace("Thành phố", "", $city);
+                    $city = str_replace("Thành Phố", "", $city);
+                    $city = str_replace("Tỉnh", "", $city);
+                    if($city == "Thủ Đức") $city = "Hồ Chí Minh";
+
+                    $sql = "UPDATE ec_flight_bookings SET city = '$city' WHERE id = '$bookingId' AND deleted = 0";
+                    if($db->query($sql)) {
+                        return [
+                            "status" => 1,
+                            "message" => "Success",
+                            "data" => $city,
+                        ];
+                    }
+                    else {
+                        return [
+                            "status" => 0,
+                            "message" => "Dữ liệu chưa được lưu vào BM",
+                            "data" => $city,
+                        ];
+                    }
+                }
+
+                return [
+                    "status" => 0,
+                    "message" => "Không tìm thấy vị trí phù hợp từ tọa độ",
+                    "data" => $res['data'],
+                    "raw" => $res
+                ];
+            }
+
+            $m = "Lấy thông tin vị trí không thành công";
+            $m = "\n<pre>". json_encode($res, JSON_UNESCAPED_UNICODE) ."</pre>";
+            NotificationService::sendWarningMessage($m, "", ["threadKey" => "logs"]);
+            return $res;
+        }
+        catch(Throwable $th) {
+            return [
+                "status" => 0,
+                "message" => "{$th->getMessage()} on line {$th->getLine()}",
+                "data" => null
+            ];
+        }
     }
 }

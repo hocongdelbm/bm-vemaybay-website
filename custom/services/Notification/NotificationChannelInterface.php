@@ -1,4 +1,6 @@
 <?php
+namespace Custom\Services\Notification;
+
 interface NotificationChannelInterface {
     /**
      * Send message

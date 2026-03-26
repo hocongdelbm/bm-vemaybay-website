@@ -1,4 +1,7 @@
 <?php
+
+use Custom\Services\Notification\NotificationService;
+
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 $job_strings[] = 'TuDongTaoBang';  // tu dong tao bang moi chi tiet tai khoan

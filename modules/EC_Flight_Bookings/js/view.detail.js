@@ -587,83 +587,79 @@ $(document).ready(function () {
 	const HEIGHT_ROW_TEXTAREA = 17; // 17px
 	const HEIGHT_MESSAGE_LIST_CHAT = 465; // 465px
 	const tag_textarea = $('textarea#note-description');
+	// KHI TEXTAREA FOCUS
+	tag_textarea.focus(function () {
+		$('svg#icon-send-notes').css('fill', 'rgb(0, 132, 255)');
+		$('.wrap-cancel svg g').attr('stroke', 'rgb(0, 132, 255)');
+	});
+	// KHI TEXTAREA KHÔNG FOCUS
+	tag_textarea.blur(function () {
+		$('svg#icon-send-notes').css('fill', '#BCC0C4');
+		$('.wrap-cancel svg g').attr('stroke', '#BCC0C4');
 
-	$(document).ready(function () {
-		// KHI TEXTAREA FOCUS
-		tag_textarea.focus(function () {
-			$('svg#icon-send-notes').css('fill', 'rgb(0, 132, 255)');
-			$('.wrap-cancel svg g').attr('stroke', 'rgb(0, 132, 255)');
-		});
-		// KHI TEXTAREA KHÔNG FOCUS
-		tag_textarea.blur(function () {
-			$('svg#icon-send-notes').css('fill', '#BCC0C4');
-			$('.wrap-cancel svg g').attr('stroke', '#BCC0C4');
-
-		});
-
-		// Change textarea height when texting
-		tag_textarea.keyup(function (event) {
-			if (event.keyCode == 13 && event.shiftKey) { // Khi bấm xuống hàng
-				let rows = parseInt($(this).attr('rows')) + 1;
-				let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - HEIGHT_ROW_TEXTAREA;
-				if (rows <= 5) {
-					$(this).attr('rows', rows);
-					$(MESSAGE_LIST_CHAT_ID).height(height);
-				}
+	});
+	// Change textarea height when texting
+	tag_textarea.keyup(function (event) {
+		if (event.keyCode == 13 && event.shiftKey) { // Khi bấm xuống hàng
+			let rows = parseInt($(this).attr('rows')) + 1;
+			let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - HEIGHT_ROW_TEXTAREA;
+			if (rows <= 5) {
+				$(this).attr('rows', rows);
+				$(MESSAGE_LIST_CHAT_ID).height(height);
 			}
-			else { // Xuống hàng do độ dài
-				let count_row = countRows($(this).val());
-				let rows = parseInt($(this).attr('rows'));
-
-				if (1 < count_row && count_row <= 5 && count_row > rows) {
-					let t = count_row - rows;
-					let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - t * HEIGHT_ROW_TEXTAREA;
-					$(this).attr('rows', count_row);
-					$(MESSAGE_LIST_CHAT_ID).height(height);
-				}
-			}
-		});
-		tag_textarea.bind("paste", function (e) { // Copy paste
-			let count_row = countRows(e.originalEvent.clipboardData.getData('text'));
+		}
+		else { // Xuống hàng do độ dài
+			let count_row = countRows($(this).val());
 			let rows = parseInt($(this).attr('rows'));
 
-			if (1 < count_row && count_row > rows) {
+			if (1 < count_row && count_row <= 5 && count_row > rows) {
 				let t = count_row - rows;
 				let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - t * HEIGHT_ROW_TEXTAREA;
 				$(this).attr('rows', count_row);
 				$(MESSAGE_LIST_CHAT_ID).height(height);
 			}
-		});
-		tag_textarea.on('keydown keyup', function () {
-			var key = event.keyCode || event.charCode;
-
-			if (key == 8 || key == 46) {
-				let count_row = $(this).val().split("\n").length;
-				let rows = parseInt($(this).attr('rows'));
-
-				if (count_row - 1 > 0) { // Có ký tự /n
-					if (count_row < 5 && count_row < rows) {
-						let t = rows - count_row;
-						let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) + t * HEIGHT_ROW_TEXTAREA;
-						$(this).attr('rows', count_row);
-						$(MESSAGE_LIST_CHAT_ID).height(height);
-					}
-				}
-				else {
-					count_row = countRows($(this).val());
-					if (1 <= count_row && count_row <= 5 && count_row < rows) {
-						let t = rows - count_row;
-						let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) + t * HEIGHT_ROW_TEXTAREA;
-						$(this).attr('rows', count_row);
-						$(MESSAGE_LIST_CHAT_ID).height(height);
-					}
-				}
-
-				if ($(this).val().length == 0) $(MESSAGE_LIST_CHAT_ID).height(HEIGHT_MESSAGE_LIST_CHAT);
-			}
-		});
+		}
 	});
+	tag_textarea.bind("paste", function (e) { // Copy paste
+		let count_row = countRows(e.originalEvent.clipboardData.getData('text'));
+		let rows = parseInt($(this).attr('rows'));
 
+		if (1 < count_row && count_row > rows) {
+			let t = count_row - rows;
+			let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - t * HEIGHT_ROW_TEXTAREA;
+			$(this).attr('rows', count_row);
+			$(MESSAGE_LIST_CHAT_ID).height(height);
+		}
+	});
+	tag_textarea.on('keydown keyup', function () {
+		var key = event.keyCode || event.charCode;
+
+		if (key == 8 || key == 46) {
+			let count_row = $(this).val().split("\n").length;
+			let rows = parseInt($(this).attr('rows'));
+
+			if (count_row - 1 > 0) { // Có ký tự /n
+				if (count_row < 5 && count_row < rows) {
+					let t = rows - count_row;
+					let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) + t * HEIGHT_ROW_TEXTAREA;
+					$(this).attr('rows', count_row);
+					$(MESSAGE_LIST_CHAT_ID).height(height);
+				}
+			}
+			else {
+				count_row = countRows($(this).val());
+				if (1 <= count_row && count_row <= 5 && count_row < rows) {
+					let t = rows - count_row;
+					let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) + t * HEIGHT_ROW_TEXTAREA;
+					$(this).attr('rows', count_row);
+					$(MESSAGE_LIST_CHAT_ID).height(height);
+				}
+			}
+
+			if ($(this).val().length == 0) $(MESSAGE_LIST_CHAT_ID).height(HEIGHT_MESSAGE_LIST_CHAT);
+		}
+	});
+	
 	$('#btn-open-mobile-menu').click(function () {
 		$('.message_list').scrollTop($('.message_list')[0].scrollHeight);
 	});
@@ -953,7 +949,6 @@ $(document).ready(function () {
 	});
 	// End edit booking detail
 
-
 	// Thông tin những người đã xem booking
 	$("#btnViewBooking").on("click", function () {
 		$.ajax({
@@ -987,7 +982,6 @@ $(document).ready(function () {
 		}
 		return true;
 	});
-
 
 	// Begin add luggage
 	$("#add_luggage_btn").click(function () {
@@ -1046,7 +1040,6 @@ $(document).ready(function () {
 			resizable: false,
 		});
 	});
-
 	$("#change_name").submit(function () {
 		if (!checkLineItems(2)) {
 			return false;
@@ -1388,6 +1381,51 @@ $(document).ready(function () {
 			});
 		}
 	});
+
+	// Get location from geocode in booking
+	const regexlatlong = /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/;
+	const latlong= $("#city").text().trim();
+	if(regexlatlong.test(latlong)) {
+		const latlongparts = latlong.split(',');
+		if (latlongparts.length != 2) return false;
+		const lat = latlongparts[0].trim();
+		const long = latlongparts[1].trim();
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointGeneral&class=entryBookingClass&method=getLocation",
+			type: "POST",
+			contentType: "application/json", 
+			dataType: "json",  
+			data: JSON.stringify({
+				params: {
+					lat: lat,
+					long: long,
+					bookingId: bookingId,
+				}
+			}),
+			beforeSend: function () {
+				$("#city").append(`<i id="location-loading" class="ms-2" style="color:#a7a7a7;">Đang định vị...</i>`);
+			},
+			success: function (res) {
+				$("#location-loading").remove();
+				if('status' in res && res.status === 1) {
+					if(res.data.length > 0) $("#city").text(res.data);
+				}
+				else {
+					let message = res.message || 'Có lỗi xảy ra khi lấy dữ liệu';
+					$("#city").append(`
+						<span class="ms-1" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="${message}">
+							<svg width="14px" height="14px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12ZM10.0586 6.05547C10.0268 5.48227 10.483 5 11.0571 5H12.9429C13.517 5 13.9732 5.48227 13.9414 6.05547L13.5525 13.0555C13.523 13.5854 13.0847 14 12.554 14H11.446C10.9153 14 10.477 13.5854 10.4475 13.0555L10.0586 6.05547ZM14 17C14 18.1046 13.1046 19 12 19C10.8954 19 10 18.1046 10 17C10 15.8954 10.8954 15 12 15C13.1046 15 14 15.8954 14 17Z" fill="#ff0000"></path></g></svg>
+						</span>
+					`);
+				}
+			},
+			error: function (XMLHttpRequest, textStatus, errorThrown) {
+				console.error("Status: " + textStatus);
+				console.error("Error: " + errorThrown);
+			},
+		});
+	}
 });
 
 // Count row for textarea

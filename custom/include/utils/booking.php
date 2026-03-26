@@ -23,7 +23,7 @@ function createContactsForBooking($phoneNumber, $contactName = '')
         $contact->description = 'Liên hệ mới tạo từ booking';
         $contact_id = $contact->save();
         if (empty($contact_id)) {
-            NotificationService::sendWarningMessage("Tạo liên hệ mới thất bại với SĐT: $phoneNumber", "", ["threadKey" => "system"]);
+            // NotificationService::sendWarningMessage("Tạo liên hệ mới thất bại với SĐT: $phoneNumber", "", ["threadKey" => "system"]);
         }
     }
     else {

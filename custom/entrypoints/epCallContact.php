@@ -1,6 +1,5 @@
 <?php
-
-use PhpParser\Node\Stmt\Catch_;
+use Custom\Services\Notification\NotificationService;
 
 if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
     $type = isset($_POST['type']) ? $_POST['type'] : "";
