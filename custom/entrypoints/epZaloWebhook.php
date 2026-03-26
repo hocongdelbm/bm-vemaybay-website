@@ -3,7 +3,7 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once "custom/include/helpers/api/APIZaloOA.php";
 require 'vendor/autoload.php';
 use WebSocket\Client;
-use Custom\Services\Notification\NotificationService;
+use Services\Notification\NotificationService;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     global $sugar_config, $current_user;

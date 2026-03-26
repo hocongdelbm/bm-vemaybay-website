@@ -1,5 +1,5 @@
 <?php
-use Custom\Services\Notification\NotificationService;
+use Services\Notification\NotificationService;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     global $db;

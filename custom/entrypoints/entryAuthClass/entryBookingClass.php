@@ -1,7 +1,7 @@
 <?php
 require_once 'custom/entrypoints/entryClass.php';
 
-use Custom\Services\Notification\NotificationService;
+use Services\Notification\NotificationService;
 
 /**
  * Class entryBookingClass
