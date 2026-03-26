@@ -1,6 +1,5 @@
 <?php
-
-use PhpParser\Node\Stmt\Catch_;
+use Services\Notification\NotificationService;
 
 if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
     $type = isset($_POST['type']) ? $_POST['type'] : "";
@@ -23,10 +22,10 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             'avatar'        => '',
             'info_booking'  => '',
             'last_interaction'  => '',
-            'is_call_zalo'  => false, 
-            'is_uncomfortable'  => false, 
-            'is_ctv'  => false, 
-            'is_compare_price'  => false, 
+            'is_call_zalo'  => false,
+            'is_uncomfortable'  => false,
+            'is_ctv'  => false,
+            'is_compare_price'  => false,
         ];
 
         $where = [];
@@ -55,7 +54,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     AND eb.bean_module = 'Contacts' AND eb.deleted = 0
                 LEFT JOIN email_addresses e ON e.id = eb.email_address_id
                 LEFT JOIN ec_zalo_contacts zc ON zc.contact_id = con.id
-            WHERE (". implode(' AND ', $where) .") 
+            WHERE (" . implode(' AND ', $where) . ") 
                 AND con.deleted = 0
             ORDER BY con.date_entered
             LIMIT 1";
@@ -93,8 +92,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         // Return
         echo json_encode($data);
         exit();
-    }
-    elseif ((string)$type === "update_call") {
+    } elseif ((string)$type === "update_call") {
         try {
             $call_id        = isset($_POST['call_id']) ? global_test_input($_POST['call_id']) : "";
             $contact_id     = isset($_POST['contact_id']) ? global_test_input($_POST['contact_id']) : "";
@@ -147,16 +145,16 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     $sql = 'SELECT c.id, c.phone_mobile, zc.zalo_id
                             FROM contacts c
                                 LEFT JOIN ec_zalo_contacts zc ON zc.contact_id = c.id
-                            WHERE ('. implode(' OR ', $where_clauses) .')
+                            WHERE (' . implode(' OR ', $where_clauses) . ')
                                 AND c.deleted = 0';
                     $result = $db->query($sql);
-            
+
                     $found_ids = [];
                     while ($row = $db->fetchByAssoc($result)) {
                         $found_ids[] = $row['id'];
                     }
-            
-                    $contact_id = $found_ids[0]; 
+
+                    $contact_id = $found_ids[0];
                     if (count($found_ids) > 1) {
                         $cont = "Có nhiều hơn 1 liên hệ trùng thông tin";
                         $cont .= "\nSĐT: <b>$phone</b>";
@@ -198,10 +196,9 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 if ($save === true) {
                     $con->description = "Cập nhật thông tin Liên hệ từ cuộc gọi có call_ID: $call_id";
                     $con->save();
-                } 
-            }
-            else {
-                if(!empty($call_id) && !isExitsPhoneNumber('contacts', $phone)) {
+                }
+            } else {
+                if (!empty($call_id) && !isExitsPhoneNumber('contacts', $phone)) {
                     $con->phone_mobile      = trim($phone);
                     $con->last_name         = $name;
                     $con->email1            = $email;
@@ -215,7 +212,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             }
 
             // Map contact and zalo
-            if(!empty($zalo_id) && is_string($con->id)) {
+            if (!empty($zalo_id) && is_string($con->id)) {
                 $zaloContact = new EC_Zalo_Contacts();
                 EC_Zalo_Contacts_Helper::map_contact_zalo($con->id, $zalo_id);
             }
@@ -242,8 +239,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 if ($result_update_call) {
                     $log_save_calls = "[{$current_user->user_name}][{$currentDate}][success]$sql_update_call";
                     save_log_call($log_save_calls);
-                }
-                else {
+                } else {
                     $log_save_calls = "[{$current_user->user_name}][{$currentDate}][Failed_db]$sql_update_call";
                     save_log_call($log_save_calls);
 
@@ -254,8 +250,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     ], JSON_UNESCAPED_UNICODE);
                     exit;
                 }
-            }
-            else {
+            } else {
                 $log_save_calls = "[{$current_user->user_name}][{$currentDate}][Failed_Callid]$sql_exist_callid";
                 save_log_call($log_save_calls);
 
@@ -280,18 +275,18 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             $work->name                 = $booking_name;
                             $work->parent_type          = 'EC_Flight_Bookings';
                             $work->parent_id            = $booking_id;
-                            $work->description          = $note . ' (' . $type_call . ' '.$call_status.' '.$call['call_talk'].')';
+                            $work->description          = $note . ' (' . $type_call . ' ' . $call_status . ' ' . $call['call_talk'] . ')';
                             // Gọi đi
                             $work->$type_call           = ((string)$call_status === 'done' && !empty($note) && (int)$call['call_talk'] >= 20) ? 1 : 0;
                             $work->assigned_user_id     = $current_user->id;
                             $work->save();
 
-                            if(empty($work->id)) {
+                            if (empty($work->id)) {
                                 // SEND TELE WARNING SAVE KPI FAILED
                                 $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-                                "- Call: <b>" . $call['name'] . " - " . $booking_name . "</b>\n" .
-                                "- User: <b>" . $current_user->user_name . "</b>\n" .
-                                "<pre>[WARNING]: SAVE KPI HAS BOOKING FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
+                                    "- Call: <b>" . $call['name'] . " - " . $booking_name . "</b>\n" .
+                                    "- User: <b>" . $current_user->user_name . "</b>\n" .
+                                    "<pre>[WARNING]: SAVE KPI HAS BOOKING FAILED " . $call['description'] . ". Hội thoại: " . $call['call_talk'] . ".</pre>";
                                 $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                                 $messageData = json_encode([
                                     'text' => $content,
@@ -356,27 +351,27 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 while ($call = $db->fetchByAssoc($result)) {
-                    if (!empty($note) &&  strtolower((string)$call['status']) === 'done' &&  (
-                        ((string)$call['direction'] === 'inbound' && (int)$call['call_talk'] > 0) || ((string)$call['direction'] === 'outbound' && (int)$call['call_talk'] >= 20))
+                    if (
+                        !empty($note) &&  strtolower((string)$call['status']) === 'done' &&  (
+                            ((string)$call['direction'] === 'inbound' && (int)$call['call_talk'] > 0) || ((string)$call['direction'] === 'outbound' && (int)$call['call_talk'] >= 20))
                     ) {
                         $work = new EC_Working_Process();
                         $work->name = $call['name'];
                         $work->parent_type = 'Calls';
                         $work->parent_id = $call['id'];
-                        $work->description = $note . ' ('.$type_call.') Cập nhật cuộc gọi';
-                        $work->$type_call = 1; 
+                        $work->description = $note . ' (' . $type_call . ') Cập nhật cuộc gọi';
+                        $work->$type_call = 1;
                         $work->assigned_user_id = $current_user->id;
                         $work->save();
 
-                        if(empty($work->id)) {
+                        if (empty($work->id)) {
                             // SEND TELE WARNING SAVE KPI FAILED
                             $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-                            "- Call: <b>" . $call['name'] . "</b>\n" .
-                            "- User: <b>" . $current_user->user_name . "</b>\n" .
-                            "<pre>[WARNING]: SAVE KPI FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
+                                "- Call: <b>" . $call['name'] . "</b>\n" .
+                                "- User: <b>" . $current_user->user_name . "</b>\n" .
+                                "<pre>[WARNING]: SAVE KPI FAILED " . $call['description'] . ". Hội thoại: " . $call['call_talk'] . ".</pre>";
                             $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                             $messageData = json_encode([
                                 'text' => $content,
@@ -408,16 +403,16 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             // $message .= "\n$link";
                             // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                         }
-                    } 
+                    }
                 }
             }
 
             /**********  3. Send ZBS message (after-call-sale)  **********/
             try {
                 $zbs_template_message_params = [];
-                if($is_send_zbs_after_call) {
-                    if(!empty($data_zbs_after_call_code) && !empty($data_zbs_after_call_datetime)) {
-                        if(!empty($phone)) {
+                if ($is_send_zbs_after_call) {
+                    if (!empty($data_zbs_after_call_code) && !empty($data_zbs_after_call_datetime)) {
+                        if (!empty($phone)) {
                             $zbs_template_message_params = [
                                 "phoneNumber" => $phone,
                                 "type" => "after-call-sale",
@@ -429,10 +424,9 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                                     "datetime" => $data_zbs_after_call_datetime,
                                 ],
                             ];
-                        }
-                        else if(!empty($zalo_id)) {
+                        } else if (!empty($zalo_id)) {
                             $zalo_info = EC_Zalo_Contacts_Helper::get_zalo_user_info($zalo_id, '', true);
-                            if(isset($zalo_info['shared_info']['phone']) && !empty($zalo_info['shared_info']['phone'])) {
+                            if (isset($zalo_info['shared_info']['phone']) && !empty($zalo_info['shared_info']['phone'])) {
                                 $zbs_template_message_params = [
                                     "phoneNumber" => $zalo_info['shared_info']['phone'],
                                     "type" => "after-call-sale",
@@ -447,14 +441,13 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             }
                         }
                     }
-                }
-                else if(!empty($booking_id)) {
+                } else if (!empty($booking_id)) {
                     /**
                      * @var EC_Flight_Bookings $booking
                      */
                     $booking = new EC_Flight_Bookings();
                     $booking->retrieve($booking_id);
-                    if(!empty($booking->id) && strtoupper(trim($booking->contact_name)) == 'THAM KHAO' && $booking->total_amount == 0) {
+                    if (!empty($booking->id) && strtoupper(trim($booking->contact_name)) == 'THAM KHAO' && $booking->total_amount == 0) {
                         $sqlItineraries = "SELECT departure AS dep_code, arrival AS des_code, departure_date
                             FROM ec_booking_itineraries 
                             WHERE booking_id = '{$booking_id}'
@@ -462,12 +455,12 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                                 AND deleted = 0";
                         $resItineraries = $db->query($sqlItineraries);
                         $rowItineraries = $db->fetchByAssoc($resItineraries);
-                            
+
                         $dep_code = $rowItineraries['dep_code'] ?? '';
                         $des_code = $rowItineraries['des_code'] ?? '';
                         $departure_date = $rowItineraries['departure_date'] ?? '';
 
-                        if(!empty($dep_code) && !empty($des_code) && !empty($departure_date) && strtotime($departure_date) !== false) {
+                        if (!empty($dep_code) && !empty($des_code) && !empty($departure_date) && strtotime($departure_date) !== false) {
                             $zbs_template_message_params = [
                                 "phoneNumber" => !empty($phone) ? $phone : $booking->phone,
                                 "type" => "after-call-sale",
@@ -483,20 +476,18 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     }
                 }
-                if(is_array($zbs_template_message_params) && !empty($zbs_template_message_params)) {
+                if (is_array($zbs_template_message_params) && !empty($zbs_template_message_params)) {
                     $entry = new entryFactory();
                     $entryOA = $entry->create('entryZaloOAClass');
                     $entryOA->sendTemplateMessage($zbs_template_message_params);
                 }
-            }
-            catch(Throwable $th) {
+            } catch (Throwable $th) {
                 $GLOBALS['log']->fatal("Error happen when sending ZBS message (after-call-sale): {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             }
-            
+
             echo json_encode(["status" => 1, "message" => "Success"]);
             exit;
-        }
-        catch(Throwable $th) {
+        } catch (Throwable $th) {
             echo json_encode([
                 "status"    => 0,
                 "errorCode" => 500,
@@ -504,8 +495,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             ], JSON_UNESCAPED_UNICODE);
             exit;
         }
-    }
-    elseif ((string)$type === "check_missed_call") {
+    } elseif ((string)$type === "check_missed_call") {
         $call_id = isset($_POST['call_id']) ? global_test_input($_POST['call_id']) : "";
 
         if (empty($call_id)) {
@@ -520,8 +510,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         if ($id && !empty($id)) echo 1;
         else echo 0;
         exit();
-    }
-    elseif ((string)$type === "map_call_booking") {
+    } elseif ((string)$type === "map_call_booking") {
         $call_name      = isset($_POST['call_name']) ? global_test_input($_POST['call_name']) : "";
         $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
         $booking_name   = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
@@ -591,13 +580,59 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 
         echo 0;
         exit();
-    }
-    else if ((string)$type === 'save_log_call') {
+    } elseif ((string)$type === "map_call_booking_auto") {
+        $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
+        $booking_name   = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
+        $phone          = isset($_POST['phone']) ? global_test_input(trim($_POST['phone'])) : "";
+
+        if (empty($phone) || empty($booking_id)) {
+            echo 400;
+            exit();
+        }
+
+        global $db, $current_user;
+
+        // Tìm cuộc gọi đến gần nhất của SĐT phone -
+        $sql = 'SELECT id
+                FROM calls
+                WHERE call_from = "' . $db->quote(trim($phone)) . '"
+                    AND direction = "inbound"
+                    AND (booking_id IS NULL OR booking_id = "")
+                    AND deleted = 0
+                ORDER BY date_entered DESC
+                LIMIT 1';
+        $call_id = $db->getOne($sql);
+
+        if (!empty($call_id)) {
+            $cal = new Call();
+            $cal->retrieve($call_id);
+            $description = trim($cal->description);
+
+            $cal->booking_id = $booking_id;
+            $cal->save();
+            $assigned_user_id = (is_null($cal->assigned_user_id) || empty($cal->assigned_user_id)) ? $current_user->id : $cal->assigned_user_id;
+
+            $bean_note                      = new Note();
+            $bean_note->id                  = '';
+            $bean_note->name                = $booking_name;
+            $bean_note->parent_type         = 'EC_Flight_Bookings';
+            $bean_note->parent_id           = $booking_id;
+            $bean_note->description         = $description . ' (automap_call_bk)';
+            $bean_note->booking_status      = '8';
+            $bean_note->assigned_user_id    = $assigned_user_id;
+            $bean_note->save();
+
+            echo 1;
+            exit();
+        }
+
+        echo 0;
+        exit();
+    } else if ((string)$type === 'save_log_call') {
         $log_call = isset($_POST['log']) ? $_POST['log'] : '';
         save_log_call($log_call);
         exit;
-    }
-    else if ((string)$type === 'get_history_activity_contacts'){
+    } else if ((string)$type === 'get_history_activity_contacts') {
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         $start_date = date('Y-m-d H:i:s', strtotime('-1 year +7 hours'));
         $end_date   = date('Y-m-d H:i:s', strtotime('+7 hours'));
@@ -606,7 +641,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             echo 0;
             exit();
         }
-    
+
         $sql = "
                 SELECT 
                     c.id AS interaction_id,
@@ -696,34 +731,34 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         $count_actibity = $db->getRowCount($res);
         $user_list = get_user_array(true, '', '', true);
 
-        if($count_actibity > 0){
+        if ($count_actibity > 0) {
             $html = '<div class="row flex-start">
                         <div class="col-md-12">
                             <div class="main-card mb-3 card">
                                 <div class="card-body p-0">
                                     <div class="vertical-timeline vertical-timeline--animate vertical-timeline--one-column">';
             while ($row = $db->fetchByAssoc($res)) {
-                
+
                 switch ($row['interaction_type']) {
                     case 'call':
                         $interaction_type = 'primary';
-                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['calls_direction_list'][$row['interaction_status']].')</span>';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-' . $interaction_type . '" target="_blank" href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> (' . $GLOBALS['app_list_strings']['calls_direction_list'][$row['interaction_status']] . ')</span>';
                         break;
                     case 'booking':
                         $interaction_type = 'success';
-                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=EC_Flight_Bookings&return_module=EC_Flight_Bookings&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['booking_status_list'][$row['interaction_status']].')</span>';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-' . $interaction_type . '" target="_blank" href="index.php?module=EC_Flight_Bookings&return_module=EC_Flight_Bookings&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> (' . $GLOBALS['app_list_strings']['booking_status_list'][$row['interaction_status']] . ')</span>';
                         break;
                     case 'refund':
                         $interaction_type = 'warning';
-                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=EC_Hoanve&return_module=EC_Hoanve&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['tinhtranghoanve_list'][$row['interaction_status']].')</span>';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-' . $interaction_type . '" target="_blank" href="index.php?module=EC_Hoanve&return_module=EC_Hoanve&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> (' . $GLOBALS['app_list_strings']['tinhtranghoanve_list'][$row['interaction_status']] . ')</span>';
                         break;
                     case 'receipt_voucher':
                         $interaction_type = 'info';
-                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=EC_Receipt_Voucher&return_module=EC_Receipt_Voucher&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['receipt_voucher_status_list'][$row['interaction_status']].')</span>';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-' . $interaction_type . '" target="_blank" href="index.php?module=EC_Receipt_Voucher&return_module=EC_Receipt_Voucher&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> (' . $GLOBALS['app_list_strings']['receipt_voucher_status_list'][$row['interaction_status']] . ')</span>';
                         break;
                     case 'payment_voucher':
                         $interaction_type = 'danger';
-                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=EC_Payment_Voucher&return_module=EC_Payment_Voucher&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['payment_voucher_status_list'][$row['interaction_status']].')</span>';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-' . $interaction_type . '" target="_blank" href="index.php?module=EC_Payment_Voucher&return_module=EC_Payment_Voucher&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> (' . $GLOBALS['app_list_strings']['payment_voucher_status_list'][$row['interaction_status']] . ')</span>';
                         break;
                     default:
                         $interaction_link = $row['interaction_item'];
@@ -733,14 +768,14 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 $html .= ' 
                         <div class="vertical-timeline-item vertical-timeline-element">
                             <div class="flex-start gap-3">
-                                <span class="vertical-timeline-element-date w-25 text-secondary fw-semibold">'.date('H:i:s d-m-Y', strtotime('+7 hours', strtotime($row['interaction_date']))).'</span>
+                                <span class="vertical-timeline-element-date w-25 text-secondary fw-semibold">' . date('H:i:s d-m-Y', strtotime('+7 hours', strtotime($row['interaction_date']))) . '</span>
                                 <span class="vertical-timeline-element-icon bounce-in text-center">
-                                    <span class="badge badge-dot badge-dot-xl text-bg-'.$interaction_type.'"> </span>
+                                    <span class="badge badge-dot badge-dot-xl text-bg-' . $interaction_type . '"> </span>
                                 </span>
                                 <div class="vertical-timeline-element-content bounce-in flex-fill">
                                     <p class="mb-2">
-                                        '.$interaction_link.' 
-                                        <span class="d-block">'.$row['interaction_detail'].'</span>
+                                        ' . $interaction_link . ' 
+                                        <span class="d-block">' . $row['interaction_detail'] . '</span>
                                     </p>
                                     <p>Nhân viên: <span class="fw-semibold text-dark">' . $user_list[$row['assigned_user_id']] . '</span></p>
                                 </div>
@@ -759,8 +794,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             echo 'Không có hoạt động!';
         }
         exit;
-    }
-    else if ((string)$type === 'get_history_activity_cskh'){
+    } else if ((string)$type === 'get_history_activity_cskh') {
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         $start_date = date('Y-m-d H:i:s', strtotime('-1 year +7 hours'));
         $end_date   = date('Y-m-d H:i:s', strtotime('+7 hours'));
@@ -771,7 +805,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         global $db, $app_list_strings;
-    
+
         $sql = "SELECT 
                 c.id,
                 c.name,
@@ -802,7 +836,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         $total_wait = 0;
         $total_talk = 0;
 
-        if($count_calls > 0){
+        if ($count_calls > 0) {
             $html = '<div class="list-calls-cskh">
                         <table class="tbl-check-cskh-calls table-details__booking">
                             <thead>
@@ -822,13 +856,13 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 $status_class = 'text-normal';
                 if ((string)$row['status'] === 'processing') {
                     $status_class = 'text-warning';
-               } else if ((string)$row['status'] === 'done') {
+                } else if ((string)$row['status'] === 'done') {
                     $status_class = 'text-success';
-               }
+                }
 
-               // class direction
-               $direction_class = 'text-normal';
-               if ((string)$row['direction'] === 'suddenly') {
+                // class direction
+                $direction_class = 'text-normal';
+                if ((string)$row['direction'] === 'suddenly') {
                     $direction_class = 'text-warning';
                 } else if ((string)$row['direction'] === 'inbound') {
                     $direction_class = 'text-success';
@@ -838,21 +872,21 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     $direction_class = 'text-primary';
                 } else if ((string)$row['direction'] === 'spam') {
                     $direction_class = 'text-spam';
-                } 
+                }
 
                 // Xử lý log
                 $log = json_decode(html_entity_decode($row['log']), true);
-                if(isset($log['call_talk']) && $log['call_talk'] > 0){
+                if (isset($log['call_talk']) && $log['call_talk'] > 0) {
                     $successful_calls++;
                     $total_talk += $log['call_talk'];
                 } else {
                     $failed_calls++;
                 }
 
-                if(isset($log['call_duration'])){
+                if (isset($log['call_duration'])) {
                     $total_duration += $log['call_duration'];
                 }
-                if(isset($log['call_wait'])){
+                if (isset($log['call_wait'])) {
                     $total_wait += $log['call_wait'];
                 }
 
@@ -867,7 +901,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             <td align="left">' . $row['description'] . '</td>
                             <td align="center">' . $user_list[$row['assigned_user_id']] . '</td>
 						</tr>';
-				$i++;
+                $i++;
             }
 
             // SUMMARY
@@ -881,21 +915,20 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 </div>
 
                 <div class="flex-fill lh-base">
-                    <p>⏱️ <strong>Tổng thời gian:</strong> ' . global_secondsToTimeFormat($total_duration) . ' (Thời gian TB: ' . round($total_duration/$total_calls) . ')</p>
-                    <p>⏱️ <strong>Tổng thời gian đợi:</strong> ' . global_secondsToTimeFormat($total_wait) . ' (Thời gian TB: ' . round($total_wait/$total_calls) . ')</p>
-                    <p>⏱️ <strong>Tổng thời gian thoại:</strong> ' . global_secondsToTimeFormat($total_talk) . ' (Thời gian TB: ' . round($total_talk/$total_calls) . ')</p>
+                    <p>⏱️ <strong>Tổng thời gian:</strong> ' . global_secondsToTimeFormat($total_duration) . ' (Thời gian TB: ' . round($total_duration / $total_calls) . ')</p>
+                    <p>⏱️ <strong>Tổng thời gian đợi:</strong> ' . global_secondsToTimeFormat($total_wait) . ' (Thời gian TB: ' . round($total_wait / $total_calls) . ')</p>
+                    <p>⏱️ <strong>Tổng thời gian thoại:</strong> ' . global_secondsToTimeFormat($total_talk) . ' (Thời gian TB: ' . round($total_talk / $total_calls) . ')</p>
                 </div>
             </div>';
 
-            echo $html_call_summary.$html;
+            echo $html_call_summary . $html;
         } else {
             echo 'Chưa có cuộc gọi CSKH nào!';
         }
         exit();
-    }
-    else if ((string)$type === 'get_infor_phone') {
+    } else if ((string)$type === 'get_infor_phone') {
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
-        if(!empty($phone)){
+        if (!empty($phone)) {
             echo json_encode(getInfoCallSource($phone));
         }
         exit();
@@ -931,7 +964,7 @@ function get_call_info($phone)
                         <th>Mô tả</th>
                     </thead>
                     <tbody>';
-                    
+
         $i = 1;
         while ($row = $db->fetchByAssoc($res)) {
             // class direction
@@ -946,8 +979,8 @@ function get_call_info($phone)
                 $direction_class = 'text-primary';
             } else if ((string)$row['direction'] === 'spam') {
                 $direction_class = 'text-spam';
-            } 
-    
+            }
+
             $html .= '
                     <tr>
                         <td align="center" class="fw-bold">' . $i . '</td>
@@ -1002,7 +1035,7 @@ function get_booking_refund($phone)
                         <th>Đã chi tiền</th>
                     </thead>
                     <tbody>';
-    
+
         $i = 1;
         while ($row = $db->fetchByAssoc($res)) {
             $html .= '<tr>
@@ -1016,7 +1049,7 @@ function get_booking_refund($phone)
                     </tr>';
             $i++;
         }
-    
+
         $html .= '</tbody></table>';
     }
 

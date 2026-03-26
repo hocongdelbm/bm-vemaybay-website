@@ -40,8 +40,6 @@ class ResourceManager
     /**
      * setup
      * Handles determining the appropriate setup based on client type.
-     * It will create a SoapResourceObserver instance if the $module parameter is set to
-     * 'Soap'; otherwise, it will try to create a WebResourceObserver instance.
      * @param string $module The module value used to create the corresponding observer
      * @return boolean value indicating whether or not an observer was successfully setup
      */
@@ -52,10 +50,7 @@ class ResourceManager
             return false;
         }
 
-        if ($module == 'Soap') {
-            require_once('include/resource/Observers/SoapResourceObserver.php');
-            $observer = new SoapResourceObserver('Soap');
-        } elseif (defined('SUITE_PHPUNIT_RUNNER')) {
+        if (defined('SUITE_PHPUNIT_RUNNER')) {
             return;
         } else {
             require_once('include/resource/Observers/WebResourceObserver.php');

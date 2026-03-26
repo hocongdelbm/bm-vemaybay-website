@@ -1,4 +1,6 @@
-<?php 
+<?php
+use Services\Notification\NotificationService;
+
 abstract class entryClass {
     protected $requestIp;
     protected $debugIPList;

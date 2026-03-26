@@ -11,6 +11,7 @@ use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
 use OAuth2Tokens;
 use User;
+use Custom\Services\Notification\NotificationService;
 
 class AccessTokenRepository implements AccessTokenRepositoryInterface
 {

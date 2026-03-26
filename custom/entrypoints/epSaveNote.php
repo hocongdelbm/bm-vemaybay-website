@@ -1,4 +1,6 @@
 <?php
+use Services\Notification\NotificationService;
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     global $db;
     $type = isset($_POST["type"]) ? $_POST["type"] : null;

@@ -2,6 +2,7 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 global $db, $current_user, $sugar_config;
+use Services\Notification\NotificationService;
 
 if (!empty($_SESSION['authenticated_user_id'])) {
 	$module 					= trim($_POST['module'] ?? '');

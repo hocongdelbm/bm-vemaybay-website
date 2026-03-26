@@ -4,25 +4,13 @@ date_default_timezone_set("Asia/Ho_Chi_Minh");
 
 class Viewreport_sales_revenue extends SugarView
 {
-    private $_is_allow_recheck = true;
-
-    function __construct()
-    {
-        global $current_user;
-        if (
-            is_admin($current_user) || (ACLController::checkAccess('EC_Payment_Voucher', 'edit', true))
-        ) {
-            $this->_is_allow_recheck = true;
-        }
-    }
-
     function display()
     {
         global $current_user;
 
         // if ($current_user->user_name != 'hungnh') {
-            // echo '<p class="alert alert-danger">Hệ thống đang bảo trì. Vui lòng quay lại sau!</p>';
-            // exit;
+        // echo '<p class="alert alert-danger">Hệ thống đang bảo trì. Vui lòng quay lại sau!</p>';
+        // exit;
         // }
 
         if (ACLController::checkAccess('EC_Flight_Bookings', 'edit', true)) {
@@ -143,7 +131,6 @@ class Viewreport_sales_revenue extends SugarView
         $smartyobj->assign('TO_DATE_VALUE', $post_to_date);
 
         $smartyobj->assign('ALLOWED_EXPORT', ACLController::checkAccess('EC_Payment_Voucher', 'edit', true));
-        $smartyobj->assign('IS_ALLOW_RECHECK', $this->_is_allow_recheck);
 
         // tìm nhanh khoảng thời gian
         $smartyobj->assign('TODAY', date('d-m-Y'));
@@ -168,10 +155,10 @@ class Viewreport_sales_revenue extends SugarView
         );
 
         $smartyobj->assign('PAYMENT_STT', get_select_options_with_id($payment_status, (int)$payment_stt));
-        
+
         $customer_source_opts = array_merge(['' => 'Tất cả'], $app_list_strings['booking_customer_source_list']);
         $smartyobj->assign('CUSTOMER_SOURCE_OPTS', get_select_options_with_id($customer_source_opts, $customer_source));
-        
+
         $ticket_type_opts = ['' => 'Tất cả'] + $app_list_strings['booking_ticket_type_list'];
         $smartyobj->assign('TICKET_TYPE_OPTS', get_select_options_with_id($ticket_type_opts, (int)$ticket_type));
     }
@@ -252,7 +239,7 @@ class Viewreport_sales_revenue extends SugarView
                 $html .= '<td class="text-center hide-mobile">' . $paid_time . '</td>';
                 $html .= '<td class="text-center bk_date_entered hide-mobile">' . str_replace(' ', '<br>', $row['bk_date_entered']) . '</td>';
                 $html .= '<td class="text-center bk_date_ticket_issue hide-mobile">' . $date_ticket_issue . '</td>';
-                $html .= '<td class="text-center bk_country hide-mobile">' . ($row['country'] ?? ''). '</td>';
+                $html .= '<td class="text-center bk_country hide-mobile">' . ($row['country'] ?? '') . '</td>';
                 $html .= '</tr>';
 
                 $total_quantity += (int)$row['total_quantity'];
