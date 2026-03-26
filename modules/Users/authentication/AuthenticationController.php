@@ -7,7 +7,7 @@ class AuthenticationController
 {
     public $loggedIn = false; //if a user has attempted to login
     public $authenticated = false;
-    public $loginSuccess = false;// if a user has successfully logged in
+    public $loginSuccess = false; // if a user has successfully logged in
 
     protected static $authcontrollerinstance = null;
 
@@ -44,20 +44,22 @@ class AuthenticationController
         }
 
         // check in custom dir first, in case someone want's to override an auth controller
-        if (file_exists('custom/modules/Users/authentication/'.$type.'/' . $type . '.php')) {
-            require_once('custom/modules/Users/authentication/'.$type.'/' . $type . '.php');
-        } elseif (file_exists('modules/Users/authentication/'.$type.'/' . $type . '.php')) {
-            require_once('modules/Users/authentication/'.$type.'/' . $type . '.php');
+        if (file_exists('custom/modules/Users/authentication/' . $type . '/' . $type . '.php')) {
+            require_once('custom/modules/Users/authentication/' . $type . '/' . $type . '.php');
+        } elseif (file_exists('modules/Users/authentication/' . $type . '/' . $type . '.php')) {
+            require_once('modules/Users/authentication/' . $type . '/' . $type . '.php');
         } else {
             require_once('modules/Users/authentication/SugarAuthenticate/SugarAuthenticate.php');
             $type = 'SugarAuthenticate';
         }
 
-        if (!empty($_REQUEST['no_saml'])
+        if (
+            !empty($_REQUEST['no_saml'])
             && (
                 (is_subclass_of($type, 'SAMLAuthenticate') || 'SAMLAuthenticate' == $type) ||
                 (is_subclass_of($type, 'SAML2Authenticate') || 'SAML2Authenticate' == $type)
-            )) {
+            )
+        ) {
             $type = 'SugarAuthenticate';
         }
 
@@ -90,7 +92,7 @@ class AuthenticationController
     public function login($username, $password, $PARAMS = array())
     {
         //kbrill bug #13225
-        $_SESSION['loginAttempts'] = (isset($_SESSION['loginAttempts']))? $_SESSION['loginAttempts'] + 1: 1;
+        $_SESSION['loginAttempts'] = (isset($_SESSION['loginAttempts'])) ? $_SESSION['loginAttempts'] + 1 : 1;
         unset($GLOBALS['login_error']);
 
         if ($this->loggedIn) {
@@ -102,13 +104,10 @@ class AuthenticationController
         $this->loggedIn = true;
 
         if ($this->loginSuccess) {
-            //Ensure the user is authorized
-            checkAuthUserStatus();
-
             //loginLicense();
             if (!empty($GLOBALS['login_error'])) {
                 unset($_SESSION['authenticated_user_id']);
-                $GLOBALS['log']->fatal('FAILED LOGIN: potential hack attempt:'.$GLOBALS['login_error']);
+                $GLOBALS['log']->fatal('FAILED LOGIN: potential hack attempt:' . $GLOBALS['login_error']);
                 $this->loginSuccess = false;
                 return false;
             }
@@ -122,7 +121,7 @@ class AuthenticationController
             $config = BeanFactory::newBean('Administration');
             $config->retrieveSettings();
             $postSilentInstallAdminWizardCompleted = $GLOBALS['current_user']->getPreference('postSilentInstallAdminWizardCompleted');
-            if ((is_admin($GLOBALS['current_user']) && empty($config->settings['system_adminwizard']) && $_REQUEST['action'] != 'AdminWizard') ||($postSilentInstallAdminWizardCompleted !== null && !$postSilentInstallAdminWizardCompleted)) {
+            if ((is_admin($GLOBALS['current_user']) && empty($config->settings['system_adminwizard']) && $_REQUEST['action'] != 'AdminWizard') || ($postSilentInstallAdminWizardCompleted !== null && !$postSilentInstallAdminWizardCompleted)) {
                 $GLOBALS['module'] = 'Configurator';
                 $GLOBALS['action'] = 'AdminWizard';
                 ob_clean();
@@ -148,7 +147,7 @@ class AuthenticationController
             $GLOBALS['logic_hook']->call_custom_logic('Users', 'login_failed');
             $GLOBALS['log']->fatal(
                 'FAILED LOGIN:attempts[' . $_SESSION['loginAttempts'] . '], ' .
-                'ip[' . query_client_ip() . '], username[' . $username . ']'
+                    'ip[' . query_client_ip() . '], username[' . $username . ']'
             );
         }
         // if password has expired, set a session variable

@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
@@ -58,9 +59,7 @@ class ResourceManager
     /**
      * The constructor; declared as private
      */
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     /**
      * getInstance
@@ -76,14 +75,6 @@ class ResourceManager
         return self::$instance;
     }
 
-    /**
-     * setup
-     * Handles determining the appropriate setup based on client type.
-     * It will create a SoapResourceObserver instance if the $module parameter is set to
-     * 'Soap'; otherwise, it will try to create a WebResourceObserver instance.
-     * @param string $module The module value used to create the corresponding observer
-     * @return boolean value indicating whether or not an observer was successfully setup
-     */
     public function setup($module)
     {
         //Check if config.php exists
@@ -91,10 +82,7 @@ class ResourceManager
             return false;
         }
 
-        if ($module == 'Soap') {
-            require_once('include/resource/Observers/SoapResourceObserver.php');
-            $observer = new SoapResourceObserver('Soap');
-        } elseif (defined('SUITE_PHPUNIT_RUNNER')) {
+        if (defined('SUITE_PHPUNIT_RUNNER')) {
             return;
         } else {
             require_once('include/resource/Observers/WebResourceObserver.php');
@@ -107,7 +95,8 @@ class ResourceManager
 
             if (isset($GLOBALS['sugar_config']['resource_management'])) {
                 $res = $GLOBALS['sugar_config']['resource_management'];
-                if (!empty($res['special_query_modules']) &&
+                if (
+                    !empty($res['special_query_modules']) &&
                     in_array($observer->module, $res['special_query_modules']) &&
                     !empty($res['special_query_limit']) &&
                     is_int($res['special_query_limit']) &&

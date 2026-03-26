@@ -12,6 +12,11 @@ $(document).ready(function () {
     let geoMapInstance = null;
     let geoMapPendingData = null;
     let isHeatmapLoaded = false;
+    let hourlyChartInstance = null;
+    let hourlyLiveCache = [];
+    let hourlyHistoryCache = [];
+    let currentHourlyChartType = 'line';
+    let currentHourlyMode = 'live';
 
     // ── Init ────────────────────────────────────────────────
     init();
@@ -179,6 +184,17 @@ $(document).ready(function () {
                 }, 2000);
             });
         });
+
+        // Hourly Traffic Toggles
+        $('#ec_hourly_toggle_btn').on('click', function () {
+            currentHourlyChartType = currentHourlyChartType === 'line' ? 'bar' : 'line';
+            renderHourlyTraffic();
+        });
+
+        $('#ec_hourly_mode_btn').on('click', function () {
+            currentHourlyMode = currentHourlyMode === 'live' ? 'history' : 'live';
+            renderHourlyTraffic();
+        });
     }
 
     // ── API Helper ──────────────────────────────────────────
@@ -251,11 +267,14 @@ $(document).ready(function () {
         const params = date ? { date: date } : {};
 
         // Fetch all data in parallel
+        // Live endpoint: không truyền date → API luôn lấy ngày hôm nay (current_time)
         $.when(
             apiGet('/dashboard', params),
             apiGet('/dashboard/bots', params),
-            apiGet('/dashboard/areas', params)
-        ).then(function (dashRes, botsRes, areaRes) {
+            apiGet('/dashboard/areas', params),
+            apiGet('/dashboard/hourly/live'),
+            apiGet('/dashboard/hourly/history', params)
+        ).then(function (dashRes, botsRes, areaRes, liveRes, histRes) {
             const dash = dashRes[0] || dashRes;
             const bots = botsRes[0] || botsRes;
             const areas = areaRes[0] || areaRes;
@@ -267,6 +286,12 @@ $(document).ready(function () {
             renderScraping(dash.scraping || []);
             renderAreaAnalytics(areas.data || {});
             renderBots(bots.data || bots);
+
+            // Live trả về {date, data}, history trả về array trực tiếp
+            const liveRaw = liveRes[0] || liveRes || {};
+            hourlyLiveCache = Array.isArray(liveRaw) ? liveRaw : (liveRaw.data || []);
+            hourlyHistoryCache = histRes[0] || histRes || [];
+            renderHourlyTraffic();
 
             // Update live badge - dash.dates là array từ /dashboard endpoint
             const dashDates = Array.isArray(dash.dates) ? dash.dates : [];
@@ -603,6 +628,75 @@ $(document).ready(function () {
         renderGoals(ov.goals || []);
     }
 
+    function renderHourlyTraffic() {
+        let canvas = document.getElementById('ec_hourly_chart');
+        if (!canvas) return;
+
+        if (hourlyChartInstance) {
+            hourlyChartInstance.destroy();
+            hourlyChartInstance = null;
+        }
+
+        const dataArr = currentHourlyMode === 'live' ? hourlyLiveCache : hourlyHistoryCache;
+        const labels = [];
+        const data = [];
+
+        if (dataArr && dataArr.length > 0) {
+            dataArr.forEach(item => {
+                labels.push(item.hour);
+                data.push(item.sessions);
+            });
+        }
+
+        const ctx = canvas.getContext('2d');
+        const color = currentHourlyMode === 'live' ? '#10b981' : '#8b5cf6';
+        const bg = currentHourlyMode === 'live' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(139, 92, 246, 0.2)';
+
+        hourlyChartInstance = new Chart(ctx, {
+            type: currentHourlyChartType,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Sessions',
+                    data: data,
+                    borderColor: color,
+                    backgroundColor: currentHourlyChartType === 'bar' ? color : bg,
+                    borderWidth: 2,
+                    fill: currentHourlyChartType === 'line',
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        if (currentHourlyChartType === 'line') {
+            $('#ec_hourly_toggle_btn').text('Đổi sang Bar Chart');
+        } else {
+            $('#ec_hourly_toggle_btn').text('Đổi sang Line Chart');
+        }
+
+        if (currentHourlyMode === 'live') {
+            $('#ec_hourly_mode_btn').text('Xem dữ liệu Lịch sử');
+            $('#ec_hourly_mode_btn').css({ 'background': '#d1fae5', 'color': '#047857', 'border': '1px solid #a7f3d0' });
+        } else {
+            $('#ec_hourly_mode_btn').text('Xem dữ liệu Trực tiếp');
+            $('#ec_hourly_mode_btn').css({ 'background': '#e0e7ff', 'color': '#4338ca', 'border': '1px solid #c7d2fe' });
+        }
+    }
+
     function renderRate(valSel, sessSel, rateObj) {
         if (!rateObj) {
             $(valSel).text('—');
@@ -781,7 +875,7 @@ $(document).ready(function () {
         }
 
         // Routes
-        renderSimpleTable('#ec_routes_tbody', fl.top_routes || [], 'session_count', 10,
+        renderSimpleTable('#ec_routes_tbody', fl.top_routes || [], 'event_count', 10,
             item => `<strong style="color:#3b82f6">${escH(item.label)}</strong>`);
 
         // Leadtime

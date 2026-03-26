@@ -117,7 +117,7 @@ $(document).ready(function () {
 				$('.toast-warning').addClass('active');
 				$('.toast-warning #toast-content').text('Địa điểm không được trống!');
 				$('.toast-warning .progress-bar').animate({ width: "100%" }, 3000);
-				
+
 				setTimeout(function () {
 					$(".toast-warning").removeClass('active');
 				}, 4000);
@@ -216,43 +216,6 @@ $(document).ready(function () {
 				return false;
 			}
 		}
-	});
-
-	// khi thay đổi loại tiền
-	$('#amount_type').change(function () {
-		var amount_type = $('#amount_type :selected').val();
-		var amount = unformatNumber($('#amount').val());
-		var amount_converted = 0;
-
-		if (amount_type != 'VND') {
-			$('#span-exchange-rate').show();
-			$('#span-amt-converted').show();
-		} else {
-			$('#span-exchange-rate').hide();
-			$('#span-amt-converted').hide();
-		}
-
-		$.ajax({
-			cache: false,
-			type: 'POST',
-			data: 'CurrencyCode=' + amount_type + '&type=Sell',
-			url: 'index.php?entryPoint=entryPointGetCurrencyExrate',
-			success: function (output) {
-				if (output != '') {
-					amount_converted = amount * output;
-					$('#exchange_rate').css('background', '#fff');
-					$('#exchange_rate').attr('readonly', false);
-					$('#exchange_rate').val(output);
-					$('#amount_converted').val(formatNumber(amount_converted));
-				}
-				else {
-					$('#exchange_rate').css('background', '#f8f8f8');
-					$('#exchange_rate').attr('readonly', true);
-					$('#exchange_rate').val(0);
-					$('#amount_converted').val(formatNumber(amount));
-				}
-			}
-		});
 	});
 
 	// khi thay đổi số tiền

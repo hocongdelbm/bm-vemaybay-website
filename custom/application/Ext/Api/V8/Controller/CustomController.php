@@ -29,9 +29,6 @@ class CustomController extends BaseController
                 return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
 
             // Save booking
-            /**
-             * @var EC_Flight_Bookings $booking
-             */
             $booking = BeanFactory::newBean("EC_Flight_Bookings");
             if (isset($params['ec_flight_bookings']) && !empty($params['ec_flight_bookings'])) {
                 foreach ($params['ec_flight_bookings'] as $key => $value) {
@@ -73,6 +70,39 @@ class CustomController extends BaseController
 
             $booking->save();
             $booking_id = $booking->id;
+
+            // ===== AUTO-LINK CALL → BOOKING (Case 3) =====
+            // Điều kiện: booking có SĐT, không phải TEST
+            if (
+                !empty($booking_id) &&
+                !empty($booking->phone) &&
+                !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore)
+            ) {
+                // Tìm cuộc gọi inbound gần nhất
+                $sql_call = '
+                    SELECT id
+                    FROM calls
+                    WHERE call_from = "' . $db->quote(trim($booking->phone)) . '"
+                        AND direction = "inbound"
+                        AND (booking_id IS NULL OR booking_id = "")
+                        -- AND date_entered >= NOW() - INTERVAL 4 HOUR
+                        AND deleted = 0
+                    ORDER BY date_entered DESC
+                    LIMIT 1
+                ';
+                $call_id_autolink = $db->getOne($sql_call);
+
+                if (!empty($call_id_autolink)) {
+                    $db->query('
+                        UPDATE calls
+                        SET booking_id = ' . $db->quote($booking_id) . '
+                        WHERE id = ' . $db->quote($call_id_autolink) . ' 
+                        AND deleted = 0
+                    ');
+
+                    $GLOBALS['log']->info('Auto-link (case3) call ' . $call_id_autolink . ' → booking ' . $booking_id . ' (phone: ' . $booking->phone . ')');
+                }
+            }
 
             // Save journeys
             if (isset($params['ec_booking_itineraries']) && !empty($params['ec_booking_itineraries'])) {
@@ -147,7 +177,6 @@ class CustomController extends BaseController
                     // Save relationship booking & voucher
                     $booking->load_relationship('vouchers');
                     $booking->vouchers->add($voucher_id);
-                    global $db;
                     $sql = "UPDATE bookings_vouchers
                             SET discount_amount = $discount_amount
                             WHERE booking_id = '$booking->id'
@@ -177,8 +206,7 @@ class CustomController extends BaseController
                 'message' => "Success",
                 'data' => $data,
             ], 201);
-        }
-        catch (Throwable $th) {
+        } catch (Throwable $th) {
             $GLOBALS['log']->fatal("Save booking failed: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             return $response->withJson([
                 'error' => true,
@@ -237,8 +265,7 @@ class CustomController extends BaseController
         $number = $call_direction == 'inbound' ? $call_from : $call_to;
         if (strlen($number) < 15) {
             $contact_query = "SELECT id FROM contacts WHERE phone_mobile = '$number' AND deleted = 0 LIMIT 1";
-        }
-        else {
+        } else {
             $platform = 'zalo';
             $contact_query = "SELECT c.id
                 FROM ec_zalo_contacts zc
@@ -345,6 +372,52 @@ class CustomController extends BaseController
         $call->save();
 
         if (!empty($call->id)) {
+            // Auto mapping BK
+            try {
+                if ($call->direction === 'inbound' && !empty($call_from)) {
+                    // Bước 1: Kiểm tra SĐT này có booking nào không
+                    $sql_check = '
+                        SELECT 
+                            COUNT(*) AS total,
+                            SUM(CASE WHEN booking_status = "completed" THEN 1 ELSE 0 END) AS total_completed
+                        FROM ec_flight_bookings
+                        WHERE phone = ' . $db->quote(trim($call_from)) . '
+                        AND deleted = 0
+                    ';
+                    $res_check  = $db->query($sql_check);
+                    $row_check  = $db->fetchByAssoc($res_check);
+
+                    $total           = (int)($row_check['total'] ?? 0);
+                    $total_completed = (int)($row_check['total_completed'] ?? 0);
+
+                    // Bước 2: Có booking nhưng chưa có cái nào hoàn tất → Case 1
+                    if ($total > 0 && $total_completed === 0) {
+                        $sql_booking = '
+                            SELECT id
+                            FROM ec_flight_bookings
+                            WHERE phone = ' . $db->quote(trim($call_from)) . ' AND deleted = 0
+                            ORDER BY date_entered DESC
+                            LIMIT 1
+                        ';
+                        $booking_id_auto = $db->getOne($sql_booking);
+
+                        if (!empty($booking_id_auto)) {
+                            $db->query('
+                                UPDATE calls
+                                SET booking_id = ' . $db->quote($booking_id_auto) . '
+                                WHERE id = ' . $db->quote($call->id) . ' AND deleted = 0
+                            ');
+
+                            $GLOBALS['log']->info('Auto-link call ' . $call->id . ' → booking ' . $booking_id_auto . ' (phone: ' . $call_from . ')');
+                        }
+                    }
+                    // Bước 3: Không có booking nào → không làm gì
+                    // Bước 4: Có booking hoàn tất → không làm gì, chờ Case 2 => Họ tự bấm Auto LK trên BK hoàn tất đó
+                }
+            } catch (Throwable $th) {
+                $GLOBALS['log']->fatal("Auto mapping call failed: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+            }
+
             // Save log zalo message with type call 
             try {
                 if ($platform == 'zalo') {
@@ -359,7 +432,7 @@ class CustomController extends BaseController
 
                     $assigned_user_id = '';
                     if ($src == 0 && !empty($call->call_from) && strlen($call->call_from) < 5) {
-                        $assigned_user_id = $db->getOne("SELECT id FROM users WHERE td_sip = '" . $call->call_from . "' AND deleted = 0");
+                        $assigned_user_id = $db->getOne("SELECT id FROM users WHERE td_sip = '$call->call_from' AND deleted = 0");
                     } elseif ($src == 1 && !empty($dialed) && strlen($dialed) < 5) {
                         $assigned_user_id = $db->getOne("SELECT id FROM users WHERE td_sip = '$dialed' AND deleted = 0");
                     }

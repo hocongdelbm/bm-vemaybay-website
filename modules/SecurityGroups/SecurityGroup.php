@@ -153,7 +153,8 @@ class SecurityGroup extends SecurityGroup_sugar
             . ' and securitygroups_records.deleted = 0 '
             . "  and securitygroups_records.record_id = '$quotedId' "
             . "  and securitygroups_records.module = '$module' ";
-        if (!empty($action)
+        if (
+            !empty($action)
             && isset($sugar_config['securitysuite_strict_rights'])
             && $sugar_config['securitysuite_strict_rights'] == true
         ) {
@@ -165,7 +166,8 @@ class SecurityGroup extends SecurityGroup_sugar
         }
         $query .= 'where securitygroups.deleted = 0 ';
 
-        if (!empty($action)
+        if (
+            !empty($action)
             && isset($sugar_config['securitysuite_strict_rights'])
             && $sugar_config['securitysuite_strict_rights'] == true
         ) {
@@ -336,7 +338,8 @@ class SecurityGroup extends SecurityGroup_sugar
     {
         global $sugar_config;
         //new record or if update from soap api for cases or bugs
-        if (!$isUpdate
+        if (
+            !$isUpdate
             && isset($sugar_config['securitysuite_inherit_parent']) && $sugar_config['securitysuite_inherit_parent'] == true
         ) {
             $focus_module_dir = $focus->module_dir;
@@ -579,7 +582,7 @@ class SecurityGroup extends SecurityGroup_sugar
         }
         $query .= ",'" . htmlspecialchars($group_id, ENT_QUOTES) . "', '" . htmlspecialchars(
             $module,
-                ENT_QUOTES
+            ENT_QUOTES
         ) . "'," . $db->convert('', 'today') . ',0 )';
 
         $GLOBALS['log']->debug("SecuritySuite: Save Default Group: $query");
@@ -593,8 +596,10 @@ class SecurityGroup extends SecurityGroup_sugar
     {
         $db = DBManagerFactory::getInstance();
 
-        $query = "DELETE FROM securitygroups_default WHERE id = '" . htmlspecialchars($default_id,
-                ENT_QUOTES | ENT_HTML5) . "' ";
+        $query = "DELETE FROM securitygroups_default WHERE id = '" . htmlspecialchars(
+            $default_id,
+            ENT_QUOTES | ENT_HTML5
+        ) . "' ";
         $db->query($query);
     }
 
@@ -626,7 +631,7 @@ class SecurityGroup extends SecurityGroup_sugar
                 }
 
                 if (isset($app_list_strings['moduleList'][$row['rhs_module']])) {
-                    $security_modules[$row['rhs_module']] = $app_list_strings['moduleList'][$row['rhs_module']];//rost fix
+                    $security_modules[$row['rhs_module']] = $app_list_strings['moduleList'][$row['rhs_module']]; //rost fix
                 }
             } else {
                 if (in_array($row['lhs_module'], $module_blacklist)) {

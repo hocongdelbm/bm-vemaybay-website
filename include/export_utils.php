@@ -592,6 +592,7 @@ function exportSample($type)
     // Our Importer will stop after he gets to the new row, ignoring the text below
     return $content . "\n" . $app_strings['LBL_IMPORT_SAMPLE_FILE_TEXT'];
 }
+
 //this function will take in the bean and field mapping and return a proper value
 function returnFakeDataRow($focus, $field_array, $rowsToReturn = 5)
 {
@@ -602,15 +603,9 @@ function returnFakeDataRow($focus, $field_array, $rowsToReturn = 5)
     //include the file that defines $sugar_demodata
     include('install/demoData.en_us.php');
 
-    $person_bean = false;
-    if (isset($focus->first_name)) {
-        $person_bean = true;
-    }
-
     global $timedate;
     $returnContent = '';
     $counter = 0;
-    $new_arr = array();
 
     //iterate through the record creation process as many times as defined.  Each iteration will create a new row
     while ($counter < $rowsToReturn) {
@@ -802,9 +797,6 @@ function returnFakeDataRow($focus, $field_array, $rowsToReturn = 5)
     }
     return $returnContent;
 }
-
-
-
 
 //expects the field name to translate and a bean of the type being translated (to access field map and mod_strings)
 function translateForExport($field_db_name, $focus)
