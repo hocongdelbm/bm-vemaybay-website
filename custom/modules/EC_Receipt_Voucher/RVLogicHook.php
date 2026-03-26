@@ -29,44 +29,6 @@ class RVLogicHook
 		}
 	}
 
-	// nếu số tiền công nợ phải trả của NCC > -30 thì báo lên group kế toán
-	function checkSupplierDebt($focus, $event, $arguments)
-	{
-		if ($focus->rv_status == 1 && (!empty($focus->supplier_id) || (!empty($focus->supplier2_id)) || (!empty($focus->supplier3_id)))) {
-			$supplier_arr = array();
-			if (!empty($focus->supplier_id))
-				$supplier_arr[$focus->supplier_id] = $focus->supplier;
-			if (!empty($focus->supplier2_id))
-				$supplier_arr[$focus->supplier2_id] = $focus->supplier2;
-			if (!empty($focus->supplier3_id))
-				$supplier_arr[$focus->supplier3_id] = $focus->supplier3;
-			$supplier_arr = array_unique($supplier_arr);
-			$is_send = 0;
-			$msg = '';
-			foreach ($supplier_arr as $supplier_id => $supplier) {
-				$supplier_name = new Account;
-				$supplier_name->retrieve($supplier_id);
-				if ($supplier_name->balance_observe) {
-					$balance = calculateSupplierBalance($supplier_id);
-					if ($balance > -20000000 && $balance < 0) {
-						$is_send = 1;
-						$msg .= $supplier . ': ' . format_number($balance) . "\n";
-					}
-				}
-			}
-
-			// if ($is_send) {
-			// 	$post_fields = array(
-			// 		'bot_id' => 'bot706494755',
-			// 		'api_key' => 'AAHpTyV2fo8Jp_r0gCjrvskLyfed-ISKjb4',
-			// 		'chat_id' => '-1001311652274',
-			// 		'text' => $msg,
-			// 	);
-			// 	myTelegramSendMessage(json_encode($post_fields));
-			// }
-		}
-	}
-
 	// ở trạng thái đã thu của loại 4 / 5 
 	// Cập nhật thông tin doanh số
 	function saveRevenueBookingHookReceipt($bean, $event, $arguments)

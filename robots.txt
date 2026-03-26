@@ -1,5 +1,2 @@
 User-agent: *
 Disallow: /
-
-User-agent: Googlebot
-Allow: /ical_server.php

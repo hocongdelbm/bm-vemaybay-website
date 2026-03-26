@@ -20,58 +20,6 @@
                 $("#ec_search_form input:not([type=submit], [type=button], [type=hidden]), #ec_search_form select").val("");
             });
 
-            // Click recheck button
-            $('#btnRecheck').on('click', function () {
-                var bookingIds = $('.booking-ids:checked');
-                if (!bookingIds.length) {
-                    alert('Vui lòng chọn booking để tiếp tục.');
-                    return false;
-                }
-                if (bookingIds.length > 100) {
-                    alert('Vượt quá số lượng booking tối đa cho phép.');
-                    return false;
-                }
-
-                bookingIds.each(function () {
-                    var bookingId = $(this).attr('id');
-                    $.ajax({
-                        //timeout: 180000, // 180 seconds
-                        type: 'POST',
-                        url: 'index.php?entryPoint=entryPointMyRecheckFlight',
-                        cache: false,
-                        data: 'contact_mobile=' + $(this).data('mobile') + '&trip_type=' + $(this).data('triptype') + '&booking_id=' + $(this).val(),
-                        beforeSend: function () {
-                            var column  = $('#' + bookingId).parent();
-                            var row     = column.parent();
-
-                            column.find('span.loading').show();
-                            row.removeClass('rc-error').removeClass('rc-success');
-                            row.find('td:last-child div.rc-message').html('');
-                        },
-                        success: function (data) {
-                            var column  = $('#' + bookingId).parent();
-                            var row     = column.parent();
-
-                            column.find('span.loading').hide();
-                            if (data == 0) {
-                                $('#' + bookingId).attr('checked', false).hide();
-                                row.addClass('rc-success');
-                                row.find('td:last-child div.rc-message').html('');
-                            } else {
-                                row.addClass('rc-error');
-                                row.find('td:last-child div.rc-message').html('<br>' + data);
-                            }
-                        }
-                    });
-                });
-                $('#btnRecheck').attr('disabled', true);
-            });
-
-            // ajaxStop
-            $(document).ajaxStop(function(){
-                $('#btnRecheck').attr('disabled', false);
-            });
-
             $('input[type=radio][name=optionRadio]').change(function() {
                $('#from_date').val($('input[name=optionRadio]:checked').attr('fromdate'));
                $('#to_date').val($('input[name=optionRadio]:checked').attr('todate'));
@@ -256,9 +204,6 @@
                 <div class="function-wrap button-action--wrap">
                     <input type="submit" id="btnSearch" value="Tìm kiếm" name="btnSearch" class="btn btn-primary" title="Tìm kiếm"/>
                     <input type="submit" id="btnClear" value="Reset" name="btnClear" class="btn btn-secondary" title="Reset" />
-                    {if $IS_ALLOW_RECHECK}
-                    <input type="button" id="btnRecheck" value="Recheck" name="btnRecheck" class="btn btn-warning" title="Recheck"/>
-                    {/if}
                     <input type="button" id="btnSearch_cancel" value="Hủy bỏ" name="search_cancel" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" title="Hủy bỏ"/>
                 </div>
             </div>

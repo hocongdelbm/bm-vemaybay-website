@@ -3,7 +3,6 @@ if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
 
-
 if (is_admin($current_user)) {
     global $mod_strings, $sugar_config;
     echo $mod_strings['LBL_REBUILD_JAVASCRIPT_LANG_DESC'];
