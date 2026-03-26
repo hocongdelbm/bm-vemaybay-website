@@ -39,6 +39,5 @@ if (file_exists($uploadHta) && filesize($uploadHta)) {
 }
 
 if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'UpgradeAccess') {
-    // only display message in the repair tool and not during the upgrade process
     echo "\n" . $mod_strings['LBL_HT_DONE'] . "<br />\n";
 }
