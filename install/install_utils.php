@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
@@ -110,7 +111,7 @@ function parseAcceptLanguage()
  * @param bool uninstall true if uninstalling a language pack
  * @return array sugar_config
  */
-function commitLanguagePack($uninstall=false)
+function commitLanguagePack($uninstall = false)
 {
     $new_lang_name = "";
     global $install_file;
@@ -140,7 +141,7 @@ function commitLanguagePack($uninstall=false)
         if (is_file($zipFile)) {
             unzip($zipFile, $unzip_dir);
         } else {
-            echo $mod_strings['ERR_LANG_MISSING_FILE'].$zipFile;
+            echo $mod_strings['ERR_LANG_MISSING_FILE'] . $zipFile;
             die(); // no point going any further
         }
     }
@@ -162,7 +163,7 @@ function commitLanguagePack($uninstall=false)
                 $version    = $manifest['version'];
             }
         } else {
-            $errors[] = $mod_strings['ERR_LANG_MISSING_FILE'].$manifest;
+            $errors[] = $mod_strings['ERR_LANG_MISSING_FILE'] . $manifest;
         }
     }
 
@@ -179,7 +180,7 @@ function commitLanguagePack($uninstall=false)
         }
     }
     if ($new_lang_name == "") {
-        die($mod_strings['ERR_LANG_NO_LANG_FILE'].$zipFile);
+        die($mod_strings['ERR_LANG_NO_LANG_FILE'] . $zipFile);
     }
     $new_lang_desc = getLanguagePackName("$unzip_dir/$zip_from_dir/include/language/$new_lang_name.lang.php");
     if ($new_lang_desc == "") {
@@ -200,7 +201,7 @@ function commitLanguagePack($uninstall=false)
         // unlink all pack files
         foreach ($filesFrom as $fileFrom) {
             //echo "deleting: ".getcwd().substr($fileFrom, strlen($unzip_dir), strlen($fileFrom))."<br>";
-            @unlink(getcwd().substr((string) $fileFrom, strlen((string) $unzip_dir), strlen((string) $fileFrom)));
+            @unlink(getcwd() . substr((string) $fileFrom, strlen((string) $unzip_dir), strlen((string) $fileFrom)));
         }
 
         // remove session entry
@@ -219,7 +220,7 @@ function commitLanguagePack($uninstall=false)
             $old_langs = $sugar_config['languages'];
             foreach ($old_langs as $key => $value) {
                 if ($key != $removedLang) {
-                    $new_langs += array( $key => $value );
+                    $new_langs += array($key => $value);
                 }
             }
             $sugar_config['languages'] = $new_langs;
@@ -227,7 +228,7 @@ function commitLanguagePack($uninstall=false)
     } else {
         // copy filesFrom to filesTo
         foreach ($filesFrom as $fileFrom) {
-            @copy($fileFrom, getcwd().substr((string) $fileFrom, strlen((string) $unzip_dir), strlen((string) $fileFrom)));
+            @copy($fileFrom, getcwd() . substr((string) $fileFrom, strlen((string) $unzip_dir), strlen((string) $fileFrom)));
         }
 
         $_SESSION['INSTALLED_LANG_PACKS'][$new_lang_name] = $zipFile;
@@ -309,8 +310,8 @@ function commitPatch($unlink = false, $type = 'patch')
             $new_upgrade->manifest   = base64_encode(serialize($serial_manifest));
             $new_upgrade->save();
             unlink($file);
-        }//rof
-    }//fi
+        } //rof
+    } //fi
     $mod_strings = $old_mod_strings;
 }
 
@@ -341,7 +342,7 @@ function commitModules($unlink = false, $type = 'module')
             if (!preg_match('#.*\.zip\$', (string) $file)) {
                 continue;
             }
-            $lic_name = 'accept_lic_'.str_replace('.', '_', urlencode(basename((string) $file)));
+            $lic_name = 'accept_lic_' . str_replace('.', '_', urlencode(basename((string) $file)));
 
             $can_install = true;
             if (isset($_REQUEST[$lic_name])) {
@@ -383,9 +384,9 @@ function commitModules($unlink = false, $type = 'module')
                 $new_upgrade->manifest   = base64_encode(serialize($serial_manifest));
                 $new_upgrade->save();
                 //unlink($file);
-            }//fi
-        }//rof
-    }//fi
+            } //fi
+        } //rof
+    } //fi
     $mod_strings = $old_mod_strings;
 }
 
@@ -425,20 +426,20 @@ function removeLanguagePack()
     if (isset($manifest) && !empty($manifest)) {
         if (is_file($manifest)) {
             if (!unlink($manifest)) {
-                $errors[] = $mod_strings['ERR_LANG_CANNOT_DELETE_FILE'].$manifest;
+                $errors[] = $mod_strings['ERR_LANG_CANNOT_DELETE_FILE'] . $manifest;
             }
         } else {
-            $errors[] = $mod_strings['ERR_LANG_MISSING_FILE'].$manifest;
+            $errors[] = $mod_strings['ERR_LANG_MISSING_FILE'] . $manifest;
         }
         unset($_SESSION['packages_to_install'][$manifest]);
     }
     if (isset($zipFile) && !empty($zipFile)) {
         if (is_file($zipFile)) {
             if (!unlink($zipFile)) {
-                $errors[] = $mod_strings['ERR_LANG_CANNOT_DELETE_FILE'].$zipFile;
+                $errors[] = $mod_strings['ERR_LANG_CANNOT_DELETE_FILE'] . $zipFile;
             }
         } else {
-            $errors[] = $mod_strings['ERR_LANG_MISSING_FILE'].$zipFile;
+            $errors[] = $mod_strings['ERR_LANG_MISSING_FILE'] . $zipFile;
         }
     }
     if (is_countable($errors > 0) ? count($errors > 0) : 0) {
@@ -484,7 +485,7 @@ function uninstallLangPack()
     $old_langs = $sugar_config['languages'];
     foreach ($old_langs as $key => $value) {
         if ($key != $_REQUEST['new_lang_name']) {
-            $new_langs += array( $key => $value );
+            $new_langs += array($key => $value);
         }
     }
     $sugar_config['languages'] = $new_langs;
@@ -501,13 +502,13 @@ if (!function_exists('getLanguagePackName')) {
         $app_list_strings = [];
         require_once((string)$the_file);
         if (isset($app_list_strings["language_pack_name"])) {
-            return($app_list_strings["language_pack_name"]);
+            return ($app_list_strings["language_pack_name"]);
         }
-        return("");
+        return ("");
     }
 }
 
-function getInstalledLangPacks($showButtons=true)
+function getInstalledLangPacks($showButtons = true)
 {
     global $mod_strings;
     global $next_step;
@@ -544,11 +545,11 @@ function getInstalledLangPacks($showButtons=true)
                 $deletePackage = getPackButton('uninstall', $target_manifest, $file, $next_step, $uninstallable, $showButtons);
                 //$ret .="<table width='100%' cellpadding='0' cellspacing='0' border='0'>";
                 $ret .= "<tr>";
-                $ret .= "<td width='15%' >".$name."</td>";
-                $ret .= "<td width='15%' >".$version."</td>";
-                $ret .= "<td width='15%' >".$published_date."</td>";
-                $ret .= "<td width='15%' >".$uninstallable."</td>";
-                $ret .= "<td width='15%' >".$description."</td>";
+                $ret .= "<td width='15%' >" . $name . "</td>";
+                $ret .= "<td width='15%' >" . $version . "</td>";
+                $ret .= "<td width='15%' >" . $published_date . "</td>";
+                $ret .= "<td width='15%' >" . $uninstallable . "</td>";
+                $ret .= "<td width='15%' >" . $description . "</td>";
                 $ret .= "<td width='15%' ></td>";
                 $ret .= "<td width='15%' >{$deletePackage}</td>";
                 $ret .= "</tr>";
@@ -577,10 +578,10 @@ function getSugarConfigLanguageArray($langZip)
     $installdefs = $installdefs ?? [];
     $manifest = $manifest ?? [];
 
-    include(remove_file_extension($langZip)."-manifest.php");
+    include(remove_file_extension($langZip) . "-manifest.php");
     $ret = '';
     if (isset($installdefs['id']) && isset($manifest['name'])) {
-        $ret = $installdefs['id']."::".$manifest['name']."::".$manifest['version'];
+        $ret = $installdefs['id'] . "::" . $manifest['name'] . "::" . $manifest['version'];
     }
 
     return $ret;
@@ -708,8 +709,8 @@ function installLog($entry)
 {
     global $mod_strings;
     $nl = '
-'.gmdate("Y-m-d H:i:s").'...';
-    $log = clean_path(getcwd().'/install.log');
+' . gmdate("Y-m-d H:i:s") . '...';
+    $log = clean_path(getcwd() . '/install.log');
 
     // create if not exists
     if (!file_exists($log)) {
@@ -726,8 +727,8 @@ function installLog($entry)
 
 
 
-    if (@fwrite($fp, $nl.$entry) === false) {
-        $GLOBALS['log']->fatal('could not write to install.log: '.$entry);
+    if (@fwrite($fp, $nl . $entry) === false) {
+        $GLOBALS['log']->fatal('could not write to install.log: ' . $entry);
     }
 
     if (is_resource($fp)) {
@@ -861,23 +862,25 @@ function handleSugarConfig()
 
     /*nsingh(bug 22402): Consolidate logger settings under $config['logger'] as liked by the new logger! If log4pphp exists,
         these settings will be overwritten by those in log4php.properties when the user access admin->system settings.*/
-    $sugar_config['logger']	=
-        array('level'=>$setup_site_log_level,
+    $sugar_config['logger']    =
+        array(
+            'level' => $setup_site_log_level,
             'file' => array(
                 'ext' => '.log',
                 'name' => 'suitecrm',
                 'dateFormat' => '%c',
                 'maxSize' => '10MB',
                 'maxLogs' => 10,
-                'suffix' => ''), // bug51583, change default suffix to blank for backwards comptability
+                'suffix' => ''
+            ), // bug51583, change default suffix to blank for backwards comptability
         );
 
     $sugar_config['session_dir']                    = $setup_site_session_path;
     $sugar_config['site_url']                       = $setup_site_url;
     $sugar_config['sugar_version']                  = $setup_sugar_version;
-    $sugar_config['tmp_dir']                        = $cache_dir.'xml/';
+    $sugar_config['tmp_dir']                        = $cache_dir . 'xml/';
     $sugar_config['upload_dir']                 = 'upload/';
-//    $sugar_config['use_php_code_json']              = returnPhpJsonStatus(); // true on error
+    //    $sugar_config['use_php_code_json']              = returnPhpJsonStatus(); // true on error
     if (isset($_SESSION['setup_site_sugarbeet_anonymous_stats'])) {
         $sugar_config['sugarbeet']      = $_SESSION['setup_site_sugarbeet_anonymous_stats'];
     }
@@ -905,7 +908,7 @@ function handleSugarConfig()
         $config = [];
         include('install/lang.config.php');
         if (!empty($config['languages'])) {
-            foreach ($config['languages'] as $lang=>$label) {
+            foreach ($config['languages'] as $lang => $label) {
                 $sugar_config['languages'][$lang] = $label;
             }
         }
@@ -923,7 +926,7 @@ function handleSugarConfig()
         echo 'failed<br>';
         echo "<p>{$mod_strings['ERR_PERFORM_CONFIG_PHP_1']}</p>\n";
         echo "<p>{$mod_strings['ERR_PERFORM_CONFIG_PHP_2']}</p>\n";
-        echo "<TEXTAREA  rows=\"15\" cols=\"80\">".$sugar_config_string."</TEXTAREA>";
+        echo "<TEXTAREA  rows=\"15\" cols=\"80\">" . $sugar_config_string . "</TEXTAREA>";
         echo "<p>{$mod_strings['ERR_PERFORM_CONFIG_PHP_3']}</p>";
 
         $bottle[] = $mod_strings['ERR_PERFORM_CONFIG_PHP_4'];
@@ -1124,8 +1127,10 @@ EOQ;
     if (file_exists($htaccess_file)) {
         $fp = fopen($htaccess_file, 'rb');
         while ($line = fgets($fp)) {
-            if (preg_match("/\s*#\s*BEGIN\s*SUITECRM\s*RESTRICTIONS/i",
-                    $line) || preg_match("/\s*#\s*BEGIN\s*SUGARCRM\s*RESTRICTIONS/i", $line)) {
+            if (preg_match(
+                "/\s*#\s*BEGIN\s*SUITECRM\s*RESTRICTIONS/i",
+                $line
+            ) || preg_match("/\s*#\s*BEGIN\s*SUGARCRM\s*RESTRICTIONS/i", $line)) {
                 $haveBegin = true;
                 break;
             }
@@ -1140,8 +1145,10 @@ EOQ;
         $skip = true;
         $fp = fopen($htaccess_file, 'rb');
         while ($line = fgets($fp)) {
-            if (preg_match("/\s*#\s*END\s*SUITECRM\s*RESTRICTIONS/i",
-                    $line) || preg_match("/\s*#\s*END\s*SUGARCRM\s*RESTRICTIONS/i", $line)) {
+            if (preg_match(
+                "/\s*#\s*END\s*SUITECRM\s*RESTRICTIONS/i",
+                $line
+            ) || preg_match("/\s*#\s*END\s*SUGARCRM\s*RESTRICTIONS/i", $line)) {
                 $skip = false;
                 $contents .= PHP_EOL;
                 continue;
@@ -1189,28 +1196,27 @@ function handleWebConfig()
         }
     }
 
-    $prefix = $setup_site_log_dir.empty($setup_site_log_dir)?'':'/';
+    $prefix = $setup_site_log_dir . empty($setup_site_log_dir) ? '' : '/';
 
 
     $config_array = array(
-        array('1'=> $prefix.str_replace('.', '\\.', (string) $setup_site_log_file).'\\.*' ,'2'=>'log_file_restricted.html'),
-        array('1'=> $prefix.'install.log' ,'2'=>'log_file_restricted.html'),
-        array('1'=> $prefix.'upgradeWizard.log' ,'2'=>'log_file_restricted.html'),
-        array('1'=> $prefix.'emailman.log' ,'2'=>'log_file_restricted.html'),
-        array('1'=>'not_imported_.*.txt' ,'2'=>'log_file_restricted.html'),
-        array('1'=>'XTemplate/(.*)/(.*).php' ,'2'=>'index.php'),
-        array('1'=>'data/(.*).php' ,'2'=>'index.php'),
-        array('1'=>'examples/(.*).php' ,'2'=>'index.php'),
-        array('1'=>'include/(.*).php' ,'2'=>'index.php'),
-        array('1'=>'include/(.*)/(.*).php' ,'2'=>'index.php'),
-        array('1'=>'log4php/(.*).php' ,'2'=>'index.php'),
-        array('1'=>'log4php/(.*)/(.*)' ,'2'=>'index.php'),
-        array('1'=>'metadata/(.*)/(.*).php' ,'2'=>'index.php'),
-        array('1'=>'modules/(.*)/(.*).php' ,'2'=>'index.php'),
-        array('1'=>'soap/(.*).php' ,'2'=>'index.php'),
-        array('1'=>'emailmandelivery.php' ,'2'=>'index.php'),
-        array('1'=>'cron.php' ,'2'=>'index.php'),
-        array('1'=> $sugar_config['upload_dir'].'.*' ,'2'=>'index.php'),
+        array('1' => $prefix . str_replace('.', '\\.', (string) $setup_site_log_file) . '\\.*', '2' => 'log_file_restricted.html'),
+        array('1' => $prefix . 'install.log', '2' => 'log_file_restricted.html'),
+        array('1' => $prefix . 'upgradeWizard.log', '2' => 'log_file_restricted.html'),
+        array('1' => $prefix . 'emailman.log', '2' => 'log_file_restricted.html'),
+        array('1' => 'not_imported_.*.txt', '2' => 'log_file_restricted.html'),
+        array('1' => 'XTemplate/(.*)/(.*).php', '2' => 'index.php'),
+        array('1' => 'data/(.*).php', '2' => 'index.php'),
+        array('1' => 'examples/(.*).php', '2' => 'index.php'),
+        array('1' => 'include/(.*).php', '2' => 'index.php'),
+        array('1' => 'include/(.*)/(.*).php', '2' => 'index.php'),
+        array('1' => 'log4php/(.*).php', '2' => 'index.php'),
+        array('1' => 'log4php/(.*)/(.*)', '2' => 'index.php'),
+        array('1' => 'metadata/(.*)/(.*).php', '2' => 'index.php'),
+        array('1' => 'modules/(.*)/(.*).php', '2' => 'index.php'),
+        array('1' => 'emailmandelivery.php', '2' => 'index.php'),
+        array('1' => 'cron.php', '2' => 'index.php'),
+        array('1' => $sugar_config['upload_dir'] . '.*', '2' => 'index.php'),
     );
 
 
@@ -1271,10 +1277,10 @@ function drop_table_install(&$focus)
 
     if ($result) {
         $focus->drop_tables();
-        $GLOBALS['log']->info("Dropped old ".$focus->table_name." table.");
+        $GLOBALS['log']->info("Dropped old " . $focus->table_name . " table.");
         return 1;
     } else {
-        $GLOBALS['log']->info("Did not need to drop old ".$focus->table_name." table.  It doesn't exist.");
+        $GLOBALS['log']->info("Did not need to drop old " . $focus->table_name . " table.  It doesn't exist.");
         return 0;
     }
 }
@@ -1288,10 +1294,10 @@ function create_table_if_not_exist(&$focus)
     // normal code follows
     $result = $db->tableExists($focus->table_name);
     if ($result) {
-        $GLOBALS['log']->info("Table ".$focus->table_name." already exists.");
+        $GLOBALS['log']->info("Table " . $focus->table_name . " already exists.");
     } else {
         $focus->create_tables();
-        $GLOBALS['log']->info("Created ".$focus->table_name." table.");
+        $GLOBALS['log']->info("Created " . $focus->table_name . " table.");
         $table_created = true;
     }
     return $table_created;
@@ -1503,13 +1509,13 @@ function recursive_is_writable($start_file)
 function get_boolean_from_request($field)
 {
     if (!isset($_REQUEST[$field])) {
-        return(false);
+        return (false);
     }
 
     if (($_REQUEST[$field] == 'on') || ($_REQUEST[$field] == 'yes')) {
-        return(true);
+        return (true);
     } else {
-        return(false);
+        return (false);
     }
 }
 
@@ -1568,7 +1574,7 @@ function validate_systemOptions()
             return $errors;
         }
     }
-    $errors[] = "<span class='error'>".$mod_strings['ERR_DB_INVALID']."</span>";
+    $errors[] = "<span class='error'>" . $mod_strings['ERR_DB_INVALID'] . "</span>";
     return $errors;
 }
 
@@ -1584,56 +1590,56 @@ function validate_siteConfig($type)
     global $mod_strings;
     $errors = array();
 
-    if ($type=='a') {
+    if ($type == 'a') {
         if (empty($_SESSION['setup_system_name'])) {
-            $errors[] = "<span class='error'>".$mod_strings['LBL_REQUIRED_SYSTEM_NAME']."</span>";
+            $errors[] = "<span class='error'>" . $mod_strings['LBL_REQUIRED_SYSTEM_NAME'] . "</span>";
         }
         if ($_SESSION['setup_site_url'] == '') {
-            $errors[] = "<span class='error'>".$mod_strings['ERR_URL_BLANK']."</span>";
+            $errors[] = "<span class='error'>" . $mod_strings['ERR_URL_BLANK'] . "</span>";
         }
 
         if ($_SESSION['setup_site_admin_user_name'] == '') {
-            $errors[] = "<span class='error'>".$mod_strings['ERR_ADMIN_USER_NAME_BLANK']."</span>";
+            $errors[] = "<span class='error'>" . $mod_strings['ERR_ADMIN_USER_NAME_BLANK'] . "</span>";
         }
 
         if ($_SESSION['setup_site_admin_password'] == '') {
-            $errors[] = "<span class='error'>".$mod_strings['ERR_ADMIN_PASS_BLANK']."</span>";
+            $errors[] = "<span class='error'>" . $mod_strings['ERR_ADMIN_PASS_BLANK'] . "</span>";
         }
 
         if ($_SESSION['setup_site_admin_password'] != $_SESSION['setup_site_admin_password_retype']) {
-            $errors[] = "<span class='error'>".$mod_strings['ERR_PASSWORD_MISMATCH']."</span>";
+            $errors[] = "<span class='error'>" . $mod_strings['ERR_PASSWORD_MISMATCH'] . "</span>";
         }
     } else {
         if (!empty($_SESSION['setup_site_custom_session_path']) && $_SESSION['setup_site_session_path'] == '') {
-            $errors[] = "<span class='error'>".$mod_strings['ERR_SESSION_PATH']."</span>";
+            $errors[] = "<span class='error'>" . $mod_strings['ERR_SESSION_PATH'] . "</span>";
         }
 
         if (!empty($_SESSION['setup_site_custom_session_path']) && $_SESSION['setup_site_session_path'] != '') {
             if (is_dir($_SESSION['setup_site_session_path'])) {
                 if (!is_writable($_SESSION['setup_site_session_path'])) {
-                    $errors[] = "<span class='error'>".$mod_strings['ERR_SESSION_DIRECTORY']."</span>";
+                    $errors[] = "<span class='error'>" . $mod_strings['ERR_SESSION_DIRECTORY'] . "</span>";
                 }
             } else {
-                $errors[] = "<span class='error'>".$mod_strings['ERR_SESSION_DIRECTORY_NOT_EXISTS']."</span>";
+                $errors[] = "<span class='error'>" . $mod_strings['ERR_SESSION_DIRECTORY_NOT_EXISTS'] . "</span>";
             }
         }
 
         if (!empty($_SESSION['setup_site_custom_log_dir']) && $_SESSION['setup_site_log_dir'] == '') {
-            $errors[] = "<span class='error'>".$mod_strings['ERR_LOG_DIRECTORY_NOT_EXISTS']."</span>";
+            $errors[] = "<span class='error'>" . $mod_strings['ERR_LOG_DIRECTORY_NOT_EXISTS'] . "</span>";
         }
 
         if (!empty($_SESSION['setup_site_custom_log_dir']) && $_SESSION['setup_site_log_dir'] != '') {
             if (is_dir($_SESSION['setup_site_log_dir'])) {
                 if (!is_writable($_SESSION['setup_site_log_dir'])) {
-                    $errors[] = "<span class='error'>".$mod_strings['ERR_LOG_DIRECTORY_NOT_WRITABLE']."</span>";
+                    $errors[] = "<span class='error'>" . $mod_strings['ERR_LOG_DIRECTORY_NOT_WRITABLE'] . "</span>";
                 }
             } else {
-                $errors[] = "<span class='error'>".$mod_strings['ERR_LOG_DIRECTORY_NOT_EXISTS']."</span>";
+                $errors[] = "<span class='error'>" . $mod_strings['ERR_LOG_DIRECTORY_NOT_EXISTS'] . "</span>";
             }
         }
 
         if (!empty($_SESSION['setup_site_specify_guid']) && $_SESSION['setup_site_guid'] == '') {
-            $errors[] = "<span class='error'>".$mod_strings['ERR_SITE_GUID']."</span>";
+            $errors[] = "<span class='error'>" . $mod_strings['ERR_SITE_GUID'] . "</span>";
         }
     }
 
@@ -1671,13 +1677,33 @@ function pullSilentInstallVarsIntoSession()
         'setup_db_sugarsales_password_retype'   => $config_subset['setup_db_sugarsales_password'],
     );
 
-    $needles = array('demoData','setup_db_create_database','setup_db_create_sugarsales_user','setup_license_key_users',
-        'setup_license_key_expire_date','setup_license_key', 'setup_num_lic_oc',
-        'default_currency_iso4217', 'default_currency_name', 'default_currency_significant_digits',
-        'default_currency_symbol',  'default_date_format', 'default_time_format', 'default_decimal_seperator',
-        'default_export_charset', 'default_language', 'default_locale_name_format', 'default_number_grouping_seperator',
-        'export_delimiter', 'cache_dir', 'setup_db_options',
-        'setup_fts_type', 'setup_fts_host', 'setup_fts_port', 'setup_fts_index_settings'. 'setup_fts_transport');
+    $needles = array(
+        'demoData',
+        'setup_db_create_database',
+        'setup_db_create_sugarsales_user',
+        'setup_license_key_users',
+        'setup_license_key_expire_date',
+        'setup_license_key',
+        'setup_num_lic_oc',
+        'default_currency_iso4217',
+        'default_currency_name',
+        'default_currency_significant_digits',
+        'default_currency_symbol',
+        'default_date_format',
+        'default_time_format',
+        'default_decimal_seperator',
+        'default_export_charset',
+        'default_language',
+        'default_locale_name_format',
+        'default_number_grouping_seperator',
+        'export_delimiter',
+        'cache_dir',
+        'setup_db_options',
+        'setup_fts_type',
+        'setup_fts_host',
+        'setup_fts_port',
+        'setup_fts_index_settings' . 'setup_fts_transport'
+    );
     copyFromArray($sugar_config_si, $needles, $derived);
     $all_config_vars = array_merge($config_subset, $sugar_config_si, $derived);
 
@@ -1721,7 +1747,7 @@ function langPackFinalMove($file)
 {
     global $sugar_config;
     //."upgrades/langpack/"
-    $destination = $sugar_config['upload_dir'].$file->stored_file_name;
+    $destination = $sugar_config['upload_dir'] . $file->stored_file_name;
     if (!move_uploaded_file($_FILES[$file->field_name]['tmp_name'], $destination)) {
         die("ERROR: can't move_uploaded_file to $destination. You should try making the directory writable by the webserver");
     }
@@ -1742,7 +1768,7 @@ function getLicenseDisplay($type, $manifest, $zipFile, $next_step, $license_file
  * @param int nextstep current step
  * @return string ret <form> for this package
  */
-function getPackButton($type, $manifest, $zipFile, $next_step, $uninstallable='Yes', $showButtons=true)
+function getPackButton($type, $manifest, $zipFile, $next_step, $uninstallable = 'Yes', $showButtons = true)
 {
     global $mod_strings;
 
@@ -1759,8 +1785,8 @@ function getPackButton($type, $manifest, $zipFile, $next_step, $uninstallable='Y
                 <input type='hidden' name='current_step' value='{$next_step}'>
                 <input type='hidden' name='goto' value='{$mod_strings['LBL_CHECKSYS_RECHECK']}'>
                 <input type='hidden' name='languagePackAction' value='{$type}'>
-                <input type='hidden' name='manifest' value='".urlencode($manifest)."'>
-                <input type='hidden' name='zipFile' value='".urlencode($zipFile)."'>
+                <input type='hidden' name='manifest' value='" . urlencode($manifest) . "'>
+                <input type='hidden' name='zipFile' value='" . urlencode($zipFile) . "'>
                 <input type='hidden' name='install_type' value='custom'>";
     if (!$disabled && $showButtons) {
         $ret .= "<input type='submit' value='{$button}' class='button'>";
@@ -1858,7 +1884,7 @@ function getLangPacks($display_commit = true, $types = array('langpack'), $notic
             $md5_matches = $uh->findByMd5($the_md5);
         }
 
-        if ($manifest['type']!= 'module' || 0 == (is_countable($md5_matches) ? count($md5_matches) : 0)) {
+        if ($manifest['type'] != 'module' || 0 == (is_countable($md5_matches) ? count($md5_matches) : 0)) {
             $name = empty($manifest['name']) ? $file : $manifest['name'];
             $version = empty($manifest['version']) ? '' : $manifest['version'];
             $published_date = empty($manifest['published_date']) ? '' : $manifest['published_date'];
@@ -1870,11 +1896,11 @@ function getLangPacks($display_commit = true, $types = array('langpack'), $notic
             $deletePackage = getPackButton('remove', $target_manifest, $file, $next_step);
             //$ret .="<table width='100%' cellpadding='0' cellspacing='0' border='0'>";
             $ret .= "<tr>";
-            $ret .= "<td width='20%' >".$name."</td>";
-            $ret .= "<td width='15%' >".$version."</td>";
-            $ret .= "<td width='15%' >".$published_date."</td>";
-            $ret .= "<td width='15%' >".$uninstallable."</td>";
-            $ret .= "<td width='20%' >".$description."</td>";
+            $ret .= "<td width='20%' >" . $name . "</td>";
+            $ret .= "<td width='15%' >" . $version . "</td>";
+            $ret .= "<td width='15%' >" . $published_date . "</td>";
+            $ret .= "<td width='15%' >" . $uninstallable . "</td>";
+            $ret .= "<td width='20%' >" . $description . "</td>";
 
             if ($display_commit) {
                 $ret .= "<td width='7%'>{$commitPackage}</td>";
@@ -1883,7 +1909,7 @@ function getLangPacks($display_commit = true, $types = array('langpack'), $notic
             $ret .= "<td width='7%'>{$deletePackage}</td>";
             $ret .= "</td></tr>";
 
-            $clean_field_name = "accept_lic_".str_replace('.', '_', urlencode(basename((string) $file)));
+            $clean_field_name = "accept_lic_" . str_replace('.', '_', urlencode(basename((string) $file)));
 
             if (is_file($license_file)) {
                 //rrs
@@ -1894,8 +1920,8 @@ function getLangPacks($display_commit = true, $types = array('langpack'), $notic
             } else {
                 $hidden_input .= "<input type='hidden' name='$clean_field_name' id='$clean_field_name' value='yes'>";
             }
-        }//fi
-    }//rof
+        } //fi
+    } //rof
     $_SESSION['hidden_input'] = $hidden_input;
 
     if ((is_countable($files) ? count($files) : 0) > 0) {
@@ -1919,19 +1945,19 @@ if (!function_exists('extractFile')) {
     {
         $my_zip_dir = mk_temp_dir($base_tmp_upgrade_dir);
         unzip_file($zip_file, $file_in_zip, $my_zip_dir);
-        return("$my_zip_dir/$file_in_zip");
+        return ("$my_zip_dir/$file_in_zip");
     }
 }
 
 if (!function_exists('extractManifest')) {
     function extractManifest($zip_file, $base_tmp_upgrade_dir)
     {
-        return(extractFile($zip_file, "manifest.php", $base_tmp_upgrade_dir));
+        return (extractFile($zip_file, "manifest.php", $base_tmp_upgrade_dir));
     }
 }
 
 if (!function_exists('unlinkTempFiles')) {
-    function unlinkTempFiles($manifest='', $zipFile='')
+    function unlinkTempFiles($manifest = '', $zipFile = '')
     {
         global $sugar_config;
 
@@ -1942,11 +1968,11 @@ if (!function_exists('unlinkTempFiles')) {
         if (!empty($zipFile)) {
             //@unlink($zipFile);
             $tmpZipFile = substr((string) $zipFile, strpos((string) $zipFile, 'langpack/') + 9, strlen((string) $zipFile));
-            @unlink($sugar_config['upload_dir'].$tmpZipFile);
+            @unlink($sugar_config['upload_dir'] . $tmpZipFile);
         }
 
-        rmdir_recursive($sugar_config['upload_dir']."upgrades/temp");
-        sugar_mkdir($sugar_config['upload_dir']."upgrades/temp");
+        rmdir_recursive($sugar_config['upload_dir'] . "upgrades/temp");
+        sugar_mkdir($sugar_config['upload_dir'] . "upgrades/temp");
     }
 }
 
@@ -1970,9 +1996,9 @@ function langPackUnpack($unpack_type, $full_file)
 
     if (is_file($manifest_file)) {
         if ($unpack_type == 'module' && is_file($license_file)) {
-            copy($license_file, $base_upgrade_dir.'/'.$unpack_type.'/'.$base_filename."-license.txt");
+            copy($license_file, $base_upgrade_dir . '/' . $unpack_type . '/' . $base_filename . "-license.txt");
         }
-        copy($manifest_file, $base_upgrade_dir.'/'.$unpack_type.'/'.$base_filename."-manifest.php");
+        copy($manifest_file, $base_upgrade_dir . '/' . $unpack_type . '/' . $base_filename . "-manifest.php");
 
         require_once($manifest_file);
         validate_manifest($manifest);
@@ -1990,7 +2016,7 @@ function langPackUnpack($unpack_type, $full_file)
 
         // move file from uploads to cache
         // FIXME: where should it be?
-        if (copy($full_file, $target_path.".zip")) {
+        if (copy($full_file, $target_path . ".zip")) {
             copy($manifest_file, $target_manifest);
             unlink($full_file); // remove tempFile
             return "The file $base_filename has been uploaded.<br>\n";
@@ -2015,7 +2041,7 @@ if (!function_exists('validate_manifest')) {
         }
         $type = $manifest['type'];
         if (getInstallType("/$type/") == "") {
-            die($mod_strings['ERROR_PACKAGE_TYPE']. ": '" . $type . "'.");
+            die($mod_strings['ERROR_PACKAGE_TYPE'] . ": '" . $type . "'.");
         }
 
         return true; // making this a bit more relaxed since we updated the language extraction and merge capabilities
@@ -2029,20 +2055,20 @@ if (!function_exists('getInstallType')) {
         $subdirs = array('full', 'langpack', 'module', 'patch', 'theme', 'temp');
         foreach ($subdirs as $subdir) {
             if (preg_match("#/$subdir/#", (string) $type_string)) {
-                return($subdir);
+                return ($subdir);
             }
         }
         // return empty if no match
-        return("");
+        return ("");
     }
 }
 
 
 
 //mysqli connector has a separate parameter for port.. We need to separate it out from the host name
-function getHostPortFromString($hostname='')
+function getHostPortFromString($hostname = '')
 {
-    $pos=strpos((string) $hostname, ':');
+    $pos = strpos((string) $hostname, ':');
     if ($pos === false) {
         //no need to process as string is empty or does not contain ':' delimiter
         return '';
@@ -2056,7 +2082,7 @@ function getHostPortFromString($hostname='')
 function getLicenseContents($filename)
 {
     $license_file = '';
-    if (file_exists($filename) && filesize($filename) >0) {
+    if (file_exists($filename) && filesize($filename) > 0) {
         $license_file = trim(file_get_contents($filename));
     }
     return $license_file;
@@ -2072,15 +2098,37 @@ function getLicenseContents($filename)
 ///////////////////////////////////////////////////////////////////////////////
 ////    FROM POPULATE SEED DATA
 $seed = array(
-    'qa',       'dev',          'beans',
-    'info',     'sales',        'support',
-    'kid',      'the',          'section',
-    'sugar',    'hr',           'im',
-    'kid',      'vegan',        'phone',
+    'qa',
+    'dev',
+    'beans',
+    'info',
+    'sales',
+    'support',
+    'kid',
+    'the',
+    'section',
+    'sugar',
+    'hr',
+    'im',
+    'kid',
+    'vegan',
+    'phone',
 );
 $tlds = array(
-    ".com", ".org", ".net", ".tv", ".cn", ".co.jp", ".us",
-    ".edu", ".tw", ".de", ".it", ".co.uk", ".info", ".biz",
+    ".com",
+    ".org",
+    ".net",
+    ".tv",
+    ".cn",
+    ".co.jp",
+    ".us",
+    ".edu",
+    ".tw",
+    ".de",
+    ".it",
+    ".co.uk",
+    ".info",
+    ".biz",
     ".name",
 );
 
@@ -2092,9 +2140,9 @@ function createWebAddress()
     global $seed;
     global $tlds;
 
-    $one = $seed[mt_rand(0, count($seed)-1)];
-    $two = $seed[mt_rand(0, count($seed)-1)];
-    $tld = $tlds[mt_rand(0, count($tlds)-1)];
+    $one = $seed[mt_rand(0, count($seed) - 1)];
+    $two = $seed[mt_rand(0, count($seed) - 1)];
+    $tld = $tlds[mt_rand(0, count($tlds) - 1)];
 
     return "www.{$one}{$two}{$tld}";
 }
@@ -2109,16 +2157,16 @@ function createEmailAddress()
     global $seed;
     global $tlds;
 
-    $part[0] = $seed[mt_rand(0, count($seed)-1)];
-    $part[1] = $seed[mt_rand(0, count($seed)-1)];
-    $part[2] = $seed[mt_rand(0, count($seed)-1)];
+    $part[0] = $seed[mt_rand(0, count($seed) - 1)];
+    $part[1] = $seed[mt_rand(0, count($seed) - 1)];
+    $part[2] = $seed[mt_rand(0, count($seed) - 1)];
 
-    $tld = $tlds[mt_rand(0, count($tlds)-1)];
+    $tld = $tlds[mt_rand(0, count($tlds) - 1)];
 
     $len = mt_rand(1, 3);
 
     $ret = '';
-    for ($i=0; $i<$len; $i++) {
+    for ($i = 0; $i < $len; $i++) {
         $ret .= (empty($ret)) ? '' : '.';
         $ret .= $part[$i];
     }
@@ -2133,7 +2181,7 @@ function createEmailAddress()
 
 function add_digits($quantity, &$string, $min = 0, $max = 9)
 {
-    for ($i=0; $i < $quantity; $i++) {
+    for ($i = 0; $i < $quantity; $i++) {
         $string .= mt_rand($min, $max);
     }
 }
@@ -2150,12 +2198,12 @@ function create_phone_number()
     return $phone;
 }
 
-function create_date($year=null, $mnth=null, $day=null)
+function create_date($year = null, $mnth = null, $day = null)
 {
     global $timedate;
     $now = $timedate->getNow();
-    if ($day==null) {
-        $day=$now->day+mt_rand(0, 365);
+    if ($day == null) {
+        $day = $now->day + mt_rand(0, 365);
     }
     return $timedate->asDbDate($now->get_day_begin($day, $mnth, $year));
 }
@@ -2166,18 +2214,18 @@ function create_current_date_time()
     return $timedate->nowDb();
 }
 
-function create_time($hr=null, $min=null, $sec=null)
+function create_time($hr = null, $min = null, $sec = null)
 {
     global $timedate;
     $date = TimeDate::getInstance()->fromTimestamp(0);
-    if ($hr==null) {
-        $hr=mt_rand(6, 19);
+    if ($hr == null) {
+        $hr = mt_rand(6, 19);
     }
-    if ($min==null) {
-        $min=(mt_rand(0, 3)*15);
+    if ($min == null) {
+        $min = (mt_rand(0, 3) * 15);
     }
-    if ($sec==null) {
-        $sec=0;
+    if ($sec == null) {
+        $sec = 0;
     }
     return $timedate->asDbTime($date->setDate(2007, 10, 7)->setTime($hr, $min, $sec));
 }
@@ -2186,7 +2234,7 @@ function create_past_date()
 {
     global $timedate;
     $now = $timedate->getNow(true);
-    $day=$now->day-mt_rand(1, 365);
+    $day = $now->day - mt_rand(1, 365);
     return $timedate->asDbDate($now->get_day_begin($day));
 }
 
@@ -2208,7 +2256,7 @@ function post_install_modules()
         foreach ($modules_to_install as $module_to_install) {
             if (is_file($module_to_install)) {
                 $pm->performSetup($module_to_install, 'module', false);
-                $file_to_install = sugar_cached('upload/upgrades/module/').basename((string) $module_to_install);
+                $file_to_install = sugar_cached('upload/upgrades/module/') . basename((string) $module_to_install);
                 $_REQUEST['install_file'] = $file_to_install;
                 $pm->performInstall($file_to_install);
             }
@@ -2224,15 +2272,15 @@ function get_help_button_url()
     return $help_url;
 }
 
-function create_db_user_creds($numChars=10)
+function create_db_user_creds($numChars = 10)
 {
     $numChars = 7; // number of chars in the password
     //chars to select from
     $charBKT = "abcdefghijklmnpqrstuvwxyz123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
     // seed the random number generator
-    mt_srand((double)microtime()*1000000);
-    $password="";
-    for ($i=0;$i<$numChars;$i++) {  // loop and create password
+    mt_srand((float)microtime() * 1000000);
+    $password = "";
+    for ($i = 0; $i < $numChars; $i++) {  // loop and create password
         $password = $password . substr($charBKT, mt_rand() % strlen($charBKT), 1);
     }
 
@@ -2244,22 +2292,22 @@ function addDefaultRoles($defaultRoles = array())
     $db = DBManagerFactory::getInstance();
 
 
-    foreach ($defaultRoles as $roleName=>$role) {
+    foreach ($defaultRoles as $roleName => $role) {
         $ACLField = new ACLField();
-        $role1= BeanFactory::newBean('ACLRoles');
+        $role1 = BeanFactory::newBean('ACLRoles');
         $role1->name = $roleName;
-        $role1->description = $roleName." Role";
-        $role1_id=$role1->save();
-        foreach ($role as $category=>$actions) {
-            foreach ($actions as $name=>$access_override) {
-                if ($name=='fields') {
-                    foreach ($access_override as $field_id=>$access) {
+        $role1->description = $roleName . " Role";
+        $role1_id = $role1->save();
+        foreach ($role as $category => $actions) {
+            foreach ($actions as $name => $access_override) {
+                if ($name == 'fields') {
+                    foreach ($access_override as $field_id => $access) {
                         $ACLField->setAccessControl($category, $role1_id, $field_id, $access);
                     }
                 } else {
-                    $queryACL="SELECT id FROM acl_actions where category='$category' and name='$name'";
+                    $queryACL = "SELECT id FROM acl_actions where category='$category' and name='$name'";
                     $result = $db->query($queryACL);
-                    $actionId=$db->fetchByAssoc($result);
+                    $actionId = $db->fetchByAssoc($result);
                     if (isset($actionId['id']) && !empty($actionId['id'])) {
                         $role1->setAction($role1_id, $actionId['id'], $access_override);
                     }
@@ -2287,8 +2335,8 @@ function enableInsideViewConnector()
     $mapping = [];
     // Load up the existing mapping and hand it to the InsideView connector to have it setup the correct logic hooks
     $mapFile = 'modules/Connectors/connectors/sources/ext/rest/insideview/mapping.php';
-    if (file_exists('custom/'.$mapFile)) {
-        require('custom/'.$mapFile);
+    if (file_exists('custom/' . $mapFile)) {
+        require('custom/' . $mapFile);
     } else {
         require($mapFile);
     }
