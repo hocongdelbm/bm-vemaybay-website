@@ -792,8 +792,6 @@ HTML;
         $peopleTables = array(
             "users",
             "contacts",
-            "leads",
-            "prospects",
             "accounts"
         );
         $filterPeopleTables = array();
@@ -2513,19 +2511,16 @@ eoq;
     ///////////////////////////////////////////////////////////////////////////
     ////	PRIVATE HELPERS
     /**
-     * Generates a UNION query to get one list of users, contacts, leads, and
+     * Generates a UNION query to get one list of users, contacts, and
      * prospects; used specifically for the addressBook
      */
     public function _getPeopleUnionQuery($whereArr, $person)
     {
-        global $current_user, $app_strings;
-        $db = DBManagerFactory::getInstance();
+        global $current_user;
         if (!isset($person) || $person === 'LBL_DROPDOWN_LIST_ALL') {
             $peopleTables = array(
                 "users",
                 "contacts",
-                "leads",
-                "prospects",
                 "accounts"
             );
         } else {
@@ -2592,15 +2587,13 @@ eoq;
      */
     public function getRelatedEmail($beanType, $whereArr, $relatedBeanInfoArr = '')
     {
-        global $beanList, $current_user, $app_strings;
+        global $beanList;
         $finalQuery = '';
         $searchBeans = null;
         if ($beanType === 'LBL_DROPDOWN_LIST_ALL') {
             $searchBeans = array(
                 "users",
                 "contacts",
-                "leads",
-                "prospects",
                 "accounts"
             );
         }

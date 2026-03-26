@@ -1,5 +1,5 @@
 <?php
-// created: 2025-10-29 04:57:45
+// created: 2026-03-24 14:47:14
 $GLOBALS['tabStructure'] = array (
   'LBL_GROUPTAB3_1684394664' => 
   array (
@@ -32,10 +32,9 @@ $GLOBALS['tabStructure'] = array (
     'label' => 'LBL_GROUPTAB2_1684121222',
     'modules' => 
     array (
-      0 => 'EC_LeaveAbsenceTypes',
-      1 => 'EC_LeaveAbsences',
-      2 => 'EC_WorkingOverTimes',
-      3 => 'EC_Employee_Salary',
+      0 => 'EC_LeaveAbsences',
+      1 => 'EC_WorkingOverTimes',
+      2 => 'EC_Employee_Salary',
     ),
   ),
   'LBL_GROUPTAB1_1684121154' => 
@@ -58,10 +57,8 @@ $GLOBALS['tabStructure'] = array (
     'modules' => 
     array (
       0 => 'EC_Location',
-      1 => 'AOK_KnowledgeBase',
-      2 => 'Documents',
-      3 => 'Bugs',
-      4 => 'EC_LoginAudit',
+      1 => 'Documents',
+      2 => 'EC_LoginAudit',
     ),
   ),
 );

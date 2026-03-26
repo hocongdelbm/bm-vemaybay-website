@@ -235,9 +235,6 @@ function getModuleRelationships($module, $view='EditView', $value = '')
         if (isset($beanList[$module]) && $beanList[$module]) {
             $mod = new $beanList[$module]();
 
-            /*if($mod->is_AuditEnabled()){
-                $fields['Audit'] = translate('LBL_AUDIT_TABLE','AOR_Fields');
-            }*/
             foreach ($mod->get_linked_fields() as $name => $arr) {
                 if (isset($arr['module']) && $arr['module'] != '') {
                     $rel_module = $arr['module'];
@@ -462,13 +459,6 @@ function getModuleField(
             );
         }
         if ($view == 'DetailView' && $vardef['type'] == 'image') {
-            // Because TCPDF could not read image from download entryPoint, we need change entryPoint link to image path to resolved issue Image is not showing in PDF report
-            if ($_REQUEST['module'] == 'AOR_Reports' && $_REQUEST['action'] == 'DownloadPDF') {
-                global $sugar_config;
-                $upload_dir = isset($sugar_config['upload_dir']) ? $sugar_config['upload_dir'] : 'upload/';
-                $contents = str_replace('index.php?entryPoint=download&id=', $upload_dir, $contents);
-                $contents = str_replace('&type={$module}', '', $contents);
-            }
             $contents = str_replace('{$fields.id.value}', '{$record_id}', $contents);
         }
         // hack to disable one of the js calls in this control
@@ -711,10 +701,6 @@ function getDateField($module, $aow_field, $view, $value = null, $field_option =
     }
 
     $value = json_decode(html_entity_decode_utf8($value), true);
-
-    if (!file_exists('modules/AOBH_BusinessHours/AOBH_BusinessHours.php')) {
-        unset($app_list_strings['aow_date_type_list']['business_hours']);
-    }
 
     $field = '';
 

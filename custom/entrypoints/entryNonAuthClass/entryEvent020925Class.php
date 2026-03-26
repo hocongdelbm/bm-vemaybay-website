@@ -26,6 +26,8 @@ class entryEvent020925Class extends entryClass {
         $this->spinPrizesStorage = "$this->directoryData/list_spin_prizes.json";
         $this->userStorage = "$this->directoryData/users";
         $this->botToken = $sugar_config['telegram']['event020925']['bot_token'] ?? '';
+        $this->testBot  = $sugar_config['telegram']['test']['bot_token'] ?? '';
+        $this->testChatId   = $sugar_config['telegram']['test']['chat_id'] ?? '';
         $this->chatId   = $sugar_config['telegram']['event020925']['chat_id'] ?? '';
         $this->threadId = $sugar_config['telegram']['event020925']['thread_id_lucky_spin'] ?? '';
         $this->threadId2 = $sugar_config['telegram']['event020925']['thread_id_noti'] ?? '';
@@ -180,11 +182,11 @@ class entryEvent020925Class extends entryClass {
             if($idName == "phoneNumber") {
                 $listPhone[$code] = "";
                 $this->writeFile($this->phoneStorage, json_encode($listPhone));
-                try {
-                    $message = "🇻🇳 Người chơi có SĐT $code đã tham gia sự kiện";
-                    Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId2);
-                }
-                catch(Throwable $th) {}
+                // try {
+                //     $message = "🇻🇳 Người chơi có SĐT $code đã tham gia sự kiện";
+                //     Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId2);
+                // }
+                // catch(Throwable $th) {}
             }
 
             return ["status" => 1, "message" => "Success", "data" => $data]; 
@@ -220,12 +222,12 @@ class entryEvent020925Class extends entryClass {
                     $listPhone[$phoneNumber] = $code;
                     $this->writeFile($this->phoneStorage, json_encode($listPhone));
 
-                    try {
-                        $phoneNumber = $userData['phoneNumber'];
-                        $message = "🇻🇳 Người chơi có SĐT $phoneNumber đã tham gia sự kiện\n<i>Code: <b>$code</b></i>";
-                        Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId2);
-                    }
-                    catch(Throwable $th) {}
+                    // try {
+                    //     $phoneNumber = $userData['phoneNumber'];
+                    //     $message = "🇻🇳 Người chơi có SĐT $phoneNumber đã tham gia sự kiện\n<i>Code: <b>$code</b></i>";
+                    //     Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId2);
+                    // }
+                    // catch(Throwable $th) {}
 
                     return ["status" => 1, "message" => "Update user phone number success", "data" => $userData];
                 }
@@ -330,11 +332,7 @@ class entryEvent020925Class extends entryClass {
                                 ]
                             ]
                         ];
-                        Telegram::sendInlineKeyboardMessage($message, $inline_keyboard, $this->botToken, $this->chatId, $this->threadId);
-
-                        // $phoneNumber = $userData['phoneNumber'];
-                        // $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào ". format_number($value, null, 0) ."đ\n<i>Card ID: $cardId</i>";
-                        // Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId);
+                        // Telegram::sendInlineKeyboardMessage($message, $inline_keyboard, $this->botToken, $this->chatId, $this->threadId);
                     }
                 }
                 catch(Throwable $th) {}
@@ -562,13 +560,6 @@ class entryEvent020925Class extends entryClass {
                         "backpack" => "Balo",
                     ];
                     if(isset($mapLabelPrizes[$typePrize])) {
-                        // $phoneNumber = $userData['phoneNumber'] ?? '';
-                        // $message = "🎁 Người chơi $phoneNumber đã nhận được <b>". $mapLabelPrizes[$typePrize] ."</b>";
-                        // if($typePrize == "topupCard") $message .= " trị giá <b>". format_number($prize, null, 0) ."đ</b>";
-                        // $message .= "\n<i>Prize ID: $prizeId</i>";
-                        // $message .= "\n<i>Code: $code</i>";
-                        // Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId3);
-
                         $phoneNumber = $userData['phoneNumber'] ?? '';
                         $message = "🎁 Người chơi $phoneNumber đã nhận được <b>". $mapLabelPrizes[$typePrize] ."</b>";
                         if($typePrize == "topupCard") $message .= " trị giá <b>". format_number($prize, null, 0) ."đ</b>";
@@ -582,7 +573,7 @@ class entryEvent020925Class extends entryClass {
                                 ]
                             ]
                         ];
-                        Telegram::sendInlineKeyboardMessage($message, $inline_keyboard, $this->botToken, $this->chatId, $this->threadId3);
+                        // Telegram::sendInlineKeyboardMessage($message, $inline_keyboard, $this->botToken, $this->chatId, $this->threadId3);
                     }
                 }
                 catch(Throwable $th) {}

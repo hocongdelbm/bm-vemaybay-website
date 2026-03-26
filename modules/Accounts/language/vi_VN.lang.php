@@ -11,10 +11,6 @@ $mod_strings = array(
     'db_billing_address_city' => 'LBL_LIST_CITY',
     // END DON'T CONVERT
     'LBL_DOCUMENTS_SUBPANEL_TITLE' => 'Tài liệu',
-    // Dashlet Categories
-    'LBL_CHARTS' => 'Biểu đồ',
-    'LBL_DEFAULT' => 'Xem',
-    // END Dashlet Categories
 
     'ERR_DELETE_RECORD' => 'Bạn phải chọn dòng để xóa được tài khoản.',
     'LBL_ACCOUNT_INFORMATION' => 'Thông tin Tài khoản', //No need to be translated in all caps. Translation used just in menu action items when using the SuiteP template
@@ -59,7 +55,6 @@ $mod_strings = array(
     'LBL_INDUSTRY' => 'Loại hình:',
     'LBL_INVALID_EMAIL' => 'Email không tồn tại:',
     'LBL_INVITEE' => 'Liên hệ',
-    'LBL_LEADS_SUBPANEL_TITLE' => 'Đầu mối',
     'LBL_LIST_ACCOUNT_NAME' => 'Tên',
     'LBL_LIST_CITY' => 'Thành phố',
     'LBL_LIST_CONTACT_NAME' => 'Tên liên lạc',

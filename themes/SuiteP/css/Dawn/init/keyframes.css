@@ -1,0 +1,314 @@
+@keyframes bell_swing {
+    0% {
+        transform: rotateZ(0);
+    }
+
+    25% {
+        transform: rotateZ(25deg);
+    }
+
+    50% {
+        transform: rotateZ(-15deg);
+    }
+
+    75% {
+        transform: rotateZ(10deg);
+    }
+
+    100% {
+        transform: rotateZ(0);
+    }
+}
+
+@keyframes bell_move {
+    0% {
+        transform: translateX(0);
+    }
+
+    20% {
+        transform: translateX(-68px);
+    }
+
+    50% {
+        transform: translateX(17px);
+    }
+
+    75% {
+        transform: translateX(-8px);
+    }
+
+    85% {
+        transform: translateX(3px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+@-webkit-keyframes animateGroup {
+
+    0%,
+    100% {
+        transform: rotate(-8deg);
+    }
+
+    17.542% {
+        transform: rotate(0deg);
+    }
+
+    35.084% {
+        transform: rotate(-20deg);
+    }
+
+    48.2405% {
+        transform: rotate(20deg);
+    }
+
+    57.0115% {
+        transform: rotate(-20deg);
+    }
+
+    64.9054% {
+        transform: rotate(8deg);
+    }
+
+    74.5535% {
+        transform: rotate(-15deg);
+    }
+
+    78.939% {
+        transform: rotate(-7deg);
+    }
+}
+
+@keyframes animateGroup {
+
+    0%,
+    100% {
+        transform: rotate(-8deg);
+    }
+
+    17.542% {
+        transform: rotate(0deg);
+    }
+
+    35.084% {
+        transform: rotate(-20deg);
+    }
+
+    48.2405% {
+        transform: rotate(20deg);
+    }
+
+    57.0115% {
+        transform: rotate(-20deg);
+    }
+
+    64.9054% {
+        transform: rotate(8deg);
+    }
+
+    74.5535% {
+        transform: rotate(-15deg);
+    }
+
+    78.939% {
+        transform: rotate(-7deg);
+    }
+}
+
+@-webkit-keyframes animateBall {
+
+    0%,
+    100% {
+        transform: translateX(-6.5%);
+    }
+
+    17.542% {
+        transform: translateX(0%);
+    }
+
+    21.9275% {
+        transform: translateX(-1%);
+    }
+
+    35.084% {
+        transform: translateX(11%);
+    }
+
+    48.2405% {
+        transform: translateX(-11%);
+    }
+
+    52.626% {
+        transform: translateX(0%);
+    }
+
+    59.6428% {
+        transform: translateX(10%);
+    }
+
+    68.4138% {
+        transform: translateX(-11%);
+    }
+
+    78.939% {
+        transform: translateX(11%);
+    }
+
+    85.9558% {
+        transform: translateX(-11%);
+    }
+}
+
+@keyframes animateBall {
+
+    0%,
+    100% {
+        transform: translateX(-6.5%);
+    }
+
+    17.542% {
+        transform: translateX(0%);
+    }
+
+    21.9275% {
+        transform: translateX(-1%);
+    }
+
+    35.084% {
+        transform: translateX(11%);
+    }
+
+    48.2405% {
+        transform: translateX(-11%);
+    }
+
+    52.626% {
+        transform: translateX(0%);
+    }
+
+    59.6428% {
+        transform: translateX(10%);
+    }
+
+    68.4138% {
+        transform: translateX(-11%);
+    }
+
+    78.939% {
+        transform: translateX(11%);
+    }
+
+    85.9558% {
+        transform: translateX(-11%);
+    }
+}
+
+@-webkit-keyframes notify_bounce {
+    0% {
+        transform: scale(0);
+    }
+
+    14% {
+        transform: scale(1.15);
+    }
+
+    28% {
+        transform: scale(1);
+    }
+
+    42% {
+        transform: scale(1.15);
+    }
+
+    70% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes notify_bounce {
+    0% {
+        transform: scale(0);
+    }
+
+    14% {
+        transform: scale(1.15);
+    }
+
+    28% {
+        transform: scale(1);
+    }
+
+    42% {
+        transform: scale(1.15);
+    }
+
+    70% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes unfoldIn {
+    0% {
+        transform: scaleY(0.005) scaleX(0);
+    }
+
+    50% {
+        transform: scaleY(0.005) scaleX(1);
+    }
+
+    100% {
+        transform: scaleY(1) scaleX(1);
+    }
+}
+
+@keyframes unfoldOut {
+    0% {
+        transform: scaleY(1) scaleX(1);
+    }
+
+    50% {
+        transform: scaleY(0.005) scaleX(1);
+    }
+
+    100% {
+        transform: scaleY(0.005) scaleX(0);
+    }
+}
+
+@keyframes zoomIn {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes zoomOut {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(0);
+    }
+}
+
+
+@keyframes spinner-loader {
+    100% {
+        transform: rotate(1turn);
+    }
+}

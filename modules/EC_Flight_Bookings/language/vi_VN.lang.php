@@ -115,7 +115,6 @@ $mod_strings = array(
   'LBL_DATE_TICKET_INBOUND_ISSUE' => 'Ngày xuất vé lượt về',
   'LBL_LINE_PASSENGERS_LUGGAGE_EXTRA' => 'Hành lý',
   'LBL_LINE_PASSENGERS_NAME_EXTRA' => 'Đổi tên liên hệ',
-  'LBL_LINE_ITINERARY_EXTRA' => 'Đổi ngày bay',
   'LBL_DEPARTURE_DATE' => 'Ngày giờ bay',
 
   'LBL_ASSIGNED_TO_2ND_ID' => 'Người duyệt',
@@ -176,6 +175,7 @@ $mod_strings = array(
   'LBL_ARRIVAL' => 'Nơi đến',
   'LBL_ARRIVAL_DATE' => 'Ngày giờ đến',
   'LBL_TOTAL_PRICE' => 'Tổng tiền',
+  'LBL_TOTAL_PROFIT' => 'Doanh số',
   'LBL_ADD_LINE' => 'Thêm',
   'LBL_REMOVE_LINE' => 'Xóa',
   'LBL_TRAVELLER_TYPE' => 'Loại hành khách',
@@ -281,7 +281,6 @@ $mod_strings = array(
 
   'LBL_CHECKIN_STATUS'   => 'Trạng thái checkin',
   'LBL_RECALL_C'   => 'Recall',
-
   'LBL_EMAIL_RESERVATION'   => 'Email đặt chỗ',
   'LBL_IS_TELESALE'   => 'Là Telesale',
   'LBL_IS_CTV'   => 'CTV',

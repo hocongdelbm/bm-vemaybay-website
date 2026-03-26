@@ -1,109 +1,72 @@
 <?php
 
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 
 require_once('include/DetailView/DetailView2.php');
 
 class ViewMetadata extends SugarView
 {
-    public $type ='detail';
+    public $type = 'detail';
     public $dv;
-    
-    
-    
-    public function displayCheckBoxes($name, $values, $selected =array(), $attr='')
+
+
+
+    public function displayCheckBoxes($name, $values, $selected = array(), $attr = '')
     {
         echo "<div $attr style='overflow:auto;float:left;width:200px;height:200px' >";
         foreach ($values as $value) {
-            $checked = in_array($value, $selected)? " checked=checked ": " ";
+            $checked = in_array($value, $selected) ? " checked=checked " : " ";
             echo "<div style='padding:2px'><input type='checkbox' name='$name' value='$value' $checked> $value</div>";
         }
         echo "</div>";
     }
-    
-    public function displaySelect($name, $values, $selected ='', $attr='')
+
+    public function displaySelect($name, $values, $selected = '', $attr = '')
     {
         echo "<select name='$name' $attr>";
         foreach ($values as $value) {
-            $checked = $value == $selected? " selected=selected ": " ";
+            $checked = $value == $selected ? " selected=selected " : " ";
             echo "<option value='$value' $checked> $value</option>";
         }
         echo "</select>";
     }
-    
-    
-    
-    public function displayTextBoxes($values, $attr='')
+
+
+
+    public function displayTextBoxes($values, $attr = '')
     {
         echo "<div $attr style='overflow:auto;float:left;width:400px;height:200px' >";
         foreach ($values as $value) {
-            $postvalue = !empty($_POST[$value])? $_POST[$value]: '';
+            $postvalue = !empty($_POST[$value]) ? $_POST[$value] : '';
             echo "<div style='padding:2px;width:150px;float:left'>$value</div>  <input type='text' name='$value' value='$postvalue'> ";
         }
         echo "</div>";
     }
-    
-    
-    
-    public function printValue($value, $depth=0)
+
+
+
+    public function printValue($value, $depth = 0)
     {
         echo "<pre>";
         print_r($value);
         echo "</pre>";
     }
-    
+
     public function display()
     {
-        $do = !empty($_REQUEST['do'])?$_REQUEST['do']:'';
+        $do = !empty($_REQUEST['do']) ? $_REQUEST['do'] : '';
         echo "<form method='post'>";
         echo "<div><h2>I want to learn about ";
-        
-        $this->displaySelect('do', array('Nothing', 'Modules','Fields', 'Field Attributes', 'Relationships'), $do, 'onchange="toggleLearn(this.value)"');
+
+        $this->displaySelect('do', array('Nothing', 'Modules', 'Fields', 'Field Attributes', 'Relationships'), $do, 'onchange="toggleLearn(this.value)"');
         echo "<input type='submit' value='Learn' class='button'></h2></div>";
-        $modules = !empty($_REQUEST['modules'])?$_REQUEST['modules']:array();
+        $modules = !empty($_REQUEST['modules']) ? $_REQUEST['modules'] : array();
         if (empty($modules) && !empty($_REQUEST['module']) && $_REQUEST['module'] != 'Home') {
-            $modules = array(	$_REQUEST['module']);
+            $modules = array($_REQUEST['module']);
         }
         $this->displayCheckBoxes('modules[]', VardefBrowser::getModules(), $modules, ' id="_modules" ');
-        $attributes = !empty($_REQUEST['attributes'])?$_REQUEST['attributes']:array();
+        $attributes = !empty($_REQUEST['attributes']) ? $_REQUEST['attributes'] : array();
         $allAttributes = array_keys(VardefBrowser::findFieldAttributes());
         sort($allAttributes);
         $this->displayCheckBoxes('attributes[]', $allAttributes, $attributes, ' id="_attributes" ');
@@ -147,7 +110,7 @@ EOQ;
                         $searchFor[$at] = $_POST[$at];
                     }
                 }
-                
+
                 $this->printValue(VardefBrowser::findFieldsWithAttributes($searchFor, $modules));
                 break;
             default:
@@ -237,26 +200,22 @@ It's broken down into:
  				</div>
  				
 EOQ;
-                    
-            
         }
         echo "</div><div style='float:right'>Help Text</div></div>";
-        
-        
+
+
         //$this->printValue(VardefBrowser::findFieldsWithAttributes(array('type'=>'id'), $modules));
     }
 }
 
 class VardefBrowser
 {
-    public function __construct()
-    {
-    }
-    
+    public function __construct() {}
+
     public static function getModules()
     {
         $modules = array();
-        foreach ($GLOBALS['beanList'] as $module=>$object) {
+        foreach ($GLOBALS['beanList'] as $module => $object) {
             $object = BeanFactory::getObjectName($module);
             VardefManager::loadVardef($module, $object);
             if (empty($GLOBALS['dictionary'][$object]['fields'])) {
@@ -267,8 +226,8 @@ class VardefBrowser
         sort($modules);
         return $modules;
     }
-    
-    public static function findFieldsWithAttributes($attributes, $modules=null)
+
+    public static function findFieldsWithAttributes($attributes, $modules = null)
     {
         $fields = array();
         if (empty($modules)) {
@@ -284,9 +243,9 @@ class VardefBrowser
                 if (empty($GLOBALS['dictionary'][$object]['fields'])) {
                     continue;
                 }
-                foreach ($GLOBALS['dictionary'][$object]['fields'] as $name=>$def) {
+                foreach ($GLOBALS['dictionary'][$object]['fields'] as $name => $def) {
                     $match = true;
-                    foreach ($attributes as $k=>$v) {
+                    foreach ($attributes as $k => $v) {
                         $alt = false;
                         if ($k == 'type') {
                             $alt = 'dbType';
@@ -306,8 +265,8 @@ class VardefBrowser
         }
         return $fields;
     }
-    
-    public static function findVardefs($modules=null)
+
+    public static function findVardefs($modules = null)
     {
         $defs = array();
         if (empty($modules)) {
@@ -328,9 +287,9 @@ class VardefBrowser
         }
         return $defs;
     }
-    
-    
-    public static function findFieldAttributes($attributes=array(), $modules=null, $byModule=false, $byType=false)
+
+
+    public static function findFieldAttributes($attributes = array(), $modules = null, $byModule = false, $byType = false)
     {
         $fields = array();
         if (empty($modules)) {
@@ -346,12 +305,12 @@ class VardefBrowser
                 if (empty($GLOBALS['dictionary'][$object]['fields'])) {
                     continue;
                 }
-                foreach ($GLOBALS['dictionary'][$object]['fields'] as $name=>$def) {
-                    $fieldAttributes = (!empty($attributes))? $attributes:array_keys($def);
+                foreach ($GLOBALS['dictionary'][$object]['fields'] as $name => $def) {
+                    $fieldAttributes = (!empty($attributes)) ? $attributes : array_keys($def);
                     foreach ($fieldAttributes as $k) {
                         if (isset($def[$k])) {
                             $v  = var_export($def[$k], true);
-                            $key = is_array($def[$k])?null:$def[$k];
+                            $key = is_array($def[$k]) ? null : $def[$k];
                             if ($k == 'type') {
                                 if (isset($def['dbType'])) {
                                     $v = var_export($def['dbType'], true);
@@ -367,7 +326,7 @@ class VardefBrowser
                                         if (isset($fields[$k][$key])) {
                                             $fields[$k][$key]['refs']++;
                                         } else {
-                                            $fields[$k][$key] = array('attribute'=>$v, 'refs'=>1);
+                                            $fields[$k][$key] = array('attribute' => $v, 'refs' => 1);
                                         }
                                     } else {
                                         $fields[$k]['_array'][] = $def[$k];

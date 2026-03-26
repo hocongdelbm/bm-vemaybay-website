@@ -75,8 +75,6 @@ function ajaxBannedModules()
         'Campaigns',
         'Documents',
         'DocumentRevisions',
-        'Project',
-        'ProjectTask',
         'EmailMarketing',
         'CampaignLog',
         'CampaignTrackers',
@@ -93,11 +91,9 @@ function ajaxBannedModules()
         'Users',
         'Currencies',
         'Trackers',
-        'Connectors',
         'Import_1',
         'Import_2',
         'Versions',
-        'vCals',
         'CustomFields',
         'Roles',
         'Audit',
@@ -110,7 +106,6 @@ function ajaxBannedModules()
         'Employees',
         'Import',
         'OAuthKeys',
-        'Surveys',
     );
 
     if (!empty($GLOBALS['sugar_config']['addAjaxBannedModules'])) {

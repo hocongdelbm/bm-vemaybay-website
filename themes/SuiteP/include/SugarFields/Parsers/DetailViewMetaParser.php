@@ -2,44 +2,7 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 
 /**
@@ -77,10 +40,10 @@ class DetailViewMetaParser extends MetaParser
      * @param $masterCopy The file path of the mater copy of the metadata file to merge against
      * @return String format of metadata contents
      **/
-    public function parse($filePath, $vardefs = array(), $moduleDir = '', $merge=false, $masterCopy=null)
+    public function parse($filePath, $vardefs = array(), $moduleDir = '', $merge = false, $masterCopy = null)
     {
 
-// Grab file contents
+        // Grab file contents
         $contents = file_get_contents($filePath);
 
         // Remove \n,\r characters to allow for better text parsing
@@ -145,14 +108,14 @@ class DetailViewMetaParser extends MetaParser
 
                                     foreach ($matches as $tag[1]) {
                                         if (preg_match("/^(mod[\.]|app[\.]).*?/i", $tag[1][1])) {
-                                            $field = str_replace($tag[1][1], '$'.$tag[1][1], $field);
+                                            $field = str_replace($tag[1][1], '$' . $tag[1][1], $field);
                                         } else {
                                             $theField = preg_match('/_c$/i', $tag[1][1]) ? $tag[1][1] : strtolower($tag[1][1]);
                                             if (!empty($vardefs[$theField])) {
-                                                $field = str_replace($tag[1][1], '$fields.'. $theField.'.value', $field);
+                                                $field = str_replace($tag[1][1], '$fields.' . $theField . '.value', $field);
                                             } else {
                                                 $phpName = $this->findAssignedVariableName($tag[1][1], $filePath);
-                                                $field = str_replace($tag[1][1], '$fields.'. $theField.'.value', $field);
+                                                $field = str_replace($tag[1][1], '$fields.' . $theField . '.value', $field);
                                             } //if-else
                                         }
                                     }
@@ -168,7 +131,7 @@ class DetailViewMetaParser extends MetaParser
                     } //if
                 } //foreach($tablecolumns as $tcols)
 
-       $metarow[] = array_reverse($metacolumns);
+                $metarow[] = array_reverse($metacolumns);
             } //foreach($tablerows as $trow)
 
 

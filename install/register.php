@@ -56,7 +56,6 @@ if ($suicide) {
 
 
 if (!isset($_POST['confirm']) || !$_POST['confirm']) {
-    include("sugar_version.php"); // provide $sugar_flavor
     global $sugar_config;
     $ik = '';
     if (isset($sugar_config['unique_key']) && !empty($sugar_config['unique_key'])) {

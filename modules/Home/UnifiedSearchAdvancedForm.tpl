@@ -1,5 +1,4 @@
 <script type="text/javascript" src="cache/include/javascript/sugar_grp_yui_widgets.js"></script>
-<link rel="stylesheet" type="text/css" href="{sugar_getjspath file='modules/Connectors/tpls/tabs.css'}"/>
 
 <form name='UnifiedSearchAdvancedMain' action='index.php' onsubmit="SUGAR.saveGlobalSearchSettings();" method='POST' class="search_form">
 <input type='hidden' name='module' value='Home'>

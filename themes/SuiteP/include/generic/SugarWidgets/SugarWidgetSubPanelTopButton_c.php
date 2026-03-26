@@ -118,29 +118,20 @@ class SugarWidgetSubPanelTopButton_c extends SugarWidget
         }
 
         $formValues['return_module'] = $currentModule;
-
-        if ($currentModule == 'Campaigns') {
-            $formValues['return_action'] = "DetailView";
-        } else {
-            $formValues['return_action'] = $defines['action'];
-            if ($formValues['return_action'] == 'SubPanelViewer') {
-                $formValues['return_action'] = 'DetailView';
-            }
+        $formValues['return_action'] = $defines['action'];
+        if ($formValues['return_action'] == 'SubPanelViewer') {
+            $formValues['return_action'] = 'DetailView';
         }
 
         $formValues['return_id'] = $defines['focus']->id;
         $formValues['return_relationship'] = $relationship_name;
         switch (strtolower($currentModule)) {
-            case 'prospects':
-                $name = $defines['focus']->account_name ;
-                break ;
             case 'documents':
                 $name = $defines['focus']->document_name ;
                 break ;
             case 'kbdocuments':
                 $name = $defines['focus']->kbdocument_name ;
                 break ;
-            case 'leads':
             case 'contacts':
                 $name = $defines['focus']->first_name . " " .$defines['focus']->last_name ;
                 break ;

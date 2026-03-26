@@ -127,7 +127,6 @@ class aSubPanel
             $this->load_module_info();
 
             // check that the loaded subpanel definition includes a $subpanel_layout section - some, such as
-            // projecttasks/default do not...
             $this->panel_definition = array();
             if (isset($subpanel_layout) && is_array($subpanel_layout)) {
                 $this->set_panel_definition($subpanel_layout);

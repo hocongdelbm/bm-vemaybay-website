@@ -1,5 +1,4 @@
 <?php
-date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once("include/Sugar_Smarty.php");
 require_once("custom/include/helpers/api/APIZaloOA.php");
 
@@ -14,29 +13,15 @@ class Viewchatzalo extends SugarView {
     public $default_avatar;
     public $limit_chat_box;
     public $limit_message;
-    public $image_file;
 
     public function __construct() {
         parent::__construct();
         $this->zaloOA = new APIZaloOA();
         $this->entrypoint = 'index.php?entryPoint=entryPointGeneral';
         $this->websocket_url = $_SERVER['SERVER_NAME'] != 'localhost' ? 'wss://'.$_SERVER['SERVER_NAME'].'/chatz/' : 'ws://localhost:8080';
-        $this->default_avatar = 'modules/EC_Zalo/images/private/avatar_default.jpg';
+        $this->default_avatar = EC_Zalo_Helper::IMAGE_PATH . '/avatar-default.jpg';
         $this->limit_chat_box = 15;
         $this->limit_message = 10;
-        $this->image_file = [
-            'excel' => 'modules/EC_Zalo/images/private/files/file_excel.jpg',
-            'word' => 'modules/EC_Zalo/images/private/files/file_word.jpg',
-            'powerpoint' => 'modules/EC_Zalo/images/private/files/file_powerpoint.jpg',
-            'pdf' => 'modules/EC_Zalo/images/private/files/file_pdf.jpg',
-            'txt' => 'modules/EC_Zalo/images/private/files/file_txt.jpg',
-            'html' => 'modules/EC_Zalo/images/private/files/file_html.jpg',
-            'xml' => 'modules/EC_Zalo/images/private/files/file_xml.jpg',
-            'zip' => 'modules/EC_Zalo/images/private/files/file_zip.jpg',
-            'rar' => 'modules/EC_Zalo/images/private/files/file_rar.jpg',
-            'image' => 'modules/EC_Zalo/images/private/files/file_image.jpg',
-            'default' => 'modules/EC_Zalo/images/private/files/file_default.jpg'
-        ];
     }
     
     public function display() {
@@ -54,7 +39,7 @@ class Viewchatzalo extends SugarView {
         global $current_user;
         $fullname = explode(' ', $current_user->name);
 
-        $info_oa = $this->bean->get_info_oa($this->zaloOA->get_oa_id());
+        $info_oa = EC_Zalo_Helper::get_info_oa($this->zaloOA->get_oa_id());
         if(isset($info_oa['error']) && ($info_oa['error'] == -216 || $info_oa['error'] == -14014)) {
             echo $this->populate_content_auth();
             exit();
@@ -76,7 +61,7 @@ class Viewchatzalo extends SugarView {
         $smarty->assign('OA_NAME', $info_oa['name'] ?? '');
         $smarty->assign('OA_SUB_QUOTA', $sub_quota);
         $smarty->assign('DEFAULT_AVATAR', $this->default_avatar);
-        $smarty->assign('IMAGE_FILE', str_replace('"', "'", json_encode($this->image_file)));
+        $smarty->assign('IMAGE_FILE', str_replace('"', "'", json_encode(EC_Zalo_Messages_Helper::IMAGE_FILE)));
         $smarty->assign('ENTRYPOINT', $this->entrypoint);
         $smarty->assign('WEBSOCKET_URL', $this->websocket_url);
         $smarty->assign('ADMIN_ID', $current_user->id);

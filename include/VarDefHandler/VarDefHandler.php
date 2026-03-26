@@ -1,42 +1,5 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 
 if (!defined('sugarEntry') || !sugarEntry) {
@@ -52,17 +15,17 @@ class VarDefHandler
     public $meta_array_name;
     public $target_meta_array = false;
     public $start_none = false;
-    public $extra_array = array();					//used to add custom items
+    public $extra_array = array();                    //used to add custom items
     public $options_array = array();
     public $module_object;
     public $start_none_lbl = null;
 
 
-    public function __construct($module, $meta_array_name=null)
+    public function __construct($module, $meta_array_name = null)
     {
         $this->meta_array_name = $meta_array_name;
         $this->module_object = $module;
-        if ($meta_array_name!=null) {
+        if ($meta_array_name != null) {
             global $vardef_meta_array;
             include("include/VarDefHandler/vardef_meta_arrays.php");
             $this->target_meta_array = $vardef_meta_array[$meta_array_name];
@@ -71,7 +34,7 @@ class VarDefHandler
         //end function setup
     }
 
-    public function get_vardef_array($use_singular=false, $remove_dups = false, $use_field_name = false, $use_field_label = false)
+    public function get_vardef_array($use_singular = false, $remove_dups = false, $use_field_name = false, $use_field_label = false)
     {
         global $dictionary;
         global $current_language;
@@ -84,7 +47,7 @@ class VarDefHandler
         //$base_array = $dictionary[$this->module_object->object_name]['fields'];
 
         ///Inclue empty none set or not
-        if ($this->start_none==true) {
+        if ($this->start_none == true) {
             if (!empty($this->start_none_lbl)) {
                 $this->options_array[''] = $this->start_none_lbl;
             } else {
@@ -205,7 +168,7 @@ class VarDefHandler
 
         if (isset($this->target_meta_array['inclusion'])) {
             foreach ($this->target_meta_array['inclusion'] as $attribute => $value) {
-                if ($attribute=="type") {
+                if ($attribute == "type") {
                     foreach ($value as $actual_value) {
                         if (isset($value_array[$attribute]) && $value_array[$attribute] != $actual_value) {
                             return false;

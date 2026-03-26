@@ -68,11 +68,6 @@ class EmailTemplateParser
     private $template;
 
     /**
-     * @var Campaign
-     */
-    private $campaign;
-
-    /**
      * @var EmailInterface
      */
     private $module;
@@ -94,20 +89,17 @@ class EmailTemplateParser
 
     /**
      * @param EmailTemplate $template
-     * @param Campaign $campaign
      * @param EmailInterface $module
      * @param string $siteUrl
      * @param string $trackerId
      */
     public function __construct(
         EmailTemplate $template,
-        Campaign $campaign,
         EmailInterface $module,
         $siteUrl,
         $trackerId
     ) {
         $this->template = $template;
-        $this->campaign = $campaign;
         $this->module = $module;
         $this->siteUrl = $siteUrl;
         $this->trackerId = $trackerId;
@@ -214,10 +206,6 @@ class EmailTemplateParser
      */
     public function getSurvey()
     {
-        if ($this->survey === null) {
-            $this->survey = \BeanFactory::getBean('Surveys', $this->campaign->survey_id);
-        }
-
         return $this->survey;
     }
 
@@ -232,7 +220,6 @@ class EmailTemplateParser
         $value = '';
 
         if ($attribute === 'survey_url_display' && $this->module instanceof Person) {
-            /** @var Contact $contact */
             $contact = $this->module;
             $value = sprintf(
                 '%s/index.php?entryPoint=survey&id=%s&contact=%s&tracker=%s',

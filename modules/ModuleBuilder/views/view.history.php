@@ -142,17 +142,12 @@ class ViewHistory extends SugarView
                 require_once("modules/ModuleBuilder/views/view.searchview.php") ;
                 $view = new ViewSearchView() ;
             } else {
-                if ($this->layout == 'dashlet' || $this->layout == 'dashletsearch') {
-                    require_once("modules/ModuleBuilder/views/view.dashlet.php") ;
-                    $view = new ViewDashlet() ;
+                if ($this->layout == 'popuplist' || $this->layout == 'popupsearch') {
+                    require_once("modules/ModuleBuilder/views/view.popupview.php") ;
+                    $view = new ViewPopupview() ;
                 } else {
-                    if ($this->layout == 'popuplist' || $this->layout == 'popupsearch') {
-                        require_once("modules/ModuleBuilder/views/view.popupview.php") ;
-                        $view = new ViewPopupview() ;
-                    } else {
-                        require_once("modules/ModuleBuilder/views/view.layoutview.php") ;
-                        $view = new ViewLayoutView() ;
-                    }
+                    require_once("modules/ModuleBuilder/views/view.layoutview.php") ;
+                    $view = new ViewLayoutView() ;
                 }
             }
         }

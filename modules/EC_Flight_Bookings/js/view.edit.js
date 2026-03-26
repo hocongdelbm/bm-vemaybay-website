@@ -441,7 +441,7 @@ $(document).ready(function () {
 		e.preventDefault();
 	});
 
-	// Autocomplete Location Booking (Field country)
+	// Autocomplete Location Booking (Field city)
 	$(function () {
 		var location = [
 			{ label: "Hồ Chí Minh", value: "Hồ Chí Minh" },

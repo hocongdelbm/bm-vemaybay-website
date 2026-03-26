@@ -69,7 +69,6 @@ $mod_strings = array(
     'LBL_CURRENCY' => 'Currency:',
     'LBL_DATE_CLOSED' => 'Expected Close Date:',
     'LBL_TYPE' => 'Type:',
-    'LBL_CAMPAIGN' => 'Campaign:',
     'LBL_NEXT_STEP' => 'Next Step:',
     'LBL_LEAD_SOURCE' => 'Lead Source:',
     'LBL_SALES_STAGE' => 'Sales Stage:',
@@ -100,8 +99,6 @@ $mod_strings = array(
     'LBL_MODIFIED_NAME' => 'Modified by User Name',
     'LBL_CREATED_USER' => 'Created User',
     'LBL_MODIFIED_USER' => 'Modified User',
-    'LBL_CAMPAIGN_OPPORTUNITY' => 'Campaigns',
-    'LBL_PROJECT_SUBPANEL_TITLE' => 'Projects',
     'LNK_IMPORT_OPPORTUNITIES' => 'Import Opportunities',
     'LBL_EDITLAYOUT' => 'Edit Layout' /*for 508 compliance fix*/,
 

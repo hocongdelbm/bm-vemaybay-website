@@ -374,7 +374,6 @@ class UserPreference extends SugarBean
         $remove_tabs = $this->getPreference('remove_tabs');
         $favorite_reports = $this->getPreference('favorites', 'Reports');
         $home_pages = $this->getPreference('pages', 'home');
-        $home_dashlets = $this->getPreference('dashlets', 'home');
         $ut = $this->getPreference('ut');
         $timezone = $this->getPreference('timezone');
 
@@ -398,7 +397,6 @@ class UserPreference extends SugarBean
             $this->setPreference('remove_tabs', $remove_tabs);
             $this->setPreference('favorites', $favorite_reports, 'Reports');
             $this->setPreference('pages', $home_pages, 'home');
-            $this->setPreference('dashlets', $home_dashlets, 'home');
             $this->setPreference('ut', $ut);
             $this->setPreference('timezone', $timezone);
             $this->savePreferencesToDB();

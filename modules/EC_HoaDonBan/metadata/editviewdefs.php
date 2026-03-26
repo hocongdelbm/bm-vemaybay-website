@@ -133,7 +133,6 @@ $viewdefs[$module_name]['EditView'] = array(
                 ),
             ),
         ),
-        
         'LBL_LINEITEM_PANEL' => array(
             array(
                 array(

@@ -174,11 +174,7 @@ class EC_Zalo_Contacts_Helper {
             return false;
         }
         catch(Throwable $th) {
-            global $sugar_config;
-            $botToken = $sugar_config['telegram']['bot_token'] ?? '';
-            $chatId   = $sugar_config['telegram']['chat_id'] ?? '';
-            $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
-            Telegram::sendMessage("<b>[ERROR] Throwable in ".__FUNCTION__."()</b>\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}", $botToken, $chatId, $threadId);
+            $GLOBALS['log']->error("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
         }
     }
 
@@ -294,7 +290,7 @@ class EC_Zalo_Contacts_Helper {
                     self::custom_save($userData, $oa_id);
                 }
                 else {
-                    EC_Zalo::handle_error_oa_api($result_user_info['error'] ?? null, $result_user_info['message'] ?? '', $zalo_id, $oa_id);
+                    EC_Zalo_Helper::handle_error_oa_api($result_user_info['error'] ?? null, $result_user_info['message'] ?? '', $zalo_id, $oa_id);
                 }
             }
 

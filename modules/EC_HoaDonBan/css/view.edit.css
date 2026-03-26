@@ -1,6 +1,7 @@
 .ln_error {
     background-color: red;
 }
+
 .err_text {
     color: red;
 }
@@ -13,6 +14,7 @@
 .wrap-masothue {
     position: relative;
 }
+
 .wrap-masothue .icon-search {
     background-color: #dee2e6;
     border: none;
@@ -25,7 +27,8 @@
     cursor: pointer;
 }
 
-.wrap-masothue .mst-active, .wrap-masothue .mst-alert {
+.wrap-masothue .mst-active,
+.wrap-masothue .mst-alert {
     display: none;
     position: absolute;
     right: 50px;

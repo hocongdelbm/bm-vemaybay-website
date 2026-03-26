@@ -1,5 +1,5 @@
 <div class="report container mt-3">
-    <h3 class="title">Báo cáo chi phí</h3>
+    <h3 class="title text-center">Báo cáo chi phí</h3>
     <div class="search">
         <form id="form-search" method="GET" action="/index.php" >
             <input type="hidden" name="module" value="EC_Messages" />
@@ -37,14 +37,14 @@
             <tfoot>
                 <tr>
                     <th colspan="2">Tổng</th>
-                    <th class="total-cost">{$TOTAL_COST}</th>
+                    <th class="total-cost text-danger fw-semibold">{$TOTAL_COST}</th>
                 </tr>
             </tfoot>
         </table>
     </div>
 
     <div class="mt-4">
-        <h5 class="subtitle">Web Portal kiểm tra chiến dịch tin nhắn</h5>
+        <h5 class="subtitle text-start">Web Portal kiểm tra chiến dịch tin nhắn</h5>
         <p><a href="https://portal.worldsms.vn/login" target="_blank">portal.worldsms.vn</a></p>
         <p><b>Username:</b> snext_travelqc</p>
         <p><b>Password:</b> Wa876cWv</p>

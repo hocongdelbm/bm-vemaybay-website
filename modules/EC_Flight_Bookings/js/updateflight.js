@@ -124,6 +124,124 @@ function formatDateToYMD(dateStr) {
     return `${year}-${month}-${day}`;
 }
 
+function getApiField(data, fieldName) {
+    if (!data || typeof data !== 'object') return '';
+    if (data[fieldName]) return data[fieldName];
+    if (data.data && typeof data.data === 'object' && data.data[fieldName]) return data.data[fieldName];
+    return '';
+}
+
+function formatCacheDateTime(dateTimeString) {
+    if (!dateTimeString) return '';
+    const normalized = String(dateTimeString).trim().replace('T', ' ');
+    const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
+    if (!match) return '';
+
+    const year = match[1];
+    const month = match[2];
+    const day = match[3];
+    const hour = match[4];
+    const minute = match[5];
+
+    return `${hour}:${minute} ${day}/${month}/${year}`;
+}
+
+function setCacheTimeChip(chipId, valueId, dateTimeString) {
+    const chipEl = document.getElementById(chipId);
+    const valueEl = document.getElementById(valueId);
+    if (!chipEl || !valueEl) return;
+
+    const formatted = formatCacheDateTime(dateTimeString);
+    if (!formatted) {
+        chipEl.classList.add('d-none');
+        valueEl.textContent = '';
+        return;
+    }
+
+    valueEl.textContent = formatted;
+    chipEl.classList.remove('d-none');
+}
+
+function clearCacheTimeChips() {
+    setCacheTimeChip('depCacheTime', 'depCacheTimeValue', '');
+    setCacheTimeChip('retCacheTime', 'retCacheTimeValue', '');
+}
+
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function normalizeFareSystemName(rawText) {
+    const text = String(rawText || '').trim();
+    if (!text) return '';
+
+    const statusMatch = text.match(/Controller\(\s*(-?\d+)\s*\)/);
+    const isErrorStatus = statusMatch ? Number(statusMatch[1]) === 0 : false;
+
+    let baseName = '';
+    const controllerMatch = text.match(/([A-Za-z0-9_]+)Controller\b/);
+    if (controllerMatch && controllerMatch[1]) {
+        baseName = controllerMatch[1];
+    } else {
+        baseName = text
+            .replace(/\(-?\d+\)/g, '')
+            .replace(/[\[\]]/g, '')
+            .replace(/^Fare system\s*/i, '')
+            .replace(/Controller\b/g, '')
+            .trim();
+    }
+
+    if (!baseName) return '';
+    return isErrorStatus ? `${baseName} (Lỗi)` : baseName;
+}
+
+function parseFareSystemByLeg(source) {
+    const chunks = [];
+
+    function collect(rawValue) {
+        const text = String(rawValue || '').trim();
+        if (!text) return;
+
+        const bracketMatches = [...text.matchAll(/\[([^\]]+)\]/g)];
+        if (bracketMatches.length > 0) {
+            bracketMatches.forEach(match => {
+                chunks.push(match[1]);
+            });
+            return;
+        }
+
+        chunks.push(text);
+    }
+
+    if (Array.isArray(source)) {
+        source.forEach(item => collect(item));
+    } else {
+        collect(source);
+    }
+
+    const names = chunks.map(normalizeFareSystemName).filter(Boolean);
+    const depName = names[0] || '';
+    const retName = names[1] || depName;
+
+    return {
+        dep: depName,
+        ret: retName
+    };
+}
+
+function buildNoFlightHtml(message, fareSystemName) {
+    const sourceHtml = fareSystemName
+        ? `<div class="no-flight-source">${escapeHtml(fareSystemName)}</div>`
+        : '';
+
+    return `<div class="no-flight-wrap"><div class="loading" style="color: #dc2626;">${message}</div>${sourceHtml}</div>`;
+}
+
 
 
 // Hàm lấy thông tin hãng bay
@@ -153,6 +271,11 @@ function getAirlineInfo(airlineCode) {
             color: '#f59e0b',
             name: 'Vietravel Airlines',
             logo: 'https://gmi.vietjet.net/images/img/Images-brand/VU.png'
+        },
+        '9G': {
+            color: '#000000',
+            name: '9G',
+            logo: 'https://gmi.vietjet.net/images/img/Images-brand/9G.png'
         }
     };
 
@@ -186,22 +309,23 @@ function renderFlightItem(flight, index) {
                 <div class="airline-logo">
                     <img src="${airlineInfo.logo}" alt="${airlineInfo.name}">
                 </div>
-                
                 <div class="flight-times">
                     <div class="time-info">
                         <span class="time">${flight.depTime} - ${flight.arvTime}</span>
                     </div>
                     <div class="airline-name">${flight.details[0].carrier}</div>
                 </div>
-                
                 <div class="flight-route">
                     <div class="route-code">${flight.dep}-${flight.des}</div>
                     <div class="duration">${flight.nDuration}</div>
                 </div>
-
                 <div class="flight_code">
                     <div class="flight-number">${flight.flightNo}</div>
-                    <a class="flight-details">Chi tiết chuyến bay</a>
+                    <a class="flight-details d-none">Chi tiết chuyến bay</a>
+                </div>
+                <div class="source">
+                    <div style="font-size:.85rem;font-weight:500;">Nguồn</div>
+                    <div style="font-size:.85rem;">${flight.source || ''}</div>
                 </div>
             </div>
 
@@ -286,19 +410,38 @@ function startCountdown(expireTime, elementId) {
     countdownTimers[elementId] = setInterval(updateCountdown, 1000); // lưu lại timer
 }
 
+function clearCountdown(elementId) {
+    const el = document.getElementById(elementId);
+    if (el) el.textContent = '';
+
+    if (countdownTimers[elementId]) {
+        clearInterval(countdownTimers[elementId]);
+        delete countdownTimers[elementId];
+    }
+}
+
+function resetFlightMetaDisplay() {
+    clearCacheTimeChips();
+    clearCountdown('depCountdown');
+    clearCountdown('retCountdown');
+}
+
 // Hàm hiển thị dữ liệu chuyến bay
 function displayFlightData(data) {
     if (!data || data.error !== 0) {
         throw new Error('Lỗi khi đọc dữ liệu chuyến bay');
     }
 
-    // const depFlights = data.data.dep || [];
-    // const retFlights = data.data.ret || [];
-    const depData = data.data.dep;
-    const retData = data.data.ret;
-    // Nếu API trả về 1 object đơn lẻ
+    const payload = data.data || {};
+    const depData = payload.dep;
+    const retData = payload.ret;
     const depFlights = Array.isArray(depData) ? depData : (depData ? [depData] : []);
     const retFlights = Array.isArray(retData) ? retData : (retData ? [retData] : []);
+    const depCacheCreatedAt = getApiField(data, 'dep_cache_created_at');
+    const depCacheExpiresAt = getApiField(data, 'dep_cache_expires_at');
+    const retCacheExpiresAt = getApiField(data, 'ret_cache_expires_at');
+    const retCacheCreatedAt = getApiField(data, 'ret_cache_created_at');
+    const fareSystemByLeg = parseFareSystemByLeg(data.source);
 
     // Cập nhật thông tin header
     if (depFlights.length > 0) {
@@ -318,9 +461,12 @@ function displayFlightData(data) {
         );
 
 
-        // Nếu có thời gian cache hết hạn
-        if (data.dep_cache_expires_at) {
-            startCountdown(data.dep_cache_expires_at, 'depCountdown');
+        setCacheTimeChip('depCacheTime', 'depCacheTimeValue', depCacheCreatedAt);
+
+        if (depCacheExpiresAt) {
+            startCountdown(depCacheExpiresAt, 'depCountdown');
+        } else {
+            clearCountdown('depCountdown');
         }
 
         // Render danh sách chuyến bay đi
@@ -329,8 +475,12 @@ function displayFlightData(data) {
             renderFlightItem(flight, index)
         ).join('');
     } else {
+        document.getElementById('depTitle').textContent = 'Chuyến bay đi';
+        document.getElementById('btnFare_dep_all').style.display = 'none';
+        setCacheTimeChip('depCacheTime', 'depCacheTimeValue', '');
+        clearCountdown('depCountdown');
         document.getElementById('depFlightList').innerHTML =
-            '<div class="loading" style="color: #dc2626;">Không tìm thấy chuyến bay đi nào.</div>';
+            buildNoFlightHtml('Không tìm thấy chuyến bay đi nào.', fareSystemByLeg.dep);
     }
 
     if (retFlights.length > 0) {
@@ -350,17 +500,12 @@ function displayFlightData(data) {
         );
 
 
-        if ((data.ret_cache_expires_at)) {
-            startCountdown(data.ret_cache_expires_at, 'retCountdown');
-        } else {
-            const el = document.getElementById('retCountdown');
-            if (el) el.textContent = '';
+        setCacheTimeChip('retCacheTime', 'retCacheTimeValue', retCacheCreatedAt);
 
-            // 👉 Dừng đồng hồ nếu có timer cũ
-            if (countdownTimers['retCountdown']) {
-                clearInterval(countdownTimers['retCountdown']);
-                delete countdownTimers['retCountdown'];
-            }
+        if (retCacheExpiresAt) {
+            startCountdown(retCacheExpiresAt, 'retCountdown');
+        } else {
+            clearCountdown('retCountdown');
         }
 
         // Render danh sách chuyến bay về
@@ -375,20 +520,10 @@ function displayFlightData(data) {
         const btnFareRetAll = document.getElementById('btnFare_ret_all');
         btnFareRetAll.style.display = 'none';
 
-        if ((data.ret_cache_expires_at)) {
-            startCountdown(data.ret_cache_expires_at, 'retCountdown');
-        } else {
-            const el = document.getElementById('retCountdown');
-            if (el) el.textContent = '';
-
-            // Dừng đồng hồ nếu có timer cũ
-            if (countdownTimers['retCountdown']) {
-                clearInterval(countdownTimers['retCountdown']);
-                delete countdownTimers['retCountdown'];
-            }
-        }
+        setCacheTimeChip('retCacheTime', 'retCacheTimeValue', '');
+        clearCountdown('retCountdown');
         document.getElementById('retFlightList').innerHTML =
-            '<div class="loading" style="color: #dc2626;">Không tìm thấy chuyến bay về nào.</div>';
+            buildNoFlightHtml('Không tìm thấy chuyến bay về nào.', fareSystemByLeg.ret);
     }
 }
 
@@ -412,6 +547,7 @@ function searchFlight(event, isLive) {
         return;
     }
 
+    resetFlightMetaDisplay();
     document.getElementById('depFlightList').innerHTML = '<div class="loading">Đang tìm kiếm chuyến bay...</div>';
     document.getElementById('retFlightList').innerHTML = '<div class="loading">Đang tìm kiếm chuyến bay...</div>';
 
@@ -451,27 +587,13 @@ function searchFlight(event, isLive) {
 
                         document.getElementById('depTitle').textContent =
                             `Chuyến bay đi `;
-
-                        const el_dep = document.getElementById('depCountdown');
-                        if (el_dep) el_dep.textContent = '';
-
-                        // Dừng đồng hồ nếu có timer cũ
-                        if (countdownTimers['depCountdown']) {
-                            clearInterval(countdownTimers['depCountdown']);
-                            delete countdownTimers['depCountdown'];
-                        }
+                        setCacheTimeChip('depCacheTime', 'depCacheTimeValue', '');
+                        clearCountdown('depCountdown');
 
                         document.getElementById('retTitle').textContent =
                             `Chuyến bay về `;
-
-                        const el_ret = document.getElementById('retCountdown');
-                        if (el_ret) el_ret.textContent = '';
-
-                        // Dừng đồng hồ nếu có timer cũ
-                        if (countdownTimers['retCountdown']) {
-                            clearInterval(countdownTimers['retCountdown']);
-                            delete countdownTimers['retCountdown'];
-                        }
+                        setCacheTimeChip('retCacheTime', 'retCacheTimeValue', '');
+                        clearCountdown('retCountdown');
                     } else if (message === "Invalid departure or destination") {
                         showModalNotify('warning',
                             '<strong>Nơi đi hoặc nơi đến không hợp lệ!</strong>'
@@ -493,6 +615,7 @@ function searchFlight(event, isLive) {
                 displayFlightData(data);
             } catch (e) {
                 console.error('Lỗi xử lý dữ liệu:', e);
+                resetFlightMetaDisplay();
                 document.getElementById('depFlightList').innerHTML =
                     '<div class="loading" style="color: #dc2626;">Lỗi trong quá trình xử lý dữ liệu.</div>';
                 document.getElementById('retFlightList').innerHTML =
@@ -519,6 +642,7 @@ function searchFlight(event, isLive) {
                 } catch (_) { }
             }
 
+            resetFlightMetaDisplay();
             document.getElementById('depFlightList').innerHTML =
                 `<div class="loading" style="color: #dc2626;">❌ ${message}</div>`;
             document.getElementById('retFlightList').innerHTML =
@@ -1117,4 +1241,3 @@ document.addEventListener('DOMContentLoaded', function () {
         width: '100%'
     });
 });
-

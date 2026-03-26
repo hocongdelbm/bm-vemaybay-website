@@ -14,15 +14,8 @@ class IconRepository
      */
     private static $iconNames = [
         AOS_Contracts::class => 'aos-contracts-signature',
-        AOR_Scheduled_Reports::class => 'aor-reports',
         'EmailTemplates' => 'emails',
         'Employees' => 'users',
-        jjwg_Address_Cache::class => 'jjwg-markers',
-        'ProjectTask' => 'am-tasktemplates',
-        AM_ProjectTemplates::class => 'am-tasktemplates',
-        'SurveyQuestionResponses' =>  'survey-responses',
-        'SurveyResponses' => 'survey-responses',
-        'Prospects' => 'targets'
     ];
 
     /**

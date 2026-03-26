@@ -29,6 +29,7 @@ $mod_strings = array(
   'LBL_EC_HOADONBAN_SUBPANEL_TITLE' => 'Hóa đơn',
   'LBL_NEW_FORM_TITLE' => 'Mới Hóa đơn',
   'LBL_PANEL1' => ' ',
+  'LBL_INVOICE_PANEL' => 'Thông tin hoá đơn',
   'LBL_LINEITEM_PANEL' => 'Chi tiết hoá đơn',
   'LBL_LINE_ITEMS' => 'Chi tiết',
   'LBL_ASSIGNED_TO_NAME' => 'Giao cho',

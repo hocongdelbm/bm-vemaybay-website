@@ -1,48 +1,9 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
 
-require_once __DIR__.'/translated_prefix.php';
+require_once __DIR__ . '/translated_prefix.php';
 /**
  * Language files management
  * @api
@@ -55,7 +16,7 @@ class LanguageManager
      * @param module - the name of the module we are working with
      * @param templates - an array of templates this module uses
      */
-    public static function createLanguageFile($module, $templates=array('default'), $refresh = false)
+    public static function createLanguageFile($module, $templates = array('default'), $refresh = false)
     {
         global $mod_strings, $current_language;
         if (inDeveloperMode() || !empty($_SESSION['developerMode'])) {
@@ -67,7 +28,7 @@ class LanguageManager
             $lang = $GLOBALS['sugar_config']['default_language'];
         }
         static $createdModules = array();
-        if (empty($createdModules[$module]) && ($refresh || !file_exists(sugar_cached('modules/').$module.'/language/'.$lang.'.lang.php'))) {
+        if (empty($createdModules[$module]) && ($refresh || !file_exists(sugar_cached('modules/') . $module . '/language/' . $lang . '.lang.php'))) {
             $loaded_mod_strings = array();
             $loaded_mod_strings = LanguageManager::loadTemplateLanguage($module, $templates, $lang, $loaded_mod_strings);
             $createdModules[$module] = true;
@@ -100,12 +61,12 @@ class LanguageManager
         $templates = array();
         $fields = array();
         if (empty($templates[$template])) {
-            $path = 'include/SugarObjects/templates/' . $template . '/language/'.$lang.'.lang.php';
+            $path = 'include/SugarObjects/templates/' . $template . '/language/' . $lang . '.lang.php';
             if (file_exists($path)) {
                 require($path);
                 $templates[$template] = $mod_strings;
             } else {
-                $path = 'include/SugarObjects/implements/' . $template . '/language/'.$lang.'.lang.php';
+                $path = 'include/SugarObjects/implements/' . $template . '/language/' . $lang . '.lang.php';
                 if (file_exists($path)) {
                     require($path);
                     $templates[$template] = $mod_strings;
@@ -117,13 +78,13 @@ class LanguageManager
         }
     }
 
-    public static function saveCache($module, $lang, $loaded_mod_strings, $additonal_objects= array())
+    public static function saveCache($module, $lang, $loaded_mod_strings, $additonal_objects = array())
     {
         if (empty($lang)) {
             $lang = $GLOBALS['sugar_config']['default_language'];
         }
 
-        $file = create_cache_directory('modules/' . $module . '/language/'.$lang.'.lang.php');
+        $file = create_cache_directory('modules/' . $module . '/language/' . $lang . '.lang.php');
         write_array_to_file('mod_strings', $loaded_mod_strings, $file);
         include($file);
 
@@ -175,7 +136,7 @@ class LanguageManager
     private static function _clearCache($module_dir, $lang = null)
     {
         if (!empty($module_dir) && !empty($lang)) {
-            $file = sugar_cached('modules/').$module_dir.'/language/'.$lang.'.lang.php';
+            $file = sugar_cached('modules/') . $module_dir . '/language/' . $lang . '.lang.php';
             if (file_exists($file)) {
                 unlink($file);
                 $key = self::getLanguageCacheKey($module_dir, $lang);
@@ -248,7 +209,7 @@ class LanguageManager
         }
     }
 
-    public static function loadModuleLanguage($module, $lang, $refresh=false)
+    public static function loadModuleLanguage($module, $lang, $refresh = false)
     {
         //here check if the cache file exists, if it does then load it, if it doesn't
         //then call refreshVardef
@@ -265,7 +226,7 @@ class LanguageManager
         }
 
         // Some of the vardefs do not correctly define dictionary as global.  Declare it first.
-        $cachedfile = sugar_cached('modules/').$module.'/language/'.$lang.'.lang.php';
+        $cachedfile = sugar_cached('modules/') . $module . '/language/' . $lang . '.lang.php';
         if ($refresh || !file_exists($cachedfile)) {
             LanguageManager::refreshLanguage($module, $lang);
         }

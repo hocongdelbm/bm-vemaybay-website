@@ -59,34 +59,12 @@ $popupMeta = array(
             'label' => 'LBL_ASSIGNED_USER_NAME',
             'default' => true,
         ),
-        // 'ACCOUNT_NAME' => array(
-        //     'width' => '25',
-        //     'label' => 'LBL_LIST_ACCOUNT_NAME',
-        //     'module' => 'Accounts',
-        //     'id' => 'ACCOUNT_ID',
-        //     'default' => true,
-        //     'sortable' => true,
-        //     'ACLTag' => 'ACCOUNT',
-        //     'related_fields' => array('account_id')
-        // ),
-        // 'TITLE' => array(
-        //     'width' => '15%',
-        //     'label' => 'LBL_LIST_TITLE',
-        //     'default' => true
-        // ),
-        // 'LEAD_SOURCE' => array(
-        //     'width' => '15%',
-        //     'label' => 'LBL_LEAD_SOURCE',
-        //     'default' => true
-        // ),
     ),
     'searchdefs' => array(
-        // 'first_name',
         'last_name',
         'phone_mobile',
         'zalo_id',
         'email',
-        // array('name' => 'campaign_name', 'displayParams' => array('hideButtons' => 'true', 'size' => 30, 'class' => 'sqsEnabled sqsNoAutofill')),
         array('name' => 'assigned_user_id', 'type' => 'enum', 'label' => 'LBL_ASSIGNED_TO', 'function' => array('name' => 'get_user_array', 'params' => array(false))),
     )
 );

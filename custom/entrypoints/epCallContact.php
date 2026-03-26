@@ -158,29 +158,12 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             
                     $contact_id = $found_ids[0]; 
                     if (count($found_ids) > 1) {
-                        if($this->notificationChannel == 'Mattermost') {
-                            $cont = "**Có nhiều hơn 1 liên hệ trùng thông tin**";
-                            $cont .= "\nSố điện thoại: **$phone**";
-                            $cont .= "\nZaloID: **$zalo_id**";
-                            $cont .= "\n*From epCallContact update_call()*";
-                            $metadata = [
-                                "priority" => [
-                                    "priority" => "important",
-                                ]
-                            ];
-                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $cont, [], $metadata);
-                        }
-                        else {
-                            $cont = "<b>[WARNING]</b> Có nhiều hơn 1 liên hệ trùng thông tin";
-                            $cont .= "\nSĐT: <b>$phone</b>";
-                            $cont .= "\nZalo ID: <b>$zalo_id</b>";
-                            $cont .= "\n<i>From epCallContact update_call()</i>";
-                            $cont .= "\n<pre>" . json_encode($_POST, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "</pre>";
-                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                            $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-                            Telegram::sendMessage($cont, $botToken, $chatId, $threadId);
-                        }
+                        $cont = "Có nhiều hơn 1 liên hệ trùng thông tin";
+                        $cont .= "\nSĐT: <b>$phone</b>";
+                        $cont .= "\nZalo ID: <b>$zalo_id</b>";
+                        $cont .= "\n<i>From epCallContact update_call()</i>";
+                        $cont .= "\n<pre>" . json_encode($_POST, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "</pre>";
+                        NotificationService::sendWarningMessage($cont, '', ['threadKey' => 'system']);
                     }
                 }
             }
@@ -907,14 +890,6 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             echo $html_call_summary.$html;
         } else {
             echo 'Chưa có cuộc gọi CSKH nào!';
-        }
-        exit();
-    }
-    else if ((string)$type === 'autocall') {
-        $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
-        if(!empty($phone)){
-            $phone_list = explode(",", $phone);
-            echo send_callee_autocall($phone_list);
         }
         exit();
     }

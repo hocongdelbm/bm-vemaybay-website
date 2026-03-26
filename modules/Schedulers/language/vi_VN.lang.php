@@ -115,7 +115,6 @@ $mod_strings = [
     'LBL_POLLMONITOREDINBOXESFORBOUNCEDCAMPAIGNEMAILS' => 'Chạy quy trình hàng đêm gửi email chiến dịch',
     'LBL_PRUNEDATABASE' => 'Lượt bớt cơ sở dữ liệu vào ngày đầu tiên của tháng',
     'LBL_TRIMTRACKER' => 'Lượt bớt bảng theo dõi',
-    'LBL_TRIMSUGARFEEDS' => 'Lượt bớt các Bảng trường SuiteCRM',
     'LBL_SENDEMAILREMINDERS' => 'Chạy Email nhắc nhở gửi',
     'LBL_CLEANJOBQUEUE' => 'Dọn dẹp công việc đang đợi',
     'LBL_REMOVEDOCUMENTSFROMFS' => 'Loại bỏ các tài liệu từ hệ thống tập tin',
@@ -150,9 +149,9 @@ $mod_strings = [
     'LBL_CHECKEXPIRATIONDATEVOUCHER' => 'Kiểm tra hạn sử dụng của voucher',
     // REPORT PROFIT
     'LBL_SAVEREPORTWEEKLY' => 'Lưu thông tin doanh số vào cuối ngày.',
-    // AUTOCALL
-    'LBL_UPDATELOGAUTOCALL' => 'Cập nhật log cuộc gọi tự động',
     'LBL_SENDAUTOCHEAPPRICEMESSAGEZALO' => 'Gửi tin tự động về giá vé rẻ qua ZBS template Zalo',
+    'LBL_MAINTAINZALOCHAT' => 'Tự động gửi tin tư vấn Zalo để duy trì tương tác',
+    'LBL_RESETREWARDPOINTS' => 'Reset lại điểm tích lũy của liên hệ qua booking hằng năm',
 
     'LBL_SAVEREVENUEBOOKINGJOB' => 'Cập nhật doanh số booking Revenue',
     'LBL_NOTIFYCHECKINJOURNEY' => 'Thông báo hành trình cần checkin',

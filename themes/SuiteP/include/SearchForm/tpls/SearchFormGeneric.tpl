@@ -68,13 +68,8 @@
 	<div class="col-12 col-sm-12 col-md-12 col-lg-12">
 		<div class="submitButtons submitButtons__search-basic d-flex align-items-center gap-2">
 			{{sugar_button module="$module" id="search" view="searchView"}}
-				<!-- <input tabindex='2' title='{$APP.LBL_CLEAR_BUTTON_TITLE}' onclick='SUGAR.searchForm.clear_form(this.form); return false;' class='btn btn-danger btn-clear' type='button' name='clear' id='search_form_clear' value='{$APP.LBL_CLEAR_BUTTON_LABEL}'/> -->
-				<input tabindex="2" title="Xóa" onclick="SUGAR.searchForm.clear_form(this.form); SUGAR.ajaxUI.submitForm(this.form); return false;" class="btn btn-secondary btn-clear" type="button" name="clear" id="search_form_clear" value="Reset">
-			{if $HAS_ADVANCED_SEARCH && !$searchFormInPopup}
-				<!-- <a id="advanced_search_link" style="padding: 7px 10px;" class="btn btn-secondary" href="javascript:void(0);" accesskey="{$APP.LBL_ADV_SEARCH_LNK_KEY}">{$APP.LNK_ADVANCED_FILTER}</a> -->
-			{/if}
+			<input tabindex="2" title="Xóa" onclick="SUGAR.searchForm.clear_form(this.form); SUGAR.ajaxUI.submitForm(this.form); return false;" class="btn btn-secondary btn-clear" type="button" name="clear" id="search_form_clear" value="Reset">
 		</div>
-		<!-- <div class="helpIcon d-none" width="*"><img alt="Help" border='0' id="filterHelp" src='{sugar_getimagepath file="help-dashlet.gif"}'></div> -->
 	</div>
 </div>
 
@@ -84,14 +79,14 @@
 	{literal}
 	$(document).ready(function () {
 		$( '#advanced_search_link' ).one( "click", function() {
-			//alert( "This will be displayed only once." );
 			SUGAR.searchForm.searchFormSelect('{/literal}{$module}{literal}|advanced_search','{/literal}{$module}{literal}|basic_search');
 		});
 
 		$('#basic_search_link').one("click", function () {
-            	//alert( "This will be displayed only once." );
-           	 SUGAR.searchForm.searchFormSelect('{/literal}{$module}{literal}|basic_search', '{/literal}{$module}{literal}|advanced_search');
-        	});
+			SUGAR.searchForm.searchFormSelect('{/literal}{$module}{literal}|basic_search', '{/literal}{$module}{literal}|advanced_search');
+		});
+
+        $('#search_form select').select2();
 	});
 	{/literal}
 </script>

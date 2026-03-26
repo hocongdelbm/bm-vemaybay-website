@@ -117,6 +117,7 @@ $(document).ready(function () {
 				$('.toast-warning').addClass('active');
 				$('.toast-warning #toast-content').text('Địa điểm không được trống!');
 				$('.toast-warning .progress-bar').animate({ width: "100%" }, 3000);
+				
 				setTimeout(function () {
 					$(".toast-warning").removeClass('active');
 				}, 4000);

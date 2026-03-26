@@ -1,42 +1,4 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
 
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
@@ -52,9 +14,7 @@ class TemplateGroupChooser extends Template
     public $display_hide_tabs = true;
     public $display_third_tabs = false;
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function display()
     {
@@ -71,13 +31,12 @@ class TemplateGroupChooser extends Template
 
         $str = '';
         if ($js_loaded == false) {
-//            $this->template_groups_chooser_js();
             $js_loaded = true;
         }
         if (!isset($this->args['display'])) {
             $table_style = "";
         } else {
-            $table_style = "display: ".$this->args['display'];
+            $table_style = "display: " . $this->args['display'];
         }
 
         $str .= "<div id=\"{$this->args['id']}\" style=\"{$table_style}\">";
@@ -123,7 +82,7 @@ EOQ;
 EOQ;
         $str .=  '"' . (empty($this->args['left_size']) ? '10' : $this->args['left_size']) . '" multiple="multiple" ' . (isset($this->args['disable']) ?  "DISABLED" : '') . 'class="templateGroupChooser">';
 
-        foreach ($this->args['values_array'][0] as $key=>$value) {
+        foreach ($this->args['values_array'][0] as $key => $value) {
             $str .= "<option value='{$key}'>{$value}</option>";
         }
         $str .= "</select></td>
@@ -138,7 +97,7 @@ EOQ;
             $str .= "</td>
                 <td id=\"{$this->args['right_name']}_td\" align=\"center\">
                 <select id=\"{$this->args['right_name']}\" name=\"{$this->args['right_name']}[]\" size=\"" . (empty($this->args['right_size']) ? '10' : $this->args['right_size']) . "\" multiple=\"multiple\" " . (isset($this->args['disable']) ? "DISABLED" : '') . 'class="groupChooser">';
-            foreach ($this->args['values_array'][1] as $key=>$value) {
+            foreach ($this->args['values_array'][1] as $key => $value) {
                 $str .= "<option value=\"{$key}\">{$value}</option>";
             }
             $str .= "</select></td><td valign=\"top\" align=\"center\">"
@@ -153,7 +112,7 @@ EOQ;
             $str .= "</td>
                 <td id=\"{$this->args['third_name']}_td\" align=\"center\">
                 <select id=\"{$this->args['third_name']}\" name=\"{$this->args['third_name']}[]\" size=\"" . (empty($this->args['third_size']) ? '10' : $this->args['third_size']) . "\" multiple=\"multiple\" " . (isset($this->args['disable']) ? "DISABLED" : '') . 'class="templateGroupChooser">';
-            foreach ($this->args['values_array'][2] as $key=>$value) {
+            foreach ($this->args['values_array'][2] as $key => $value) {
                 $str .= "<option value=\"{$key}\">{$value}</option>";
             }
             $str .= "</select>
@@ -170,16 +129,5 @@ EOQ;
 
 
         return $str;
-    }
-
-
-
-    /*
-     * All Moved to sugar_3.js in class tabChooser;
-     * Please follow style that Dashlet configuration is done.
-     */
-    public function template_groups_chooser_js()
-    {
-        //return '<script>var object_refs = new Object();</script>';
     }
 }

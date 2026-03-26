@@ -6,5 +6,5 @@ $action_view_map['outputinvoice']   = 'outputinvoice';
 $action_view_map['invoicelist']     = 'invoicelist';
 $action_view_map['invoicereport']   = 'invoicereport';
 $action_view_map['ioinvoice']       = 'ioinvoice';  
-$action_view_map['signedinvoice']   = 'signedinvoice';  
-?>
+$action_view_map['signedinvoice']   = 'signedinvoice';
+$action_view_map['checkinvoiceamount'] = 'checkinvoiceamount';

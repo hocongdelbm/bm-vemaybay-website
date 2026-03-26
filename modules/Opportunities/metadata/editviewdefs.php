@@ -68,7 +68,6 @@ $viewdefs['Opportunities']['EditView'] = array(
     ),
     array(
         'probability',
-          'campaign_name',
     ),
     array(
           'next_step',

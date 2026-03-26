@@ -166,15 +166,6 @@ class EntryPointConfirmOptInHandler
             if ($people) {
                 $this->setLawfulBasisForEachPerson($people, 'Contacts');
             }
-            $people = $this->getIDs($this->emailAddress->email_address, 'Leads');
-            if ($people) {
-                $this->setLawfulBasisForEachPerson($people, 'Leads');
-            }
-
-            $people = $this->getIDs($this->emailAddress->email_address, 'Prospects');
-            if ($people) {
-                $this->setLawfulBasisForEachPerson($people, 'Prospects');
-            }
         }
         $template = new Sugar_Smarty();
         $template->assign('FOCUS', $this->emailAddress);
