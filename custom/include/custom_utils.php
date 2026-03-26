@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Get new report terms
  * @param string $selectedValue
@@ -329,7 +330,7 @@ function myCheckValueExist($module, $fields = array(), $field_value = array(), $
         }
     }
 
-    $sql = "SELECT COUNT(id) FROM ". strtolower($module) ." WHERE id <> '$id' AND deleted = 0 " . $field_con;
+    $sql = "SELECT COUNT(id) FROM " . strtolower($module) . " WHERE id <> '$id' AND deleted = 0 " . $field_con;
     $rowcount = $db->getOne($sql);
 
     if ($rowcount > 0) return true;
@@ -454,125 +455,6 @@ function getTheBeginningOfPeriod($sotk, $thang, $nam)
     return $sodauky;
 }
 
-// Get flight class
-function myGetFlightClass($price, $dep, $arv, $dep_date, $SI_Name)
-{
-    if (!$price || !$dep || !$arv || !$dep_date || !$SI_Name) {
-        return 'disconnect';
-    }
-
-    $HangVe = '';
-    ini_set("soap.wsdl_cache_enabled", false);
-    // connect webservice
-    try {
-        $client = new SoapClient("http://210.86.239.110/sabrebypass.asmx?wsdl", array('exceptions' => true));
-    } catch (SoapFault $e) {
-        return 'disconnect';
-    }
-    $str = '';
-    // add params to webservice funtion
-    $params = array(
-        'str_by_pass' => strtoupper('PRICESFQ' . $dep . $arv . date('dM', strtotime($dep_date))),
-        'SI_Name' => $SI_Name
-    );
-    $result = $client->Sabre_By_Pass2($params);
-    $html = trim($result->Sabre_By_Pass2Result);
-    // save and read xml
-    $dom = new DOMDocument();
-    @$dom->loadXML($html);
-    $str = $dom->saveXML();
-    $xml = simplexml_load_string($str);
-    $price = unformat_number($price);
-    foreach ($xml->Object as $xmlObj) {
-        $DonGia = unformat_number($xmlObj->DonGia);
-        if ($DonGia == $price) {
-            $HangVe = trim($xmlObj->HangVe);
-            return $HangVe;
-        }
-    }
-    return $HangVe;
-}
-
-// Get number seat of flight class
-function myGetNumberSeatFlight($dep, $arv, $dep_date, $arv_date, $fl_number, $fl_class, $SI_Name)
-{
-    if (!$dep || !$arv || !$dep_date || !$arv_date || !$fl_number || !$fl_class || !$SI_Name) {
-        return 'disconnect';
-    }
-
-    ini_set("soap.wsdl_cache_enabled", false);
-    try {
-        $client = new SoapClient("http://210.86.239.110/sabrebypass.asmx?wsdl", array('exceptions' => true));
-    } catch (SoapFault $e) {
-        return 'disconnect';
-    }
-
-    $sabre_str = strtoupper('FLIGHT1' . date('dM', strtotime($dep_date)) . trim($dep) . trim($arv));
-    $params = array(
-        'str_by_pass' => $sabre_str,
-        'SI_Name' => $SI_Name
-    );
-    $result = $client->Sabre_By_Pass2($params);
-    $html = trim($result->Sabre_By_Pass2Result);
-    $first_occur = strpos($html, '@');
-    $str_to_clean = trim(substr($html, 0, $first_occur));
-    $clean_str = trim(str_replace($str_to_clean, '', $html));
-
-    $explode_arr = explode('@', $clean_str);
-    $flight_number = strtoupper(strlen(trim($fl_number)) > 6 ? str_replace(array('*', ' '), '', trim($fl_number)) : trim($fl_number)); // số hiệu chuyến bay
-    $route_time = strtoupper(trim($dep) . trim($arv) . ' ' . date('Hi', strtotime($dep_date)) . ' ' . date('Hi', strtotime($arv_date))) . ' '; // vd:DADSGN 1030 1130 (lưu ý có khoảng trắng phía cuối của chuỗi)
-    $seat_class = strtoupper(trim($fl_class)); // hạng ghế
-    $number_seat = 0;
-
-    foreach ($explode_arr as $flight) {
-        if (trim($flight) != '' && strpos(trim($flight), $flight_number) !== false) {
-            $flight = str_replace($flight_number, '', trim($flight));
-            $flight = str_replace($route_time, '', trim($flight));
-            $flight_class = explode(' ', trim($flight));
-            foreach ($flight_class as $flight_seat) {
-                if (trim($flight_seat) != '' && strpos(trim($flight_seat), $seat_class) !== false) {
-                    $number_seat = (int)substr(trim($flight_seat), 1, strlen($flight_seat));
-                    return $number_seat;
-                }
-            }
-        }
-    }
-    return $number_seat;
-}
-
-// Get code book assign
-function myGetCodeBookAssign($aircode, $code_book_str, $selected_val = '')
-{
-    global $db, $current_user, $app_list_strings;
-
-    $sql = "SELECT code_book, code_password
-				FROM ec_codebookassign 
-				WHERE deleted=0
-				AND aircode='" . $aircode . "'
-				AND assigned_user_id='" . $current_user->id . "'
-				ORDER BY date_entered ";
-
-    $res = $db->query($sql);
-    $html = '';
-
-    // if ($db->getRowCount($res) > 0) {
-    if ($db->countRows($res) > 0) {
-        while ($row = $db->fetchByAssoc($res)) {
-            $selected = $row['code_book'] == $selected_val ? 'selected="selected"' : '';
-            $html .= '<option ' . $selected . ' pwd="' . $row['code_password'] . '" value="' . $row['code_book'] . '">' . $row['code_book'] . '</option>';
-        }
-    } else {
-        $code_books = myGetStringBetween($code_book_str, '[' . $aircode . ']', '[/' . $aircode . ']');
-        $code_book_arr = explode(';', $code_books);
-        foreach ($code_book_arr as $row) {
-            $code_book = explode('|', $row);
-            $html .= '<option pwd="' . $code_book[1] . '" value="' . $code_book[0] . '">' . $code_book[0] . '</option>';
-        }
-    }
-
-    return $html;
-}
-
 // Get supplier remaining credit
 function myGetSupplierRemainingCredit($airline, $agent_id, $agent_pwd, $format = 'json')
 {
@@ -654,7 +536,8 @@ function myGetAirlineInfo($airline_code, $search_by = 'FULL', $case_sensitive = 
     return $result;
 }
 
-function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array') {
+function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array')
+{
     $search_by_allow = array('CODE', 'NAME', 'FULL');
     $search_by = $search_by && in_array($search_by, $search_by_allow) ? $search_by : 'FULL';
     $case_sensitive = $case_sensitive ? $case_sensitive : 0; // default is case insensitive
@@ -906,7 +789,8 @@ function isWorkingProcessExisting($parent_type, $parent_id, $field = '')
 }
 
 // Remove working process exist
-function myRemoveWorkingProcess($parent_type, $parent_id, $field = '') {
+function myRemoveWorkingProcess($parent_type, $parent_id, $field = '')
+{
     global $db;
     $sql = "UPDATE ec_working_process
 			SET deleted = 1
@@ -918,7 +802,8 @@ function myRemoveWorkingProcess($parent_type, $parent_id, $field = '') {
 }
 
 // Create working process
-function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $description, $assigned_user_id, $field) {
+function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $description, $assigned_user_id, $field)
+{
     if (!empty($field)) {
         $work = new EC_Working_Process();
         $work->id = '';
@@ -1504,7 +1389,8 @@ function getEmailFromUser($user_id)
     return $email;
 }
 
-function mySendMail($user_id, $to_email, $to_name, $subject, $body) {
+function mySendMail($user_id, $to_email, $to_name, $subject, $body)
+{
     try {
         $send_ok = true;
 
@@ -1592,16 +1478,13 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body) {
         }
 
         return $send_ok;
-    }
-    catch (RuntimeException $e) {
+    } catch (RuntimeException $e) {
         $GLOBALS['log']->fatal("Runtime Exception: {$e->getMessage()} when calling mySendMail() in custom_utils.php");
         return false;
-    }
-    catch (Exception $e) {
+    } catch (Exception $e) {
         $GLOBALS['log']->fatal("Exception: {$e->getMessage()} when calling mySendMail() in custom_utils.php");
         return false;
-    }
-    catch (Throwable $th) {
+    } catch (Throwable $th) {
         $GLOBALS['log']->fatal("Throwable: {$th->getMessage()} when calling mySendMail() in custom_utils.php");
         return false;
     }
@@ -1676,8 +1559,7 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
         else if (strtotime($booking_date) >= strtotime('2022-12-14 00:00:00')) {
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . '_luggage_price_list2'];
         }
-    }
-    else if ($airline == 'VJA' || $airline == 'VJ') {
+    } else if ($airline == 'VJA' || $airline == 'VJ') {
         // Sau ngày 21-11-2022 đổi sang hành lý mới
         if (strtotime($booking_date) >= strtotime('2022-11-21 00:00:00')) {
             if ($is_new_edited || !is_null($luggage_index)) {
@@ -1693,8 +1575,7 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
                 $luggage_price = $luggage_index;
             }
         }
-    }
-    else if ($airline == 'BBA' || $airline == 'QH') {
+    } else if ($airline == 'BBA' || $airline == 'QH') {
         if ($pass_type == '2') {
             $pass_ticket_class = '_infant';
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . $pass_ticket_class . '_luggage_price_list'];
@@ -1704,14 +1585,12 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
             if (empty($luggage_list)) $luggage_list = array();
             $luggage_arr = $luggage_list + $app_list_strings['bambooair_advanced_luggage_price_list'];
         }
-    }
-    else if ($airline == 'VNP' || $airline == 'BL') {
+    } else if ($airline == 'VNP' || $airline == 'BL') {
         if ($pass_type == '2') {
             $pass_ticket_class = '_infant';
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . $pass_ticket_class . '_luggage_price_list'];
         }
-    }
-    else if ($airline == 'VTA' || $airline == 'VU') {
+    } else if ($airline == 'VTA' || $airline == 'VU') {
         // Từ ngày 06-01-2023 thì lấy thông tin hành lý mới lần 2
         if (strtotime($booking_date) >= strtotime('2023-01-06')) {
             $luggage_arr = $app_list_strings['new_' . $arr_replace[$airline] . '_luggage_price_list2'];
@@ -1720,8 +1599,7 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
         else if (strtotime($booking_date) >= strtotime('2022-08-11')) {
             $luggage_arr = $app_list_strings['new_' . $arr_replace[$airline] . '_luggage_price_list1'];
         }
-    }
-    else {
+    } else {
         // INTER
         $luggage_arr = $app_list_strings['inter_luggage_price_list'];
     }
@@ -1942,7 +1820,8 @@ function global_test_input($data)
 }
 
 
-function custom_get_sip_number($key = '') {
+function custom_get_sip_number($key = '')
+{
     $arr = [
         /************************  IT  ************************/
         '1' => ['user' => '012', 'password' => 'QAnTigDjZ8WSw%4finb1'], // Admin
@@ -1977,7 +1856,7 @@ function custom_get_sip_number($key = '') {
 
         // Nguyễn Thị Kim Loan
         'f299609a-28c0-c30e-d661-68ccb9aec236' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
-        
+
         // Nguyễn Lộc Danh
         '4ef24994-3d8e-ff0d-2784-599d0b3e56e1' => ['user' => '109', 'password' => 'rRTMeTJDrHJG7skLtnzd'],
         // Đỗ Nhật
@@ -2251,14 +2130,15 @@ function get_payment_link()
     return $randomString;
 }
 
-function update_field_booking($id, $field, $value, $datatype = 'string') {
-	if(is_null($id) || is_null($field) || is_null($value) || empty($id) || empty($field) || empty($value)) return false;
-	global $db;
-	$value_format = $datatype == 'string' ? "'$value'" : $value;
-	$sql = "UPDATE ec_flight_bookings
+function update_field_booking($id, $field, $value, $datatype = 'string')
+{
+    if (is_null($id) || is_null($field) || is_null($value) || empty($id) || empty($field) || empty($value)) return false;
+    global $db;
+    $value_format = $datatype == 'string' ? "'$value'" : $value;
+    $sql = "UPDATE ec_flight_bookings
 			SET $field = $value_format
 			WHERE id = '$id' AND deleted = 0";
-	$db->query($sql);
+    $db->query($sql);
 }
 
 require_once 'custom/include/utils/address.php';

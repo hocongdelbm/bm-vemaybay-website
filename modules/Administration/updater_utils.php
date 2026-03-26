@@ -5,15 +5,15 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 require_once('include/utils/encryption_utils.php');
 
-function getSystemInfo($send_usage_info=true)
+function getSystemInfo($send_usage_info = true)
 {
     global $sugar_config;
     global $db, $administration, $timedate;
-    $info=array();
+    $info = array();
     $info = getBaseSystemInfo($send_usage_info);
     if ($send_usage_info) {
-        $info['application_key']=$sugar_config['unique_key'];
-        $info['php_version']=phpversion();
+        $info['application_key'] = $sugar_config['unique_key'];
+        $info['php_version'] = phpversion();
         if (isset($_SERVER['SERVER_SOFTWARE'])) {
             $info['server_software'] = $_SERVER['SERVER_SOFTWARE'];
         } // if
@@ -30,21 +30,21 @@ function getSystemInfo($send_usage_info=true)
             $administration = BeanFactory::newBean('Administration');
         }
         $administration->retrieveSettings('system');
-        $info['system_name'] = (!empty($administration->settings['system_name']))?substr($administration->settings['system_name'], 0, 255):'';
+        $info['system_name'] = (!empty($administration->settings['system_name'])) ? substr($administration->settings['system_name'], 0, 255) : '';
 
 
-        $result=$db->getOne("select count(*) count from users where status='Active' and deleted=0 and is_admin='1'", false, 'fetching admin count');
+        $result = $db->getOne("select count(*) count from users where status='Active' and deleted=0 and is_admin='1'", false, 'fetching admin count');
         if ($result !== false) {
             $info['admin_users'] = $result;
         }
 
 
-        $result=$db->getOne("select count(*) count from users", false, 'fetching all users count');
+        $result = $db->getOne("select count(*) count from users", false, 'fetching all users count');
         if ($result !== false) {
             $info['registered_users'] = $result;
         }
 
-        $lastMonth = $db->convert("'". $timedate->getNow()->modify("-30 days")->asDb(false) . "'", 'datetime');
+        $lastMonth = $db->convert("'" . $timedate->getNow()->modify("-30 days")->asDb(false) . "'", 'datetime');
         if (!$send_usage_info) {
             $info['users_active_30_days'] = -1;
         } else {
@@ -57,14 +57,14 @@ function getSystemInfo($send_usage_info=true)
         if (!$send_usage_info) {
             $info['latest_tracker_id'] = -1;
         } else {
-            $id=$db->getOne("select id from tracker order by date_modified desc", false, 'fetching most recent tracker entry');
+            $id = $db->getOne("select id from tracker order by date_modified desc", false, 'fetching most recent tracker entry');
             if ($id !== false) {
                 $info['latest_tracker_id'] = $id;
             }
         }
 
-        $info['db_type']=$sugar_config['dbconfig']['db_type'];
-        $info['db_version']=$db->version();
+        $info['db_type'] = $sugar_config['dbconfig']['db_type'];
+        $info['db_version'] = $db->version();
     }
     if (file_exists('distro.php')) {
         include('distro.php');
@@ -82,16 +82,16 @@ function getSystemInfo($send_usage_info=true)
     return $info;
 }
 
-function getBaseSystemInfo($send_usage_info=true)
+function getBaseSystemInfo($send_usage_info = true)
 {
     include('sugar_version.php');
-    $info=array();
+    $info = array();
 
     if ($send_usage_info) {
-        $info['sugar_db_version']=$sugar_db_version;
+        $info['sugar_db_version'] = $sugar_db_version;
     }
-    $info['sugar_version']=$sugar_version;
-    $info['sugar_flavor']=$sugar_flavor;
+    $info['sugar_version'] = $sugar_version;
+    $info['sugar_flavor'] = $sugar_flavor;
     $info['auth_level'] = 0;
 
 
@@ -99,16 +99,11 @@ function getBaseSystemInfo($send_usage_info=true)
     return $info;
 }
 
-function check_now($send_usage_info=true, $get_request_data=false, $response_data = false, $from_install=false)
+function check_now($send_usage_info = true, $get_request_data = false, $response_data = false, $from_install = false)
 {
-    global $sugar_config, $timedate;
     global $license;
-    $db = DBManagerFactory::getInstance();
-
     include('sugar_version.php');
 
-
-    $return_array=array();
     if (!$from_install && empty($license)) {
         loadLicense(true);
     }
@@ -120,36 +115,16 @@ function check_now($send_usage_info=true, $get_request_data=false, $response_dat
             $info = getSystemInfo($send_usage_info);
         }
 
-        require_once('include/nusoap/nusoap.php');
-
-        $GLOBALS['log']->debug('USING HTTPS TO CONNECT TO HEARTBEAT');
-        $sclient = new nusoapclient('https://updates.sugarcrm.com/heartbeat/soap.php', false, false, false, false, false, 15, 15);
-        $ping = $sclient->call('sugarPing', array());
-        if (empty($ping) || $sclient->getError()) {
-            if (!$get_request_data) {
-                return array(
-                    array(
-                        'version' => $sugar_version,
-                        'description' => "You have the latest version."
-                    )
-                );
-            }
-        }
-
-
         $key = '4829482749329';
-
-
-
         $encoded = sugarEncode($key, serialize($info));
 
         if ($get_request_data) {
-            $request_data = array('key'=>$key, 'data'=>$encoded);
+            $request_data = array('key' => $key, 'data' => $encoded);
             return serialize($request_data);
         }
-        $encodedResult = $sclient->call('sugarHome', array('key'=>$key, 'data'=>$encoded));
+        $encodedResult = $sclient->call('sugarHome', array('key' => $key, 'data' => $encoded));
     } else {
-        $encodedResult = 	$response_data['data'];
+        $encodedResult =     $response_data['data'];
         $key = $response_data['key'];
     }
 
@@ -193,19 +168,21 @@ function check_now($send_usage_info=true, $get_request_data=false, $response_dat
         if (empty($license->settings['license_last_validation_success']) && empty($license->settings['license_last_validation_fail']) && empty($license->settings['license_vk_end_date'])) {
             $license->saveSetting('license', 'vk_end_date', TimeDate::getInstance()->nowDb());
 
-            $license->saveSetting('license', 'validation_key', base64_encode(serialize(array('verified'=>false))));
+            $license->saveSetting('license', 'validation_key', base64_encode(serialize(array('verified' => false))));
         }
-        $_SESSION['COULD_NOT_CONNECT'] =TimeDate::getInstance()->nowDb();
+        $_SESSION['COULD_NOT_CONNECT'] = TimeDate::getInstance()->nowDb();
     }
     if (!empty($resultData['versions'])) {
         $license->saveSetting('license', 'latest_versions', base64_encode(serialize($resultData['versions'])));
     } else {
         $resultData['versions'] = array();
-        $license->saveSetting('license', 'latest_versions', '')	;
+        $license->saveSetting('license', 'latest_versions', '');
     }
 
-    if (count($resultData) == 1 && !empty($resultData['versions'][0]['version'])
-        && compareVersions($sugar_version, $resultData['versions'][0]['version'])) {
+    if (
+        count($resultData) == 1 && !empty($resultData['versions'][0]['version'])
+        && compareVersions($sugar_version, $resultData['versions'][0]['version'])
+    ) {
         $resultData['versions'][0]['version'] = $sugar_version;
         $resultData['versions'][0]['description'] = "You have the latest version.";
     }
@@ -222,7 +199,7 @@ function compareVersions($ver1, $ver2)
 }
 function set_CheckUpdates_config_setting($value)
 {
-    $admin=BeanFactory::newBean('Administration');
+    $admin = BeanFactory::newBean('Administration');
     $admin->saveSetting('Update', 'CheckUpdates', $value);
 }
 /* return's value for the 'CheckUpdates' config setting
@@ -230,28 +207,28 @@ function set_CheckUpdates_config_setting($value)
 */
 function get_CheckUpdates_config_setting()
 {
-    $checkupdates='automatic';
+    $checkupdates = 'automatic';
 
 
-    $admin=BeanFactory::newBean('Administration');
-    $admin=$admin->retrieveSettings('Update', true);
+    $admin = BeanFactory::newBean('Administration');
+    $admin = $admin->retrieveSettings('Update', true);
     if (empty($admin->settings) or empty($admin->settings['Update_CheckUpdates'])) {
         $admin->saveSetting('Update', 'CheckUpdates', 'automatic');
     } else {
-        $checkupdates=$admin->settings['Update_CheckUpdates'];
+        $checkupdates = $admin->settings['Update_CheckUpdates'];
     }
     return $checkupdates;
 }
 
 function set_last_check_version_config_setting($value)
 {
-    $admin=BeanFactory::newBean('Administration');
+    $admin = BeanFactory::newBean('Administration');
     $admin->saveSetting('Update', 'last_check_version', $value);
 }
 function get_last_check_version_config_setting()
 {
-    $admin=BeanFactory::newBean('Administration');
-    $admin=$admin->retrieveSettings('Update');
+    $admin = BeanFactory::newBean('Administration');
+    $admin = $admin->retrieveSettings('Update');
     if (empty($admin->settings) or empty($admin->settings['Update_last_check_version'])) {
         return null;
     } else {
@@ -262,13 +239,13 @@ function get_last_check_version_config_setting()
 
 function set_last_check_date_config_setting($value)
 {
-    $admin=BeanFactory::newBean('Administration');
+    $admin = BeanFactory::newBean('Administration');
     $admin->saveSetting('Update', 'last_check_date', $value);
 }
 function get_last_check_date_config_setting()
 {
-    $admin=BeanFactory::newBean('Administration');
-    $admin=$admin->retrieveSettings('Update');
+    $admin = BeanFactory::newBean('Administration');
+    $admin = $admin->retrieveSettings('Update');
     if (empty($admin->settings) or empty($admin->settings['Update_last_check_date'])) {
         return 0;
     } else {
@@ -279,14 +256,14 @@ function get_last_check_date_config_setting()
 function set_sugarbeat($value)
 {
     global $sugar_config;
-    $_SUGARBEAT="sugarbeet";
+    $_SUGARBEAT = "sugarbeet";
     $sugar_config[$_SUGARBEAT] = $value;
     write_array_to_file("sugar_config", $sugar_config, "config.php");
 }
 function get_sugarbeat()
 {
     global $sugar_config;
-    $_SUGARBEAT="sugarbeet";
+    $_SUGARBEAT = "sugarbeet";
 
     if (isset($sugar_config[$_SUGARBEAT]) && $sugar_config[$_SUGARBEAT] == false) {
         return false;
@@ -301,7 +278,8 @@ function shouldCheckSugar()
     global $license, $timedate;
     if (
 
-    get_CheckUpdates_config_setting() == 'automatic') {
+        get_CheckUpdates_config_setting() == 'automatic'
+    ) {
         return true;
     }
 
@@ -310,10 +288,10 @@ function shouldCheckSugar()
 
 
 
-function loadLicense($firstLogin=false)
+function loadLicense($firstLogin = false)
 {
-    $GLOBALS['license']=BeanFactory::newBean('Administration');
-    $GLOBALS['license']=$GLOBALS['license']->retrieveSettings('license', $firstLogin);
+    $GLOBALS['license'] = BeanFactory::newBean('Administration');
+    $GLOBALS['license'] = $GLOBALS['license']->retrieveSettings('license', $firstLogin);
 }
 
 function loginLicense()
@@ -323,9 +301,9 @@ function loginLicense()
 
 
     if (shouldCheckSugar()) {
-        $last_check_date=get_last_check_date_config_setting();
-        $current_date_time=time();
-        $time_period=3*23*3600 ;
+        $last_check_date = get_last_check_date_config_setting();
+        $current_date_time = time();
+        $time_period = 3 * 23 * 3600;
         if (($current_date_time - $last_check_date) > $time_period
         ) {
             $version = check_now(get_sugarbeat());
@@ -342,8 +320,8 @@ function loginLicense()
 
             if (version_compare($newVersion, $sugar_version, '>') && is_admin($current_user)) {
                 //set session variables.
-                $_SESSION['available_version']=$version[0]['version'];
-                $_SESSION['available_version_description']=$version[0]['description'];
+                $_SESSION['available_version'] = $version[0]['version'];
+                $_SESSION['available_version_description'] = $version[0]['description'];
                 set_last_check_version_config_setting($version[0]['version']);
             }
         }
