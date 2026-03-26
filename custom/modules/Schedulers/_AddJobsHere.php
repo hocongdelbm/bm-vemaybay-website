@@ -26,6 +26,7 @@ $job_strings[] = 'sendAutoCheapPriceMessageZalo'; // Gửi tin tự động về
 $job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
 $job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
 
+$job_strings[] = 'migrateZaloImagesToNextCloud'; // migrate ảnh Zalo (7 ngày) lên NextCloud
 /**
  * Thông báo hành trình cần checkin
  */
@@ -1941,12 +1942,13 @@ function calculateCashFlow()
 /**
  * Gửi tin nhắn tự động về giá vé rẻ qua ZBS template Zalo
  */
-function sendAutoCheapPriceMessageZalo() {
+function sendAutoCheapPriceMessageZalo()
+{
 	global $db, $timedate, $sugar_config;
 	try {
 		$utcDate = $timedate->nowDb(); // Guarantee timezone is UTC
 		$utcTimestamp       = strtotime($utcDate);
-		$vietnameseTime 	= ($utcTimestamp + 7*3600) * 1000;
+		$vietnameseTime 	= ($utcTimestamp + 7 * 3600) * 1000;
 		$date 				= date('Y-m-d', $utcTimestamp);
 		$yesterday 			= date('Y-m-d', strtotime('-1 day', $utcTimestamp));
 		$fromDateQuery 		= date('Y-m-d', strtotime('-3 day', $utcTimestamp));
@@ -2011,17 +2013,17 @@ function sendAutoCheapPriceMessageZalo() {
 		$listFlightSearch = [];
 		$listSentFailedPhone = [];
 		$listSentPhone = [];
-			
+
 		$res = $db->query($sql);
 		while ($row = $db->fetchByAssoc($res)) {
 			$phone = $row['phone'] ?? '';
 			$list_message = !empty($row['list_message']) ? explode(';', $row['list_message']) : [];
 
-			if(empty($phone) || in_array($phone, $listSentPhone) || in_array($phone, $listSentFailedPhone)) continue;
-			if(count($list_message) >= 2) continue;
+			if (empty($phone) || in_array($phone, $listSentPhone) || in_array($phone, $listSentFailedPhone)) continue;
+			if (count($list_message) >= 2) continue;
 
 			$is_send = true;
-			if(count($list_message) > 0) {
+			if (count($list_message) > 0) {
 				$first_element_message = explode('|', $list_message[0]);
 				$first_element_message_datetime  = $first_element_message[0];
 				// $first_element_message_timestamp = $first_element_message[1];
@@ -2036,10 +2038,10 @@ function sendAutoCheapPriceMessageZalo() {
 						AND zm.deleted = 0";
 
 				$count_reply = $db->getOne($sql2) ?? 0;
-				if($count_reply > 0) $is_send = false;
+				if ($count_reply > 0) $is_send = false;
 			}
-			
-			if($is_send) {
+
+			if ($is_send) {
 				$booking_id = $row['booking_id'];
 				$booking_name = $row['booking_name'] ?? '';
 				$dep_code = $row['dep_code'] ?? '';
@@ -2051,18 +2053,18 @@ function sendAutoCheapPriceMessageZalo() {
 				$departure_timestamp = strtotime($departure_date);
 				$departure_day = date('d', $departure_timestamp);
 				// If departure day is greater than 20, then set departure month to next month
-				if((int)$departure_day > 20) {
+				if ((int)$departure_day > 20) {
 					$departure_timestamp = strtotime('+1 month', $departure_timestamp);
 				}
 				$departure_month = date('m', $departure_timestamp);
 				$departure_year  = date('Y', $departure_timestamp);
-				
+
 				$depInfo = Flight::getAirport($dep_code);
 				$desInfo = Flight::getAirport($des_code);
 
 				// Get cheap price (cache)
 				$cacheKey = "$dep_code-$des_code-$departure_year-$departure_month";
-				if(!isset($listFlightSearch[$cacheKey]) || empty($listFlightSearch[$cacheKey])) {
+				if (!isset($listFlightSearch[$cacheKey]) || empty($listFlightSearch[$cacheKey])) {
 					$temp = $entryFS->getMinPriceInMonth([
 						"depCode" => $dep_code,
 						"desCode" => $des_code,
@@ -2072,14 +2074,13 @@ function sendAutoCheapPriceMessageZalo() {
 					$priceData = json_decode($temp, true);
 					$priceData = $priceData['data']['prices'] ?? [];
 					$listFlightSearch[$cacheKey] = $priceData;
-				}
-				else {
+				} else {
 					$priceData = $listFlightSearch[$cacheKey];
 				}
 
-				if(is_array($priceData) && !empty($priceData)) {
+				if (is_array($priceData) && !empty($priceData)) {
 					$minPrice = min(array_column($priceData, 'price'));
-					
+
 					$cheapestDays = array_values(array_filter($priceData, fn($item) => $item['price'] === $minPrice));
 					if (count($cheapestDays) > 1) {
 						$input = DateTime::createFromFormat('Y-m-d', $departure_date);
@@ -2111,19 +2112,19 @@ function sendAutoCheapPriceMessageZalo() {
 
 					// Check if the latest message is the same price, then discount 10-20k
 					$message_latest = $list_message[0] ?? [];
-					if(!empty($message_latest)) {
+					if (!empty($message_latest)) {
 						$data_latest = explode('|', $message_latest);
 						$data_latest = json_decode(html_entity_decode($data_latest[2] ?? ''), true) ?? [];
-						if(isset($data_latest['ticket_price']) && (int)$data_latest['ticket_price'] == $minPrice && $minPrice > 0) {
+						if (isset($data_latest['ticket_price']) && (int)$data_latest['ticket_price'] == $minPrice && $minPrice > 0) {
 							$values = [9000, 10000, 12000, 16000, 18000, 20000];
 							$minPrice -= $values[array_rand($values)]; // Discount 10-20k
-							if($minPrice <= 0) $minPrice = abs($minPrice);
+							if ($minPrice <= 0) $minPrice = abs($minPrice);
 						}
 					}
 
-					if($minPrice == 0) $minPrice = 8000;
+					if ($minPrice == 0) $minPrice = 8000;
 
-					if(!empty($listDate)) {
+					if (!empty($listDate)) {
 						$params = [
 							"phoneNumber" => $phone,
 							"type" => "cheap-flight",
@@ -2138,11 +2139,12 @@ function sendAutoCheapPriceMessageZalo() {
 							],
 						];
 						$sendResult = $entryOA->sendTemplateMessage($params);
-			
+
 						if (isset($sendResult['status']) && $sendResult['status'] == 1) $listSentPhone[] = $phone;
 						else {
-							$GLOBALS['log']->fatal("Check sent auto message Zalo ZBS (cheap-price): " .
-								json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
+							$GLOBALS['log']->fatal(
+								"Check sent auto message Zalo ZBS (cheap-price): " .
+									json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
 							);
 							$listSentFailedPhone[] = $phone;
 						}
@@ -2150,33 +2152,30 @@ function sendAutoCheapPriceMessageZalo() {
 				}
 			}
 		}
-			
+
 		// Send info to notification channel
 		$countListSentPhone = count($listSentPhone);
-		if($countListSentPhone > 0) {
+		if ($countListSentPhone > 0) {
 			$countTotalPhone = $countListSentPhone + count($listSentFailedPhone);
 			$message 	= "<b>⚙️Auto:</b> Đã gửi tin CSKH Zalo (Booking tham khảo) cho {$countListSentPhone}/{$countTotalPhone} số";
 			$botToken 	= $sugar_config['telegram']['zalo']['bot_token'] ?? '';
 			$chatId 	= $sugar_config['telegram']['zalo']['chat_id'] ?? '';
 			Telegram::sendMessage($message, $botToken, $chatId);
-		}
-		else {
+		} else {
 			$message = "[INFO] Please check suitecrm log <code>_AddJobsHere.php -> sendAutoCheapPriceMessageZalo()</code>";
 			$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
 			$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
 			$threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
 			Telegram::sendMessage($message, $botToken, $chatId, $threadId);
 		}
-	}
-	catch(Throwable $th) {
+	} catch (Throwable $th) {
 		$exceptionMessage = "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
-		if($sugar_config['notification_channel'] == 'Mattermost') {
+		if ($sugar_config['notification_channel'] == 'Mattermost') {
 			$message = Mattermost::$line_separation;
 			$message .= Mattermost::markdownHeading("[ERROR] Auto send ZBS cheap price failed");
 			$message .= "\n$exceptionMessage\n";
 			Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs']  ?? '', $message);
-		}
-		else {
+		} else {
 			$message = "<b>[ERROR] Auto send ZBS cheap price failed</b>";
 			$message .= "\n$exceptionMessage";
 			$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
@@ -2194,3 +2193,171 @@ function sendAutoCheapPriceMessageZalo() {
 // 	$list_users_7 = EC_Zalo_Contacts_Helper::get_list_zalo_user_by_last_interaction_day(7);
 // 	$list_users_2 = EC_Zalo_Contacts_Helper::get_list_zalo_user_by_last_interaction_day(2);
 // }
+
+/**
+ * Cuối mỗi ngày: tìm tất cả tin nhắn Zalo có ảnh (URL còn trỏ về Zalo CDN),
+ * tải về local, upload lên NextCloud, tạo public share, cập nhật lại DB.
+ */
+function migrateZaloImagesToNextCloud()
+{
+	global $db;
+
+	$today = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
+
+	// ── 1. Lấy những record cần xử lý ──────────────────────────────────────
+	// Chỉ lấy trong ngày hôm nay, type=consultation, sub_type=image,
+	// thumbnail/url vẫn còn là link Zalo CDN (chưa phải link NextCloud).
+
+	$sql = "SELECT id, thumbnail, url, data
+            FROM ec_zalo_messages
+            WHERE deleted = 0
+                AND type = 'consultation'
+                AND sub_type = 'image'
+                AND DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = '$today'
+                AND thumbnail IS NOT NULL
+                AND thumbnail != ''
+                AND (
+                    thumbnail NOT LIKE '%/s/%'
+                    OR url NOT LIKE '%/s/%'
+                )"; //vì link public dạng này:https://vnbackup.com/s/hdhdhdsjdh 
+
+	$res = $db->query($sql);
+	if ($db->countRows($res) == 0) {
+		$GLOBALS['log']->info('migrateZaloImagesToNextCloud: No records to migrate today.');
+		return true;
+	}
+
+	// ── 2. Khởi tạo APINextCloud & tạo folder theo ngày ────────────────────
+	require_once 'custom/include/helpers/api/APINextCloud.php';
+	$api = new APINextCloud();
+
+	$folderParts = [
+		'bmvmb',
+		'bmvmb/modules',
+		'bmvmb/modules/ec_zalo_messages',
+		'bmvmb/modules/ec_zalo_messages/' . date('Y'),
+		'bmvmb/modules/ec_zalo_messages/' . date('Y') . '/' . date('m'),
+		'bmvmb/modules/ec_zalo_messages/' . date('Y') . '/' . date('m') . '/' . date('d'),
+	];
+	foreach ($folderParts as $part) {
+		$api->createFolder($part); // MKCOL: bỏ qua 405 nếu folder đã có
+	}
+
+	$folderPath  = end($folderParts);
+	$uploadDir   = 'cache/upload/';
+	if (!is_dir($uploadDir)) {
+		sugar_mkdir($uploadDir, 0755, true);
+	}
+
+	// ── 3. Lặp từng record ──────────────────────────────────────────────────
+	while ($row = $db->fetchByAssoc($res)) {
+		try {
+			$imageUrl = !empty($row['url']) ? $row['url'] : $row['thumbnail'];
+
+			// 3a. Tải ảnh từ Zalo CDN về local
+			$fetchResult = $api->fetchPublicFile($imageUrl);
+			if (!$fetchResult['success']) {
+				$GLOBALS['log']->error(
+					"migrateZaloImagesToNextCloud: Download failed for id={$row['id']}, "
+						. "url=$imageUrl, error={$fetchResult['error']}"
+				);
+				continue;
+			}
+
+			// 3b. Xác định extension
+			$ext = 'jpg';
+			if (preg_match('/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i', $imageUrl, $m)) {
+				$ext = strtolower($m[1]);
+			} elseif (!empty($fetchResult['contentType'])) {
+				$mimeMap = [
+					'image/jpeg' => 'jpg',
+					'image/png'  => 'png',
+					'image/gif'  => 'gif',
+					'image/webp' => 'webp',
+				];
+				$ct  = strtolower(explode(';', $fetchResult['contentType'])[0]);
+				$ext = $mimeMap[trim($ct)] ?? 'jpg';
+			}
+
+			$safeId     = str_replace('-', '', $row['id']);
+			$fileName   = $safeId . '_' . time() . '.' . $ext;
+			$localPath  = $uploadDir . $fileName;
+			$remotePath = $folderPath . '/' . $fileName;
+
+			// 3c. Lưu file tạm
+			if (file_put_contents($localPath, $fetchResult['data']) === false) {
+				$GLOBALS['log']->error("migrateZaloImagesToNextCloud: Cannot write local file $localPath");
+				continue;
+			}
+
+			// 3d. Upload lên NextCloud
+			$uploadResult = json_decode($api->uploadFile($localPath, $remotePath), true);
+			if (empty($uploadResult) || (int)($uploadResult['status'] ?? 0) !== 1) {
+				$GLOBALS['log']->error(
+					"migrateZaloImagesToNextCloud: Upload failed for id={$row['id']}, remote=$remotePath, "
+						. "response=" . json_encode($uploadResult)
+				);
+				@unlink($localPath);
+				continue;
+			}
+
+			// 3e. Tạo public share (read-only, no password)
+			$shareResult = json_decode($api->createShare($remotePath, 1), true);
+			if (empty($shareResult) || (int)($shareResult['status'] ?? 0) !== 1) {
+				$GLOBALS['log']->error(
+					"migrateZaloImagesToNextCloud: Share creation failed for id={$row['id']}, "
+						. "response=" . json_encode($shareResult)
+				);
+				@unlink($localPath);
+				continue;
+			}
+
+			// NextCloud trả về share URL dạng: https://vnbackup.com/s/abcsiueh
+			// Download trực tiếp: thêm /download vào cuối
+			$shareUrl    = rtrim($shareResult['data']['url'] ?? '', '/');
+			if (empty($shareUrl)) {
+				$GLOBALS['log']->error("migrateZaloImagesToNextCloud: Empty share URL for id={$row['id']}");
+				@unlink($localPath);
+				continue;
+			}
+
+			// 3f. Cập nhật JSON trong field `data`
+			$dataJson = json_decode($row['data'] ?? '{}', true);
+			if (isset($dataJson['message']['attachments']) && is_array($dataJson['message']['attachments'])) {
+				foreach ($dataJson['message']['attachments'] as &$attachment) {
+					if (($attachment['type'] ?? '') === 'image') {
+						$attachment['payload']['thumbnail'] = $shareUrl;
+						$attachment['payload']['url']       = $shareUrl;
+					}
+				}
+				unset($attachment);
+			}
+
+			// 3g. UPDATE database
+			$safeShareUrl = $db->quote($shareUrl);
+			$db->query("
+                UPDATE ec_zalo_messages
+                SET thumbnail     = '$safeShareUrl',
+                    url           = '$safeShareUrl',
+                    date_modified = NOW()
+                WHERE id = '{$row['id']}'
+                  AND deleted = 0
+            ");
+
+			$GLOBALS['log']->info("migrateZaloImagesToNextCloud: Successfully migrated image for id={$row['id']}, shareUrl=$shareUrl");
+		} catch (Throwable $th) {
+			$GLOBALS['log']->error(
+				"migrateZaloImagesToNextCloud: Exception for id={$row['id']}: "
+					. "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}"
+			);
+		} finally {
+			// Luôn xoá file tạm dù thành công hay thất bại
+			if (!empty($localPath) && file_exists($localPath)) {
+				@unlink($localPath);
+			}
+		}
+	}
+
+	$GLOBALS['log']->info('migrateZaloImagesToNextCloud: Done.');
+	return true;
+}
