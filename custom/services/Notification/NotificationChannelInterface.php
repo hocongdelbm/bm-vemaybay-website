@@ -1,5 +1,5 @@
 <?php
-namespace Custom\Services\Notification;
+namespace custom\services\Notification;
 
 interface NotificationChannelInterface {
     /**

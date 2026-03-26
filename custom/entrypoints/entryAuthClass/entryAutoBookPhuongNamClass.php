@@ -2,7 +2,7 @@
 require_once "custom/entrypoints/entryClass.php";
 require_once "custom/include/helpers/api/APIPhuongNam.php";
 
-use Services\Notification\NotificationService;
+use custom\services\Notification\NotificationService;
 
 /**
  * Class entryAutoBookPhuongNamClass
