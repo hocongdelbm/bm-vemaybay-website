@@ -2,7 +2,7 @@
 spl_autoload_register(function (string $class): void {
     try {
         // Only handle our own namespace prefix
-        $prefix = 'Custom\\';
+        $prefix = 'custom\\';
         if (strpos($class, $prefix) !== 0) return;
 
         // Custom\Services\Location\LocationService
