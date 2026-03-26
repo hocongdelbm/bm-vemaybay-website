@@ -880,7 +880,6 @@ function handleSugarConfig()
     $sugar_config['sugar_version']                  = $setup_sugar_version;
     $sugar_config['tmp_dir']                        = $cache_dir . 'xml/';
     $sugar_config['upload_dir']                 = 'upload/';
-    //    $sugar_config['use_php_code_json']              = returnPhpJsonStatus(); // true on error
     if (isset($_SESSION['setup_site_sugarbeet_anonymous_stats'])) {
         $sugar_config['sugarbeet']      = $_SESSION['setup_site_sugarbeet_anonymous_stats'];
     }

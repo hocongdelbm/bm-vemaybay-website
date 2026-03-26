@@ -113,31 +113,13 @@ function myGetNewReportTerms($selectedValue = '', $returnType = 'html')
     $options = array_merge($months, $quarters, $years);
     $html = '';
     foreach ($options as $optKey => $optVal) {
-        $html .= '<option ' . ($optKey == $selectedValue ? 'selected="selected"' : '') . ' value="' . $optKey . '" data-term="' . $optVal['term'] . '" data-year="' . $optVal['year'] . '" data-fromdate="' . $optVal['from_date'] . '" data-todate="' . $optVal['to_date'] . '">' . $optVal['name'] . '</option>';
+        $html .= '<option ' . ($optKey == $selectedValue ? 'selected' : '') . ' value="' . $optKey . '" data-term="' . $optVal['term'] . '" data-year="' . $optVal['year'] . '" data-fromdate="' . $optVal['from_date'] . '" data-todate="' . $optVal['to_date'] . '">' . $optVal['name'] . '</option>';
     }
 
     if ($returnType == 'array') {
         return $options;
     } else {
         return $html;
-    }
-}
-
-/**
- * Lấy tỉ giá của ngoại tê theo giao dịch mua, bán
- * @param string $CurrencyCode mã loại tiền tệ VND, USD...
- * @param string $type loại giao dịch mua bán
- * @return numeric $arr[$i][$type] tỉ giá trả về
- */
-function myGetCurrencyExrate($CurrencyCode, $type = 'Sell')
-{
-    $xml = simplexml_load_file("http://www.vietcombank.com.vn/ExchangeRates/ExrateXML.aspx");
-    $obj = $xml->children();
-    $arr = $obj->Exrate;
-    for ($i = 0; $i < count($arr); $i++) {
-        if ($arr[$i]['CurrencyCode'] == $CurrencyCode) {
-            return $arr[$i][$type];
-        }
     }
 }
 
@@ -158,7 +140,7 @@ function myGetSelectOptionsWithDb($module, $val, $val_name = 'id', $where = '')
     $res = $db->query($sql);
     $html = '';
     while ($row = $db->fetchByAssoc($res)) {
-        if ($row[$val_name] == $val || (is_array($val) && in_array($row[$val_name], $val))) $selected = 'selected="selected"';
+        if ($row[$val_name] == $val || (is_array($val) && in_array($row[$val_name], $val))) $selected = 'selected';
         else $selected = '';
         $html .= '<option ' . $selected . ' value="' . $row[$val_name] . '">' . $row['name'] . '</option>';
     }
@@ -226,7 +208,7 @@ function myGetBankAccountList($val, $where = '', $type = 'HTML')
     $res = $db->query($sql);
     while ($row = $db->fetchByAssoc($res)) {
         if ($row['id'] == $val || (is_array($val) && !empty($val) && in_array($row['id'], $val))) {
-            $selected = 'selected="selected"';
+            $selected = 'selected';
             $is_selected = true;
         } else {
             $selected = '';
@@ -262,7 +244,7 @@ function myGetMonthList($val = '')
 {
     $html = '';
     for ($i = 1; $i <= 12; $i++) {
-        $selected = !empty($val) && $i == $val ? 'selected="selected"' : '';
+        $selected = !empty($val) && $i == $val ? 'selected' : '';
         $html .= '<option ' . $selected . ' value="' . $i . '">' . $i . '</option>';
     }
     return $html;
@@ -279,30 +261,8 @@ function myGetYearList($current_year, $number_year = 3, $val = '')
 {
     $html = '';
     for ($i = ($current_year - $number_year); $i <= ($current_year + $number_year); $i++) {
-        $selected = !empty($val) && $i == $val ? 'selected="selected"' : '';
+        $selected = !empty($val) && $i == $val ? 'selected' : '';
         $html .= '<option ' . $selected . ' value="' . $i . '">' . $i . '</option>';
-    }
-    return $html;
-}
-
-function myGetHourList($hour = '')
-{
-    $html = '';
-    for ($i = 0; $i <= 23; $i++) {
-        $hour_txt = str_pad($i, 2, '0', STR_PAD_LEFT);
-        $selected = (!empty($hour) && $hour_txt == $hour) ? 'selected="selected"' : '';
-        $html .= '<option ' . $selected . ' value="' . $hour_txt . '">' . $hour_txt . '</option>';
-    }
-    return $html;
-}
-
-function myGetMinuteList($minute = '')
-{
-    $html = '';
-    for ($i = 0; $i <= 59; $i++) {
-        $minute_txt = str_pad($i, 2, '0', STR_PAD_LEFT);
-        $selected = (!empty($minute) && $minute_txt == $minute) ? 'selected="selected"' : '';
-        $html .= '<option ' . $selected . ' value="' . $minute_txt . '">' . $minute_txt . '</option>';
     }
     return $html;
 }
@@ -335,48 +295,6 @@ function myCheckValueExist($module, $fields = array(), $field_value = array(), $
 
     if ($rowcount > 0) return true;
     return false;
-}
-
-/**
- * Kiểm tra 2 trường cùng 1 lúc có tồn tại
- * @param string $module tên phân hệ
- * @param string $field trường cần kiểm tra
- * @param string $field_value giá trị của trường cần kiểm tra
- * @param string $field2 trường thứ 2 cần kiểm tra
- * @param string $field_value giá trị của trường thứ 2 cần kiểm tra
- * @param string $id dòng dữ liệu muốn kiểm tra
- * @return bool
- */
-function myCheck2ValueExist($module, $field, $field_value, $field2, $field_value2, $id)
-{
-    global $db;
-    $rowcount = 0;
-    $sql = "SELECT COUNT(id) FROM " . strtolower($module) . "
-				WHERE id <> '" . $id . "' 
-				AND " . $field . " = '" . $field_value . "' 
-				AND " . $field2 . " = '" . $field_value2 . "' 
-				AND deleted = 0 ";
-    $rowcount = $db->getOne($sql);
-    if ($rowcount > 0)
-        return true;
-    return false;
-}
-
-/**
- * Đếm số dòng dữ liệu tả về
- * @param string $module tên phân hệ
- * @param string $where điều kiện truy vấn bổ sung
- * @return numeric
- */
-function myGetRecordCount($module, $where = "")
-{
-    global $db;
-    $total = 0;
-    $sql = "SELECT COUNT(id) FROM " . strtolower($module) . " WHERE deleted=0 ";
-    if (isset($where) && !empty($where))
-        $sql .= $where;
-    $total += $db->getOne($sql);
-    return $total;
 }
 
 // Tự động phát sinh tên chứng từ
@@ -423,117 +341,6 @@ function myRemoveUnicodeChars($str)
 function global_is_unicode($string)
 {
     return preg_match('/[^\x20-\x7e]/', $string);
-}
-
-// Get the string between string
-function myGetStringBetween($string, $start, $end)
-{
-    $string = " " . $string;
-    $ini = strpos($string, $start);
-    if ($ini == 0) return "";
-    $ini += strlen($start);
-    $len = strpos($string, $end, $ini) - $ini;
-    return substr($string, $ini, $len);
-}
-
-// Lấy số tồn đầu kỳ
-function getTheBeginningOfPeriod($sotk, $thang, $nam)
-{
-    global $db;
-    $sodauky = 0;
-    $thangtruoc = $thang == 1 ? 12 : str_pad($thang - 1, 2, '0', STR_PAD_LEFT);
-    if ($thang == 1 && $nam == date('Y'))
-        $namtruoc = $nam - 1;
-    else if ($nam != date('Y'))
-        $namtruoc = $nam;
-    else
-        $namtruoc = '';
-    $sql = "SELECT (duno_" . $thangtruoc . "-duco_" . $thangtruoc . ")
-				FROM ec_chitiettaikhoan" . $namtruoc . "
-				WHERE deleted=0 AND sotaikhoan='" . $sotk . "' ";
-    $sodauky += $db->getOne($sql);
-    return $sodauky;
-}
-
-// Get supplier remaining credit
-function myGetSupplierRemainingCredit($airline, $agent_id, $agent_pwd, $format = 'json')
-{
-    $api_key = 'N830B51ZEA3Gzc6343R9T6Wn24C8iiBU51t2ppeJ';
-    $url = 'http://s1.vietnamairlines.bid/index.php/apiv1/api/get_remaining_credit/format/' . $format;
-
-    $postdata = array(
-        'airline' => $airline,
-        'agent_id' => $agent_id,
-        'agent_pwd' => $agent_pwd,
-    );
-
-    $curl_handle = curl_init();
-    curl_setopt($curl_handle, CURLOPT_URL, $url);
-    curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array('X-API-KEY: ' . $api_key));
-    curl_setopt($curl_handle, CURLOPT_POST, true);
-    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl_handle, CURLOPT_POSTFIELDS, http_build_query($postdata));
-    $data = curl_exec($curl_handle);
-    curl_close($curl_handle);
-    $result = json_decode($data, true);
-    return $result;
-}
-
-/**
- * Recheck booking's flight
- * @param string $aircode
- * @param string $pnr
- * @param string $fullName
- * @param string $flightNo
- * @param int $timeout time in seconds
- * @param int $useProxy 0=Disabled | 1=Enabled
- * @param int $email
- * @return mixed
- */
-function myRecheckFlight($aircode, $pnr, $fullName, $flightNo, $timeout = 30, $useProxy = 1, $email = '')
-{
-    $api_key = 'N830B51ZEA3Gzc6343R9T6Wn24C8iiBU51t2ppeJ';
-    $url = 'http://s1.vietnamairlines.bid/index.php/apiv1/api/recheck_flight';
-    $url .= '/use_proxy/' . $useProxy;
-    $url .= '/aircode/' . $aircode;
-    $url .= '/flight_no/' . $flightNo;
-    $url .= '/pnr/' . $pnr;
-    $url .= '/full_name/' . $fullName;
-    if (!empty($email)) {
-        $url .= '/email/' . $email;
-    }
-
-    $curl_handle = curl_init();
-    curl_setopt($curl_handle, CURLOPT_URL, $url);
-    curl_setopt($curl_handle, CURLOPT_ENCODING, 'gzip');
-    curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array('X-API-KEY: ' . $api_key));
-    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl_handle, CURLOPT_CONNECTTIMEOUT, $timeout);
-    curl_setopt($curl_handle, CURLOPT_TIMEOUT, $timeout);
-    $data = curl_exec($curl_handle);
-    curl_close($curl_handle);
-    $result = json_decode($data, true);
-
-    return $result;
-}
-
-// Get airline info
-function myGetAirlineInfo($airline_code, $search_by = 'FULL', $case_sensitive = 1, $format = 'array')
-{
-    $api_key = 'N830B51ZEA3Gzc6343R9T6Wn24C8iiBU51t2ppeJ';
-    $url = 'http://api.vemaybaynamphuong.com/index.php/apiv1/api/airline_search/format/json/term/' . $airline_code . '/case_sensitive/' . $case_sensitive . '/search_by/' . $search_by;
-
-    $curl_handle = curl_init();
-    curl_setopt($curl_handle, CURLOPT_URL, $url);
-    curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array('X-API-KEY: ' . $api_key));
-    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl_handle, CURLOPT_FOLLOWLOCATION, 0);
-    $data = curl_exec($curl_handle);
-    curl_close($curl_handle);
-    $result = '';
-    if ($format == 'array') $result = json_decode($data, true);
-    else if ($format == 'json') $result = $data;
-    return $result;
 }
 
 function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array')
@@ -646,27 +453,6 @@ function myGetAirportInfo2($airport_code, $case_sensitive = 1, $format = 'array'
     }
 }
 
-
-// Get duration info
-function myGetDurationInfo($time_departure, $time_arrival)
-{
-    $duration   = strtotime($time_arrival) - strtotime($time_departure);
-
-    if ($duration > 0) {
-        $hours      = floor($duration / 3600);
-        $minutes    = floor(($duration % 3600) / 60);
-
-        if ($hours > 0 && $minutes == 0) {
-            $formatted_duration = $hours . 'h';
-        } elseif ($hours == 0 && $minutes > 0) {
-            $formatted_duration = $minutes . 'm';
-        } else {
-            $formatted_duration = $hours . 'h ' . $minutes . 'm';
-        }
-    }
-
-    return $formatted_duration;
-}
 
 /**
  * Returns user/system preference for number grouping separator character(default ",") and the decimal separator
@@ -818,40 +604,6 @@ function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $descrip
     return false;
 }
 
-// Get total record of module by day
-function myGetTotalRecordByDay($module, $str = '0', $len = 4)
-{
-    date_default_timezone_set('Asia/Ho_Chi_Minh');
-    global $db;
-    $total = 0;
-    $date_entered = date('Y-m-d H:i:s', strtotime(date('Y-m-d 16:59:59')) - 86400); // giờ sugarcrm lệch 7h so với giờ server
-    $sql = "SELECT COUNT(id) + 1 FROM " . strtolower($module) . " WHERE date_entered > '" . $date_entered . "' ";
-    $total += $db->getOne($sql);
-    return date('ymd') . str_pad($total, $len, $str, STR_PAD_LEFT);
-}
-
-// Get location list by string
-function myGetLocationListByString($str, $select_val = '')
-{
-    $html = '<option value=""></option>';
-    if (!empty($str)) {
-        // 1 location
-        if (strpos($str, ',') === false) {
-            $item = explode('|', $str);
-            $selected = ($select_val == trim($item[0])) ? 'selected="selected"' : '';
-            $html .= '<option ' . $selected . ' value="' . trim($item[0]) . '">' . trim($item[1]) . '</option>';
-        } else {
-            $items = explode(',', $str);
-            foreach ($items as $item) {
-                $itemval = explode('|', $item);
-                $selected = ($select_val == trim($itemval[0])) ? 'selected="selected"' : '';
-                $html .= '<option ' . $selected . ' value="' . trim($itemval[0]) . '">' . trim($itemval[1]) . '</option>';
-            }
-        }
-    }
-    return $html;
-}
-
 // Get location list by deparment ID
 function myGetLocationListByDepID($department_id, $select_val = '')
 {
@@ -862,39 +614,13 @@ function myGetLocationListByDepID($department_id, $select_val = '')
             WHERE deleted = 0
             AND is_display = 0 ";
 
-    // Accountant request show all location
-    //    if(!is_admin($current_user)) {
-    //        if ($department_id == '48840c01-3a4f-c430-f703-56f32c7cd8a4') // Travelpass
-    //            $sql .= " AND company_id IN ('8df43570-09de-d2b3-b2fd-506eca7522f7', '" . $department_id . "') ";
-    //        else
-    //            $sql .= " AND company_id = '" . $department_id . "' ";
-    //    }
-
     $sql .= "ORDER BY date_entered ";
     $res = $db->query($sql);
     while ($row = $db->fetchByAssoc($res)) {
-        $selected = ($row['id'] == $select_val) ? 'selected="selected"' : '';
+        $selected = ($row['id'] == $select_val) ? 'selected' : '';
         $html .= '<option ' . $selected . ' value="' . $row['id'] . '">' . $row['name'] . '</option>';
     }
 
-    return $html;
-}
-
-function myGetAllDepByCurrentUser()
-{
-    global $current_user;
-    $dep_arr = is_admin($current_user) ? SecurityGroup::getAllSecurityGroups() : SecurityGroup::getUserSecurityGroups($current_user->id);
-    $dep_arr = array_values($dep_arr);
-    return $dep_arr;
-}
-
-function myMakeHtmlOption($rows, $select_val = '')
-{
-    $html = '';
-    foreach ($rows as $row) {
-        $selected = ($row['id'] == $select_val) ? 'selected="selected"' : '';
-        $html .= '<option ' . $selected . ' value="' . $row['id'] . '">' . $row['name'] . '</option>';
-    }
     return $html;
 }
 
@@ -910,185 +636,6 @@ function myIsBookingPaid($booking_id)
             return true;
         }
     }
-
-    return false;
-}
-
-/**
- * Gateway send USSD command
- * @param $arr
- * ex: array(
- * array(
- * "port"=>0,
- * "command"=>"*101#"
- * ),
- * array(
- * "port"=>3,
- * "command"=>"*101#"
- * )
- * )
- * @param int $times_request delay time to check port
- * @param int $total_port
- * @return array
- */
-function myGatewaySendUSSD($arr, $times_request = 10, $total_port = 8)
-{
-    global $app_list_strings;
-    $arr_api_clear = array();
-    $arr_api_cmd = array();
-    for ($i = 0; $i < $total_port; $i++) {
-        $arr_api_clear["Index" . $i] = "on";
-        if (isset($arr[$i]["port"])) {
-
-            $arr_api_cmd['Index' . $arr[$i]["port"]] = 'on';
-            $arr_api_cmd['MsgInfo' . $arr[$i]["port"]] = $arr[$i]["command"];
-            $arr_api_cmd['USSDInfo' . $arr[$i]["port"]] = '';
-        }
-    }
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $app_list_strings['system_config_list']['sms_gateway_url'] . "/goform/WIAUSSDClearReply");
-    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36');
-    curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-    curl_setopt($ch, CURLOPT_USERPWD, $app_list_strings['system_config_list']['sms_gateway_usr'] . ':' . $app_list_strings['system_config_list']['sms_gateway_pwd']);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($arr_api_clear));
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_exec($ch);
-    curl_setopt($ch, CURLOPT_URL, $app_list_strings['system_config_list']['sms_gateway_url'] . "/goform/WIAUSSDStopAutoRefresh");
-    curl_exec($ch);
-    curl_setopt($ch, CURLOPT_URL, $app_list_strings['system_config_list']['sms_gateway_url'] . "/goform/WIAUSSDSend");
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($arr_api_cmd));
-    curl_exec($ch);
-
-    $match = array();
-    $results = array();
-    $message = array();
-    $check = false;
-    $count_error = 0;
-    while (!$check) {
-        $count_error += 1;
-        curl_setopt($ch, CURLOPT_URL, $app_list_strings['system_config_list']['sms_gateway_url'] . "/MsgUSSD.htm");
-        $res = curl_exec($ch);
-        preg_match_all("'case(.*?)break'si", $res, $match);
-        $check = true;
-        for ($i = 0; $i < $total_port; $i++) {
-            if (isset($arr[$i]["port"])) {
-                if (preg_match("/Waiting/", $match[1][$arr[$i]["port"]], $t) || preg_match("/End/", $match[1][$arr[$i]["port"]], $t) || preg_match("/registered/", $match[1][$arr[$i]["port"]], $t)) {
-                    sleep(1);
-                    $check = false;
-                    break;
-                }
-            }
-        }
-        if ($count_error >= $times_request) {
-            curl_close($ch);
-            $results[] = array(
-                "status" => 401,
-                "message" => "Bad request, please request again after 15 seconds"
-            );
-            return $results;
-            break;
-        }
-    }
-    curl_close($ch);
-
-    for ($i = 0; $i < $total_port; $i++) {
-        if (isset($arr[$i]["port"])) {
-            preg_match_all("'\"(.*?)\"'siU", $match[1][$arr[$i]["port"]], $s);
-            if (preg_match("/not/", $s[1][0], $t)) {
-                $message[] = array(
-                    "sim_error" => 1,
-                    "port" => $arr[$i]["port"],
-                    "content" => $s[1][0]
-                );
-            } else {
-                $message[] = array(
-                    "sim_error" => 0,
-                    "port" => $arr[$i]["port"],
-                    "content" => $s[1][0]
-                );
-            }
-        }
-    }
-
-    $results["status"] = 200;
-    $results["message"] = $message;
-    return $results;
-}
-
-/**
- * Get age of birthday with current time
- * @param $dob yyyy-mm-dd
- * @param $current_time yyyy-mm-dd
- * @return false|int|string
- */
-function myGetAge($dob, $current_time)
-{
-    date_default_timezone_set('Asia/Ho_Chi_Minh');
-    $dob = strtotime($dob);
-    $current_time = strtotime(!empty($current_time) ? $current_time : date('Y-m-d'));
-
-    $age_years = date('Y', $current_time) - date('Y', $dob);
-    $age_months = date('m', $current_time) - date('m', $dob);
-    $age_days = date('d', $current_time) - date('d', $dob);
-
-    if ($age_days < 0) {
-        $days_in_month = date('t', $current_time);
-        $age_months--;
-        $age_days = $days_in_month + $age_days;
-    }
-
-    if ($age_months < 0) {
-        $age_years--;
-        $age_months = 12 + $age_months;
-    }
-
-    return array(
-        'years' => $age_years,
-        'months' => $age_months,
-        'days' => $age_days
-    );
-}
-
-/**
- * Send SMS
- * @param $sms_port
- * @param $send_to
- * @param $message
- * @return bool
- */
-function mySendSMS($sms_port, $send_to, $message, $sms_encode = 0)
-{
-    global $app_list_strings;
-    $sms_gateway_url = $app_list_strings['system_config_list']['sms_gateway_url'];
-    $username = $app_list_strings['system_config_list']['sms_gateway_usr'];
-    $password = $app_list_strings['system_config_list']['sms_gateway_pwd'];
-    $refer = $sms_gateway_url . '/enWIASendMsg.htm';
-    $url = $sms_gateway_url . '/goform/WIAMsgSend';
-    $post_data = array(
-        'CurrentPort' => $sms_port,
-        'Encoding' => $sms_encode, // 0=GSM | 1=UCS2
-        'Addressee' => $send_to,
-        'MsgInfo' => $message,
-        'ok' => 'Send'
-    );
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_REFERER, $refer);
-    curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-    curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_ENCODING, 'gzip');
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_data));
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $sms_result = curl_exec($ch);
-    curl_close($ch);
 
     return false;
 }
@@ -1210,158 +757,6 @@ function myGetDateRange($first, $last, $step = '+1 day', $format = 'd-m-Y')
     }
 
     return $dates;
-}
-
-/*
- * Tính số dư công nợ phải trả
- * < 30tr thì báo lên group kế toán
- * chatid: -1311652274
-*/
-function calculateSupplierBalance($supplier_id)
-{
-    global $db;
-    $sql = "
-        SELECT 
-            SUM(IFNULL(tmp.debt_amount, 0)) - SUM(IFNULL(tmp.pay_amount, 0)) AS total_debt
-		FROM (
-            -- START TERM
-            SELECT SUM(IFNULL(p.dunodau, 0) - IFNULL(p.ducodau, 0)) AS debt_amount
-                 , 0 AS pay_amount
-            FROM ec_chitiettaikhoan" . date('Y') . " p
-            WHERE p.deleted = 0
-            AND p.parent_type = 'Accounts'
-            AND p.sotaikhoan IN ('144', '331')
-            AND p.parent_id IS NOT NULL
-            AND p.parent_id = '" . $supplier_id . "'
-
-            -- BOOKING DETAILS
-            UNION
-            SELECT SUM(IFNULL(d.total_bought_price, 0)) AS debt_amount
-                 , 0 AS pay_amount
-            FROM ec_booking_details d
-            LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
-            WHERE d.deleted = 0
-            AND p.booking_status IN ('7', '8')
-            AND p.is_ticket_exported = 1
-            AND p.date_ticket_issue >= '" . date('Y-01-01') . "'
-            AND p.date_ticket_issue <= '" . date('Y-m-d') . "'
-            AND d.total_bought_price > 0
-            AND d.supplier_id IS NOT NULL
-            AND d.supplier_id = '" . $supplier_id . "'
-
-            -- BOOKING PAXS OUTBOUND
-            UNION
-            SELECT SUM(IFNULL(d.luggage_purchase, 0)) AS debt_amount
-                 , 0 AS pay_amount
-            FROM ec_booking_passengers d
-            LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
-            WHERE d.deleted = 0
-            AND p.booking_status IN ('7', '8')
-            AND p.is_ticket_exported = 1
-            AND p.date_ticket_issue >= '" . date('Y-01-01') . "'
-            AND p.date_ticket_issue <= '" . date('Y-m-d') . "'
-            AND d.luggage_price > 0
-            AND d.luggage_purchase > 0
-            AND d.supplier_id IS NOT NULL
-            AND d.add_type IS NULL
-            AND d.supplier_id = '" . $supplier_id . "'
-
-            -- BOOKING PAXS INBOUND
-            UNION
-            SELECT SUM(IFNULL(d.luggage_purchase_inbound, 0)) AS debt_amount
-                 , 0 AS pay_amount
-            FROM ec_booking_passengers d
-            LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
-            WHERE d.deleted = 0
-            AND p.booking_status IN ('7', '8')
-            AND p.is_ticket_exported = 1
-            AND p.date_ticket_issue >= '" . date('Y-01-01') . "'
-            AND p.date_ticket_issue <= '" . date('Y-m-d') . "'
-            AND d.luggage_price_inbound > 0
-            AND d.luggage_purchase_inbound > 0
-            AND d.supplier_inbound_id IS NOT NULL
-            AND d.add_type IS NULL
-            AND d.supplier_inbound_id = '" . $supplier_id . "'
-
-            -- RECEIPT
-            UNION
-            SELECT SUM(IFNULL(p.amount, 0)) AS debt_amount
-                 , 0 AS pay_amount
-            FROM ec_receipt_voucher p
-            WHERE p.deleted = 0
-            AND p.loai_thu = '9'
-            AND p.account_id_c IS NOT NULL
-            AND p.ngaychungtu >= '" . date('Y-01-01') . "'
-            AND p.ngaychungtu <= '" . date('Y-m-d') . "'
-            AND p.account_id_c = '" . $supplier_id . "'
-
-            -- SUPPLIER 1
-            UNION
-            SELECT SUM(IFNULL(p.bought_amount, 0)) AS debt_amount
-                 , 0 AS pay_amount
-            FROM ec_receipt_voucher p
-            WHERE p.deleted = 0
-            AND p.loai_thu IN ('4', '5')
-            AND p.supplier_id IS NOT NULL
-            AND p.bought_amount IS NOT NULL
-            AND p.ngaychungtu >= '" . date('Y-01-01') . "'
-            AND p.ngaychungtu <= '" . date('Y-m-d') . "'
-            AND p.supplier_id = '" . $supplier_id . "'
-
-            -- SUPPLIER 2
-            UNION
-            SELECT SUM(IFNULL(p.bought_amount2, 0)) AS debt_amount
-                 , 0 AS pay_amount
-            FROM ec_receipt_voucher p
-            WHERE p.deleted = 0
-            AND p.loai_thu IN ('4', '5')
-            AND p.supplier2_id IS NOT NULL
-            AND p.bought_amount2 IS NOT NULL
-            AND p.ngaychungtu >= '" . date('Y-01-01') . "'
-            AND p.ngaychungtu <= '" . date('Y-m-d') . "'
-            AND p.supplier2_id = '" . $supplier_id . "'
-
-            -- SUPPLIER 3
-            UNION
-            SELECT SUM(IFNULL(p.bought_amount3, 0)) AS debt_amount
-                 , 0 AS pay_amount
-            FROM ec_receipt_voucher p
-            WHERE p.deleted = 0
-            AND p.loai_thu IN ('4', '5')
-            AND p.supplier3_id IS NOT NULL
-            AND p.bought_amount3 IS NOT NULL
-            AND p.ngaychungtu >= '" . date('Y-01-01') . "'
-            AND p.ngaychungtu <= '" . date('Y-m-d') . "'
-            AND p.supplier3_id = '" . $supplier_id . "'
-
-            -- TICKET REFUND
-            UNION
-            SELECT -SUM(IFNULL(c.sotienhang, 0)) AS debt_amount
-                 , 0 AS pay_amount
-            FROM ec_chitiethoanve c
-            LEFT JOIN ec_hoanve p ON c.hoanve_id = p.id AND p.deleted = 0
-            WHERE c.deleted = 0
-            AND c.dahoan = 1
-            AND p.tinhtrang = '1'
-            AND p.ngayhachtoan >= '" . date('Y-01-01') . "'
-            AND p.ngayhachtoan <= '" . date('Y-m-d') . "'
-            AND c.sotienhang > 0
-            AND c.nhacc_id IS NOT NULL
-            AND c.nhacc_id = '" . $supplier_id . "'
-
-            -- PAYMENT VOUCHER
-            UNION
-            SELECT 0 AS debt_amount
-                 , SUM(IFNULL(p.amount, 0)) AS pay_amount
-            FROM ec_payment_voucher p
-            WHERE p.deleted = 0
-            AND p.pv_status = '3'
-            AND p.ngaychungtu >= '" . date('Y-01-01') . "'
-            AND p.ngaychungtu <= '" . date('Y-m-d') . "'
-            AND p.supplier_id IS NOT NULL
-            AND p.supplier_id = '" . $supplier_id . "'
-		) AS tmp";
-    return $db->getOne($sql);
 }
 
 function getEmailFromUser($user_id)
@@ -1617,39 +1012,6 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
     return $luggage_arr;
 }
 
-// Hàm trả về các index nếu hành lý có giá giống nhau
-function populateLuggageIndex($airline, $booking_date, $luggage_idx = 0, $auto_gen_select = 0)
-{
-    global $app_list_strings;
-    $arr_replace = array(
-        'VNA' => 'vietnamair',
-        'JET' => 'jetstar',
-        'VJA' => 'vietjet',
-        'BBA' => 'bambooair',
-        'VJ' => 'vietjet',
-        'BL' => 'jetstar',
-        'JQ' => 'jetstar',
-        '3K' => 'jetstar',
-        'VNP' => 'pacificair',
-        'VTA' => 'vietravelair'
-    );
-    $luggage_idx_arr = array();
-    if ($airline == 'VJA' || $airline == 'VJ') {
-        // sau ngày 21-11-2022 đổi sang hành lý mới
-        if (strtotime($booking_date) >= strtotime('2022-11-21 00:00:00')) {
-            $luggage_idx_arr = $app_list_strings[$arr_replace[$airline] . '_index_price_list2'];
-        } else {
-            $luggage_idx_arr = $app_list_strings[$arr_replace[$airline] . '_index_price_list'];
-        }
-    }
-
-    if ($auto_gen_select) {
-        $luggage_idx_arr = get_select_options_with_id($luggage_idx_arr, $luggage_idx);
-    }
-
-    return $luggage_idx_arr;
-}
-
 // Admin hệ thống và quản lý
 function isAllowedUser()
 {
@@ -1723,57 +1085,6 @@ function isTelesaleUser($user_id)
     $sql = 'SELECT COUNT(id) FROM acl_roles_users WHERE user_id = "' . $user_id . '" AND role_id = "34beb2a2-5ee7-f001-2496-68ca264d1d3f" AND deleted = 0';
     $is_telesale = $db->getOne($sql);
     return ($is_telesale) ? 1 : 0;
-}
-
-
-// Bỏ các khoảng trắng
-function replaceAllSpacesToSingleSpace($string)
-{
-    return trim(preg_replace('!\s+!', ' ', $string));
-}
-
-// Get info user
-function myGetUser($uid = '')
-{
-    global $db, $sugar_config;
-
-    $info   = array();
-    $sql    = "SELECT u.id, CONCAT(IFNULL(u.last_name,'') ,' ', IFNULL(u.first_name,'')) as full_name, 
-    u.user_name, department_id, sg.name AS dep_name, email_address, phone_work, phone_mobile, address_street, employee_type 
-    FROM users u 
-    LEFT JOIN securitygroups sg ON sg.id= u.department_id
-    LEFT JOIN email_addr_bean_rel b ON u.id = b.bean_id AND b.deleted = 0 AND b.primary_address = 1
-    LEFT JOIN email_addresses e ON e.id = b.email_address_id AND e.deleted = 0 
-    WHERE u.deleted = 0 AND status ='Active' AND  employee_status = 'Active' AND domain IS NULL AND u.title <> 'Bot'";
-
-    if (!empty($uid))
-        $sql .= " AND u.id = '" . $uid . "'";
-
-    $res = $db->query($sql, true, 'ERROR: Cannot get value');
-    while ($row = $db->fetchByAssoc($res)) {
-        array_push($info, array(
-            "id" => $row['id'],
-            "user_name" => $row['user_name'],
-            "full_name" => $row['full_name'],
-            "department_id" => $row['department_id'],
-            "dep_name" => $row['dep_name'],
-            "email" => $row['email_address'],
-            "phone_work"  => $row['phone_work'],
-            "phone_mobile"  => $row['phone_mobile'],
-            "address_street"  => $row['address_street'],
-            "employee_type" => $row['employee_type']
-        ));
-    }
-    return $info;
-}
-
-function isBot($id)
-{
-    $u = new User();
-    $u->retrieve($id);
-
-    if (strtoupper($u->title) == 'BOT') return true;
-    return false;
 }
 
 // Print varlue to browser
@@ -2116,7 +1427,6 @@ function get_browser_name($user_agent)
     return 'Unkown';
 }
 
-// RANDOM NGANLUONG_CODE
 function get_payment_link()
 {
     $length = 10;
@@ -2152,13 +1462,16 @@ require_once 'custom/include/utils/Flight.php';
 require_once 'custom/include/utils/FareClass.php';
 require_once 'custom/include/utils/Baggage.php';
 require_once 'custom/include/utils/printSendTicket.php';
+
 // Init helpers
 foreach (glob("custom/include/helpers/*Helper.php") as $file) {
     if (is_file($file)) require_once $file;
 }
+
 foreach (glob("custom/include/helpers/cache/*Helper.php") as $file) {
     if (is_file($file)) require_once $file;
 }
+
 foreach (glob("custom/include/helpers/modules/*Helper.php") as $file) {
     if (is_file($file)) require_once $file;
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
@@ -90,8 +91,6 @@ function handleSubs($subs, $email, $json, $user = null)
 
 //increate timeout for phpo script execution
 ini_set('max_execution_time', 300);
-//ajaxInit();
-
 
 require_once("include/OutboundEmail/OutboundEmail.php");
 require_once("include/ytree/Tree.php");
@@ -114,7 +113,7 @@ if (isset($_REQUEST['emailUIAction'])) {
     } else {
         $GLOBALS['log']->debug(
             'If you are on user edit view and want to apply the email settings for the selected user,' .
-            ' add user to request on user edit view: [emailUIAction:' . $_REQUEST['emailUIAction'] . ']'
+                ' add user to request on user edit view: [emailUIAction:' . $_REQUEST['emailUIAction'] . ']'
         );
     }
 
@@ -188,7 +187,7 @@ if (isset($_REQUEST['emailUIAction'])) {
             $email->type = 'out';
             $email->status = 'sent';
 
-            if (isset($_REQUEST['email_id']) && !empty($_REQUEST['email_id'])) {// && isset($_REQUEST['saveDraft']) && !empty($_REQUEST['saveDraft'])) {
+            if (isset($_REQUEST['email_id']) && !empty($_REQUEST['email_id'])) { // && isset($_REQUEST['saveDraft']) && !empty($_REQUEST['saveDraft'])) {
                 $email->retrieve($_REQUEST['email_id']); // uid is GUID in draft cases
             }
             if (isset($_REQUEST['uid']) && !empty($_REQUEST['uid'])) {
@@ -275,67 +274,67 @@ if (isset($_REQUEST['emailUIAction'])) {
             }
             break;
 
-    case "deleteSignature":
-        $GLOBALS['log']->debug("********** EMAIL 2.0 - Asynchronous - at: deleteSignature");
-        if (isset($_REQUEST['id'])) {
-            require_once("modules/Users/UserSignature.php");
-            $us = new UserSignature();
-            $us->mark_deleted($_REQUEST['id']);
-            $signatureArray = $current_user->getSignaturesArray();
-            // clean "none"
-            foreach ($signatureArray as $k => $v) {
-                if ($k == "") {
-                    $sigs[$k] = $app_strings['LBL_NONE'];
-                } else {
-                    if (is_array($v) && isset($v['name'])) {
-                        $sigs[$k] = $v['name'];
+        case "deleteSignature":
+            $GLOBALS['log']->debug("********** EMAIL 2.0 - Asynchronous - at: deleteSignature");
+            if (isset($_REQUEST['id'])) {
+                require_once("modules/Users/UserSignature.php");
+                $us = new UserSignature();
+                $us->mark_deleted($_REQUEST['id']);
+                $signatureArray = $current_user->getSignaturesArray();
+                // clean "none"
+                foreach ($signatureArray as $k => $v) {
+                    if ($k == "") {
+                        $sigs[$k] = $app_strings['LBL_NONE'];
                     } else {
-                        $sigs[$k] = $v;
-                    }
-                }
-            }
-            $out['signatures'] = $signatureArray;
-            $ret = $json->encode($out);
-            echo $ret;
-        } else {
-            die();
-        }
-        break;
-    case 'getTemplateAttachments':
-        $GLOBALS['log']->debug("********** EMAIL 2.0 - Asynchronous - at: getTemplateAttachments");
-        if (isset($_REQUEST['parent_id']) && !empty($_REQUEST['parent_id'])) {
-            $db = DBManagerFactory::getInstance();
-
-
-            $where = "parent_id='{$db->quote($_REQUEST['parent_id'])}'";
-            $order = '';
-            $seed = BeanFactory::newBean('Notes');
-            $fullList = $seed->get_full_list($order, $where, '');
-            $all_fields = array_merge($seed->column_fields, $seed->additional_column_fields);
-
-            $js_fields_arr = array();
-
-            $i=1; // js doesn't like 0 index?
-            if (!empty($fullList)) {
-                foreach ($fullList as $note) {
-                    $js_fields_arr[$i] = array();
-
-                    foreach ($all_fields as $field) {
-                        if (isset($note->$field)) {
-                            $note->$field = from_html($note->$field);
-                            $note->$field = preg_replace('/\r\n/', '<BR>', $note->$field);
-                            $note->$field = preg_replace('/\n/', '<BR>', $note->$field);
-                            $js_fields_arr[$i][$field] = addslashes($note->$field);
+                        if (is_array($v) && isset($v['name'])) {
+                            $sigs[$k] = $v['name'];
+                        } else {
+                            $sigs[$k] = $v;
                         }
                     }
-                    $i++;
                 }
+                $out['signatures'] = $signatureArray;
+                $ret = $json->encode($out);
+                echo $ret;
+            } else {
+                die();
             }
+            break;
+        case 'getTemplateAttachments':
+            $GLOBALS['log']->debug("********** EMAIL 2.0 - Asynchronous - at: getTemplateAttachments");
+            if (isset($_REQUEST['parent_id']) && !empty($_REQUEST['parent_id'])) {
+                $db = DBManagerFactory::getInstance();
 
-            $out = $json->encode($js_fields_arr);
-            echo $out;
-        }
-        break;
+
+                $where = "parent_id='{$db->quote($_REQUEST['parent_id'])}'";
+                $order = '';
+                $seed = BeanFactory::newBean('Notes');
+                $fullList = $seed->get_full_list($order, $where, '');
+                $all_fields = array_merge($seed->column_fields, $seed->additional_column_fields);
+
+                $js_fields_arr = array();
+
+                $i = 1; // js doesn't like 0 index?
+                if (!empty($fullList)) {
+                    foreach ($fullList as $note) {
+                        $js_fields_arr[$i] = array();
+
+                        foreach ($all_fields as $field) {
+                            if (isset($note->$field)) {
+                                $note->$field = from_html($note->$field);
+                                $note->$field = preg_replace('/\r\n/', '<BR>', $note->$field);
+                                $note->$field = preg_replace('/\n/', '<BR>', $note->$field);
+                                $js_fields_arr[$i][$field] = addslashes($note->$field);
+                            }
+                        }
+                        $i++;
+                    }
+                }
+
+                $out = $json->encode($js_fields_arr);
+                echo $out;
+            }
+            break;
         ////    END COMPOSE REPLY FORWARD
         ///////////////////////////////////////////////////////////////////////////
 
@@ -379,7 +378,7 @@ if (isset($_REQUEST['emailUIAction'])) {
                     break;
                 }
                 $people = array("Users", "Contacts");
-                $showSaveToAddressBookButton = false;//(in_array($_REQUEST['qc_module'], $people)) ? true : false;
+                $showSaveToAddressBookButton = false; //(in_array($_REQUEST['qc_module'], $people)) ? true : false;
 
                 if (isset($_REQUEST['sugarEmail']) && !empty($_REQUEST['sugarEmail'])) {
                     $ie->email->retrieve($_REQUEST['uid']); // uid is a sugar GUID in this case
@@ -503,7 +502,8 @@ if (isset($_REQUEST['emailUIAction'])) {
             break;
 
         case "relateEmails":
-            if (isset($_REQUEST['uid']) && !empty($_REQUEST['uid']) &&
+            if (
+                isset($_REQUEST['uid']) && !empty($_REQUEST['uid']) &&
                 isset($_REQUEST['parent_id']) && !empty($_REQUEST['parent_id']) &&
                 isset($_REQUEST['parent_type']) && !empty($_REQUEST['parent_type'])
             ) {
@@ -553,7 +553,8 @@ if (isset($_REQUEST['emailUIAction'])) {
             break;
         case "doAssignmentDelete":
             $GLOBALS['log']->debug("********** EMAIL 2.0 - Asynchronous - at: doAssignmentDelete");
-            if (isset($_REQUEST['uids']) && !empty($_REQUEST['uids']) &&
+            if (
+                isset($_REQUEST['uids']) && !empty($_REQUEST['uids']) &&
                 isset($_REQUEST['ieId']) && !empty($_REQUEST['ieId']) &&
                 isset($_REQUEST['folder']) && !empty($_REQUEST['folder'])
             ) {
@@ -564,7 +565,8 @@ if (isset($_REQUEST['emailUIAction'])) {
         case "markEmail":
             global $app_strings;
             $GLOBALS['log']->debug("********** EMAIL 2.0 - Asynchronous - at: markEmail");
-            if (isset($_REQUEST['uids']) && !empty($_REQUEST['uids']) &&
+            if (
+                isset($_REQUEST['uids']) && !empty($_REQUEST['uids']) &&
                 isset($_REQUEST['type']) && !empty($_REQUEST['type']) &&
                 isset($_REQUEST['folder']) && !empty($_REQUEST['folder']) &&
                 isset($_REQUEST['ieId']) && (!empty($_REQUEST['ieId']) || (empty($_REQUEST['ieId']) && strpos(
@@ -587,13 +589,14 @@ if (isset($_REQUEST['emailUIAction'])) {
                 $GLOBALS['log']->debug("********** EMAIL 2.0 - Marking emails $uids as {$_REQUEST['type']}");
 
                 $ret = array();
-                if (strpos(
-                    $_REQUEST['folder'],
-                    'sugar::'
-                ) !== false && ($_REQUEST['type'] == 'deleted') && !ACLController::checkAccess(
-                    'Emails',
-                    'delete'
-                        )
+                if (
+                    strpos(
+                        $_REQUEST['folder'],
+                        'sugar::'
+                    ) !== false && ($_REQUEST['type'] == 'deleted') && !ACLController::checkAccess(
+                        'Emails',
+                        'delete'
+                    )
                 ) {
                     $ret['status'] = false;
                     $ret['message'] = $app_strings['LBL_EMAIL_DELETE_ERROR_DESC'];
@@ -865,8 +868,7 @@ eoq;
                         $_REQUEST['ieId'],
                         'messages',
                         $_REQUEST['mbox'] . $uid . ".php"
-                    )
-                    ) {
+                    )) {
                         $msg = $email->et->getCacheValue(
                             $_REQUEST['ieId'],
                             'messages',
@@ -947,7 +949,7 @@ eoq;
                 ob_start();
                 echo $out;
                 ob_end_flush();
-            //die();
+                //die();
             } else {
                 echo $msg = 'error: no ieID';
                 $GLOBALS['log']->error($msg);
@@ -1130,8 +1132,8 @@ eoq;
             $isValidator = new SuiteValidator();
             $user =
                 isset($_REQUEST['user']) && $_REQUEST['user'] && $isValidator->isValidId($_REQUEST['user']) ?
-                    BeanFactory::getBean('Users', $_REQUEST['user']) :
-                    $current_user;
+                BeanFactory::getBean('Users', $_REQUEST['user']) :
+                $current_user;
 
             $out = handleSubs($_REQUEST['ieIdShow'], $email, $json, $user);
 
@@ -1181,7 +1183,8 @@ eoq;
         case "renameFolder":
             $GLOBALS['log']->debug("********** EMAIL 2.0 - Asynchronous - at: renameFolder");
 
-            if (isset($_REQUEST['ieId']) && isset($_REQUEST['oldFolderName']) && !empty($_REQUEST['oldFolderName'])
+            if (
+                isset($_REQUEST['ieId']) && isset($_REQUEST['oldFolderName']) && !empty($_REQUEST['oldFolderName'])
                 && isset($_REQUEST['newFolderName']) && !empty($_REQUEST['newFolderName'])
             ) {
                 $ie->retrieve($_REQUEST['ieId']);
@@ -1670,8 +1673,8 @@ eoq;
             if (isset($_REQUEST['args']) && !empty($_REQUEST['args'])) {
                 $email->et->saveContactEdit($_REQUEST['args']);
             }
-        // flow into getUserContacts();
-        // no break
+            // flow into getUserContacts();
+            // no break
         case "addContact":
             $GLOBALS['log']->debug("********** EMAIL 2.0 - Asynchronous - at: addContacts");
             $contacts = array();
