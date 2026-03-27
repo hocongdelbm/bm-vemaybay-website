@@ -15,17 +15,17 @@ $searchFields[$module_name] = array(
     ),
     'assigned_user_id' => array('query_type' => 'default'),
     'booking' => array(
-        'query_type' => 'default',
+        'query_type' => 'format',
         'operator' => 'subquery',
-        'subquery' => '
+        'subquery' => "
             SELECT ct.parent_id 
             FROM ec_chitiethoadon ct
             INNER JOIN ec_flight_bookings b ON b.id = ct.booking_id
             AND b.deleted = 0 
-            WHERE ct.deleted = 0 AND b.name LIKE ',
+            WHERE ct.deleted = 0 AND b.name = '{0}'",
         'db_field' => array('id'),
     ),
-    'ticket_number' => array(
+    'ticket_number' => array( 
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => '

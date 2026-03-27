@@ -974,13 +974,6 @@ class SearchForm
 
             if (isset($parms['value']) && $parms['value'] != "") {
                 $operator = $db->isNumericType($type) ? '=' : 'like';
-                if (empty($parms['operator'])
-                    && !$db->isNumericType($type)
-                    && !empty($parms['query_type'])
-                    && strtolower($parms['query_type']) == 'equals'
-                ) {
-                    $operator = '=';
-                }
                 if (!empty($parms['operator'])) {
                     $operator = strtolower($parms['operator']);
                 }
