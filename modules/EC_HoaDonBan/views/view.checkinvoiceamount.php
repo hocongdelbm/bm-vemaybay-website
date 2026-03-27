@@ -207,68 +207,48 @@ class Viewcheckinvoiceamount extends SugarView {
                 , SUM(bkd.quantity) AS total_quantity
                 , bk.total_amount AS subtotal_amount 
                 , (
+                    SUM(IFNULL(bkd.total_bought_price,0))
+                    +
                     IFNULL((
-                        SELECT SUM(IFNULL(pc1.down * 1000, 0))
-                        FROM ec_contact_points_log pc1
-                        WHERE pc1.parent_type = 'EC_Flight_Bookings' 
-                            AND pc1.parent_id = bk.id 
-                            AND pc1.deleted = 0
+                        SELECT IF(bk.flight_type = '0', SUM(IFNULL(px.luggage_purchase, 0)) + SUM(IFNULL(px.luggage_purchase_inbound, 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
+                        FROM ec_booking_passengers px
+                        WHERE px.booking_id = bk.id 
+                            AND (px.add_type IS NULL OR px.add_type = '')
+                            AND px.deleted = 0 
                     ), 0)
-                    -  
-                    IFNULL((
-                        SELECT SUM(IFNULL(pc2.up * 1000, 0))
-                        FROM ec_contact_points_log pc2
-                        WHERE pc2.parent_type = 'EC_Contact_Points_Log' 
-                            AND pc2.parent_id IN (
-                                SELECT pc_inner.id
-                                FROM ec_contact_points_log pc_inner
-                                WHERE pc_inner.parent_type = 'EC_Flight_Bookings' 
-                                    AND pc_inner.parent_id = bk.id 
-                                    AND pc_inner.deleted = 0
-                            )
-                            AND pc2.deleted = 0
-                    ), 0)
-                ) AS total_points_amount
-                , (SUM(IFNULL(bkd.total_bought_price,0))
-                +
-                IFNULL((
-                    SELECT IF(bk.flight_type = '0', SUM(IFNULL(px.luggage_purchase, 0)) +  SUM(IFNULL(px.luggage_purchase_inbound, 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
-                    FROM ec_booking_passengers px
-                    WHERE px.booking_id = bk.id 
-                        AND px.deleted = 0 
-                        AND (px.add_type IS NULL OR px.add_type = '')
-                ),0)) AS total_bought_price
+                ) AS total_bought_price
                 , bk.flight_type
                 , bk.ticket_type
                 , bk.booking_status AS parent_status
                 , IFNULL((
-                    SELECT SUM(IFNULL(r.amount_converted,0))
+                    SELECT SUM(IFNULL(r.amount_converted, 0))
                     FROM ec_receipt_voucher r
                     WHERE r.booking_id = bk.id
-                        AND r.rv_status='1'
-                        AND r.loai_thu='1'
-                        AND r.deleted=0
+                        AND r.loai_thu IN ('1', '4', '5', '14')
+                        AND r.rv_status = '1'
+                        AND r.deleted = 0
                     GROUP BY r.booking_id
                 ), 0) AS receipt_amount
                 ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
-                ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y %H:%i') AS bk_date_entered
-                ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y') AS voucher_date
-                ,(
-                    SELECT DATE_ADD(date_entered, INTERVAL 7 HOUR)
-                    FROM ec_working_process
-                    WHERE deleted = 0 AND paid = 1 AND parent_id = bk.id
-                ) AS paid_time
                 , bk.is_telesale as is_telesale
                 , bk.is_ctv as is_ctv
                 , bk.is_reference as is_reference
-                , hdb.tongthanhtoan AS invoice_amount
-                , hdb.name AS chungtuhoadon
-                , hdb.ngayhoadon
-                , hdb.sohoadon
+                , (hd.tong_gia_ban + hd.tong_thue + hd.tong_thu_ho) AS invoice_amount
+                , hd.danh_sach_hd AS invoice_list
             FROM ec_booking_details bkd 
                 LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id AND bk.deleted = 0
-                LEFT JOIN ec_chitiethoadon cthd ON cthd.booking_id = bk.id AND cthd.deleted = 0 AND cthd.parent_id != ''
-                LEFT JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
+                LEFT JOIN (
+                    SELECT cthd.booking_id AS booking_id
+                        ,SUM(dongia * soluong) AS tong_gia_ban
+                        ,SUM(tienthue) AS tong_thue
+				        ,SUM(phithuho * soluong) AS tong_thu_ho
+                        ,GROUP_CONCAT(DISTINCT CONCAT(hdb.sohoadon, '|', hdb.ngayhoadon) SEPARATOR ';') AS danh_sach_hd
+                    FROM ec_chitiethoadon cthd
+                        INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
+                    WHERE cthd.deleted = 0
+                    GROUP BY cthd.booking_id
+                ) AS hd ON hd.booking_id = bk.id
+
             WHERE bk.booking_status IN ('3', '7', '8')
                 AND bk.date_ticket_issue $operator_between_range_date
                 $where_bk_fields
@@ -278,6 +258,7 @@ class Viewcheckinvoiceamount extends SugarView {
             GROUP BY bk.id
             $sql_having";
 
+        pr($sql);
         return $sql;
     }
 
@@ -300,7 +281,20 @@ class Viewcheckinvoiceamount extends SugarView {
             $receipt_amount = format_number($row['receipt_amount']);
             $invoice_amount = format_number($row['invoice_amount']);
             $date_ticket_issue = date($this->userDateFormat, strtotime($row['date_ticket_issue']));
-            $ngayhoadon = !empty($row['ngayhoadon']) ? date($this->userDateFormat, strtotime($row['ngayhoadon'])) : '';
+
+            $list_inv_number = $list_inv_date = [];
+            $invoice_list = explode(";", $row['invoice_list'] ?? '');
+            if(is_array($invoice_list)) {
+                foreach ($invoice_list as $inv) {
+                    $inv_attr = explode("|", $inv);
+                    if(is_array($inv_attr) && count($inv_attr) > 1) {
+                        $list_inv_number[] = $inv_attr[0];
+                        $list_inv_date[] = empty($inv_attr[1]) ? date($this->userDateFormat, strtotime($inv_attr[1])) : '';
+                    }
+                }
+            }
+            $list_str_inv_number = implode("<br />", $list_inv_number);
+            $list_str_inv_date = implode("<br />", $list_inv_date);
 
             $tr_style = ($subtotal_amount != $receipt_amount || $subtotal_amount != $invoice_amount) ? "background:#ffebeb" : "";
 
@@ -325,8 +319,8 @@ class Viewcheckinvoiceamount extends SugarView {
                             <b>$invoice_amount</b>
                         </a>
                     </td>
-                    <td class="text-center ngay_hoa_don">$ngayhoadon</td>
-                    <td class="text-end so_hoa_don">{$row['sohoadon']}</td>
+                    <td class="text-center ngay_hoa_don">{$list_str_inv_number}</td>
+                    <td class="text-end so_hoa_don">{$list_str_inv_date}</td>
                 </tr>
             HTML;
 
