@@ -119,7 +119,7 @@ class entryBookingClass extends entryClass {
         }
 
         try {
-            $locationService = new \Custom\Services\Location\LocationService();
+            $locationService = new custom\services\Location\LocationService();
             $res = $locationService->reverseGeocode($lat, $long);
 
             if(isset($res['status']) && $res['status']) {
