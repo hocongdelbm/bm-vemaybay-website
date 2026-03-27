@@ -30,6 +30,7 @@ $job_strings[] = 'resetRewardPoints'; // Reset lại điểm tích lũy của li
 $job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
 $job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
 
+$job_strings[] = 'migrateZaloImagesToNextCloud'; // migrate ảnh Zalo (7 ngày) lên NextCloud
 /**
  * Thông báo hành trình cần checkin
  */
@@ -2418,4 +2419,172 @@ function resetRewardPoints()
 		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
 		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
 	}
+}
+
+/**
+ * Cuối mỗi ngày: tìm tất cả tin nhắn Zalo có ảnh (URL còn trỏ về Zalo CDN),
+ * tải về local, upload lên NextCloud, tạo public share, cập nhật lại DB.
+ */
+function migrateZaloImagesToNextCloud()
+{
+	global $db;
+
+	$today = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
+
+	// ── 1. Lấy những record cần xử lý ──────────────────────────────────────
+	// Chỉ lấy trong ngày hôm nay, type=consultation, sub_type=image,
+	// thumbnail/url vẫn còn là link Zalo CDN (chưa phải link NextCloud).
+
+	$sql = "SELECT id, thumbnail, url, data
+            FROM ec_zalo_messages
+            WHERE deleted = 0
+                AND type = 'consultation'
+                AND sub_type = 'image'
+                AND DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = '$today'
+                AND thumbnail IS NOT NULL
+                AND thumbnail != ''
+                AND (
+                    thumbnail NOT LIKE '%/s/%'
+                    OR url NOT LIKE '%/s/%'
+                )"; //vì link public dạng này:https://vnbackup.com/s/hdhdhdsjdh
+
+	$res = $db->query($sql);
+	if ($db->countRows($res) == 0) {
+		$GLOBALS['log']->info('migrateZaloImagesToNextCloud: No records to migrate today.');
+		return true;
+	}
+
+	// ── 2. Khởi tạo APINextCloud & tạo folder theo ngày ────────────────────
+	require_once 'custom/include/helpers/api/APINextCloud.php';
+	$api = new APINextCloud();
+
+	$folderParts = [
+		'bmvmb',
+		'bmvmb/modules',
+		'bmvmb/modules/ec_zalo_messages',
+		'bmvmb/modules/ec_zalo_messages/' . date('Y'),
+		'bmvmb/modules/ec_zalo_messages/' . date('Y') . '/' . date('m'),
+		'bmvmb/modules/ec_zalo_messages/' . date('Y') . '/' . date('m') . '/' . date('d'),
+	];
+	foreach ($folderParts as $part) {
+		$api->createFolder($part); // MKCOL: bỏ qua 405 nếu folder đã có
+	}
+
+	$folderPath  = end($folderParts);
+	$uploadDir   = 'cache/upload/';
+	if (!is_dir($uploadDir)) {
+		sugar_mkdir($uploadDir, 0755, true);
+	}
+
+	// ── 3. Lặp từng record ──────────────────────────────────────────────────
+	while ($row = $db->fetchByAssoc($res)) {
+		try {
+			$imageUrl = !empty($row['url']) ? $row['url'] : $row['thumbnail'];
+
+			// 3a. Tải ảnh từ Zalo CDN về local
+			$fetchResult = $api->fetchPublicFile($imageUrl);
+			if (!$fetchResult['success']) {
+				$GLOBALS['log']->error(
+					"migrateZaloImagesToNextCloud: Download failed for id={$row['id']}, "
+						. "url=$imageUrl, error={$fetchResult['error']}"
+				);
+				continue;
+			}
+
+			// 3b. Xác định extension
+			$ext = 'jpg';
+			if (preg_match('/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i', $imageUrl, $m)) {
+				$ext = strtolower($m[1]);
+			} elseif (!empty($fetchResult['contentType'])) {
+				$mimeMap = [
+					'image/jpeg' => 'jpg',
+					'image/png'  => 'png',
+					'image/gif'  => 'gif',
+					'image/webp' => 'webp',
+				];
+				$ct  = strtolower(explode(';', $fetchResult['contentType'])[0]);
+				$ext = $mimeMap[trim($ct)] ?? 'jpg';
+			}
+
+			$safeId     = str_replace('-', '', $row['id']);
+			$fileName   = $safeId . '_' . time() . '.' . $ext;
+			$localPath  = $uploadDir . $fileName;
+			$remotePath = $folderPath . '/' . $fileName;
+
+			// 3c. Lưu file tạm
+			if (file_put_contents($localPath, $fetchResult['data']) === false) {
+				$GLOBALS['log']->error("migrateZaloImagesToNextCloud: Cannot write local file $localPath");
+				continue;
+			}
+
+			// 3d. Upload lên NextCloud
+			$uploadResult = json_decode($api->uploadFile($localPath, $remotePath), true);
+			if (empty($uploadResult) || (int)($uploadResult['status'] ?? 0) !== 1) {
+				$GLOBALS['log']->error(
+					"migrateZaloImagesToNextCloud: Upload failed for id={$row['id']}, remote=$remotePath, "
+						. "response=" . json_encode($uploadResult)
+				);
+				@unlink($localPath);
+				continue;
+			}
+
+			// 3e. Tạo public share (read-only, no password)
+			$shareResult = json_decode($api->createShare($remotePath, 1), true);
+			if (empty($shareResult) || (int)($shareResult['status'] ?? 0) !== 1) {
+				$GLOBALS['log']->error(
+					"migrateZaloImagesToNextCloud: Share creation failed for id={$row['id']}, "
+						. "response=" . json_encode($shareResult)
+				);
+				@unlink($localPath);
+				continue;
+			}
+
+			// NextCloud trả về share URL dạng: https://vnbackup.com/s/abcsiueh
+			// Download trực tiếp: thêm /download vào cuối
+			$shareUrl    = rtrim($shareResult['data']['url'] ?? '', '/');
+			if (empty($shareUrl)) {
+				$GLOBALS['log']->error("migrateZaloImagesToNextCloud: Empty share URL for id={$row['id']}");
+				@unlink($localPath);
+				continue;
+			}
+
+			// 3f. Cập nhật JSON trong field `data`
+			$dataJson = json_decode($row['data'] ?? '{}', true);
+			if (isset($dataJson['message']['attachments']) && is_array($dataJson['message']['attachments'])) {
+				foreach ($dataJson['message']['attachments'] as &$attachment) {
+					if (($attachment['type'] ?? '') === 'image') {
+						$attachment['payload']['thumbnail'] = $shareUrl;
+						$attachment['payload']['url']       = $shareUrl;
+					}
+				}
+				unset($attachment);
+			}
+
+			// 3g. UPDATE database
+			$safeShareUrl = $db->quote($shareUrl);
+			$db->query("
+                UPDATE ec_zalo_messages
+                SET thumbnail     = '$safeShareUrl',
+                    url           = '$safeShareUrl',
+                    date_modified = NOW()
+                WHERE id = '{$row['id']}'
+                  AND deleted = 0
+            ");
+
+			$GLOBALS['log']->info("migrateZaloImagesToNextCloud: Successfully migrated image for id={$row['id']}, shareUrl=$shareUrl");
+		} catch (Throwable $th) {
+			$GLOBALS['log']->error(
+				"migrateZaloImagesToNextCloud: Exception for id={$row['id']}: "
+					. "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}"
+			);
+		} finally {
+			// Luôn xoá file tạm dù thành công hay thất bại
+			if (!empty($localPath) && file_exists($localPath)) {
+				@unlink($localPath);
+			}
+		}
+	}
+
+	$GLOBALS['log']->info('migrateZaloImagesToNextCloud: Done.');
+	return true;
 }
