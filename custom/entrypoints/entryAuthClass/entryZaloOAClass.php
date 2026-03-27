@@ -2,6 +2,8 @@
 require_once "custom/entrypoints/entryClass.php";
 require_once "custom/include/helpers/api/APIZaloOA.php";
 
+use custom\services\Notification\NotificationService;
+
 /**
  * Class entryZaloOAClass
  */

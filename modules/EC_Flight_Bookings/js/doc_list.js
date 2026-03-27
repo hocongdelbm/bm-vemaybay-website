@@ -1,9 +1,10 @@
 if (typeof ENTRYPOINT === 'undefined') {
     const ENTRYPOINT = 'index.php?entryPoint=entryPointGeneral';
 }
+
 function showUploadedDocuments(booking_id) {
     showLoadingPopup();
-    
+
     $.ajax({
         url: ENTRYPOINT,
         type: 'POST',
@@ -18,15 +19,14 @@ function showUploadedDocuments(booking_id) {
         }),
         success: function (response) {
             hideLoadingPopup();
-            
+
             if (response.success) {
                 renderDocumentPopup(response.documents);
-                console.log('Tài liệu đã tải lên:', response.documents);
             } else {
                 alert('Lỗi: ' + (response.error || 'Không thể tải dữ liệu'));
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             hideLoadingPopup();
             console.error('Lỗi kết nối: ' + error);
         }
@@ -39,57 +39,56 @@ function renderDocumentPopup(documents) {
     if (oldPopup) {
         oldPopup.remove();
     }
-    
+
     // Tạo HTML cho popup
     var html = '<div id="uploaded-docs-dialog" class="custom-dialog-overlay">' +
-               '<div class="custom-dialog-container">' +
-               '<div class="custom-dialog-header">' +
-               '<h3>Danh sách tài liệu đã tải lên</h3>' +
-               '<button class="custom-dialog-close" onclick="closeDocumentPopup()">&times;</button>' +
-               '</div>' +
-               '<div class="custom-dialog-body">' +
-               '<table class="custom-table">' +
-               '<thead>' +
-               '<tr>' +
-               '<th>Tên tài liệu</th>' +
-               '<th>Ảnh</th>' +
-               '<th>Danh mục</th>' +
-               '<th>Ngày tải</th>' +
-               '<th>Người tải</th>' +
-               '<th>Thao tác</th>' +
-               '</tr>' +
-               '</thead>' +
-               '<tbody>';
-    
+        '<div class="custom-dialog-container">' +
+        '<div class="custom-dialog-header">' +
+        '<h3 class="m-0 sub-title">Danh sách tài liệu đã tải lên</h3>' +
+        '<button class="custom-dialog-close" onclick="closeDocumentPopup()">&times;</button>' +
+        '</div>' +
+        '<div class="custom-dialog-body">' +
+        '<table class="custom-table">' +
+        '<thead>' +
+        '<tr>' +
+        '<th>Tên tài liệu</th>' +
+        '<th>Ảnh</th>' +
+        '<th>Danh mục</th>' +
+        '<th>Ngày tải</th>' +
+        '<th>Người tải</th>' +
+        '<th>Thao tác</th>' +
+        '</tr>' +
+        '</thead>' +
+        '<tbody>';
+
     if (documents && documents.length > 0) {
-        documents.forEach(function(doc) {
-            // Use direct doc_url for download if available (already has /download), otherwise fallback to download.php
+        documents.forEach(function (doc) {
             var downloadUrl = doc.doc_url + '/download';
-            
+
             html += '<tr>' +
-                    '<td><a href="index.php?module=Documents&action=DetailView&record=' + doc.id + '" target="_blank" style="color: #0a58ca; text-decoration: none;">' + doc.document_name + '</a></td>' +
-                    '<td>' + (doc.preview_image && doc.preview_image !== "Không phải file ảnh" && doc.preview_image !== "" ? '<img src="' + doc.preview_image + '" alt="Preview" style="max-width: 100px; max-height: 100px;">' : 'Không có preview') + '</td>' +
-                    '<td>' + doc.category + '</td>' +
-                    '<td>' + doc.date_entered + '</td>' +
-                    '<td>' + doc.created_by_name + '</td>' +
-                    '<td>' +
-                        '<a href="' + downloadUrl + '" class="uiverse-btn" target="_blank" class="tabDetailViewDFLink"><span class="box box-success">Tải</span></a>' +
-                    '</td>' +
-                    '</tr>';
+                '<td><a href="index.php?module=Documents&action=DetailView&record=' + doc.id + '" target="_blank" style="color: #0a58ca; text-decoration: none;">' + doc.document_name + '</a></td>' +
+                '<td>' + (doc.preview_image && doc.preview_image !== "Không phải file ảnh" && doc.preview_image !== "" ? '<img src="' + doc.preview_image + '" alt="Preview" style="max-width: 100px; max-height: 100px;">' : 'Không có preview') + '</td>' +
+                '<td>' + doc.category + '</td>' +
+                '<td>' + doc.date_entered + '</td>' +
+                '<td>' + doc.created_by_name + '</td>' +
+                '<td>' +
+                '<a href="' + downloadUrl + '" class="uiverse-btn" target="_blank" class="tabDetailViewDFLink"><span class="box box-success">Tải</span></a>' +
+                '</td>' +
+                '</tr>';
         });
     } else {
         html += '<tr><td colspan="6" style="text-align:center; padding:20px; color:#999;">Chưa có tài liệu nào</td></tr>';
     }
-    
+
     html += '</tbody>' +
-            '</table>' +
-            '</div>' +
-            '<div class="custom-dialog-footer">' +
-            '<button class="custom-btn custom-btn-default" onclick="closeDocumentPopup()">Đóng</button>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
-    
+        '</table>' +
+        '</div>' +
+        '<div class="custom-dialog-footer">' +
+        '<button class="btn btn-secondary custom-btn custom-btn-default" onclick="closeDocumentPopup()">Đóng</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+
     // Thêm CSS nếu chưa có
     if (!document.getElementById('custom-dialog-styles')) {
         var style = document.createElement('style');
@@ -136,11 +135,6 @@ function renderDocumentPopup(documents) {
                 background: #f8f9fa;
                 border-radius: 8px 8px 0 0;
             }
-            .custom-dialog-header h3 {
-                margin: 0;
-                font-size: 20px;
-                color: #333;
-            }
             .custom-dialog-close {
                 background: none;
                 border: none;
@@ -165,11 +159,6 @@ function renderDocumentPopup(documents) {
                 padding: 20px;
                 overflow-y: auto;
                 flex: 1;
-            }
-            .custom-table {
-                width: 100%;
-                border-collapse: collapse;
-                border: 1px solid #ddd;
             }
             .custom-table th {
                 background: #f8f9fa;
@@ -278,17 +267,10 @@ function renderDocumentPopup(documents) {
             .box.box-success:hover:after {
                 border-color: #28a745;
             }
-            .custom-btn-default {
-                background: #6c757d;
-                color: white;
-            }
-            .custom-btn-default:hover {
-                background: #5a6268;
-            }
         `;
         document.head.appendChild(style);
     }
-    
+
     // Thêm popup vào body
     document.body.insertAdjacentHTML('beforeend', html);
 }
@@ -297,7 +279,7 @@ function closeDocumentPopup() {
     var popup = document.getElementById('uploaded-docs-dialog');
     if (popup) {
         popup.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(function() {
+        setTimeout(function () {
             popup.remove();
         }, 300);
     }
@@ -305,21 +287,21 @@ function closeDocumentPopup() {
 
 function showLoadingPopup() {
     var html = '<div id="loading-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; ' +
-               'background:rgba(0,0,0,0.6); z-index:10000; display:flex; align-items:center; justify-content:center;">' +
-               '<div style="background:white; padding:30px 40px; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.3); text-align:center;">' +
-               '<div class="spinner" style="border:4px solid #f3f3f3; border-top:4px solid #3498db; border-radius:50%; ' +
-               'width:50px; height:50px; animation:spin 1s linear infinite; margin:0 auto;"></div>' +
-               '<p style="margin-top:15px; margin-bottom:0; color:#333; font-size:16px;">Đang tải...</p>' +
-               '</div>' +
-               '</div>';
-    
+        'background:rgba(0,0,0,0.6); z-index:10000; display:flex; align-items:center; justify-content:center;">' +
+        '<div style="background:white; padding:30px 40px; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.3); text-align:center;">' +
+        '<div class="spinner" style="border:4px solid #f3f3f3; border-top:4px solid #3498db; border-radius:50%; ' +
+        'width:50px; height:50px; animation:spin 1s linear infinite; margin:0 auto;"></div>' +
+        '<p style="margin-top:15px; margin-bottom:0; color:#333; font-size:16px;">Đang tải...</p>' +
+        '</div>' +
+        '</div>';
+
     if (!document.getElementById('spinner-keyframes')) {
         var style = document.createElement('style');
         style.id = 'spinner-keyframes';
         style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
         document.head.appendChild(style);
     }
-    
+
     document.body.insertAdjacentHTML('beforeend', html);
 }
 

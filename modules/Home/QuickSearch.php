@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
@@ -156,7 +157,7 @@ class quicksearchQuery
 
         $table = $focus->getTableName();
         if (!empty($table)) {
-            $table_prefix = $db->getValidDBName($table).".";
+            $table_prefix = $db->getValidDBName($table) . ".";
         } else {
             $table_prefix = '';
         }
@@ -182,7 +183,7 @@ class quicksearchQuery
                             $table_prefix . $db->getValidDBName($condition['name']),
                             $db->quote(
                                 $condition['value']
-                    )
+                            )
                         )
                     );
                     break;
@@ -204,12 +205,12 @@ class quicksearchQuery
                         if (strpos($nameFormat, 'l') > strpos($nameFormat, 'f')) {
                             array_push(
                                 $conditionArray,
-                                $db->concat($table, array('first_name','last_name')) . " like '$like'"
+                                $db->concat($table, array('first_name', 'last_name')) . " like '$like'"
                             );
                         } else {
                             array_push(
                                 $conditionArray,
-                                $db->concat($table, array('last_name','first_name')) . " like '$like'"
+                                $db->concat($table, array('last_name', 'first_name')) . " like '$like'"
                             );
                         }
                     } else {
@@ -225,14 +226,14 @@ class quicksearchQuery
                         array_push(
                             $conditionArray,
                             sprintf("(%s = '%s')", $db->getValidDBName($condition['name']), $db->quote($condition['value']))
-                            );
+                        );
                     }
                     break;
 
                 default:
                     array_push(
                         $conditionArray,
-                        $table_prefix.$db->getValidDBName($condition['name']) . sprintf(" like '%s%%'", $db->quote($condition['value']))
+                        $table_prefix . $db->getValidDBName($condition['name']) . sprintf(" like '%s%%'", $db->quote($condition['value']))
                     );
             }
         }
@@ -283,7 +284,8 @@ class quicksearchQuery
                 }
                 // handle enums
                 if ((isset($results[$i]->field_name_map[$field]['type']) && $results[$i]->field_name_map[$field]['type'] == 'enum')
-                    || (isset($results[$i]->field_name_map[$field]['custom_type']) && $results[$i]->field_name_map[$field]['custom_type'] == 'enum')) {
+                    || (isset($results[$i]->field_name_map[$field]['custom_type']) && $results[$i]->field_name_map[$field]['custom_type'] == 'enum')
+                ) {
 
                     // get fields to match enum vals
                     if (empty($app_list_strings)) {
@@ -432,7 +434,7 @@ class quicksearchQuery
                     'id' => (string) $id,
                     'user_name' => $name,
                     'module' => 'Users'
-            )
+                )
             );
         }
 
@@ -489,7 +491,7 @@ class quicksearchQuery
     {
         foreach ($args['field_list'] as $field) {
             $result[$field] = (preg_match('/reports_to_id$/s', $field)
-                               || preg_match('/contact_id$/s', $field))
+                || preg_match('/contact_id$/s', $field))
                 ? $data->id // "reports_to_id" to "id"
                 : $data->$field;
         }
@@ -548,10 +550,7 @@ class quicksearchQuery
      */
     protected function getUserArray($condition)
     {
-        return (showFullName())
-            // utils.php, if system is configured to show full name
-            ? getUserArrayFromFullName($condition, true)
-            : get_user_array(false, 'Active', '', false, $condition, ' AND portal_only=0 ', false);
+        return get_user_array(false, 'Active', '', false, $condition, ' AND portal_only=0 ', false);
     }
 
     /**
@@ -593,7 +592,7 @@ class quicksearchQuery
         }
 
         if (!$teams_filtered) {
-            $where[] ='teams.private = 0';
+            $where[] = 'teams.private = 0';
         }
 
         return implode(' AND ', $where);

@@ -223,9 +223,6 @@ $(document).ready(function () {
 		$('form[name="DetailView"] input:button[name="Edit"]').remove();
 	}
 
-	// if (booking_status == '8' && is_invoice_export == '1') {
-	// 	$('#btnCheckInvoiceExport').hide();
-	// }
 	if (booking_status == '8' && is_invoice_input_export == '1') {
 		$('#btnCheckInvoiceInputExport').hide();
 	}
@@ -262,6 +259,39 @@ $(document).ready(function () {
 				}
 			});
 		};
+	});
+
+	$(document).on('click', '#btnAutoMapping', function () {
+		let booking_id = $(this).attr('booking_id');
+		let booking_name = $(this).attr('booking_name');
+		let phone = $(this).attr('phone');
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointCallContact",
+			data: {
+				booking_id: booking_id,
+				booking_name: booking_name,
+				phone: phone,
+				type: "map_call_booking_auto",
+			},
+			type: "POST",
+			cache: false,
+			success: function (response) {
+				if (response == 1) {
+					let text_warning = 'Liên kết cuộc gọi thành công.';
+					showModalNotify(1, text_warning);
+					$('.modal-overlay, .btn-modal-close').addClass('reload');
+				} else if (response == 2) {
+					showModalNotify(2, "Vui lòng cập nhật thông tin cuộc gọi trước khi liên kết");
+				} else if (response == 400) {
+					showModalNotify(2, "SĐT hoặc ID của Booking không xác định. Vui lòng kiểm tra lại hoặc liên hệ IT để được hỗ trợ!");
+				} else {
+					let text_warning = 'LK thất bại. Không tìm thấy cuộc gọi để liên kết!';
+					showModalNotify(0, text_warning);
+					$('.modal-overlay, .btn-modal-close').addClass('reload');
+				}
+			}
+		});
 	});
 
 	$(document).on('click', '#confirm-remind', function () {
@@ -326,7 +356,7 @@ $(document).ready(function () {
 				}
 			});
 		};
-		
+
 	});
 
 	// Open form send mail
@@ -348,7 +378,7 @@ $(document).ready(function () {
 				of: window
 			}
 		});
-		
+
 		$.ajax({
 			url: "index.php?entryPoint=entryPointFlightBookings",
 			type: "POST",
@@ -432,7 +462,7 @@ $(document).ready(function () {
 		$(`#frmPrintEticket${ln}`).attr('action', 'index.php?print=false');
 		$(`#frmPrintEticket${ln} input:hidden[name="action"]`).val('sendeticket');
 		$(`#frmPrintEticket${ln} input:hidden[name="return_action"]`).val('DetailView');
-		
+
 		let checkBoxPassengers = '';
 		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function () {
 			// if(ln > 0 && index + 1 < ln) return true; // Skip
@@ -448,7 +478,7 @@ $(document).ready(function () {
 			</div>`;
 		});
 		$('#dlgChonNgonNgu .option-passenger').html(checkBoxPassengers);
-		
+
 		$('#dlgChonNgonNgu').dialog({
 			height: 80,
 			width: 320,
@@ -458,19 +488,19 @@ $(document).ready(function () {
 	});
 
 	$(document).on('click', '#btnChonNgonNgu', function () {
-		let what_form 	= '#' + $('#what_form').val();
-		let lang 		= $('input:radio[name="ngonngu"]:checked').val();
-		let khuhoi 		= $('#khuhoi').is(':checked') ? 1 : 0;
+		let what_form = '#' + $('#what_form').val();
+		let lang = $('input:radio[name="ngonngu"]:checked').val();
+		let khuhoi = $('#khuhoi').is(':checked') ? 1 : 0;
 		let new_version = $('#new_version').is(':checked') ? 1 : 0;
-		let wayflight 	= $(`${what_form} input:hidden[name="direction"]`).val(); // 0:dep 1:ret
+		let wayflight = $(`${what_form} input:hidden[name="direction"]`).val(); // 0:dep 1:ret
 		let checkedPassIds = $("input[name='passenger_list_print_eticket[]']:checked").map(function () {
 			return $(this).val();
 		}).get();
 		let listPassengers = encodeURIComponent(checkedPassIds.join(','));
 
 		let currentAction = $(what_form).find('input[name="action"]').val();
-		if(new_version) {
-			if(!currentAction.includes("new")) $(what_form).find('input[name="action"]').val(`${currentAction}new`);
+		if (new_version) {
+			if (!currentAction.includes("new")) $(what_form).find('input[name="action"]').val(`${currentAction}new`);
 			$(what_form).attr('action', $(what_form).attr('action') + `&lang=${lang}&isRoundTrip=${khuhoi}&listPassengers=${listPassengers}`);
 		}
 		else {
@@ -587,83 +617,79 @@ $(document).ready(function () {
 	const HEIGHT_ROW_TEXTAREA = 17; // 17px
 	const HEIGHT_MESSAGE_LIST_CHAT = 465; // 465px
 	const tag_textarea = $('textarea#note-description');
+	// KHI TEXTAREA FOCUS
+	tag_textarea.focus(function () {
+		$('svg#icon-send-notes').css('fill', 'rgb(0, 132, 255)');
+		$('.wrap-cancel svg g').attr('stroke', 'rgb(0, 132, 255)');
+	});
+	// KHI TEXTAREA KHÔNG FOCUS
+	tag_textarea.blur(function () {
+		$('svg#icon-send-notes').css('fill', '#BCC0C4');
+		$('.wrap-cancel svg g').attr('stroke', '#BCC0C4');
 
-	$(document).ready(function () {
-		// KHI TEXTAREA FOCUS
-		tag_textarea.focus(function () {
-			$('svg#icon-send-notes').css('fill', 'rgb(0, 132, 255)');
-			$('.wrap-cancel svg g').attr('stroke', 'rgb(0, 132, 255)');
-		});
-		// KHI TEXTAREA KHÔNG FOCUS
-		tag_textarea.blur(function () {
-			$('svg#icon-send-notes').css('fill', '#BCC0C4');
-			$('.wrap-cancel svg g').attr('stroke', '#BCC0C4');
-
-		});
-
-		// Change textarea height when texting
-		tag_textarea.keyup(function (event) {
-			if (event.keyCode == 13 && event.shiftKey) { // Khi bấm xuống hàng
-				let rows = parseInt($(this).attr('rows')) + 1;
-				let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - HEIGHT_ROW_TEXTAREA;
-				if (rows <= 5) {
-					$(this).attr('rows', rows);
-					$(MESSAGE_LIST_CHAT_ID).height(height);
-				}
+	});
+	// Change textarea height when texting
+	tag_textarea.keyup(function (event) {
+		if (event.keyCode == 13 && event.shiftKey) { // Khi bấm xuống hàng
+			let rows = parseInt($(this).attr('rows')) + 1;
+			let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - HEIGHT_ROW_TEXTAREA;
+			if (rows <= 5) {
+				$(this).attr('rows', rows);
+				$(MESSAGE_LIST_CHAT_ID).height(height);
 			}
-			else { // Xuống hàng do độ dài
-				let count_row = countRows($(this).val());
-				let rows = parseInt($(this).attr('rows'));
-
-				if (1 < count_row && count_row <= 5 && count_row > rows) {
-					let t = count_row - rows;
-					let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - t * HEIGHT_ROW_TEXTAREA;
-					$(this).attr('rows', count_row);
-					$(MESSAGE_LIST_CHAT_ID).height(height);
-				}
-			}
-		});
-		tag_textarea.bind("paste", function (e) { // Copy paste
-			let count_row = countRows(e.originalEvent.clipboardData.getData('text'));
+		}
+		else { // Xuống hàng do độ dài
+			let count_row = countRows($(this).val());
 			let rows = parseInt($(this).attr('rows'));
 
-			if (1 < count_row && count_row > rows) {
+			if (1 < count_row && count_row <= 5 && count_row > rows) {
 				let t = count_row - rows;
 				let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - t * HEIGHT_ROW_TEXTAREA;
 				$(this).attr('rows', count_row);
 				$(MESSAGE_LIST_CHAT_ID).height(height);
 			}
-		});
-		tag_textarea.on('keydown keyup', function () {
-			var key = event.keyCode || event.charCode;
-
-			if (key == 8 || key == 46) {
-				let count_row = $(this).val().split("\n").length;
-				let rows = parseInt($(this).attr('rows'));
-
-				if (count_row - 1 > 0) { // Có ký tự /n
-					if (count_row < 5 && count_row < rows) {
-						let t = rows - count_row;
-						let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) + t * HEIGHT_ROW_TEXTAREA;
-						$(this).attr('rows', count_row);
-						$(MESSAGE_LIST_CHAT_ID).height(height);
-					}
-				}
-				else {
-					count_row = countRows($(this).val());
-					if (1 <= count_row && count_row <= 5 && count_row < rows) {
-						let t = rows - count_row;
-						let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) + t * HEIGHT_ROW_TEXTAREA;
-						$(this).attr('rows', count_row);
-						$(MESSAGE_LIST_CHAT_ID).height(height);
-					}
-				}
-
-				if ($(this).val().length == 0) $(MESSAGE_LIST_CHAT_ID).height(HEIGHT_MESSAGE_LIST_CHAT);
-			}
-		});
+		}
 	});
+	tag_textarea.bind("paste", function (e) { // Copy paste
+		let count_row = countRows(e.originalEvent.clipboardData.getData('text'));
+		let rows = parseInt($(this).attr('rows'));
 
+		if (1 < count_row && count_row > rows) {
+			let t = count_row - rows;
+			let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - t * HEIGHT_ROW_TEXTAREA;
+			$(this).attr('rows', count_row);
+			$(MESSAGE_LIST_CHAT_ID).height(height);
+		}
+	});
+	tag_textarea.on('keydown keyup', function () {
+		var key = event.keyCode || event.charCode;
+
+		if (key == 8 || key == 46) {
+			let count_row = $(this).val().split("\n").length;
+			let rows = parseInt($(this).attr('rows'));
+
+			if (count_row - 1 > 0) { // Có ký tự /n
+				if (count_row < 5 && count_row < rows) {
+					let t = rows - count_row;
+					let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) + t * HEIGHT_ROW_TEXTAREA;
+					$(this).attr('rows', count_row);
+					$(MESSAGE_LIST_CHAT_ID).height(height);
+				}
+			}
+			else {
+				count_row = countRows($(this).val());
+				if (1 <= count_row && count_row <= 5 && count_row < rows) {
+					let t = rows - count_row;
+					let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) + t * HEIGHT_ROW_TEXTAREA;
+					$(this).attr('rows', count_row);
+					$(MESSAGE_LIST_CHAT_ID).height(height);
+				}
+			}
+
+			if ($(this).val().length == 0) $(MESSAGE_LIST_CHAT_ID).height(HEIGHT_MESSAGE_LIST_CHAT);
+		}
+	});
+	
 	$('#btn-open-mobile-menu').click(function () {
 		$('.message_list').scrollTop($('.message_list')[0].scrollHeight);
 	});
@@ -832,7 +858,7 @@ $(document).ready(function () {
 
 		if (booking_status == '8' && frmSaveWorkingProcess == 'frmCompleted') {
 			let complete_ok = parseInt($(`#${frmSaveWorkingProcess} input:hidden[name="complete_ok"]`).val());
-			if(!complete_ok) {
+			if (!complete_ok) {
 				showModalNotify(2, "Vui lòng điền đầy đủ giá bán hành lý trước khi hoàn tất");
 				return;
 			}
@@ -953,7 +979,6 @@ $(document).ready(function () {
 	});
 	// End edit booking detail
 
-
 	// Thông tin những người đã xem booking
 	$("#btnViewBooking").on("click", function () {
 		$.ajax({
@@ -987,7 +1012,6 @@ $(document).ready(function () {
 		}
 		return true;
 	});
-
 
 	// Begin add luggage
 	$("#add_luggage_btn").click(function () {
@@ -1046,7 +1070,6 @@ $(document).ready(function () {
 			resizable: false,
 		});
 	});
-
 	$("#change_name").submit(function () {
 		if (!checkLineItems(2)) {
 			return false;
@@ -1092,18 +1115,18 @@ $(document).ready(function () {
 	});
 
 	$(document).on('change', 'select[name="pass_luggage_ob[]"], select[name="pass_luggage_ib[]"]', function () {
-		let name  = $(this).attr('name'); // name="pass_luggage_ob[]" or "...ib[]"
+		let name = $(this).attr('name'); // name="pass_luggage_ob[]" or "...ib[]"
 		let index = $(`select[name="${name}"]`).index(this);
 		// let value = $(this).val(); // selected option value
-		let dataCost  = $(this).find(':selected').data('cost'); // get data-cost
+		let dataCost = $(this).find(':selected').data('cost'); // get data-cost
 		// let dataText  = $(this).find(':selected').data('text'); // get data-text
 		// let dataValue = $(this).find(':selected').data('value'); // get data-value
 
 		// Update luggage_price[] at same index
-		if(name == 'pass_luggage_ob[]') {
+		if (name == 'pass_luggage_ob[]') {
 			$('input[name="pass_luggage_price[]"]').eq(index).val(formatNumber(dataCost));
 		}
-		else if(name == 'pass_luggage_ib[]') {
+		else if (name == 'pass_luggage_ib[]') {
 			$('input[name="pass_luggage_price_inbound[]"]').eq(index).val(formatNumber(dataCost));
 		}
 	});
@@ -1164,35 +1187,35 @@ $(document).ready(function () {
 	});
 	$('#select_bank_get_qr_code').change(function () {
 		let selectedValue = $(this).val();
-		if(selectedValue){
+		if (selectedValue) {
 			$("#img_qr_code").attr('src', selectedValue);
 			$("#copyQRCodeImage").show();
 			$(".wrap-redo").show();
 		}
 	});
 	$(document).on("click", "#copyQRCodeImage", async function () {
-        let img = document.getElementById("img_qr_code");
-        
-        try {
-			if(img){
+		let img = document.getElementById("img_qr_code");
+
+		try {
+			if (img) {
 				const response = await fetch(img.src);
 				const blob = await response.blob();
 				const clipboardItem = new ClipboardItem({ "image/png": blob });
 				await navigator.clipboard.write([clipboardItem]);
-		
+
 				showToastNotify("success", "Đã sao chép ảnh QR Code");
 			} else {
-            	showToastNotify("error", "Không tìm thấy QR Code");
+				showToastNotify("error", "Không tìm thấy QR Code");
 			}
-        } catch (error) {
-            showToastNotify("error", "Không thể sao chép ảnh!");
-            console.error("Lỗi copy ảnh:", error);
-        }
-    });
+		} catch (error) {
+			showToastNotify("error", "Không thể sao chép ảnh!");
+			console.error("Lỗi copy ảnh:", error);
+		}
+	});
 	$(document).on("click", "#btnRenderQRCode", async function () {
 		let qrcode = $('#img_qr_code').attr("src");
 		let new_amount = parseInt($('#new_payment_amount').val().trim() ?? 0);
-		if(!new_amount || !Number.isInteger(new_amount) || new_amount < 1000) {
+		if (!new_amount || !Number.isInteger(new_amount) || new_amount < 1000) {
 			alert("Số tiền không hợp lệ");
 			return false;
 		}
@@ -1280,33 +1303,33 @@ $(document).ready(function () {
 		});
 	});
 	$('input[name="point_of_use"]').on('input', function () {
-		let p 	 = $(this).val();
+		let p = $(this).val();
 		let step = parseInt($(this).attr('min'));
-		let ttp  = parseInt($('#tt_points').attr('data'));
+		let ttp = parseInt($('#tt_points').attr('data'));
 
-		if(p < step || p > ttp || p%step != 0) {
+		if (p < step || p > ttp || p % step != 0) {
 			$('#btn_apply_points_discount').prop('disabled', true);
 			$('input[name="points_discount"]').val(0);
 		}
 		else {
 			$('#btn_apply_points_discount').prop('disabled', false);
-			$('input[name="points_discount"]').val(p*1000);
-		} 
+			$('input[name="points_discount"]').val(p * 1000);
+		}
 	});
-	
-	$('#btn_apply_points_discount').click(function() {
-		let p 	 = $('input[name="point_of_use"]').val();
+
+	$('#btn_apply_points_discount').click(function () {
+		let p = $('input[name="point_of_use"]').val();
 		let step = parseInt($('input[name="point_of_use"]').attr('min'));
-		let ttp  = parseInt($('#tt_points').attr('data'));
+		let ttp = parseInt($('#tt_points').attr('data'));
 		let contact_id = $(this).attr('contact_id');
 		let booking_id = $(this).attr('booking_id');
 
-		if(p < step || p > ttp || p%step != 0) {
+		if (p < step || p > ttp || p % step != 0) {
 			showModalNotify(2, "Số điểm áp dụng không hợp lệ");
 			return false;
 		}
 
-		if(contact_id.length > 0) {
+		if (contact_id.length > 0) {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				data: {
@@ -1317,13 +1340,13 @@ $(document).ready(function () {
 				},
 				type: "POST",
 				cache: false,
-				beforeSend: function () {$('.container-waiting').show();},
+				beforeSend: function () { $('.container-waiting').show(); },
 				success: function (response) {
 					$('.container-waiting').hide();
 					try {
 						let obj = JSON.parse(response);
 
-						if(obj.error == 0) {
+						if (obj.error == 0) {
 							showModalNotify(1, "Áp điểm thành công");
 							$('.modal-overlay, .btn-modal-close').addClass('reload');
 						}
@@ -1332,7 +1355,7 @@ $(document).ready(function () {
 							showModalNotify(0, m);
 						}
 					}
-					catch(err) {
+					catch (err) {
 						console.error(err);
 						showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
 					}
@@ -1348,27 +1371,27 @@ $(document).ready(function () {
 	});
 
 	// Change customer source
-	$('input[name="customer_source"]').click(function() {
+	$('input[name="customer_source"]').click(function () {
 		let customer_source = $(this).val();
-		if(customer_source && customer_source.length > 0) {
+		if (customer_source && customer_source.length > 0) {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointGeneral",
 				type: "POST",
-				contentType: "application/json", 
-				dataType: "json",  
+				contentType: "application/json",
+				dataType: "json",
 				data: JSON.stringify({
 					class: "entryBookingClass",
 					method: "updateFields",
 					params: {
 						bookingId: bookingId,
-						fields: {customer_source: customer_source}
+						fields: { customer_source: customer_source }
 					}
 				}),
 				beforeSend: function () {
 					$('.container-waiting').show();
 				},
 				success: function (res) {
-					if('status' in res && res.status === 1) {
+					if ('status' in res && res.status === 1) {
 						$('input[type="checkbox"][name="customer_source"]').prop('checked', false);
 						$(`input#customer_source_${customer_source}`).prop('checked', true);
 					}
@@ -1382,12 +1405,57 @@ $(document).ready(function () {
 					console.error("Error: " + errorThrown);
 					showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
 				},
-				complete: function() {
+				complete: function () {
 					$('.container-waiting').hide();
 				},
 			});
 		}
 	});
+
+	// Get location from geocode in booking
+	const regexlatlong = /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/;
+	const latlong= $("#city").text().trim();
+	if(regexlatlong.test(latlong)) {
+		const latlongparts = latlong.split(',');
+		if (latlongparts.length != 2) return false;
+		const lat = latlongparts[0].trim();
+		const long = latlongparts[1].trim();
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointGeneral&class=entryBookingClass&method=getLocation",
+			type: "POST",
+			contentType: "application/json", 
+			dataType: "json",  
+			data: JSON.stringify({
+				params: {
+					lat: lat,
+					long: long,
+					bookingId: bookingId,
+				}
+			}),
+			beforeSend: function () {
+				$("#city").append(`<i id="location-loading" class="ms-2" style="color:#a7a7a7;">Đang định vị...</i>`);
+			},
+			success: function (res) {
+				$("#location-loading").remove();
+				if('status' in res && res.status === 1) {
+					if(res.data.length > 0) $("#city").text(res.data);
+				}
+				else {
+					let message = res.message || 'Có lỗi xảy ra khi lấy dữ liệu';
+					$("#city").append(`
+						<span class="ms-1" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="${message}">
+							<svg width="14px" height="14px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12ZM10.0586 6.05547C10.0268 5.48227 10.483 5 11.0571 5H12.9429C13.517 5 13.9732 5.48227 13.9414 6.05547L13.5525 13.0555C13.523 13.5854 13.0847 14 12.554 14H11.446C10.9153 14 10.477 13.5854 10.4475 13.0555L10.0586 6.05547ZM14 17C14 18.1046 13.1046 19 12 19C10.8954 19 10 18.1046 10 17C10 15.8954 10.8954 15 12 15C13.1046 15 14 15.8954 14 17Z" fill="#ff0000"></path></g></svg>
+						</span>
+					`);
+				}
+			},
+			error: function (XMLHttpRequest, textStatus, errorThrown) {
+				console.error("Status: " + textStatus);
+				console.error("Error: " + errorThrown);
+			},
+		});
+	}
 });
 
 // Count row for textarea
@@ -1846,8 +1914,8 @@ function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0) {
 	//	total_price = price + tax_fee + service_fee + admin_fee + airport_fee;
 	//	total_bought_price = price + tax_fee + admin_fee + airport_fee;
 	// } else {
-		total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
-		total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
+	total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
+	total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
 	// }
 
 	if (supplier_discount != 0) {
@@ -1934,7 +2002,7 @@ function getAirLineInf() {
 }
 
 function updateAmountInUrl(url, newAmount) {
-  const urlObj = new URL(url);
-  urlObj.searchParams.set('amount', newAmount);
-  return urlObj.toString();
+	const urlObj = new URL(url);
+	urlObj.searchParams.set('amount', newAmount);
+	return urlObj.toString();
 }

@@ -707,26 +707,11 @@ class Scheduler extends SugarBean
     public function displayCronInstructions()
     {
         global $mod_strings;
-        global $sugar_config;
+
         $error = '';
         if (!isset($_SERVER['Path'])) {
             $_SERVER['Path'] = getenv('Path');
         }
-        if (is_windows()) {
-            if (isset($_SERVER['Path']) && !empty($_SERVER['Path'])) { // IIS IUSR_xxx may not have access to Path or it is not set
-                if (!strpos($_SERVER['Path'], 'php')) {
-                    // $error = '<em>'.$mod_strings['LBL_NO_PHP_CLI'].'</em>';
-                }
-            }
-        } else {
-            if (isset($_SERVER['Path']) && !empty($_SERVER['Path'])) { // some Linux servers do not make this available
-                if (!strpos($_SERVER['PATH'], 'php')) {
-                    // $error = '<em>'.$mod_strings['LBL_NO_PHP_CLI'].'</em>';
-                }
-            }
-        }
-
-
 
         if (is_windows()) {
             echo '<div class="box-section">';
@@ -745,7 +730,6 @@ class Scheduler extends SugarBean
                 </tr>
             </table>';
             echo '</div';
-
         } else {
             require_once 'install/install_utils.php';
             $webServerUser = getRunningUser();
@@ -770,7 +754,6 @@ class Scheduler extends SugarBean
                 </tr>
             </table>';
             echo '</div';
-
         }
     }
 
@@ -966,8 +949,7 @@ class Scheduler extends SugarBean
     /**
      * function overrides the one in SugarBean.php
      */
-    public function fill_in_additional_detail_fields()
-    { }
+    public function fill_in_additional_detail_fields() {}
 
     /**
      * function overrides the one in SugarBean.php
@@ -995,8 +977,7 @@ class Scheduler extends SugarBean
     {
         return $this->name;
     }
-    ////	END STANDARD SUGARBEAN OVERRIDES
-    ///////////////////////////////////////////////////////////////////////////
+
     public static function getJobsList()
     {
         if (empty(self::$job_strings)) {

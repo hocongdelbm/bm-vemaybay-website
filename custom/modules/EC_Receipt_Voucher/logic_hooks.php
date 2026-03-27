@@ -11,5 +11,4 @@ $hook_array["before_save"] = array();
 $hook_array["before_save"][] = array(1, "checkAmountConverted", "custom/modules/EC_Receipt_Voucher/RVLogicHook.php", "RVLogicHook", "checkAmountConverted");
 
 $hook_array["after_save"] = array();
-$hook_array["after_save"][] = array(1, "checkSupplierDebt", "custom/modules/EC_Receipt_Voucher/RVLogicHook.php", "RVLogicHook", "checkSupplierDebt");
 $hook_array["after_save"][] = array(1, "Cập nhật doanh số booking", "custom/modules/EC_Receipt_Voucher/RVLogicHook.php", "RVLogicHook", "saveRevenueBookingHookReceipt");
