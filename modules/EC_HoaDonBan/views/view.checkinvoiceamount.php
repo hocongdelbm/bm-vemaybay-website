@@ -257,8 +257,7 @@ class Viewcheckinvoiceamount extends SugarView {
                 AND bkd.deleted = 0
             GROUP BY bk.id
             $sql_having";
-
-        pr($sql);
+            
         return $sql;
     }
 
