@@ -379,7 +379,7 @@ class CustomController extends BaseController
                     $sql_check = '
                         SELECT 
                             COUNT(*) AS total,
-                            SUM(CASE WHEN booking_status = "completed" THEN 1 ELSE 0 END) AS total_completed
+                            SUM(CASE WHEN booking_status = "8" THEN 1 ELSE 0 END) AS total_completed
                         FROM ec_flight_bookings
                         WHERE phone = ' . $db->quote(trim($call_from)) . '
                         AND deleted = 0
