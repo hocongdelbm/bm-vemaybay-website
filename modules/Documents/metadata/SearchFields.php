@@ -16,6 +16,10 @@ $searchFields['Documents'] = array(
     'options' => 'document_subcategory_dom',
     'template_var' => 'SUBCATEGORY_OPTIONS',
   ),
+  'booking_name'  =>
+  array(
+    'query_type' => 'equals',
+  ),
   'active_date' =>
   array(
     'query_type' => 'default',
@@ -26,7 +30,7 @@ $searchFields['Documents'] = array(
   ),
   'assigned_user_id' =>
   array(
-    'query_type' => 'default',
+    'query_type' => 'equals',
   ),
   'filename' =>
   array(
