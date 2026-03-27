@@ -123,7 +123,39 @@
                 </div>
             </div>
         </div>
-
+        <!-- Hourly Traffic Analytics -->
+        <div class="uat-grid-row">
+            <div class="uat-col-12">
+                <div class="uat-card" style="margin-bottom: 24px; border-top: 4px solid #8b5cf6;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div class="uat-card-title">Hourly Traffic Analytics</div>
+                            <div class="uat-card-des">Lưu lượng truy cập theo từng khung giờ trong ngày</div>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                            <button id="ec_hourly_toggle_btn" class="uat-btn uat-btn-sm"
+                                style="background:#f8fafc; color:#334155; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
+                                Đổi sang Bar Chart
+                            </button>
+                            <button id="ec_hourly_compare_btn" class="uat-btn uat-btn-sm"
+                                style="display:none; background:#f0fdf4; color:#16a34a; border:1px solid #86efac; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
+                                So sánh với Hôm nay
+                            </button>
+                            <button id="ec_hourly_mode_btn" class="uat-btn uat-btn-sm"
+                                style="background:#d1fae5; color:#047857; border:1px solid #a7f3d0; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
+                                Xem dữ liệu Lịch sử
+                            </button>
+                        </div>
+                    </div>
+                    <div class="uat-card-divider"></div>
+                    <div style="width:100%; overflow-x:auto; overflow-y:hidden; padding-bottom:8px;">
+                        <div style="position:relative; min-width:700px; height:300px;">
+                            <canvas id="ec_hourly_chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Daily Quality -->
         <h2 class="uat-section-title">Dữ liệu phân tích hằng ngày <span id="ec_selected_date_label">(tính của ngày hôm
                 trước)</span></h2>
@@ -162,38 +194,6 @@
                     <div class="uat-card-des">Tỉ lệ xác thực danh tính & thiết bị qua fingerprint</div>
                     <div class="uat-card-divider"></div>
                     <div class="uat-stat-value" id="ec_fp_rate">—</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Hourly Traffic Analytics -->
-        <div class="uat-grid-row">
-            <div class="uat-col-12">
-                <div class="uat-card" style="margin-bottom: 24px; border-top: 4px solid #8b5cf6;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div class="uat-card-title">Hourly Traffic Analytics</div>
-                            <div class="uat-card-des">Lưu lượng truy cập theo từng khung giờ trong ngày</div>
-                        </div>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
-                            <button id="ec_hourly_toggle_btn" class="uat-btn uat-btn-sm"
-                                style="background:#f8fafc; color:#334155; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
-                                Đổi sang Bar Chart
-                            </button>
-                            <button id="ec_hourly_compare_btn" class="uat-btn uat-btn-sm"
-                                style="display:none; background:#f0fdf4; color:#16a34a; border:1px solid #86efac; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
-                                So sánh với Hôm nay
-                            </button>
-                            <button id="ec_hourly_mode_btn" class="uat-btn uat-btn-sm"
-                                style="background:#d1fae5; color:#047857; border:1px solid #a7f3d0; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
-                                Xem dữ liệu Lịch sử
-                            </button>
-                        </div>
-                    </div>
-                    <div class="uat-card-divider"></div>
-                    <div style="position:relative; width:100%; height:300px;">
-                        <canvas id="ec_hourly_chart"></canvas>
-                    </div>
                 </div>
             </div>
         </div>
@@ -275,6 +275,67 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Passenger Typing Analytics -->
+        <h2 class="uat-section-title" style="margin-top: 24px;">Phân tích tương tác nhập liệu (Passenger Typing)</h2>
+        <div class="uat-grid-row">
+            <div class="uat-col-4">
+                <div class="uat-card" style="border-top: 4px solid #f43f5e; height: 100%;">
+                    <div class="uat-card-title">Tỷ lệ điền Form</div>
+                    <div class="uat-card-des">Tỉ lệ khách hàng thực sự có tương tác nhập liệu</div>
+                    <div class="uat-card-divider"></div>
+                    <div style="position:relative; width:160px; height:160px; margin: 0 auto 16px;">
+                        <canvas id="ec_typing_donut" width="160" height="160"></canvas>
+                    </div>
+                    <div
+                        style="display:flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 12px; border-radius: 8px;">
+                        <div>
+                            <div style="font-size: 11px; color:#64748b; font-weight:600; text-transform:uppercase;">Có
+                                nhập liệu</div>
+                            <div style="color:#f43f5e; font-size: 18px; font-weight: 700;" id="ec_typing_sess_count">—
+                            </div>
+                        </div>
+                        <div style="width: 1px; height: 30px; background: #e2e8f0;"></div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 11px; color:#64748b; font-weight:600; text-transform:uppercase;">Tổng
+                                VIEW</div>
+                            <div style="color:#334155; font-size: 18px; font-weight: 700;" id="ec_typing_total_viewers">
+                                —</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="uat-col-8">
+                <div class="uat-card" style="height: 100%; padding:0; overflow:hidden;">
+                    <div style="padding: 20px 20px 10px;">
+                        <div class="uat-card-title">Live Typing Logs</div>
+                        <div class="uat-card-des">Log dữ liệu thực tế khách hàng đã và đang nhập (nếu có form)</div>
+                    </div>
+                    <div style="max-height: 280px; overflow-y: auto; padding: 0 20px 20px;">
+                        <table class="uat-table uat-table-stackable">
+                            <thead>
+                                <tr>
+                                    <th
+                                        style="position:sticky; top:0; background:#fff; z-index:2; border-bottom:1px solid #e2e8f0; width: 140px;">
+                                        TIME & IP</th>
+                                    <th
+                                        style="position:sticky; top:0; background:#fff; z-index:2; border-bottom:1px solid #e2e8f0;">
+                                        LOCATION</th>
+                                    <th
+                                        style="position:sticky; top:0; background:#fff; z-index:2; border-bottom:1px solid #e2e8f0;">
+                                        DỮ LIỆU ĐÃ NHẬP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ec_typing_logs_tbody">
+                                <tr>
+                                    <td colspan="3" class="uat-empty-cell">Đang tải...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -385,8 +446,10 @@
                         <div id="ec_peak_stat_chips" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
                     </div>
                     <div class="uat-card-divider"></div>
-                    <div style="position:relative; height:180px;">
-                        <canvas id="ec_peak_hours_chart"></canvas>
+                    <div style="width:100%; overflow-x:auto; overflow-y:hidden; padding-bottom:8px;">
+                        <div style="position:relative; min-width:700px; height:240px;">
+                            <canvas id="ec_peak_hours_chart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -404,7 +467,15 @@
                                 style="background:#dbeafe; color:#1d4ed8; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; letter-spacing:.5px;">HOT</span>
                             <div class="uat-card-title" style="color:#1d4ed8; margin:0;">Hành trình Phổ biến</div>
                         </div>
-                        <div class="uat-card-des">Route hot trong giờ cao điểm</div>
+                        <div class="uat-card-des">
+                            Chỉ tính sessions tìm kiếm trong <strong>giờ cao điểm</strong> (top 3 giờ nhiều traffic
+                            nhất).
+                            <br>— <em>Sess</em> = người dùng duy nhất (unique); <em>Lượt</em> = số lần pageview.
+                            <br>— Tổng sess route có thể nhỏ hơn cộng tay các ngày: 1 người search nhiều ngày khởi hành
+                            khác nhau vẫn tính 1 sess.
+                            <br>— Sess trong ngày có thể nhỏ hơn cộng tay các giờ: 1 người search lúc 13h và 15h vẫn
+                            tính 1 sess cho ngày đó.
+                        </div>
                         <div class="uat-card-divider"></div>
                     </div>
                     <div id="ec_popular_routes_list"
@@ -422,7 +493,13 @@
                                 NĂNG</span>
                             <div class="uat-card-title" style="color:#6d28d9; margin:0;">Hành trình Khác</div>
                         </div>
-                        <div class="uat-card-des">Nhu cầu tiềm ẩn chưa khai thác</div>
+                        <div class="uat-card-des">
+                            Hành trình ngoài top phổ biến — tiềm năng khai thác. Chỉ tính sessions trong <strong>giờ cao
+                                điểm</strong>.
+                            <br>— Người dùng search những chặng này đúng lúc traffic cao → nhu cầu thực, không phải cồ
+                            tìm kiếm ngẫu nhiên.
+                            <br>— Nguyên lí đếm sess giống panel bên: unique theo người dùng, không theo số lần click.
+                        </div>
                         <div class="uat-card-divider"></div>
                     </div>
                     <div id="ec_niche_routes_list"
@@ -811,6 +888,44 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- City Distribution -->
+        <div class="uat-grid-row" style="margin-top:24px;">
+            <div class="uat-col-12">
+                <div class="uat-card" style="padding:0; overflow:hidden;">
+                    <div style="padding:20px 20px 0 20px;">
+                        <div class="uat-card-title" style="color:#0ea5e9;">Phân bổ theo Tỉnh/Thành phố</div>
+                        <div class="uat-card-des">Khách truy cập chủ yếu đến từ đâu (chỉ đếm các session không phải bot)
+                        </div>
+                        <div class="uat-card-divider"></div>
+                    </div>
+                    <table class="uat-table" style="margin-top:-16px;">
+                        <thead>
+                            <tr>
+                                <th>KHU VỰC CHI TIẾT</th>
+                                <th style="text-align:right; width:90px;">SESS</th>
+                                <th style="text-align:right; width:100px;">TỶ LỆ</th>
+                                <th style="text-align:right; width:50px;">#</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ec_area_city_tbody">
+                            <tr>
+                                <td colspan="4" class="uat-empty-cell">Đang tải...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="uat-city-toggle-btn" data-expanded="0"
+                        style="text-align:center; padding:10px; cursor:pointer; font-size:12px; font-weight:600; background:#f8fafc; color:#3b82f6; border-top:1px solid #e2e8f0; transition:all 0.2s;">
+                        <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"
+                            style="vertical-align:middle; margin-right:4px; margin-top:-2px;">
+                            <path fill-rule="evenodd"
+                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                clip-rule="evenodd"></path>
+                        </svg> <span style="vertical-align:middle;">Xem thêm</span>
                     </div>
                 </div>
             </div>
