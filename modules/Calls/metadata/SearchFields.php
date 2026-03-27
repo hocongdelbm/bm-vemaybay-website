@@ -4,9 +4,10 @@ if (!defined('sugarEntry') || !sugarEntry) {
 }
 
 $searchFields['Calls'] = array(
-	'name' => array(
-		'query_type' => 'equals',
-	),
+	'name' => [
+        'query_type' => 'default',
+        'operator' => '=',
+    ],
 	'contact_name' => array(
 		'query_type' => 'default',
 		'db_field' => array(
