@@ -1,5 +1,5 @@
 <?php
-namespace Custom\Services\Location;
+namespace custom\services\Location;
 
 /**
  * OpenCage Geocoding API

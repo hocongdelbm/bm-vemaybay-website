@@ -1,4 +1,5 @@
 <?php
+
 use custom\services\Notification\NotificationService;
 
 if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
@@ -92,7 +93,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         // Return
         echo json_encode($data);
         exit();
-    } elseif ((string)$type === "update_call") {
+    } else if ((string)$type === "update_call") {
         try {
             $call_id        = isset($_POST['call_id']) ? global_test_input($_POST['call_id']) : "";
             $contact_id     = isset($_POST['contact_id']) ? global_test_input($_POST['contact_id']) : "";
@@ -221,6 +222,40 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             $currentDate = date('Y-m-d H:i:s', strtotime('+7 hour'));
             $is_exist_callid = $db->getOne("SELECT IF(COUNT(id) > 0, 1, 0) FROM calls WHERE call_id = '{$call_id}' AND deleted = 0") ?? 0;
             if ($is_exist_callid) {
+
+                // Gọi đến - Gọi hỏi vé -> Nếu phone đó có BK gần nhất chưa hoàn tất thì map vào luôn
+                if (empty($booking_id) && (string)$call_reason === 'in_price' && !empty($phone)) {
+                    // Bước 1: Kiểm tra phone này có BK nào không
+                    $sql_check = '
+                        SELECT
+                            COUNT(*) AS total,
+                            SUM(CASE WHEN booking_status = "8" THEN 1 ELSE 0 END) AS total_completed
+                        FROM ec_flight_bookings
+                        WHERE phone = ' . $db->quote(trim($phone)) . ' 
+                        AND deleted = 0
+                    ';
+                    $res_check  = $db->query($sql_check);
+                    $row_check  = $db->fetchByAssoc($res_check);
+                    $total           = (int)($row_check['total'] ?? 0);
+                    $total_completed = (int)($row_check['total_completed'] ?? 0);
+
+                    // Bước 2: Có BK nhưng chưa có cái nào hoàn tất → Case 1 → Map
+                    if ($total > 0 && $total_completed === 0) {
+                        $row_bk = $db->fetchByAssoc($db->query('
+                            SELECT id 
+                            FROM ec_flight_bookings
+                            WHERE phone = ' . $db->quote(trim($phone)) . ' AND deleted = 0
+                            ORDER BY date_entered DESC 
+                            LIMIT 1
+                        '));
+
+                        if (!empty($row_bk['id'])) {
+                            $booking_id = $row_bk['id'];
+                        }
+                    }
+                }
+                // else if (empty($booking_id) && (string)$call_reason === 'in_consultant' && !empty($phone)) {}
+
                 $sql_update_call = "UPDATE calls
                     SET parent_type = 'Contacts'
                         ,parent_id = '{$con->id}'
@@ -495,7 +530,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             ], JSON_UNESCAPED_UNICODE);
             exit;
         }
-    } elseif ((string)$type === "check_missed_call") {
+    } else if ((string)$type === "check_missed_call") {
         $call_id = isset($_POST['call_id']) ? global_test_input($_POST['call_id']) : "";
 
         if (empty($call_id)) {
@@ -510,7 +545,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         if ($id && !empty($id)) echo 1;
         else echo 0;
         exit();
-    } elseif ((string)$type === "map_call_booking") {
+    } else if ((string)$type === "map_call_booking") {
         $call_name      = isset($_POST['call_name']) ? global_test_input($_POST['call_name']) : "";
         $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
         $booking_name   = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
@@ -580,7 +615,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 
         echo 0;
         exit();
-    } elseif ((string)$type === "map_call_booking_auto") {
+    } else if ((string)$type === "map_call_booking_auto") {
         $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
         $booking_name   = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
         $phone          = isset($_POST['phone']) ? global_test_input(trim($_POST['phone'])) : "";
@@ -592,7 +627,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 
         global $db, $current_user;
 
-        // Tìm cuộc gọi đến gần nhất của SĐT phone -
+        // Tìm cuộc gọi đến gần nhất của SĐT phone
         $sql = 'SELECT id
                 FROM calls
                 WHERE call_from = "' . $db->quote(trim($phone)) . '"
