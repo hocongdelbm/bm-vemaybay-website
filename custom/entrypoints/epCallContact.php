@@ -657,6 +657,9 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             $bean_note->assigned_user_id    = $assigned_user_id;
             $bean_note->save();
 
+            $sql_update = 'UPDATE ec_flight_bookings SET booking_status = "6", assigned_user_id = "' . $assigned_user_id . '" WHERE id = "' . $booking_id . '" AND deleted = 0';
+            $db->query($sql_update);
+
             echo 1;
             exit();
         }
