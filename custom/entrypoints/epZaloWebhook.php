@@ -155,7 +155,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $quota_user = $quota_oa = [];
                         // Database format
                         $last_interaction = date($datetimeDbFormat, (int)($timestamp / 1000) - 7*3600);
-                        $date_modified = date($datetimeDbFormat, time() - 7*3600);
 
                         // Send from user to OA
                         if($zalomes->src == 1) {
@@ -166,7 +165,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     SET last_interaction = '$last_interaction'
                                         ,description = 'Cập nhật tương tác cuối qua webhook user send'
                                         ,modified_user_id = ''
-                                        ,date_modified = '$date_modified'
+                                        ,date_modified = NOW()
                                     WHERE zalo_id = '{$zaloUserInfo['user_id']}' AND deleted = 0";
                                     
                                 $db->query($sqlUpdate);
@@ -318,7 +317,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $zalo_user_id = $data['follower']['id'] ?? '';
                     $follower = $event == 'follow' ? 1 : 0;
                     $zalo_last_interaction = date($datetimeDbFormat, (int)($timestamp / 1000) - 7*3600);
-                    $date_modified = date($datetimeDbFormat, time() - 7*3600);
 
                     if(!empty($zalo_user_id)) {
                         if($follower == 1) {
@@ -332,7 +330,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                         ,last_interaction = '$zalo_last_interaction'
                                         ,description = 'Cập nhật tương tác qua webhook user follow'
                                         ,modified_user_id = ''
-                                        ,date_modified = '$date_modified'
+                                        ,date_modified = NOW()
                                     WHERE zalo_id = '{$zaloUserInfo['user_id']}'
                                         AND oa_id = '{$zaloOA->get_oa_id()}'
                                         AND deleted = 0"
@@ -346,7 +344,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     ,last_interaction = '$zalo_last_interaction'
                                     ,description = 'Cập nhật tương tác qua webhook user unfollow'
                                     ,modified_user_id = ''
-                                    ,date_modified = '$date_modified'
+                                    ,date_modified = NOW()
                                 WHERE zalo_id = '$zalo_user_id'
                                     AND oa_id = '{$zaloOA->get_oa_id()}'
                                     AND deleted = 0"

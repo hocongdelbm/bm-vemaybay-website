@@ -1,22 +1,19 @@
 <?php
+if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 use custom\services\Notification\NotificationService;
-
-if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 $job_strings[] = 'TuDongTaoBang';  // tu dong tao bang moi chi tiet tai khoan
 $job_strings[] = 'KetChuyenTienMatSCK'; // ket chuyen tien mat so du cuoi ky vao dau moi nam
 $job_strings[] = 'KetChuyenTienGuiNganHangSCK'; // ket chuyen tien gui ngan hang so du cuoi ky vao dau moi nam
 $job_strings[] = 'KetChuyenCongNoPhaiThu'; // kết chuyển công nợ phải thu vào đầu mỗi năm
 $job_strings[] = 'KetChuyenCongNoPhaiTra'; // kết chuyển công nợ phải trả vào đầu mỗi năm
-
 $job_strings[] = 'createMonthSalary'; // Đầu mỗi tháng tạo 1 bảng lương
 $job_strings[] = 'updateEfforts'; // cập nhật nỗ lực trong bảng lương
 $job_strings[] = 'lockSalaryAtEndMonth'; // khoá bảng lương vào cuối mỗi tháng 
 $job_strings[] = 'updateWorkingDays'; // cập nhật ngày công trong bảng lương
 $job_strings[] = 'updateMissingEfforts'; // cập nhật nỗ lực thật sự của tháng nếu bảng lương khoá trước ngày cuối tháng
 $job_strings[] = 'updateOnlineReport'; // cập nhật ds online mỗi ngày
-
 $job_strings[] = 'LoopCheckIfBookingOver24h'; // kiem tra booking co qua 24h
 // $job_strings[] = 'checkOnlineUser'; // Kiểm tra xem booking giao đã được xử lý, để biết user còn online hay không
 $job_strings[] = 'checkBookingHandle'; // Kiểm tra xem booking đã giao được xử lý hay chưa
@@ -29,8 +26,8 @@ $job_strings[] = 'maintainZaloChat'; // Tự động gửi tin tư vấn Zalo đ
 $job_strings[] = 'resetRewardPoints'; // Reset lại điểm tích lũy của liên hệ qua booking hằng năm
 $job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
 $job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
+$job_strings[] = 'migrateZaloImagesToNextCloud'; // Đồng bộ ảnh từ Zalo CDN sang VN Backup
 
-$job_strings[] = 'migrateZaloImagesToNextCloud'; // migrate ảnh Zalo (7 ngày) lên NextCloud
 /**
  * Thông báo hành trình cần checkin
  */
@@ -2427,30 +2424,29 @@ function resetRewardPoints()
  */
 function migrateZaloImagesToNextCloud()
 {
-	global $db;
-
-	$today = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
+	global $db, $timedate;
+	$utcDate = $timedate->nowDb(); // Guarantee timezone is UTC
+	$utcTimestamp       = strtotime($utcDate);
+	$today 				= date('Y-m-d', $utcTimestamp);
+	$yesterday 			= date('Y-m-d', strtotime('-1 day', $utcTimestamp));
 
 	// ── 1. Lấy những record cần xử lý ──────────────────────────────────────
 	// Chỉ lấy trong ngày hôm nay, type=consultation, sub_type=image,
 	// thumbnail/url vẫn còn là link Zalo CDN (chưa phải link NextCloud).
 
-	$sql = "SELECT id, thumbnail, url, data
+	$sql = "SELECT id, url
             FROM ec_zalo_messages
-            WHERE deleted = 0
+            WHERE date_entered BETWEEN '$yesterday 17:00:00' AND '$today 16:59:59'
+				AND sub_type = 'image'
                 AND type = 'consultation'
-                AND sub_type = 'image'
-                AND DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = '$today'
-                AND thumbnail IS NOT NULL
-                AND thumbnail != ''
-                AND (
-                    thumbnail NOT LIKE '%/s/%'
-                    OR url NOT LIKE '%/s/%'
-                )"; //vì link public dạng này:https://vnbackup.com/s/hdhdhdsjdh
+                AND url IS NOT NULL
+                AND url != ''
+                AND url NOT LIKE 'https://vnbackup.com/s/%'
+				AND deleted = 0"; //vì link public dạng này:https://vnbackup.com/s/hdhdhdsjdh 
 
 	$res = $db->query($sql);
 	if ($db->countRows($res) == 0) {
-		$GLOBALS['log']->info('migrateZaloImagesToNextCloud: No records to migrate today.');
+		$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": No records to migrate today.");
 		return true;
 	}
 
@@ -2479,15 +2475,12 @@ function migrateZaloImagesToNextCloud()
 	// ── 3. Lặp từng record ──────────────────────────────────────────────────
 	while ($row = $db->fetchByAssoc($res)) {
 		try {
-			$imageUrl = !empty($row['url']) ? $row['url'] : $row['thumbnail'];
+			$imageUrl = $row['url'];
 
 			// 3a. Tải ảnh từ Zalo CDN về local
 			$fetchResult = $api->fetchPublicFile($imageUrl);
 			if (!$fetchResult['success']) {
-				$GLOBALS['log']->error(
-					"migrateZaloImagesToNextCloud: Download failed for id={$row['id']}, "
-						. "url=$imageUrl, error={$fetchResult['error']}"
-				);
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Download failed for id={$row['id']}, url=$imageUrl, error={$fetchResult['error']}");
 				continue;
 			}
 
@@ -2513,17 +2506,14 @@ function migrateZaloImagesToNextCloud()
 
 			// 3c. Lưu file tạm
 			if (file_put_contents($localPath, $fetchResult['data']) === false) {
-				$GLOBALS['log']->error("migrateZaloImagesToNextCloud: Cannot write local file $localPath");
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Cannot write local file $localPath");
 				continue;
 			}
 
 			// 3d. Upload lên NextCloud
 			$uploadResult = json_decode($api->uploadFile($localPath, $remotePath), true);
 			if (empty($uploadResult) || (int)($uploadResult['status'] ?? 0) !== 1) {
-				$GLOBALS['log']->error(
-					"migrateZaloImagesToNextCloud: Upload failed for id={$row['id']}, remote=$remotePath, "
-						. "response=" . json_encode($uploadResult)
-				);
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Upload failed for id={$row['id']}, remote=$remotePath, response=" . json_encode($uploadResult));
 				@unlink($localPath);
 				continue;
 			}
@@ -2531,10 +2521,7 @@ function migrateZaloImagesToNextCloud()
 			// 3e. Tạo public share (read-only, no password)
 			$shareResult = json_decode($api->createShare($remotePath, 1), true);
 			if (empty($shareResult) || (int)($shareResult['status'] ?? 0) !== 1) {
-				$GLOBALS['log']->error(
-					"migrateZaloImagesToNextCloud: Share creation failed for id={$row['id']}, "
-						. "response=" . json_encode($shareResult)
-				);
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Share creation failed for id={$row['id']}, response=" . json_encode($shareResult));
 				@unlink($localPath);
 				continue;
 			}
@@ -2543,7 +2530,7 @@ function migrateZaloImagesToNextCloud()
 			// Download trực tiếp: thêm /download vào cuối
 			$shareUrl    = rtrim($shareResult['data']['url'] ?? '', '/');
 			if (empty($shareUrl)) {
-				$GLOBALS['log']->error("migrateZaloImagesToNextCloud: Empty share URL for id={$row['id']}");
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Empty share URL for id={$row['id']}");
 				@unlink($localPath);
 				continue;
 			}
@@ -2571,12 +2558,9 @@ function migrateZaloImagesToNextCloud()
                   AND deleted = 0
             ");
 
-			$GLOBALS['log']->info("migrateZaloImagesToNextCloud: Successfully migrated image for id={$row['id']}, shareUrl=$shareUrl");
+			$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": Successfully migrated image for id={$row['id']}, shareUrl=$shareUrl");
 		} catch (Throwable $th) {
-			$GLOBALS['log']->error(
-				"migrateZaloImagesToNextCloud: Exception for id={$row['id']}: "
-					. "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}"
-			);
+			$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Exception for id={$row['id']}: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
 		} finally {
 			// Luôn xoá file tạm dù thành công hay thất bại
 			if (!empty($localPath) && file_exists($localPath)) {
@@ -2585,6 +2569,6 @@ function migrateZaloImagesToNextCloud()
 		}
 	}
 
-	$GLOBALS['log']->info('migrateZaloImagesToNextCloud: Done.');
+	$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": Done.");
 	return true;
 }

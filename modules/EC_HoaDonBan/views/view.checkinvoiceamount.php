@@ -288,7 +288,8 @@ class Viewcheckinvoiceamount extends SugarView {
                     $inv_attr = explode("|", $inv);
                     if(is_array($inv_attr) && count($inv_attr) > 1) {
                         $list_inv_number[] = $inv_attr[0];
-                        $list_inv_date[] = empty($inv_attr[1]) ? date($this->userDateFormat, strtotime($inv_attr[1])) : '';
+                        $inv_date = !empty($inv_attr[1]) ? date($this->userDateFormat, strtotime($inv_attr[1])) : '';
+                        if(array_search($inv_date, $list_inv_date) === false) $list_inv_date[] = $inv_date;
                     }
                 }
             }
@@ -314,12 +315,12 @@ class Viewcheckinvoiceamount extends SugarView {
                         </a>
                     </td>
                     <td class="text-end invoice_amount">
-                        <a href="index.php?action=index&module=EC_HoaDonBan&action=ListView&query=true&clear_query=true&searchFormTab=basic_search&name_basic={$row['chungtuhoadon']}" target="_blank" title="Xem chi tiết hóa đơn">
+                        <a href="index.php?action=index&module=EC_HoaDonBan&action=ListView&query=true&clear_query=true&searchFormTab=basic_search&booking_basic={$row['parent_name']}" target="_blank" title="Xem chi tiết hóa đơn">
                             <b>$invoice_amount</b>
                         </a>
                     </td>
-                    <td class="text-center ngay_hoa_don">{$list_str_inv_number}</td>
-                    <td class="text-end so_hoa_don">{$list_str_inv_date}</td>
+                    <td class="text-center ngay_hoa_don">{$list_str_inv_date}</td>
+                    <td class="text-end so_hoa_don">{$list_str_inv_number}</td>
                 </tr>
             HTML;
 
@@ -335,6 +336,27 @@ class Viewcheckinvoiceamount extends SugarView {
         $total_receipt_amount = format_number($total_receipt_amount);
         $total_invoice_amount = format_number($total_invoice_amount);
 
+        $row_total_html = "";
+        if(!empty($tr)) {
+            $row_total_html = <<<HTML
+                <tr>
+                    <th class="text-center" colspan="3">Tổng</th>
+                    <th class="text-center color-red">$total_qty</th>
+                    <th class="text-end color-red">$total_subtotal_amount</th>
+                    <th class="text-end color-red">$total_receipt_amount</th>
+                    <th class="text-end color-red">$total_invoice_amount</th>
+                    <th colspan="2"></th>
+                </tr>
+            HTML;
+        }
+        else {
+            $tr = <<<HTML
+                <tr>
+                    <td colspan="9" class="text-center"><i>Không có dữ liệu</i></td>
+                </tr>
+            HTML;
+        }
+
         return <<<HTML
             <table id="main_table" class="table table-hover mt-3">
                 <thead style="font-size:0.85rem;">
@@ -349,18 +371,10 @@ class Viewcheckinvoiceamount extends SugarView {
                         <th width="10%" class="text-center">Ngày HĐ</th>
                         <th width="8%" class="text-end">Số HĐ</th>
                     </tr>
+                    $row_total_html
                 </thead>
                 <tbody>$tr</tbody>
-                <tbody>
-                    <tr>
-                        <th colspan="3"></th>
-                        <th class="text-center color-red">$total_qty</th>
-                        <th class="text-end color-red">$total_subtotal_amount</th>
-                        <th class="text-end color-red">$total_receipt_amount</th>
-                        <th class="text-end color-red">$total_invoice_amount</th>
-                        <th colspan="2"></th>
-                    </tr>
-                </tbody>
+                <tfoot>$row_total_html</tfoot>
             </table>
         HTML;
     }

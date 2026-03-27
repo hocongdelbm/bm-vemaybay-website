@@ -163,14 +163,13 @@ class entryInputInvoiceClass extends entryClass {
         $status     = $data['tinhtrang'] ?? '';
         $invSerial  = $data['kyhieuhd'] ?? '';
         $invRef     = $data['name'] ?? '';
-        $dateModified = date('Y-m-d H:i:s', time() - 7*3600);
 
         if(empty($out_inv_id)) { // Chưa có HĐ đầu ra
             $sql = "UPDATE ec_input_invoices
                 SET deleted = 1
                     ,description = 'Xóa đầu vào $ticketId'
                     ,modified_user_id = '{$this->currentUser->id}'
-                    ,date_modified = '{$dateModified}'
+                    ,date_modified = NOW()
                 WHERE id = '{$ticketId}' AND deleted = 0";
             if($db->query($sql)) return ["status" => 1, "message" => "Xóa thành công", "data" => null];
         }
@@ -190,7 +189,7 @@ class entryInputInvoiceClass extends entryClass {
                 SET deleted = 1
                     ,description = 'Xóa đầu vào $ticketId'
                     ,modified_user_id = '{$this->currentUser->id}'
-                    ,date_modified = '{$dateModified}'
+                    ,date_modified = NOW()
                 WHERE id = '{$ticketId}' AND deleted = 0";
 
             if($db->query($sql)) {
@@ -198,14 +197,14 @@ class entryInputInvoiceClass extends entryClass {
                     SET deleted = 1
                         ,description = 'Xóa chi tiết đầu ra $ticketId'
                         ,modified_user_id = '{$this->currentUser->id}'
-                        ,date_modified = '{$dateModified}'
+                        ,date_modified = NOW()
                     WHERE ticket_number_id = '{$ticketId}' AND deleted = 0";
 
                 if($db->query($sql)) {
                     $db->query("UPDATE ec_hoadonban hd
                         SET hd.deleted = 1
                             ,hd.description = 'Xóa đầu ra khi đá xóa hết chi tiết'
-                            ,hd.date_modified = '$dateModified'
+                            ,hd.date_modified = NOW()
                             ,hd.modified_user_id = '{$this->currentUser->id}'
                         WHERE hd.id = '$out_inv_id'
                             AND NOT EXISTS (
