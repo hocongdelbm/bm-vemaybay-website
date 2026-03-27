@@ -29,6 +29,15 @@ class EC_Online_Report extends Basic
 
 	public $start_online;
 	public $status;
+	public $booking_id;
+	public $last_online;
+	public $start_assign;
+	public $round;
+	public $total_qty;
+	public $ranking;
+	public $title;
+	public $kpi;
+
 
 	public function bean_implements($interface)
 	{

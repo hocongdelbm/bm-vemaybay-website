@@ -535,7 +535,6 @@ class entryAutoBookPhuongNamClass extends entryClass {
         }
 
         global $db;
-        $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
         $sqlUpdate = '';
 
         if(!$isInter) { // Domestic
@@ -585,7 +584,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                     //         ,total_bought_price = ($fare + $tax + airport_fee + admin_fee) * quantity
                     //         ,total_price = ($fare + $tax + airport_fee + admin_fee + service_fee) * quantity
                     //         ,modified_user_id = '{$this->currentUser->id}'
-                    //         ,date_modified = '$dateModified'
+                    //         ,date_modified = NOW()
                     //     WHERE id = '$detailId'
                     //         AND booking_id = '$bookingId'
                     //         AND direction = '$direction'
@@ -598,7 +597,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                             ,total_bought_price = ($fare + $tax + airport_fee + admin_fee) * quantity
                             ,total_price = ($fare + $tax + airport_fee + admin_fee + service_fee) * quantity
                             ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '$dateModified'
+                            ,date_modified = NOW()
                         WHERE id = '$detailId'
                             AND booking_id = '$bookingId'
                             AND direction = '$direction'
@@ -627,7 +626,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                     SET total_bought_amount = IF($total_bought_amount > 0, $total_bought_amount, total_bought_amount)
                         ,subtotal_amount = IF($subtotal_amount > 0, $subtotal_amount, subtotal_amount)
                         ,modified_user_id = '{$this->currentUser->id}'
-                        ,date_modified = '$dateModified'
+                        ,date_modified = NOW()
                     WHERE id = '$bookingId' AND deleted = 0";
             if(!$db->query($sqlUpdate)) {
                 if($this->isDebug()) return [
@@ -679,7 +678,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                             ,arrival_date = '$segArvDateTime'
                             ,description = IF(LENGTH('$transit') > 0, '$transit', description)
                             ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '$dateModified'
+                            ,date_modified = NOW()
                         WHERE id = '$rowId' AND TRIM(flight_number) = '$segFlightNo'";
                     $db->query($sqlUpdate);
 
@@ -692,7 +691,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                 $sqlUpdate = "UPDATE ec_booking_itineraries
                         SET base_price = IF($basePrice <> base_price, $basePrice, base_price)
                             ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '$dateModified'
+                            ,date_modified = NOW()
                         WHERE id = '$itiId'
                             AND booking_id = '$bookingId'
                             AND direction = '$direction'
@@ -952,7 +951,6 @@ class entryAutoBookPhuongNamClass extends entryClass {
                     $systemName = $this->mappingSystemCodeName[$systemCode] ?? "Quốc tế $systemCode";
 
                     $pnr = trim($bookingCode[1] ?? '');
-                    $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
 
                     $ticketing_fee = 0;
                     if($systemCode == 'VJ') $ticketing_fee = 3000;
@@ -981,7 +979,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                                 SET pnr_outbound = '$pnr'
                                     ,pnr_inbound = '$pnr'
                                     ,modified_user_id = '{$this->currentUser->id}'
-                                    ,date_modified = '$dateModified'
+                                    ,date_modified = NOW()
                                 WHERE id IN ($inListPassengerId) 
                                     AND booking_id = '$bookingId'
                                     AND deleted = 0";
@@ -993,7 +991,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                                     ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                     ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                     ,modified_user_id = '{$this->currentUser->id}'
-                                    ,date_modified = '$dateModified'
+                                    ,date_modified = NOW()
                                 WHERE id IN ($inListDetailId) 
                                     AND booking_id = '$bookingId'
                                     AND deleted = 0";
@@ -1021,7 +1019,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                         $sqlUpdate = "UPDATE ec_booking_passengers
                                 SET $colNamePNR = '$pnr'
                                     ,modified_user_id = '{$this->currentUser->id}'
-                                    ,date_modified = '$dateModified'
+                                    ,date_modified = NOW()
                                 WHERE booking_id = '$bookingId'
                                     AND id IN ($inListPassengerId)
                                     AND deleted = 0";
@@ -1033,7 +1031,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                                     ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                     ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                     ,modified_user_id = '{$this->currentUser->id}'
-                                    ,date_modified = '$dateModified'
+                                    ,date_modified = NOW()
                                 WHERE id IN ($inListDetailId) 
                                     AND booking_id = '$bookingId'
                                     AND direction = '$direction'
@@ -1193,7 +1191,6 @@ class entryAutoBookPhuongNamClass extends entryClass {
                 $bagVat         = $baggageData["VAT"] ?? 0;
                 $bagTotalAmount = $baggageData["TotalAmount"] ?? 0;
                 $passengerName  = trim($passengerData['LastName'] . ' ' . $passengerData['FirstName']);
-                $dateModified   = date('Y-m-d H:i:s', time() - 7*60*60);
                 $suffix         = $direction === 1 ? "_inbound" : "";
                 $pnrField       = $direction === 1 ? "pnr_inbound" : "pnr_outbound";
 
@@ -1204,7 +1201,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                         ,luggage_purchase{$suffix}_no_vat   = $bagAmount
                         ,supplier{$suffix}_id               = '{$this->supplierId}'
                         ,modified_user_id                   = '{$this->currentUser->id}'
-                        ,date_modified                      = '$dateModified'
+                        ,date_modified                      = NOW()
                     WHERE $pnrField = '$bookingCode'
                         AND name = '$passengerName'
                         AND (luggage_purchase$suffix IS NULL OR luggage_purchase$suffix = 0)
