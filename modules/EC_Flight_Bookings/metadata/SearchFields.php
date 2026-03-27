@@ -6,7 +6,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 $module_name = 'EC_Flight_Bookings';
 $searchFields[$module_name] = array(
-    'name' => array('query_type' => 'default'),
+    'name' => array('query_type' => 'equals'),
     'current_user_only' => array(
         'query_type' => 'default',
         'db_field' => array('assigned_user_id'),
@@ -40,7 +40,6 @@ $searchFields[$module_name] = array(
         'is_date_field' => true
     ),
     //Range Search Support
-
     // 'passengers_only' => array(
     //   'query_type' => 'format',
     //   'operator' => 'subquery',
@@ -48,7 +47,6 @@ $searchFields[$module_name] = array(
     //   'subquery' => "SELECT ec_flight_bookings.id FROM ec_flight_bookings WHERE ec_flight_bookings.deleted = 0 and ec_flight_bookings.booking_status = 4 AND ec_flight_bookings.description = 'Lý Thông phá hoại'",
     //   'db_field'=>array('id'),
     // ),
-
     // 'favorites_only' => array(
     //   'query_type'=>'format',
     //   'operator' => 'subquery',
@@ -58,7 +56,6 @@ $searchFields[$module_name] = array(
     //                         and favorites.parent_type = 'Calls'
     //                         and favorites.assigned_user_id = '{1}'",
     //   'db_field'=>array('id')),
-
     // SLOW QUERY
     // 'phone' => array(
     //     'query_type' => 'format',
@@ -76,71 +73,64 @@ $searchFields[$module_name] = array(
     //         'id',
     //     ),
     // ),
-
-
-    'passenger_search' => array(
+    'passenger_search' => [
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id FROM ec_booking_passengers WHERE deleted = 0 AND name LIKE',
-        'db_field' => array('id'),
-    ),
-
-    'airline_code_search' => array(
+        'db_field' => ['id'],
+    ],
+    'airline_code_search' => [
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id FROM ec_booking_itineraries WHERE deleted = 0 AND airline_code LIKE',
-        'db_field' => array('id'),
-    ),
-
-    'ticket_class_search' => array(
+        'db_field' => ['id'],
+    ],
+    'ticket_class_search' => [
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id FROM ec_booking_itineraries WHERE deleted = 0 AND ticket_class LIKE',
-        'db_field' => array('id'),
-    ),
-
-    'itinerary_search' => array(
+        'db_field' => ['id'],
+    ],
+    'itinerary_search' => [
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id
 			FROM ec_booking_itineraries
 			WHERE deleted = 0 AND CONCAT(departure,\'-\',arrival) LIKE',
-        'db_field' => array('id'),
-    ),
-
-    'eticket_outbound_search' => array(
+        'db_field' => ['id'],
+    ],
+    'eticket_outbound_search' => [
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id
             FROM ec_booking_passengers
             WHERE deleted = 0 AND eticket_outbound LIKE',
-        'db_field' => array('id'),
-    ),
-    'eticket_inbound_search' => array(
+        'db_field' => ['id'],
+    ],
+    'eticket_inbound_search' => [
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id
 			FROM ec_booking_passengers
 			WHERE deleted = 0 AND eticket_inbound LIKE',
-        'db_field' => array('id'),
-    ),
-
-    'eluggage_outbound_search' => array(
+        'db_field' => ['id'],
+    ],
+    'eluggage_outbound_search' => [
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id
 			FROM ec_booking_passengers
 			WHERE eluggage_outbound LIKE',
-        'db_field' => array('id'),
-    ),
-    'eluggage_inbound_search' => array(
+        'db_field' => ['id'],
+    ],
+    'eluggage_inbound_search' => [
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id
 			FROM ec_booking_passengers
 			WHERE eluggage_inbound LIKE',
-        'db_field' => array('id'),
-    ),
+        'db_field' => ['id'],
+    ],
     'pnr_outbound_search' => [
         'query_type' => 'default',
         'operator' => 'subquery',
@@ -157,8 +147,7 @@ $searchFields[$module_name] = array(
 			WHERE deleted = 0 AND pnr_inbound LIKE',
         'db_field' => ['id'],
     ],
-    // 'departure_date' =>
-    // array(
+    // 'departure_date' => array(
     //   'query_type' => 'format',
     //   'operator' => 'subquery',
     //   'db_field' => array('id'),
@@ -167,20 +156,17 @@ $searchFields[$module_name] = array(
     // 		FROM ec_booking_itineraries
     // 		WHERE deleted = 0 AND departure_date >= "{0} 00:00:00" AND departure_date <= "{1} 23:59:59"',
     // ),
-    'range_date_ticket_issue' =>
-    array(
+    'range_date_ticket_issue' => array(
         'query_type' => 'default',
         'enable_range_search' => true,
         'is_date_field' => true,
     ),
-    'start_range_date_ticket_issue' =>
-    array(
+    'start_range_date_ticket_issue' => array(
         'query_type' => 'default',
         'enable_range_search' => true,
         'is_date_field' => true,
     ),
-    'end_range_date_ticket_issue' =>
-    array(
+    'end_range_date_ticket_issue' => array(
         'query_type' => 'default',
         'enable_range_search' => true,
         'is_date_field' => true,
