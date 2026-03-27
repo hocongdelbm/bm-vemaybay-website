@@ -645,4 +645,49 @@ class CustomController extends BaseController
             return $response->withJson(['error' => true, 'message' => $e->getMessage()], 500);
         }
     }
+
+    public function save_location_booking(Request $request, Response $response, array $args) {
+        global $db, $sugar_config;
+        try {
+            $request_ip = $request->getServerParam('REMOTE_ADDR');
+            if (!in_array($request_ip, $sugar_config['ip_whitelist'])) {
+                return $response->withJson(['error' => true, 'message' => "Access denied"], 403);
+            }
+
+            $params = (array) $request->getParsedBody();
+            $lat = substr((string) global_test_input($params['lat'] ?? ''), 0, 28);
+            $long = substr((string) global_test_input($params['long'] ?? ''), 0, 28);
+            $booking_id = global_test_input($params['booking_id'] ?? '');
+
+            if(empty($lat) || empty($long) || empty($booking_id)) {
+                return $response->withJson(['error' => true, 'message' => "Invalid parameters"], 400);
+            }
+
+            // Validate lat/long are actually numeric
+            if (!is_numeric($lat) || !is_numeric($long)) {
+                return $response->withJson(['error' => true, 'message' => "Invalid coordinates"], 400);
+            }
+
+            $sql = "UPDATE ec_flight_bookings
+                SET city = '$lat,$long'
+                WHERE id = '$booking_id'
+                    AND city IS NULL OR TRIM(city) = ''
+                    AND deleted = 0";
+            if($db->query($sql)) {
+                return $response->withJson(['error' => false, 'message' => 'Success'], 200);
+            }
+            else {
+                return $response->withJson(['error' => true, 'message' => 'Failed'], 500);
+            }
+        }
+        catch (Throwable $th) {
+            $logId = LoggerHelper::generateLogId();
+            $GLOBALS['log']->fatal("[{$logId}] {$th->getMessage()} ({$th->getCode()}) on line {$th->getLine()} in {$th->getFile()}");
+            return $response->withJson([
+                "error" => true,
+                "message" => "An error occurred",
+                "description" => $logId
+            ], 500);
+        }
+    }
 }
