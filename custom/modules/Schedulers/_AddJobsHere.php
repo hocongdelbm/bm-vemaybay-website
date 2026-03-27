@@ -1996,6 +1996,7 @@ function sendAutoCheapPriceMessageZalo()
 
 		$listFlightSearch = []; // Cache vars
 		$sentMap = [];
+		$failedInfo = [];
 
 		$res = $db->query($sql);
 		while ($row = $db->fetchByAssoc($res)) {
@@ -2125,9 +2126,18 @@ function sendAutoCheapPriceMessageZalo()
 						if (isset($sendResult['status']) && $sendResult['status'] == 1) $sentMap[$phone] = true;
 						else {
 							$sentMap[$phone] = false;
+
+							$errCode = $sendResult['error'] ?? null;
+							if(!is_null($errCode)) {
+								if(!isset($failedInfo[$errCode])) {
+									$failedInfo[$errCode]['message'] = $sendResult['message'] ?? '';
+									$failedInfo[$errCode]['count'] = 1;
+								}
+								else $failedInfo[$errCode]['count'] += 1;
+							}
+
 							$GLOBALS['log']->fatal(
-								"Send auto message Zalo ZBS (cheap-price) failed: " .
-									json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
+								"Send auto message Zalo ZBS (cheap-price) failed: " . json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
 							);
 						}
 					}
@@ -2138,15 +2148,28 @@ function sendAutoCheapPriceMessageZalo()
 		// Send info to notification channel
 		$countSent = count(array_filter($sentMap));
 		$countFailed = count(array_filter($sentMap, fn($v) => !$v));
+
+		$mFailed = "";
+		if(count($failedInfo) > 0) {
+			foreach($failedInfo as $err_code => $errInfo) {
+				$mFailed .= "\n<b>-</b> {$errInfo['message']} ($err_code): <b>{$errInfo['count']}</b> số";
+			}
+		}
+
 		if ($countSent > 0) {
 			$countTotal = $countSent + $countFailed;
 			$m = "<b>⚙️Auto:</b> Đã gửi tin CSKH Zalo (Booking tham khảo) cho <b>{$countSent}</b>/{$countTotal} số";
+			$m .= $mFailed;
 			NotificationService::sendMessage($m, "zalo");
-		} else {
-			$m = "Please check suitecrm log <code>_AddJobsHere.php -> " . __FUNCTION__ . "()</code>";
+		}
+		else if($countFailed > 0) {
+			$m = "Gửi tin CSKH Zalo (Booking tham khảo)";
+			$m .= $mFailed;
+			$m .= "\n\n<i>Please check suitecrm log <code>_AddJobsHere.php -> " . __FUNCTION__ . "()</code></i>";
 			NotificationService::sendWarningMessage($m, "", ['threadKey' => 'logs']);
 		}
-	} catch (Throwable $th) {
+	}
+	catch (Throwable $th) {
 		$m = "Cronjob " . __FUNCTION__ . "() failed";
 		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
 		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
@@ -2156,8 +2179,7 @@ function sendAutoCheapPriceMessageZalo()
 /**
  * Tự động gửi tin tư vấn Zalo để duy trì tương tác
  */
-function maintainZaloChat()
-{
+function maintainZaloChat() {
 	global $db, $timedate, $sugar_config;
 
 	try {
@@ -2239,6 +2261,7 @@ function maintainZaloChat()
 				AND zc.deleted = 0";
 
 		$sentMap = [];
+		$failedInfo = [];
 
 		$res = $db->query($sql);
 		while ($row = $db->fetchByAssoc($res)) {
@@ -2345,6 +2368,13 @@ function maintainZaloChat()
 							if (isset($sendResult['status']) && $sendResult['status'] == 1) $sentMap[$row['zalo_id']] = true;
 							else {
 								$sentMap[$row['zalo_id']] = false;
+
+								$errMessage = $sendResult['message'] ?? '';
+								if(!empty($errMessage)) {
+									if(!isset($failedInfo[$errMessage])) $failedInfo[$errMessage] = 1;
+									else $failedInfo[$errMessage] += 1;
+								}
+
 								$GLOBALS['log']->fatal(
 									"Send message to maintain zalo chat failed: " .
 										json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
@@ -2359,12 +2389,24 @@ function maintainZaloChat()
 		// Send info to notification channel
 		$countSent = count(array_filter($sentMap));
 		$countFailed = count(array_filter($sentMap, fn($v) => !$v));
+
+		$mFailed = "";
+		if(count($failedInfo) > 0) {
+			foreach($failedInfo as $err_message => $err_count) {
+				$mFailed .= "\n<b>-</b> $err_message: <b>$err_count</b> user";
+			}
+		}
+			
 		if ($countSent > 0) {
 			$countTotal = $countSent + $countFailed;
 			$m = "<b>⚙️Auto:</b> Đã gửi tin tư vấn giá rẻ duy trì tương tác Zalo cho <b>{$countSent}</b>/{$countTotal} người dùng";
+			$m .= $mFailed;
 			NotificationService::sendMessage($m, "zalo");
-		} else {
-			$m = "Please check suitecrm log <code>_AddJobsHere.php -> " . __FUNCTION__ . "()</code>";
+		}
+		else if($countFailed > 0) {
+			$m = "Gửi tin tư vấn giá rẻ duy trì tương tác Zalo";
+			$m .= $mFailed;
+			$m .= "\n\n<i>Please check suitecrm log <code>_AddJobsHere.php -> " . __FUNCTION__ . "()</code></i>";
 			NotificationService::sendWarningMessage($m, "", ['threadKey' => 'logs']);
 		}
 	} catch (Throwable $th) {
