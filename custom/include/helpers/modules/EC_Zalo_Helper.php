@@ -1,7 +1,7 @@
 <?php
 require_once "custom/include/helpers/api/APIZaloOA.php";
 
-use Custom\Services\Notification\NotificationService;
+use custom\services\Notification\NotificationService;
 
 class EC_Zalo_Helper {
     public const IMAGE_PATH = "themes/SuiteP/images/zalo_messages"; 

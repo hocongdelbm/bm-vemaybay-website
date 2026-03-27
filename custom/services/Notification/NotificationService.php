@@ -1,9 +1,9 @@
 <?php
-namespace Custom\Services\Notification;
+namespace custom\services\Notification;
 
-use Custom\Services\Notification\NotificationChannelInterface;
-use Custom\Services\Notification\Channels\MattermostChannel;
-use Custom\Services\Notification\Channels\TelegramChannel;
+use custom\services\Notification\NotificationChannelInterface;
+use custom\services\Notification\Channels\MattermostChannel;
+use custom\services\Notification\Channels\TelegramChannel;
 
 class NotificationService {
     /** @var NotificationChannelInterface[] */

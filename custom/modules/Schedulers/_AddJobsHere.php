@@ -1,22 +1,19 @@
 <?php
-
-use Custom\Services\Notification\NotificationService;
-
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+
+use custom\services\Notification\NotificationService;
 
 $job_strings[] = 'TuDongTaoBang';  // tu dong tao bang moi chi tiet tai khoan
 $job_strings[] = 'KetChuyenTienMatSCK'; // ket chuyen tien mat so du cuoi ky vao dau moi nam
 $job_strings[] = 'KetChuyenTienGuiNganHangSCK'; // ket chuyen tien gui ngan hang so du cuoi ky vao dau moi nam
 $job_strings[] = 'KetChuyenCongNoPhaiThu'; // kết chuyển công nợ phải thu vào đầu mỗi năm
 $job_strings[] = 'KetChuyenCongNoPhaiTra'; // kết chuyển công nợ phải trả vào đầu mỗi năm
-
 $job_strings[] = 'createMonthSalary'; // Đầu mỗi tháng tạo 1 bảng lương
 $job_strings[] = 'updateEfforts'; // cập nhật nỗ lực trong bảng lương
 $job_strings[] = 'lockSalaryAtEndMonth'; // khoá bảng lương vào cuối mỗi tháng 
 $job_strings[] = 'updateWorkingDays'; // cập nhật ngày công trong bảng lương
 $job_strings[] = 'updateMissingEfforts'; // cập nhật nỗ lực thật sự của tháng nếu bảng lương khoá trước ngày cuối tháng
 $job_strings[] = 'updateOnlineReport'; // cập nhật ds online mỗi ngày
-
 $job_strings[] = 'LoopCheckIfBookingOver24h'; // kiem tra booking co qua 24h
 // $job_strings[] = 'checkOnlineUser'; // Kiểm tra xem booking giao đã được xử lý, để biết user còn online hay không
 $job_strings[] = 'checkBookingHandle'; // Kiểm tra xem booking đã giao được xử lý hay chưa
@@ -29,6 +26,7 @@ $job_strings[] = 'maintainZaloChat'; // Tự động gửi tin tư vấn Zalo đ
 $job_strings[] = 'resetRewardPoints'; // Reset lại điểm tích lũy của liên hệ qua booking hằng năm
 $job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
 $job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
+$job_strings[] = 'migrateZaloImagesToNextCloud'; // Đồng bộ ảnh từ Zalo CDN sang VN Backup
 
 /**
  * Thông báo hành trình cần checkin
@@ -1998,6 +1996,7 @@ function sendAutoCheapPriceMessageZalo()
 
 		$listFlightSearch = []; // Cache vars
 		$sentMap = [];
+		$failedInfo = [];
 
 		$res = $db->query($sql);
 		while ($row = $db->fetchByAssoc($res)) {
@@ -2127,9 +2126,18 @@ function sendAutoCheapPriceMessageZalo()
 						if (isset($sendResult['status']) && $sendResult['status'] == 1) $sentMap[$phone] = true;
 						else {
 							$sentMap[$phone] = false;
+
+							$errCode = $sendResult['error'] ?? null;
+							if(!is_null($errCode)) {
+								if(!isset($failedInfo[$errCode])) {
+									$failedInfo[$errCode]['message'] = $sendResult['message'] ?? '';
+									$failedInfo[$errCode]['count'] = 1;
+								}
+								else $failedInfo[$errCode]['count'] += 1;
+							}
+
 							$GLOBALS['log']->fatal(
-								"Send auto message Zalo ZBS (cheap-price) failed: " .
-									json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
+								"Send auto message Zalo ZBS (cheap-price) failed: " . json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
 							);
 						}
 					}
@@ -2140,15 +2148,28 @@ function sendAutoCheapPriceMessageZalo()
 		// Send info to notification channel
 		$countSent = count(array_filter($sentMap));
 		$countFailed = count(array_filter($sentMap, fn($v) => !$v));
+
+		$mFailed = "";
+		if(count($failedInfo) > 0) {
+			foreach($failedInfo as $err_code => $errInfo) {
+				$mFailed .= "\n<b>-</b> {$errInfo['message']} ($err_code): <b>{$errInfo['count']}</b> số";
+			}
+		}
+
 		if ($countSent > 0) {
 			$countTotal = $countSent + $countFailed;
 			$m = "<b>⚙️Auto:</b> Đã gửi tin CSKH Zalo (Booking tham khảo) cho <b>{$countSent}</b>/{$countTotal} số";
+			$m .= $mFailed;
 			NotificationService::sendMessage($m, "zalo");
-		} else {
-			$m = "Please check suitecrm log <code>_AddJobsHere.php -> " . __FUNCTION__ . "()</code>";
+		}
+		else if($countFailed > 0) {
+			$m = "Gửi tin CSKH Zalo (Booking tham khảo)";
+			$m .= $mFailed;
+			$m .= "\n\n<i>Please check suitecrm log <code>_AddJobsHere.php -> " . __FUNCTION__ . "()</code></i>";
 			NotificationService::sendWarningMessage($m, "", ['threadKey' => 'logs']);
 		}
-	} catch (Throwable $th) {
+	}
+	catch (Throwable $th) {
 		$m = "Cronjob " . __FUNCTION__ . "() failed";
 		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
 		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
@@ -2158,8 +2179,7 @@ function sendAutoCheapPriceMessageZalo()
 /**
  * Tự động gửi tin tư vấn Zalo để duy trì tương tác
  */
-function maintainZaloChat()
-{
+function maintainZaloChat() {
 	global $db, $timedate, $sugar_config;
 
 	try {
@@ -2241,6 +2261,7 @@ function maintainZaloChat()
 				AND zc.deleted = 0";
 
 		$sentMap = [];
+		$failedInfo = [];
 
 		$res = $db->query($sql);
 		while ($row = $db->fetchByAssoc($res)) {
@@ -2347,6 +2368,13 @@ function maintainZaloChat()
 							if (isset($sendResult['status']) && $sendResult['status'] == 1) $sentMap[$row['zalo_id']] = true;
 							else {
 								$sentMap[$row['zalo_id']] = false;
+
+								$errMessage = $sendResult['message'] ?? '';
+								if(!empty($errMessage)) {
+									if(!isset($failedInfo[$errMessage])) $failedInfo[$errMessage] = 1;
+									else $failedInfo[$errMessage] += 1;
+								}
+
 								$GLOBALS['log']->fatal(
 									"Send message to maintain zalo chat failed: " .
 										json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
@@ -2361,12 +2389,24 @@ function maintainZaloChat()
 		// Send info to notification channel
 		$countSent = count(array_filter($sentMap));
 		$countFailed = count(array_filter($sentMap, fn($v) => !$v));
+
+		$mFailed = "";
+		if(count($failedInfo) > 0) {
+			foreach($failedInfo as $err_message => $err_count) {
+				$mFailed .= "\n<b>-</b> $err_message: <b>$err_count</b> user";
+			}
+		}
+			
 		if ($countSent > 0) {
 			$countTotal = $countSent + $countFailed;
 			$m = "<b>⚙️Auto:</b> Đã gửi tin tư vấn giá rẻ duy trì tương tác Zalo cho <b>{$countSent}</b>/{$countTotal} người dùng";
+			$m .= $mFailed;
 			NotificationService::sendMessage($m, "zalo");
-		} else {
-			$m = "Please check suitecrm log <code>_AddJobsHere.php -> " . __FUNCTION__ . "()</code>";
+		}
+		else if($countFailed > 0) {
+			$m = "Gửi tin tư vấn giá rẻ duy trì tương tác Zalo";
+			$m .= $mFailed;
+			$m .= "\n\n<i>Please check suitecrm log <code>_AddJobsHere.php -> " . __FUNCTION__ . "()</code></i>";
 			NotificationService::sendWarningMessage($m, "", ['threadKey' => 'logs']);
 		}
 	} catch (Throwable $th) {
@@ -2418,4 +2458,159 @@ function resetRewardPoints()
 		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
 		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
 	}
+}
+
+/**
+ * Cuối mỗi ngày: tìm tất cả tin nhắn Zalo có ảnh (URL còn trỏ về Zalo CDN),
+ * tải về local, upload lên NextCloud, tạo public share, cập nhật lại DB.
+ */
+function migrateZaloImagesToNextCloud()
+{
+	global $db, $timedate;
+	$utcDate = $timedate->nowDb(); // Guarantee timezone is UTC
+	$utcTimestamp       = strtotime($utcDate);
+	$today 				= date('Y-m-d', $utcTimestamp);
+	$yesterday 			= date('Y-m-d', strtotime('-1 day', $utcTimestamp));
+
+	// ── 1. Lấy những record cần xử lý ──────────────────────────────────────
+	// Chỉ lấy trong ngày hôm nay, type=consultation, sub_type=image,
+	// thumbnail/url vẫn còn là link Zalo CDN (chưa phải link NextCloud).
+
+	$sql = "SELECT id, url
+            FROM ec_zalo_messages
+            WHERE date_entered BETWEEN '$yesterday 17:00:00' AND '$today 16:59:59'
+				AND sub_type = 'image'
+                AND type = 'consultation'
+                AND url IS NOT NULL
+                AND url != ''
+                AND url NOT LIKE 'https://vnbackup.com/s/%'
+				AND deleted = 0"; //vì link public dạng này:https://vnbackup.com/s/hdhdhdsjdh 
+
+	$res = $db->query($sql);
+	if ($db->countRows($res) == 0) {
+		$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": No records to migrate today.");
+		return true;
+	}
+
+	// ── 2. Khởi tạo APINextCloud & tạo folder theo ngày ────────────────────
+	require_once 'custom/include/helpers/api/APINextCloud.php';
+	$api = new APINextCloud();
+
+	$folderParts = [
+		'bmvmb',
+		'bmvmb/modules',
+		'bmvmb/modules/ec_zalo_messages',
+		'bmvmb/modules/ec_zalo_messages/' . date('Y'),
+		'bmvmb/modules/ec_zalo_messages/' . date('Y') . '/' . date('m'),
+		'bmvmb/modules/ec_zalo_messages/' . date('Y') . '/' . date('m') . '/' . date('d'),
+	];
+	foreach ($folderParts as $part) {
+		$api->createFolder($part); // MKCOL: bỏ qua 405 nếu folder đã có
+	}
+
+	$folderPath  = end($folderParts);
+	$uploadDir   = 'cache/upload/';
+	if (!is_dir($uploadDir)) {
+		sugar_mkdir($uploadDir, 0755, true);
+	}
+
+	// ── 3. Lặp từng record ──────────────────────────────────────────────────
+	while ($row = $db->fetchByAssoc($res)) {
+		try {
+			$imageUrl = $row['url'];
+
+			// 3a. Tải ảnh từ Zalo CDN về local
+			$fetchResult = $api->fetchPublicFile($imageUrl);
+			if (!$fetchResult['success']) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Download failed for id={$row['id']}, url=$imageUrl, error={$fetchResult['error']}");
+				continue;
+			}
+
+			// 3b. Xác định extension
+			$ext = 'jpg';
+			if (preg_match('/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i', $imageUrl, $m)) {
+				$ext = strtolower($m[1]);
+			} elseif (!empty($fetchResult['contentType'])) {
+				$mimeMap = [
+					'image/jpeg' => 'jpg',
+					'image/png'  => 'png',
+					'image/gif'  => 'gif',
+					'image/webp' => 'webp',
+				];
+				$ct  = strtolower(explode(';', $fetchResult['contentType'])[0]);
+				$ext = $mimeMap[trim($ct)] ?? 'jpg';
+			}
+
+			$safeId     = str_replace('-', '', $row['id']);
+			$fileName   = $safeId . '_' . time() . '.' . $ext;
+			$localPath  = $uploadDir . $fileName;
+			$remotePath = $folderPath . '/' . $fileName;
+
+			// 3c. Lưu file tạm
+			if (file_put_contents($localPath, $fetchResult['data']) === false) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Cannot write local file $localPath");
+				continue;
+			}
+
+			// 3d. Upload lên NextCloud
+			$uploadResult = json_decode($api->uploadFile($localPath, $remotePath), true);
+			if (empty($uploadResult) || (int)($uploadResult['status'] ?? 0) !== 1) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Upload failed for id={$row['id']}, remote=$remotePath, response=" . json_encode($uploadResult));
+				@unlink($localPath);
+				continue;
+			}
+
+			// 3e. Tạo public share (read-only, no password)
+			$shareResult = json_decode($api->createShare($remotePath, 1), true);
+			if (empty($shareResult) || (int)($shareResult['status'] ?? 0) !== 1) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Share creation failed for id={$row['id']}, response=" . json_encode($shareResult));
+				@unlink($localPath);
+				continue;
+			}
+
+			// NextCloud trả về share URL dạng: https://vnbackup.com/s/abcsiueh
+			// Download trực tiếp: thêm /download vào cuối
+			$shareUrl    = rtrim($shareResult['data']['url'] ?? '', '/');
+			if (empty($shareUrl)) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Empty share URL for id={$row['id']}");
+				@unlink($localPath);
+				continue;
+			}
+
+			// 3f. Cập nhật JSON trong field `data`
+			$dataJson = json_decode($row['data'] ?? '{}', true);
+			if (isset($dataJson['message']['attachments']) && is_array($dataJson['message']['attachments'])) {
+				foreach ($dataJson['message']['attachments'] as &$attachment) {
+					if (($attachment['type'] ?? '') === 'image') {
+						$attachment['payload']['thumbnail'] = $shareUrl;
+						$attachment['payload']['url']       = $shareUrl;
+					}
+				}
+				unset($attachment);
+			}
+
+			// 3g. UPDATE database
+			$safeShareUrl = $db->quote($shareUrl);
+			$db->query("
+                UPDATE ec_zalo_messages
+                SET thumbnail     = '$safeShareUrl',
+                    url           = '$safeShareUrl',
+                    date_modified = NOW()
+                WHERE id = '{$row['id']}'
+                  AND deleted = 0
+            ");
+
+			$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": Successfully migrated image for id={$row['id']}, shareUrl=$shareUrl");
+		} catch (Throwable $th) {
+			$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Exception for id={$row['id']}: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+		} finally {
+			// Luôn xoá file tạm dù thành công hay thất bại
+			if (!empty($localPath) && file_exists($localPath)) {
+				@unlink($localPath);
+			}
+		}
+	}
+
+	$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": Done.");
+	return true;
 }

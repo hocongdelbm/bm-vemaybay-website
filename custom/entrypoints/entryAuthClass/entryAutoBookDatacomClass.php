@@ -2,7 +2,7 @@
 require_once "custom/entrypoints/entryClass.php";
 require_once "custom/include/helpers/api/APIDatacom.php";
 
-use Services\Notification\NotificationService;
+use custom\services\Notification\NotificationService;
 
 /**
  * Class entryAutoBookDatacomClass
@@ -689,7 +689,6 @@ class entryAutoBookDatacomClass extends entryClass {
         }
 
         global $db;
-        $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
         $sqlUpdate = '';
 
         if(!$isInter) { // Domestic
@@ -739,7 +738,7 @@ class entryAutoBookDatacomClass extends entryClass {
                     //         ,total_bought_price = ($fare + $tax + airport_fee + admin_fee) * quantity
                     //         ,total_price = ($fare + $tax + airport_fee + admin_fee + service_fee) * quantity
                     //         ,modified_user_id = '{$this->currentUser->id}'
-                    //         ,date_modified = '$dateModified'
+                    //         ,date_modified = NOW()
                     //     WHERE id = '$detailId'
                     //         AND booking_id = '$bookingId'
                     //         AND direction = '$direction'
@@ -752,7 +751,7 @@ class entryAutoBookDatacomClass extends entryClass {
                             ,total_bought_price = ($fare + $tax + airport_fee + admin_fee) * quantity
                             ,total_price = ($fare + $tax + airport_fee + admin_fee + service_fee) * quantity
                             ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '$dateModified'
+                            ,date_modified = NOW()
                         WHERE id = '$detailId'
                             AND booking_id = '$bookingId'
                             AND direction = '$direction'
@@ -781,7 +780,7 @@ class entryAutoBookDatacomClass extends entryClass {
                     SET total_bought_amount = IF($total_bought_amount > 0, $total_bought_amount, total_bought_amount)
                         ,subtotal_amount = IF($subtotal_amount > 0, $subtotal_amount, subtotal_amount)
                         ,modified_user_id = '{$this->currentUser->id}'
-                        ,date_modified = '$dateModified'
+                        ,date_modified = NOW()
                     WHERE id = '$bookingId' AND deleted = 0";
             if(!$db->query($sqlUpdate)) {
                 if($this->isDebug()) return [
@@ -833,7 +832,7 @@ class entryAutoBookDatacomClass extends entryClass {
                             ,arrival_date = '$segArvDateTime'
                             ,description = IF(LENGTH('$transit') > 0, '$transit', description)
                             ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '$dateModified'
+                            ,date_modified = NOW()
                         WHERE id = '$rowId' AND TRIM(flight_number) = '$segFlightNo'";
                     $db->query($sqlUpdate);
 
@@ -846,7 +845,7 @@ class entryAutoBookDatacomClass extends entryClass {
                 $sqlUpdate = "UPDATE ec_booking_itineraries
                         SET base_price = IF($basePrice <> base_price, $basePrice, base_price)
                             ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '$dateModified'
+                            ,date_modified = NOW()
                         WHERE id = '$itiId'
                             AND booking_id = '$bookingId'
                             AND direction = '$direction'
@@ -906,7 +905,7 @@ class entryAutoBookDatacomClass extends entryClass {
                             ,total_bought_price = $price * quantity
                             ,total_price = ($price + service_fee) * quantity
                             ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '$dateModified'
+                            ,date_modified = NOW()
                         WHERE id = '$detailId'
                             AND booking_id = '$bookingId'
                             AND passenger_type = '$i'
@@ -934,7 +933,7 @@ class entryAutoBookDatacomClass extends entryClass {
                     SET total_bought_amount = IF($total_bought_amount > 0, $total_bought_amount, total_bought_amount)
                         ,subtotal_amount = IF($subtotal_amount > 0, $subtotal_amount, subtotal_amount)
                         ,modified_user_id = '{$this->currentUser->id}'
-                        ,date_modified = '$dateModified'
+                        ,date_modified = NOW()
                     WHERE id = '$bookingId' AND deleted = 0";
             if(!$db->query($sqlUpdate)) {
                 if($this->isDebug()) return [
@@ -991,7 +990,7 @@ class entryAutoBookDatacomClass extends entryClass {
                                 ,airline_code = '$segCarrierCode'
                                 ,description = IF(LENGTH('$transit') > 0, '$transit', description)
                                 ,modified_user_id = '{$this->currentUser->id}'
-                                ,date_modified = '$dateModified'
+                                ,date_modified = NOW()
                             WHERE id = '$rowId' AND TRIM(flight_number) = '$segFlightNo'";
                         $db->query($sqlUpdate);
     
@@ -1008,7 +1007,7 @@ class entryAutoBookDatacomClass extends entryClass {
                 $sqlUpdate = "UPDATE ec_booking_itineraries
                         SET base_price = IF($basePrice <> base_price && base_price > 0, $basePrice, base_price)
                             ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '$dateModified'
+                            ,date_modified = NOW()
                         WHERE (id = '$itiDepId' OR id = '$itiRetId')
                             AND booking_id = '$bookingId'
                             AND deleted = 0
@@ -1086,7 +1085,6 @@ class entryAutoBookDatacomClass extends entryClass {
                 $systemCode = $bk['System'] ?? ''; // System code
                 $airlineCode = $bk['Airline'] ?? ''; // Airline code
                 $expirationTime = $agency->convertDatetime($bk['ExpirationTime'] ?? ''); // 19092025 1737
-                $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
 
                 // Send notification
                 try {
@@ -1118,7 +1116,7 @@ class entryAutoBookDatacomClass extends entryClass {
                             SET pnr_outbound = '$pnr'
                                 ,pnr_inbound = '$pnr'
                                 ,modified_user_id = '{$this->currentUser->id}'
-                                ,date_modified = '$dateModified'
+                                ,date_modified = NOW()
                             WHERE id IN ($inListPassengerId) 
                                 AND booking_id = '$bookingId'
                                 AND deleted = 0";
@@ -1131,7 +1129,7 @@ class entryAutoBookDatacomClass extends entryClass {
                                 -- ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                 -- ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                 ,modified_user_id = '{$this->currentUser->id}'
-                                ,date_modified = '$dateModified'
+                                ,date_modified = NOW()
                             WHERE id IN ($inListDetailId) 
                                 AND booking_id = '$bookingId'
                                 AND deleted = 0";
@@ -1144,7 +1142,7 @@ class entryAutoBookDatacomClass extends entryClass {
                         $sqlUpdate = "UPDATE ec_booking_itineraries
                             SET time_limit = '{$expirationTime}'
                                 ,modified_user_id = '{$this->currentUser->id}'
-                                ,date_modified = '$dateModified'
+                                ,date_modified = NOW()
                             WHERE id IN ($inListItineraryId) 
                                 AND booking_id = '$bookingId'
                                 AND deleted = 0";
@@ -1196,7 +1194,7 @@ class entryAutoBookDatacomClass extends entryClass {
                     $sqlUpdate = "UPDATE ec_booking_passengers
                             SET pnr_{$roundText} = '$pnr'
                                 ,modified_user_id = '{$this->currentUser->id}'
-                                ,date_modified = '$dateModified'
+                                ,date_modified = NOW()
                             WHERE id IN ($inListPassengerId) 
                                 AND booking_id = '$bookingId'
                                 AND deleted = 0";
@@ -1209,7 +1207,7 @@ class entryAutoBookDatacomClass extends entryClass {
                                 ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                 ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                 ,modified_user_id = '{$this->currentUser->id}'
-                                ,date_modified = '$dateModified'
+                                ,date_modified = NOW()
                             WHERE id IN ($inListDetailId)
                                 AND booking_id = '$bookingId'
                                 AND direction = '$direction'
@@ -1223,7 +1221,7 @@ class entryAutoBookDatacomClass extends entryClass {
                         $sqlUpdate = "UPDATE ec_booking_itineraries
                             SET time_limit = '{$expirationTime}'
                                 ,modified_user_id = '{$this->currentUser->id}'
-                                ,date_modified = '$dateModified'
+                                ,date_modified = NOW()
                             WHERE id IN ($inListItineraryId) 
                                 AND booking_id = '$bookingId'
                                 AND deleted = 0";
@@ -1244,7 +1242,7 @@ class entryAutoBookDatacomClass extends entryClass {
                     //             $sqlUpdate = "UPDATE ec_booking_passengers
                     //                 SET luggage_index_{$roundText} = '{$freeBaggageValue}'
                     //                     ,modified_user_id = '{$this->currentUser->id}'
-                    //                     ,date_modified = '$dateModified'
+                    //                     ,date_modified = NOW()
                     //                 WHERE booking_id = '{$bookingId}'
                     //                     AND id IN ({$inListPassengerId})
                     //                     AND type = '{$paxTypeValue}'
@@ -1395,7 +1393,6 @@ class entryAutoBookDatacomClass extends entryClass {
                 $bagVat         = $baggageData["VAT"] ?? "";
                 $bagTotalAmount = $baggageData["TotalAmount"] ?? 0;
                 $passengerName  = trim($passengerData['LastName'] . ' ' . $passengerData['FirstName']);
-                $dateModified   = date('Y-m-d H:i:s', time() - 7*60*60);
                 $suffix         = $direction === 1 ? "_inbound" : "";
                 $pnrField       = $direction === 1 ? "pnr_inbound" : "pnr_outbound";
 
@@ -1406,7 +1403,7 @@ class entryAutoBookDatacomClass extends entryClass {
                         ,luggage_purchase{$suffix}_no_vat   = $bagAmount
                         ,supplier{$suffix}_id               = '{$this->supplierId}'
                         ,modified_user_id                   = '{$this->currentUser->id}'
-                        ,date_modified                      = '$dateModified'
+                        ,date_modified                      = NOW()
                     WHERE $pnrField = '$bookingCode'
                         AND name = '$passengerName'
                         AND (luggage_purchase$suffix IS NULL OR luggage_purchase$suffix = 0)

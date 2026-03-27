@@ -95,12 +95,12 @@ class CustomController extends BaseController
                 if (!empty($call_id_autolink)) {
                     $db->query('
                         UPDATE calls
-                        SET booking_id = ' . $db->quote($booking_id) . '
-                        WHERE id = ' . $db->quote($call_id_autolink) . ' 
+                        SET booking_id = "' . $db->quote($booking_id) . '"
+                        WHERE id = "' . $db->quote($call_id_autolink) . '"
                         AND deleted = 0
                     ');
 
-                    $GLOBALS['log']->info('Auto-link (case3) call ' . $call_id_autolink . ' → booking ' . $booking_id . ' (phone: ' . $booking->phone . ')');
+                    $GLOBALS['log']->fatal('DEBUG: Auto-link save_booking (case3) call ' . $call_id_autolink . ' → booking ' . $booking_id . ' (phone: ' . $booking->phone . ') and sql ' . $sql_call);
                 }
             }
 
@@ -379,7 +379,7 @@ class CustomController extends BaseController
                     $sql_check = '
                         SELECT 
                             COUNT(*) AS total,
-                            SUM(CASE WHEN booking_status = "completed" THEN 1 ELSE 0 END) AS total_completed
+                            SUM(CASE WHEN booking_status = "8" THEN 1 ELSE 0 END) AS total_completed
                         FROM ec_flight_bookings
                         WHERE phone = ' . $db->quote(trim($call_from)) . '
                         AND deleted = 0
@@ -404,11 +404,12 @@ class CustomController extends BaseController
                         if (!empty($booking_id_auto)) {
                             $db->query('
                                 UPDATE calls
-                                SET booking_id = ' . $db->quote($booking_id_auto) . '
-                                WHERE id = ' . $db->quote($call->id) . ' AND deleted = 0
+                                SET booking_id = "' . $db->quote($booking_id_auto) . '"
+                                WHERE id = "' . $db->quote($call->id) . '"
+                                AND deleted = 0
                             ');
 
-                            $GLOBALS['log']->info('Auto-link call ' . $call->id . ' → booking ' . $booking_id_auto . ' (phone: ' . $call_from . ')');
+                            $GLOBALS['log']->fatal('DEBUG: Auto-link call from save_call ' . $call->id . ' → booking ' . $booking_id_auto . ' (phone: ' . $call_from . ') and sql: ' . $sql_booking);
                         }
                     }
                     // Bước 3: Không có booking nào → không làm gì

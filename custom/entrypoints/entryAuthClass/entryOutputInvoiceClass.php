@@ -2,7 +2,7 @@
 require_once "custom/entrypoints/entryClass.php";
 require_once "custom/include/helpers/api/WinInvoice.php";
 
-use Services\Notification\NotificationService;
+use custom\services\Notification\NotificationService;
 
 /**
  * Class entryOutputInvoiceClass
@@ -45,7 +45,7 @@ class entryOutputInvoiceClass extends entryClass {
                     SET tinhtrang = '1'
                         ,invoice_data = '$responseSet'
                         ,modified_user_id = '{$this->currentUser->id}'
-                        ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
+                        ,date_modified = NOW()
                     WHERE id = '$recordId' AND deleted = 0";
                 if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
@@ -118,7 +118,6 @@ class entryOutputInvoiceClass extends entryClass {
                         $recordIdSafe   = $db->quote($recordId);
                         $invRefSafe     = $db->quote($invRef);
                         $userIdSafe     = $db->quote($this->currentUser->id);
-                        $dateModified   = $db->quote(date('Y-m-d H:i:s', time() - 7*60*60));
 
                         $sqlUpdate =
                            "UPDATE ec_hoadonban
@@ -129,7 +128,7 @@ class entryOutputInvoiceClass extends entryClass {
                                 ngayhoadon = '$invDateSafe',
                                 invoice_data = '$jsonSafe',
                                 modified_user_id = '$userIdSafe',
-                                date_modified = '$dateModified'
+                                date_modified = NOW()
                             WHERE id = '$recordIdSafe' AND name = '$invRefSafe' AND deleted = 0";
 
                         if($db->query($sqlUpdate)) {
@@ -181,7 +180,7 @@ class entryOutputInvoiceClass extends entryClass {
                                     $db->query("UPDATE ec_flight_bookings
                                         SET is_invoice_export = 1
                                             ,modified_user_id = '{$this->currentUser->id}'
-                                            ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
+                                            ,date_modified = NOW()
                                         WHERE id IN ($listBookingId) AND deleted = 0");
                                 }
                                 else {
@@ -250,12 +249,11 @@ class entryOutputInvoiceClass extends entryClass {
 
                 // Update status
                 try {
-                    $date_modified = date('Y-m-d H:i:s', time() - 7*3600);
                     $sqlUpdate = "UPDATE ec_hoadonban
                         SET tinhtrang = '0'
                             ,invoice_data = ''
                             ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '$date_modified'
+                            ,date_modified = NOW()
                         WHERE id = '$recordId' AND deleted = 0";
                     if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
@@ -263,7 +261,7 @@ class entryOutputInvoiceClass extends entryClass {
                         SET deleted = 1
                             ,description = 'Đã hủy {$invRef}'
                             ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '$date_modified'
+                            ,date_modified = NOW()
                         WHERE parent_id = '$recordId'
                             AND parent_type = 'EC_HoaDonBan'
                             AND deleted = 0";

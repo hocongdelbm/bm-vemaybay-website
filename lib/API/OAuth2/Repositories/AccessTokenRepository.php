@@ -6,7 +6,7 @@ use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
 use SuiteCRM\API\OAuth2\Entities\AccessTokenEntity;
 use Throwable;
-use Custom\Services\Notification\NotificationService;
+use custom\services\Notification\NotificationService;
 
 class AccessTokenRepository implements AccessTokenRepositoryInterface
 {

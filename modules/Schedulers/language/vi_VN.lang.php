@@ -152,6 +152,7 @@ $mod_strings = [
     'LBL_SENDAUTOCHEAPPRICEMESSAGEZALO' => 'Gửi tin tự động về giá vé rẻ qua ZBS template Zalo',
     'LBL_MAINTAINZALOCHAT' => 'Tự động gửi tin tư vấn Zalo để duy trì tương tác',
     'LBL_RESETREWARDPOINTS' => 'Reset lại điểm tích lũy của liên hệ qua booking hằng năm',
+    'LBL_MIGRATEZALOIMAGESTONEXTCLOUD' => 'Đồng bộ ảnh từ Zalo CDN sang VN Backup',
 
     'LBL_SAVEREVENUEBOOKINGJOB' => 'Cập nhật doanh số booking Revenue',
     'LBL_NOTIFYCHECKINJOURNEY' => 'Thông báo hành trình cần checkin',

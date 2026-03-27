@@ -1,5 +1,5 @@
 <?php
-use Services\Notification\NotificationService;
+use custom\services\Notification\NotificationService;
 
 abstract class entryClass {
     protected $requestIp;

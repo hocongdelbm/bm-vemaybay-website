@@ -730,7 +730,7 @@ class SearchForm
                         if (!in_array($key, $searchFieldsKeys)) {
                             foreach ($this->tabs->name as $tabName) {
                                 if (in_array($key . '_' . $tabName['name'], $arrayKeys)) {
-                                    $this->searchFields[$key] = array('query_type' => 'default',
+                                    $this->searhcFields[$key] = array('query_type' => 'default',
                                         'value' => $array[$key . '_' . $tabName['name']]);
                                 }
                             }
@@ -974,6 +974,13 @@ class SearchForm
 
             if (isset($parms['value']) && $parms['value'] != "") {
                 $operator = $db->isNumericType($type) ? '=' : 'like';
+                if (empty($parms['operator'])
+                    && !$db->isNumericType($type)
+                    && !empty($parms['query_type'])
+                    && strtolower($parms['query_type']) == 'equals'
+                ) {
+                    $operator = '=';
+                }
                 if (!empty($parms['operator'])) {
                     $operator = strtolower($parms['operator']);
                 }
