@@ -119,7 +119,7 @@ class entryBookingClass extends entryClass {
         }
 
         try {
-            $locationService = new \Custom\Services\Location\LocationService();
+            $locationService = new custom\services\Location\LocationService();
             $res = $locationService->reverseGeocode($lat, $long);
 
             if(isset($res['status']) && $res['status']) {
@@ -130,9 +130,9 @@ class entryBookingClass extends entryClass {
                     global $db;
 
                     // Cleaned
-                    $city = str_replace("Thành phố", "", $city);
-                    $city = str_replace("Thành Phố", "", $city);
-                    $city = str_replace("Tỉnh", "", $city);
+                    $city = trim(str_replace("Thành phố", "", $city));
+                    $city = trim(str_replace("Thành Phố", "", $city));
+                    $city = trim(str_replace("Tỉnh", "", $city));
                     if($city == "Thủ Đức") $city = "Hồ Chí Minh";
 
                     $sql = "UPDATE ec_flight_bookings SET city = '$city' WHERE id = '$bookingId' AND deleted = 0";
