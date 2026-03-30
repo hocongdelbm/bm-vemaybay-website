@@ -72,7 +72,6 @@ class Contact extends Person implements EmailInterface
     public $note_id;
     public $meeting_id;
     public $call_id;
-    public $zalo_id;
     public $email_id;
     public $assigned_user_name;
     public $accept_status;
@@ -84,7 +83,6 @@ class Contact extends Person implements EmailInterface
     public $portal_password;
     public $primary_address_street_2;
     public $primary_address_street_3;
-    public $campaign_id;
     public $sync_contact;
     public $full_name; // l10n localized name
     public $invalid_email;
@@ -97,6 +95,12 @@ class Contact extends Person implements EmailInterface
     public $module_dir = 'Contacts';
     public $new_schema = true;
     public $importable = true;
+
+    public $points;
+
+    public $is_uncomfortable;
+    public $is_ctv;
+    public $is_compare_price;
 
     // This is used to retrieve related fields from form posts.
     public $additional_column_fields = array(
@@ -424,15 +428,6 @@ class Contact extends Person implements EmailInterface
         if (!empty($this->portal_active) && $this->portal_active == 1) {
             $this->portal_active = true;
         }
-        // Set campaign name if there is a campaign id
-        if (!empty($this->campaign_id)) {
-            $camp = BeanFactory::newBean('Campaigns');
-            $where = "campaigns.id='{$this->campaign_id}'";
-            $campaign_list = $camp->get_full_list("campaigns.name", $where, true);
-            if (!empty($campaign_list) && !empty($campaign_list[0]->name)) {
-                $this->campaign_name = $campaign_list[0]->name;
-            }
-        }
     }
 
     /**
@@ -466,8 +461,9 @@ class Contact extends Person implements EmailInterface
 
     public function get_list_view_data($filter_fields = array())
     {
-        $temp_array = parent::get_list_view_data();
+        global $current_user;
 
+        $temp_array = parent::get_list_view_data();
         if ($filter_fields && !empty($filter_fields['sync_contact'])) {
             $this->load_contacts_users_relationship();
             $temp_array['SYNC_CONTACT'] = !empty($this->contacts_users_id) ? 1 : 0;

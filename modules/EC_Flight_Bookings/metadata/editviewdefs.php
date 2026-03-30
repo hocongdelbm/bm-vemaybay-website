@@ -27,21 +27,21 @@ $viewdefs[$module_name]['EditView'] = array(
             array(
                 'file' => 'themes/SuiteP/js/reset.js',
             ),
-            array(
-                'file' => 'modules/EC_Flight_Bookings/js/view.edit.js',
-            ),
         ),
     ),
 
     'panels' => array(
-        'default' => array(
+        'LBL_BOOKINGS_PANEL' => array(
             array(
                 array(
                     'name' => 'name',
                     'label' => 'LBL_NAME',
                     'customCode' => '{$NAME_BOOKING}',
                 ),
-                array(),
+                array(
+                    'name' => 'is_prior',
+                    'label' => 'LBL_IS_PRIOR',
+                ),
             ),
             array(
                 array(
@@ -226,8 +226,9 @@ $viewdefs[$module_name]['EditView'] = array(
 
             array(
                 array(
-                    'name' => 'thuephi_quocte',
-                    'label' => 'LBL_THUEPHI_QUOCTE',
+                    'name' => 'discount_amount',
+                    'label' => 'LBL_DISCOUNT_AMOUNT',
+                    // 'customCode' => '{$DISCOUNT_AMOUNT}',
                 ),
                 array(
                     'name' => 'tax_code',
@@ -237,9 +238,8 @@ $viewdefs[$module_name]['EditView'] = array(
 
             array(
                 array(
-                    'name' => 'discount_amount',
-                    'label' => 'LBL_DISCOUNT_AMOUNT',
-                    'customCode' => '{$DISCOUNT_AMOUNT}',
+                    'name' => 'total_amount',
+                    'label' => 'LBL_TOTAL_AMOUNT',
                 ),
                 array(
                     'name' => 'iv_email',
@@ -249,32 +249,11 @@ $viewdefs[$module_name]['EditView'] = array(
             ),
 
             array(
-                array(
-                    'name' => 'total_amount',
-                    'label' => 'LBL_TOTAL_AMOUNT',
-                ),
-                array(
-                    'name' => 'iv_payment_method',
-                    'label' => 'LBL_IV_PAYMENT_METHOD',
-                    'customCode' => '{$CUS_IV_PAYMENT_METHOD}',
-                ),
-            ),
-
-            array(
                 array(),
                 array(
-                    'name' => 'iv_bank_account',
-                    'label' => 'LBL_IV_BANK_ACCOUNT',
-                    'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
-                ),
-            ),
-
-            array(
-                array(),
-                array(
-                    'name' => 'iv_name_banks',
-                    'label' => 'LBL_IV_NAME_BANKS',
-                    'customCode' => '{$CUS_IV_NAME_BANK}',
+                    'name' => 'iv_identity_number',
+                    'label' => 'LBL_IV_IDENTITY_NUMBER',
+                    'customCode' => '{$CUS_IV_IDENTITY_NUMBER}',
                 ),
             ),
 
@@ -290,7 +269,33 @@ $viewdefs[$module_name]['EditView'] = array(
                     ),
                 ),
             ),
+
+            array(
+                array(),
+                array(
+                    'name' => 'iv_payment_method',
+                    'label' => 'LBL_IV_PAYMENT_METHOD',
+                    'customCode' => '{$CUS_IV_PAYMENT_METHOD}',
+                ),
+            ),
+
+            // array(
+            //     array(),
+            //     array(
+            //         'name' => 'iv_name_banks',
+            //         'label' => 'LBL_IV_NAME_BANKS',
+            //         'customCode' => '{$CUS_IV_NAME_BANK}',
+            //     ),
+            // ),
+
+            // array(
+            //     array(),
+            //     array(
+            //         'name' => 'iv_bank_account',
+            //         'label' => 'LBL_IV_BANK_ACCOUNT',
+            //         'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
+            //     ),
+            // ),
         ),
     ),
-
 );

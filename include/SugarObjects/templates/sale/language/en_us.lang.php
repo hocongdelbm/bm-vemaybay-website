@@ -54,9 +54,7 @@ $mod_strings = array(
     'LBL_LIST_DATE_CLOSED' => 'Close',
     'LBL_LIST_SALE_STAGE' => 'Sales Stage',
     'LBL_ACCOUNT_ID' => 'Account ID',
-    //DON'T CONVERT THESE THEY ARE MAPPINGS
     'db_name' => 'LBL_NAME',
-    //END DON'T CONVERT
     'LBL_ACCOUNT_NAME' => 'Account Name:',
     'LBL_AMOUNT' => 'Amount:',
     'LBL_AMOUNT_USDOLLAR' => 'Amount USD:',
@@ -64,8 +62,6 @@ $mod_strings = array(
     'LBL_DATE_CLOSED' => 'Expected Close Date:',
     'LBL_TYPE' => 'Type:',
     'LBL_CAMPAIGN' => 'Campaign:',
-    'LBL_LEADS_SUBPANEL_TITLE' => 'Leads',
-    'LBL_PROJECTS_SUBPANEL_TITLE' => 'Projects',
     'LBL_NEXT_STEP' => 'Next Step:',
     'LBL_LEAD_SOURCE' => 'Lead Source:',
     'LBL_SALES_STAGE' => 'Sales Stage:',

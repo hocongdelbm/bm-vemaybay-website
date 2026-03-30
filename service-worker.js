@@ -6,6 +6,32 @@ self.addEventListener('activate', function (event) {
     event.waitUntil(self.clients.claim());
 });
 
+self.addEventListener('message', (event) => {
+    if (event.data.type === 'show_notification') {
+        self.registration.showNotification('BM-VMB', {
+            body: 'Cuộc gọi đến: ' + event.data.phone,
+            tag: 'bm-tcb',
+            icon: '', 
+            dir: 'ltr',
+            image: '', 
+            actions: [
+                { action: 'accept_call', title: 'Trả lời' },
+                { action: 'reject_call', title: 'Từ chối' },
+            ],
+            vibrate: [300, 100, 300, 100, 300, 100, 300],
+            requireInteraction: false,
+            renotify: true,
+            timestamp: Date.now(),
+        });
+    } else if(event.data.type === 'close_notification'){
+        self.registration.getNotifications({ tag: 'bm-tcb' }).then((notifications) => {
+            notifications.forEach((notification) => {
+                notification.close();
+            });
+        });
+    }
+});
+
 self.addEventListener('notificationclick', event => {
     const action = event.action;
 
@@ -16,7 +42,6 @@ self.addEventListener('notificationclick', event => {
             })
             .then(() => {
                 if (action === 'accept_call') {
-                    // Xử lý hành động "Trả lời"
                     return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
                         for (let i = 0; i < clientList.length; i++) {
                             const client = clientList[i];

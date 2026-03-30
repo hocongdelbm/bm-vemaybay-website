@@ -35,7 +35,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'reportable' => false,
             'dependency' => false,
             'audited' => 1,
-            'studio'     => 'visible',
         ),
 
         // Add by DucPham from table ec_flight_bookings_cstm - 24/04/2023
@@ -90,8 +89,8 @@ $dictionary['EC_Flight_Bookings'] = array(
             'importable' => true,
             'reportable' => false,
             'audited' => 1,
-
         ),
+
         'email' => array(
             'name'       => 'email',
             'vname'      => 'LBL_EMAIL',
@@ -126,7 +125,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'importable' => true,
             'reportable' => false,
             'audited' => 1,
-
         ),
 
         'address' => array(
@@ -192,7 +190,7 @@ $dictionary['EC_Flight_Bookings'] = array(
             'reportable' => false,
             'audited' => 1,
         ),
-        
+
         // Add by DucPham from table ec_flight_bookings_cstm - 24/04/2023
         'is_ticket_inbound_exported' => array(
             'name'       => 'is_ticket_inbound_exported',
@@ -337,26 +335,26 @@ $dictionary['EC_Flight_Bookings'] = array(
         ),
 
         'city' => array(
-            'name'       => 'city',
-            'vname'      => 'LBL_CITY',
-            'type'       => 'varchar',
-            'len'        => 64,
-            'default'    => '',
+            'name' => 'city',
+            'vname' => 'LBL_CITY',
+            'type' => 'varchar',
+            'len' => 60,
+            'default' => '',
             'importable' => true,
             'reportable' => false,
             'audited' => 1,
         ),
 
-        'country' => array(
-            'name'       => 'country',
-            'vname'      => 'LBL_COUNTRY',
-            'type'       => 'varchar',
-            'len'        => 50,
-            'default'    => '',
-            'importable' => true,
-            'reportable' => false,
-            'audited' => 1,
-        ),
+        // 'country' => array(
+        //     'name'       => 'country',
+        //     'vname'      => 'LBL_COUNTRY',
+        //     'type'       => 'varchar',
+        //     'len'        => 50,
+        //     'default'    => '',
+        //     'importable' => true,
+        //     'reportable' => false,
+        //     'audited' => 1,
+        // ),
 
         'airline' => array(
             'name'       => 'airline',
@@ -405,7 +403,8 @@ $dictionary['EC_Flight_Bookings'] = array(
         'company_address' => array(
             'name'       => 'company_address',
             'vname'      => 'LBL_COMPANY_ADDRESS',
-            'type'       => 'text',
+            'type'       => 'varchar',
+            'length'     => 300,
             'default'    => '',
             'importable' => true,
             'reportable' => false,
@@ -416,7 +415,8 @@ $dictionary['EC_Flight_Bookings'] = array(
         'shipping_address' => array(
             'name'       => 'shipping_address',
             'vname'      => 'LBL_SHIPPING_ADDRESS',
-            'type'       => 'text',
+            'type'       => 'varchar',
+            'length'     => 500,
             'default'    => '',
             'importable' => true,
             'reportable' => false,
@@ -476,10 +476,9 @@ $dictionary['EC_Flight_Bookings'] = array(
             'required' => false,
             'name' => 'nganluong_info',
             'vname' => 'LBL_NGANLUONG_INFO',
-            'type' => 'longtext',
+            'type' => 'mediumtext',
             'massupdate' => 0,
             'comments' => 'thong tin booking thanh toan online',
-            'help' => '',
             'importable' => true,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
@@ -519,7 +518,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'importable' => true,
             'reportable' => false,
         ),
-        
         'account_name' => array(
             'name'      => 'account_name',
             'vname'     => 'LBL_ACCOUNT_NAME',
@@ -533,7 +531,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'rname'      => 'name',
             'studio'     => 'visible',
             'quicksearch' => 'enabled',
-            'audited' => 1,
         ),
 
         'thuephi_quocte' => array(
@@ -692,7 +689,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'importable' => true,
             'reportable' => false,
             'audited' => 1,
-            
         ),
 
         'delivery_man_id' => array(
@@ -703,7 +699,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'default'    => '',
             'importable' => true,
             'reportable' => false,
-            
         ),
         'delivery_man' => array(
             'name'       => 'delivery_man',
@@ -721,42 +716,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'audited' => 1,
         ),
 
-        'voucher_id' => array(
-            'name'       => 'voucher_id',
-            'vname'      => '',
-            'type'       => 'id',
-            'len'        => 36,
-            'default'    => '',
-            'importable' => true,
-            'reportable' => false,
-        ),
-
-        'voucher' => array(
-            'name'       => 'voucher',
-            'vname'      => 'LBL_VOUCHER',
-            'type'       => 'relate',
-            'len'        => 20,
-            'importable' => true,
-            'reportable' => false,
-            'id_name'   => 'voucher_id',
-            'ext2'      => 'EC_Vouchers',
-            'module'    => 'EC_Vouchers',
-            'rname'     => 'name',
-            'studio'    => 'visible',
-            'quicksearch' => 'enabled',
-            'audited' => 1,
-        ),
-
-        'has_voucher' => array(
-            'name'       => 'has_voucher',
-            'vname'      => 'LBL_HAS_VOUCHER',
-            'type'       => 'bool',
-            'len'        => 1,
-            'default'    => 0,
-            'importable' => true,
-            'reportable' => false,
-        ),
-
         'app_member_user' => array(
             'name'       => 'app_member_user',
             'vname'      => 'LBL_APP_MEMBER_USER',
@@ -767,95 +726,115 @@ $dictionary['EC_Flight_Bookings'] = array(
             'reportable' => false,
         ),
 
-        // 'sendmail_eticket_date' => array(
-        //     'required' => false,
-        //     'name' => 'sendmail_eticket_date',
-        //     'vname' => 'LBL_SENDMAIL_ETICKET_DATE',
-        //     'type' => 'datetime',
-        //     'massupdate' => 0,
-        //     'comments' => '',
-        //     'help' => '',
-        //     'importable' => true,
-        //     'duplicate_merge' => 'disabled',
-        //     'duplicate_merge_dom_value' => '',
-        //     'audited' => 1,
-        //     'reportable' => false,
-        // ),
+        'contact_id' => array(
+            'name' => 'contact_id',
+            'vname' => 'LBL_CONTACT_ID',
+            'type' => 'id',
+            'length' => 36,
+            'default' => '',
+            'reportable' => false,
+            'audited' => false,
+            'massupdate' => false,
+            'comment' => 'The contact to which the case is associated'
+        ),
 
-        // 'currency_rate' => array(
-        //     'required' => false,
-        //     'name' => 'currency_rate',
-        //     'vname' => 'LBL_CURRENCY_RATE',
-        //     'type' => 'currency',
-        //     'massupdate' => 0,
-        //     'comments' => '',
-        //     'help' => '',
-        //     'importable' => true,
-        //     'duplicate_merge' => 'disabled',
-        //     'duplicate_merge_dom_value' => '',
-        //     'audited' => 1,
-        //     'reportable' => false,
-        //     'len' => 26,
-        // ),
+        'journey' => array(
+            'name'       => 'journey',
+            'vname'      => 'LBL_JOURNEY',
+            'type'       => 'varchar',
+            'len'        => 10,
+            'default'    => '',
+            'importable' => true,
+            'reportable' => false,
+            'audited' => 1,
+        ),
 
-        // 'currency_note' => array(
-        //     'required' => false,
-        //     'name' => 'currency_note',
-        //     'vname' => 'LBL_CURRENCY_NOTE',
-        //     'type' => 'varchar',
-        //     'massupdate' => 0,
-        //     'comments' => '',
-        //     'help' => '',
-        //     'importable' => true,
-        //     'duplicate_merge' => 'disabled',
-        //     'duplicate_merge_dom_value' => '',
-        //     'audited' => 1,
-        //     'reportable' => false,
-        //     'len' => '255',
-        // ),
+        'vouchers' => array(
+            'name' => 'vouchers',
+            'type' => 'link',
+            'relationship' => 'bookings_vouchers',
+            'module' => 'EC_Vouchers',
+            'bean_name' => 'EC_Vouchers',
+            'source' => 'non-db',
+            'vname' => 'LBL_VOUCHERS',
+        ),
 
-        // 'info_reservation' => array(
-        //     'required' => false,
-        //     'name' => 'info_reservation',
-        //     'vname' => 'LBL_INFO_RESERVATION',
-        //     'type' => 'longtext',
-        //     'massupdate' => 0,
-        //     'comments' => 'thong tin booking duoc giu cho',
-        //     'help' => '',
-        //     'importable' => true,
-        //     'duplicate_merge' => 'disabled',
-        //     'duplicate_merge_dom_value' => '',
-        //     'audited' => 1,
-        //     'reportable' => false,
-        //     'studio' => 'visible',
-        // ),
+        // Add by DucPham - 07/06/2025
+        'is_output_invoice_checked' => array(
+            'name'       => 'is_output_invoice_checked',
+            'vname'      => 'LBL_IS_OUTPUT_INVOICE_CHECKED',
+            'type'       => 'bool',
+            'default'    => 0,
+            'importable' => 0,
+            'reportable' => 0,
+            'audited'    => 0,
+            'comment'    => 'Kiểm tra xuất đủ hóa đơn đầu ra hay chưa',
+        ),
 
-        // 'info_payment' => array(
-        //     'required' => false,
-        //     'name' => 'info_payment',
-        //     'vname' => 'LBL_INFO_PAYMENT',
-        //     'type' => 'longtext',
-        //     'massupdate' => 0,
-        //     'comments' => 'thong tin booking thanh toan',
-        //     'help' => '',
-        //     'importable' => true,
-        //     'duplicate_merge' => 'disabled',
-        //     'duplicate_merge_dom_value' => '',
-        //     'audited' => 1,
-        //     'reportable' => false,
-        //     'studio' => 'visible',
-        // ),
-
-        // Link thanh toán 
-        // 'payment_link' => array(
-        //     'name'       => 'payment_link',
-        //     'vname'      => 'LBL_PAYMENT_LINK',
-        //     'type'       => 'varchar',
-        //     'len'        => 50,
-        //     'default'    => '',
-        //     'importable' => true,
-        //     'reportable' => false,
-        // ),
+        'telesale_call_id' => array(
+            'required'   => false,
+            'name'       => 'telesale_call_id',
+            'vname'      => '',
+            'type'       => 'id',
+            'comments'   => 'ID của cuộc gọi từ telesale gần nhất',
+            'len'        => 36,
+            'default'    => '',
+            'importable' => true,
+            'reportable' => false,
+        ),
+        'is_telesale' => array(
+            'name'       => 'is_telesale',
+            'vname'      => 'LBL_IS_TELESALE',
+            'comments'   => 'Đánh dấu booking này là kết quả của cuộc gọi telesale',
+            'type'       => 'bool',
+            'default'    => 0,
+            'importable' => true,
+            'reportable' => false,
+            'audited' => 1,
+        ),
+        'is_ctv' => array(
+            'name'       => 'is_ctv',
+            'vname'      => 'LBL_IS_CTV',
+            'comments'   => 'Đánh dấu booking này là từ CTV',
+            'type'       => 'bool',
+            'default'    => 0,
+            'importable' => true,
+            'reportable' => false,
+            'audited' => 1,
+        ),
+        'is_reference' => array(
+            'name'       => 'is_reference',
+            'vname'      => 'LBL_IS_REFERENCE',
+            'comments'   => 'Đánh dấu booking tham khảo',
+            'type'       => 'bool',
+            'default'    => 0,
+            'importable' => true,
+            'reportable' => false,
+        ),
+        'is_prior' => array(
+            'name'       => 'is_prior',
+            'vname'      => 'LBL_IS_PRIOR',
+            'comments'   => 'Đánh dấu booking cận',
+            'type'       => 'bool',
+            'default'    => 0,
+            'importable' => true,
+            'reportable' => false,
+        ),
+        
+        // Add by DucPham - 13/01/2026
+        'customer_source' => array(
+            'name'       => 'customer_source',
+            'vname'      => 'LBL_CUSTOMER_SOURCE',
+            'type'       => 'enum',
+            'options'    => 'booking_customer_source_list',
+            'len'        => 10,
+            'default'    => 'system_ads',
+            'massupdate' => 0,
+            'importable' => 1,
+            'reportable' => 1,
+            'audited'    => 1,
+            'studio'     => 'visible',
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_bk_name', 'type' => 'index', 'fields' => array('name')),
@@ -863,22 +842,16 @@ $dictionary['EC_Flight_Bookings'] = array(
         array('name' => 'idx_bk_email', 'type' => 'index', 'fields' => array('email')),
         array('name' => 'idx_bk_bkstatus', 'type' => 'index', 'fields' => array('booking_status')),
         array('name' => 'idx_bk_contact', 'type' => 'index', 'fields' => array('contact_name')),
+        array('name' => 'idx_bk_contact_id', 'type' => 'index', 'fields' => array('contact_id')),
         array('name' => 'idx_bk_assign', 'type' => 'index', 'fields' => array('assigned_user_id')),
         array('name' => 'idx_bk_date_ticket_issue', 'type' => 'index', 'fields' => array('date_ticket_issue')),
         array('name' => 'idx_bk_dateen', 'type' => 'index', 'fields' => array('date_entered')),
-        
-        // array('name' => 'idx_bk_del', 'type' => 'index', 'fields' => array('deleted')),
-        // array('name' => 'idx_bk_tkttype', 'type' => 'index', 'fields' => array('ticket_type')),
-        // array('name' => 'idx_bk_fltype', 'type' => 'index', 'fields' => array('flight_type')),
-        // array('name' => 'idx_bk_agent', 'type' => 'index', 'fields' => array('is_agent')),
-        // array('name' => 'idx_bk_promo', 'type' => 'index', 'fields' => array('is_promo')),
-        // array('name' => 'idx_bk_appmb_user', 'type' => 'index', 'fields' => array('app_member_user')),
     ),
-    'relationships' => array (),
+    'relationships' => array(),
     'optimistic_locking' => true,
     'unified_search' => true,
 );
 if (!class_exists('VardefManager')) {
     require_once('include/SugarObjects/VardefManager.php');
 }
-VardefManager::createVardef('EC_Flight_Bookings', 'EC_Flight_Bookings', array('basic','assignable','security_groups'));
+VardefManager::createVardef('EC_Flight_Bookings', 'EC_Flight_Bookings', array('basic', 'assignable', 'security_groups'));

@@ -6,60 +6,53 @@ if (!defined('sugarEntry') || !sugarEntry) {
 $module_name = 'EC_HoaDonBan';
 $listViewDefs[$module_name] = array(
     'NAME' => array(
-        'width' => '10%',
-        'label' => 'LBL_NAME',
+        'width' => '12%',
+        'label' => 'LBL_LISTVIEW_NAME',
         'default' => true,
         'link' => true,
-    ),
-    'NGAYHOADON' => array(
-        'label' => 'LBL_NGAYHOADON',
-        'width' => '10%',
-        'default' => true,
+        'related_fields' => array(
+			'description',
+		),
     ),
     'SOHOADON' => array(
-        'label' => 'LBL_SOHOADON',
+        'label' => 'LBL_LISTVIEW_SOHOADON',
         'width' => '12%',
         'default' => true,
-        // 'type' => 'int',
+        'related_fields' => array('company_unit'),
     ),
-    'COMPANY_UNIT' => array(
-        'label' => 'LBL_COMPANY_UNIT',
+    'NGAYHOADON' => array(
+        'label' => 'LBL_LISTVIEW_NGAYHOADON',
         'width' => '12%',
         'default' => true,
-        // 'type' => 'int',
     ),
-    'DESCRIPTION' => array(
-        'label' => 'LBL_DESCRIPTION',
-        'width' => '10%',
+    'KYHIEUHD' => array(
+        'label' => 'LBL_LISTVIEW_KYHIEUHD',
         'default' => true,
     ),
-    'TENCONGTY' => array(
-        'label' => 'LBL_TENCONGTY_KH',
-        'width' => '12%',
+    'REPRESENT_BOOKING' => array(
+        'label'     => 'LBL_REPRESENT_BOOKING',
+        'default'   => true,
+    ),
+    'lienhe' => array(
+        'label' => 'LBL_LISTVIEW_GENERAL_INFO',
         'default' => true,
+        'related_fields' => array(
+            'loaikh', 'masothue', 'tencongty', 'diachi', 'email', 'citizen_id', 'passport_number'
+		),
+    ),
+    'TONGTHANHTOAN' => array(
+        'label' => 'LBL_TONGTHANHTOAN',
+        'default' => true,
+        'type' => 'varchar',
+        // 'currency_format' => true,
     ),
     'TINHTRANG' => array(
         'label' => 'LBL_TINHTRANG',
-        'width' => '10%',
-        'default' => true,
-    ),
-    'TONGTHANHTOAN' => array(
-        'type' => 'currency',
-        'label' => 'LBL_TONGTHANHTOAN',
-        'currency_format' => true,
-        'width' => '10%',
-        'default' => true,
-    ),
-    'CREATED_BY_NAME' => array(
-        'type' => 'varchar',
-        'label' => 'LBL_CREATED',
-        'width' => '10%',
         'default' => true,
     ),
     'DATE_ENTERED' => array(
         'type' => 'datetime',
         'label' => 'LBL_DATE_ENTERED',
-        'width' => '10%',
         'default' => true,
     ),
 );

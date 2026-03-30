@@ -350,7 +350,7 @@
 		</div>
 
 		<!-- THƯỞNG DOANH SỐ -->
-		<div class="box-section box-commission">
+		<div class="box-section box-commission d-none">
 			<h2 class="change-title">Thưởng doanh số áp dụng từ tháng <select class="box-select" name="month_search">{$MONTH_OPTION}</select> năm <select class="box-select" name="year_search">{$YEAR_OPTION}</select></h2>
 			<table cellpadding="0" cellspacing="0" id="commission" class="table-details__booking table-commission">
 				<thead>
@@ -492,6 +492,7 @@
 					{$APPROVED_BTN}
 					{$EXCEL_BTN}
 					{$EXCERPT_SALARY}
+					{$UPDATE_SALARY}
 				</div>
 			</span>
 			<span class="search_area hide">

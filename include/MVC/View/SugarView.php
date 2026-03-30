@@ -177,11 +177,13 @@ class SugarView
         }
 
         // We have to update jsAlerts as soon as possible
-        if (!isset($_SESSION['isMobile']) &&
+        if (
+            !isset($_SESSION['isMobile']) &&
             ($this instanceof ViewList || $this instanceof ViewDetail || $this instanceof ViewEdit)
         ) {
-            if (isset($_SESSION['alerts_output']) && isset($_SESSION['alerts_output_timestamp']) &&
-                $_SESSION['alerts_output_timestamp'] >= (date('U')-60)
+            if (
+                isset($_SESSION['alerts_output']) && isset($_SESSION['alerts_output_timestamp']) &&
+                $_SESSION['alerts_output_timestamp'] >= (date('U') - 60)
             ) {
                 echo $_SESSION['alerts_output'];
             } else {
@@ -270,17 +272,13 @@ class SugarView
      * and then the subview can just override display(). If it so desires, can also override
      * preDisplay().
      */
-    public function preDisplay()
-    {
-    }
+    public function preDisplay() {}
 
     /**
      * [OVERRIDE] - This method is meant to overridden in a subclass. This method
      * will handle the actual display logic of the view.
      */
-    public function display()
-    {
-    }
+    public function display() {}
 
     /**
      * trackView
@@ -307,8 +305,10 @@ class SugarView
 
             // call fields ip_address and browser_name
             $monitor->setValue('ip_address', get_ip_address_from_client());
-            $monitor->setValue('browser_name', get_browser_name($_SERVER['HTTP_SEC_CH_UA']));
-    
+            if (isset($_SERVER['HTTP_SEC_CH_UA']) && $_SERVER['HTTP_SEC_CH_UA']) {
+                $monitor->setValue('browser_name', get_browser_name($_SERVER['HTTP_SEC_CH_UA']));
+            }
+
             if (!empty($this->bean->id)) {
                 $monitor->setValue('item_id', $this->bean->id);
                 $monitor->setValue('item_summary', $this->bean->get_summary_text());
@@ -356,7 +356,13 @@ class SugarView
         $ss->assign("MODULE_NAME", $this->module);
         $ss->assign("langHeader", get_language_header());
         $ss->assign("BROWSER_TITLE", $this->getBrowserTitle());
+        $ss->assign("JS_VERSION", time());
 
+        // AGENT STATUS - HAIHUGN
+        if (isset($current_user->agent_status) && !empty($current_user->agent_status)) {
+            $ss->assign("AGENT_STATUS", $current_user->agent_status);
+        }
+        $ss->assign('IS_ADMIN', is_admin($current_user) ? 1 : 0);
 
         // set ab testing if exists
         $testing = (isset($_REQUEST["testing"]) ? $_REQUEST['testing'] : "a");
@@ -465,7 +471,7 @@ class SugarView
         foreach ($global_control_links as $key => $value) {
             if ($key == 'users') {   //represents logout link.
                 $ss->assign("LOGOUT_LINK", $value['linkinfo'][key($value['linkinfo'])]);
-                $ss->assign("LOGOUT_LABEL", key($value['linkinfo']));//key value for first element.
+                $ss->assign("LOGOUT_LABEL", key($value['linkinfo'])); //key value for first element.
                 continue;
             }
 
@@ -522,6 +528,13 @@ class SugarView
             );
             $ss->assign("CURRENT_USER_ID", $current_user->id);
 
+            if (isset($current_user->photo) && !empty($current_user->photo)) {
+                $photo_profile = '<img src="index.php?entryPoint=download&id=' . $current_user->id . '_photo&type=Users" alt="photo profile">';
+            } else {
+                $photo_profile = '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="22" height="22" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>';
+            }
+            $ss->assign("CURRENT_USER_PHOTO", $photo_profile);
+
             // get the last viewed records
             $favorites = BeanFactory::getBean('Favorites');
             $favorite_records = $favorites->getCurrentUserSidebarFavorites();
@@ -530,6 +543,13 @@ class SugarView
             $tracker = BeanFactory::getBean('Trackers');
             $history = $tracker->get_recently_viewed($current_user->id);
             $ss->assign("recentRecords", $this->processRecentRecords($history));
+
+            // Get phone number - PBX - Callcenter
+            $pbx = BeanFactory::getBean('Calls');
+
+            // List phone choose for outbound call
+            $list_phone_choose_outbound = $pbx->get_list_phone_pbx(0);
+            $ss->assign("list_phone_choose_outbound", $list_phone_choose_outbound ?? []);
         }
 
         $bakModStrings = $mod_strings;
@@ -676,10 +696,11 @@ class SugarView
             }
 
             foreach ($groupTabs as $key => $tabGroup) {
-                if (count($topTabs) >= $max_tabs - 1 && $key !== $app_strings['LBL_TABGROUP_ALL'] && in_array(
-                    $tabGroup['modules'][$moduleTab],
-                    $tabGroup['extra']
-                )
+                if (
+                    count($topTabs) >= $max_tabs - 1 && $key !== $app_strings['LBL_TABGROUP_ALL'] && in_array(
+                        $tabGroup['modules'][$moduleTab],
+                        $tabGroup['extra']
+                    )
                 ) {
                     unset($groupTabs[$key]['modules'][$moduleTab]);
                 }
@@ -766,9 +787,7 @@ class SugarView
         }
     }
 
-    public function getModuleMenuHTML()
-    {
-    }
+    public function getModuleMenuHTML() {}
 
     /**
      * If the view is classic then this method will include the file and
@@ -780,7 +799,7 @@ class SugarView
         $file
     ) {
         global $sugar_config, $theme, $current_user, $sugar_version, $sugar_flavor, $mod_strings, $app_strings, $app_list_strings, $action;
-        global $gridline, $request_string, $modListHeader, $dashletData, $authController, $locale, $currentModule, $import_bean_map, $image_path, $license;
+        global $gridline, $request_string, $modListHeader, $authController, $locale, $currentModule, $import_bean_map, $image_path, $license;
         global $user_unique_key, $server_unique_key, $barChartColors, $modules_exempt_from_availability_check, $dictionary, $current_language, $beanList, $beanFiles, $sugar_build, $sugar_codename;
         global $timedate, $login_error; // cn: bug 13855 - timedate not available to classic views.
         if (!empty($this->module)) {
@@ -893,7 +912,8 @@ EOHTML;
             echo '<script>jscal_today = 1000*' .
                 $timedate->asUserTs($timedate->getNow()) .
                 '; if(typeof app_strings == "undefined") app_strings = new Array();</script>';
-            if (!is_file(sugar_cached("include/javascript/sugar_grp1.js")) ||
+            if (
+                !is_file(sugar_cached("include/javascript/sugar_grp1.js")) ||
                 !is_file(sugar_cached("include/javascript/sugar_grp1_yui.js")) ||
                 !is_file(sugar_cached("include/javascript/sugar_grp1_jquery.js"))
             ) {
@@ -915,7 +935,7 @@ EOHTML;
             if ($this->hasDomJS()) {
                 echo "
                         <script type='text/javascript'>
-                        SUGAR.append(SUGAR, { settings:".$this->getDomJS()." } );
+                        SUGAR.append(SUGAR, { settings:" . $this->getDomJS() . " } );
                         </script>
                         ";
             }
@@ -929,6 +949,9 @@ EOHTML;
                 $image_server .
                 '";</script>'; // cn: bug 12274 - create session-stored key to defend against CSRF
             echo '<script type="text/javascript">var name_format = "' . $locale->getLocaleFormatMacro() . '";</script>';
+            echo '<script type="text/javascript">const logger_call_center = ' . ($sugar_config['logger_call_center'] ? 'true' : 'false') . ';</script>';
+            echo '<script type="text/javascript">const apply_stun_server = ' . ($sugar_config['apply_stun_server'] ? 'true' : 'false') . ';</script>';
+
             echo self::getJavascriptValidation();
             if (!is_file(sugar_cached('jsLanguage/') . $GLOBALS['current_language'] . '.js')) {
                 require_once('include/language/jsLanguage.php');
@@ -1132,20 +1155,26 @@ EOHTML;
     }
 
     // Init jssip data (Made by DucPham 21/11/2023)
-    public function initJSSIP() {
+    public function initJSSIP()
+    {
         global $current_user;
         $arr_sip_number = custom_get_sip_number();
 
         $html = '';
-        if(isset($arr_sip_number[$current_user->id])) {
-            $html .= '<input type="hidden" name="sip_user" id="sip_user" value="'.$arr_sip_number[$current_user->id]['user'].'" disabled />';
-            $html .= '<input type="hidden" name="sip_password" id="sip_password" value="'.$arr_sip_number[$current_user->id]['password'].'" disabled />';
-            $html .= '<input type="hidden" name="sip_instance_id" id="sip_instance_id" value="'.$current_user->id.'" disabled />';
+        $css = $js = '';
+
+        if (isset($arr_sip_number[$current_user->id])) {
+            $html .= '<input type="hidden" name="sip_user" id="sip_user" value="' . $arr_sip_number[$current_user->id]['user'] . '" disabled />';
+            $html .= '<input type="hidden" name="sip_password" id="sip_password" value="' . $arr_sip_number[$current_user->id]['password'] . '" disabled />';
+            $html .= '<input type="hidden" name="agent_status" id="agent_status" value="' . $current_user->agent_status . '" disabled />';
+            $html .= '<input type="hidden" name="sip_instance_id" id="sip_instance_id" value="' . $current_user->id . '" disabled />';
             $html .= '
                 <div id="call-overlay"></div>
                 <div id="toast-incoming"></div>
                 <div id="popup__voiceip--wrap" class="voiceip-wrap">
                     <div id="popup-voiceip" call_id="">
+                        <i>Speaker</i>
+                        <b>Camera</b>
                         <div class="voiceip-header">
                             <div class="voiceip-header__title">Cuộc gọi</div>
                         </div>
@@ -1155,12 +1184,12 @@ EOHTML;
                             </div>
                             <div id="voiceip-timer" class="voiceip-timer">00:00:00</div>
                             <div class="voiceip-content__client">
-                                <div class="wrap-info-voiceip mt-2">
+                                <div class="wrap-info-voiceip">
                                     <p id="voiceip-info-name" style="font-size:18px; font-weight:500;"></p>
                                     <p id="voiceip-info-phone" style="font-size:18px;"></p>
                                     <p><span></span><a id="voiceip-info-zaloid" href="#" target="_blank" style="font-style: italic;"></a></p>
                                 </div>
-                                <div class="wrap-form-voiceip" style="display:none">
+                                <div class="wrap-form-voiceip p-2" style="display:none">
                                     <div class="voiceip-group voiceip-name">
                                         <div class="voiceip-label">
                                             <svg width="26px" height="26px" stroke-width="1.65" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#9c9fa6">
@@ -1188,7 +1217,6 @@ EOHTML;
                                         </div>
                                         <input name="voiceip-zalo-id" id="voiceip-zalo-id" type="text" value="" placeholder="Zalo ID" readonly/>
                                     </div>
-
                                     <div class="voiceip-group voiceip-email">
                                         <div class="voiceip-label">
                                             <svg width="24px" height="24px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#9c9fa6">
@@ -1198,12 +1226,69 @@ EOHTML;
                                         </div>
                                         <input name="voiceip-email" id="voiceip-email" type="text" value="" placeholder="Email" />
                                     </div>
-
                                     <div class="voiceip-group voiceip-notes">
                                         <textarea name="voiceip-notes" id="voiceip-notes" placeholder="Ghi chú"></textarea>
                                     </div>
+                                    <div class="flex-between voiceip-more my-2 rounded text-nowrap">
+                                        <div class="voiceip-more__item flex-start template-notes text-nowrap">
+                                            <label for="template-notes">Phân loại</label>
+                                            <select name="template-notes" class="box-select flex-fill w-100" id="template-notes"></select>
+                                        </div> 
+                                    </div>
+                                    <div class="flex-between voiceip-more my-2 text-nowrap">
+                                        <div class="voiceip-customer__item is_uncomfortable">
+                                            <input type="checkbox" class="bg-white" id="is_uncomfortable">
+                                            <label for="is_uncomfortable">Khách khó chịu</label>
+                                        </div>
+                                        <div class="voiceip-customer__item is_ctv">
+                                            <input type="checkbox" class="bg-white" id="is_ctv">
+                                            <label for="is_ctv">CTV</label>
+                                        </div>
+                                        <div class="voiceip-customer__item is_compare_price">
+                                            <input type="checkbox" class="bg-white" id="is_compare_price">
+                                            <label for="is_compare_price">So sánh giá</label>
+                                        </div>
+                                    </div>
 
-                                    <div class="voiceip-modal-transfer" role="alert">
+                                    <div class="voiceip-more my-2 rounded text-nowrap">
+                                        <style>
+                                            .form-switch .form-check-input::before {display:none;}
+                                            #zbsFields {transition:all 0.3s ease;}
+                                        </style>
+                                        <div class="form-check form-switch" style="width:fit-content">
+                                            <input type="checkbox" name="voiceip-is-send-zbs-after-call" id="switchCheckSendZBS" class="form-check-input" role="switch" />
+                                            <label id="labelSwitchCheckSendZBS" class="form-check-label" for="switchCheckSendZBS" style="line-height:1.8">Gửi CSKH Zalo</label>
+                                        </div>
+                                        <div class="flex-between p-2 mx-2 d-none" id="zbsFields" style="background:#eef0fb;border-radius:3px;">
+                                            <div class="d-flex flex-column">
+                                                <label class="text-start" for="ZBSAfterCallDataCode">Mã hành trình<span style="color:red">*</span></label>
+                                                <input type="text" name="voiceip-zbs-after-call-data-code" id="ZBSAfterCallDataCode" class="box-input" placeholder="SGN-HAN" minlength="4" maxlength="10" size="10" style="border:none; border-radius:0; border-bottom:1px solid #c6c8d2;background:transparent;"/>
+                                            </div>
+                                            <div class="d-flex flex-column">
+                                                <label class="text-start" for="ZBSAfterCallDataDatetime">Ngày giờ bay<span style="color:red">*</span></label>
+                                                <input type="text" name="voiceip-zbs-after-call-data-datetime" id="ZBSAfterCallDataDatetime" class="box-input" placeholder="dd/mm/yyyy" minlength="10" maxlength="20" size="14" style="border:none; border-radius:0; border-bottom:1px solid #c6c8d2;background:transparent;"/>
+                                            </div>
+                                        </div>
+                                        <script>
+                                            document.addEventListener("DOMContentLoaded", function () {
+                                                const checkbox = document.getElementById("switchCheckSendZBS");
+                                                const zbsFields = document.getElementById("zbsFields");
+                                                const checkboxLabel = document.getElementById("labelSwitchCheckSendZBS");
+                                                if (!checkbox || !zbsFields) return;
+                                                function toggleZBS() {
+                                                    checkboxLabel.style.color = checkbox.checked ? "#2c44e9" : "inherit";
+                                                    zbsFields.classList.toggle("d-none", !checkbox.checked);
+                                                }
+                                                checkbox.addEventListener("change", toggleZBS);
+                                                toggleZBS();
+                                            });
+                                        </script>
+                                    </div>
+                                
+                                    <div class="text-start voiceip-more text-nowrap">
+                                        <p id="notes-uncomfortable" class="text-danger fw-semibold"></p>
+                                    </div>
+                                    <div class="voiceip-modal-transfer d-none" role="alert">
                                         <div class="transfer-container">
                                             <div class="transfer-header">
                                                 <h4 class="transfer-title">Nhập số SIP để chuyển tiếp cuộc gọi</h4>
@@ -1215,7 +1300,6 @@ EOHTML;
                                             </div>
                                         </div>  
                                     </div>
-
                                 </div>
                             </div>
                             <div class="calc-dtmf__wrap">
@@ -1239,75 +1323,52 @@ EOHTML;
                                                 </svg>
                                             </div>
                                             <div class="calc-button calc-number" dtmf="0" id="zero" style="grid-area: zero;">0</div>
-                                            <div class="calc-button" id="submit_dtmf" style="grid-area: submit_dtmf;">*</div>
+                                            <div class="calc-button calc-number" dtmf="*" id="submit_dtmf" style="grid-area: submit_dtmf;">*</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="voiceip-footer">
+                        <div class="voiceip-footer p-2 border-top bg-light">
                             <div class="voiceip-action">
                                 <div class="voiceip-button voiceip-end">
-                                    <button class="btn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-telephone-fill" viewBox="0 0 16 16">
-                                            <path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
-                                        </svg>
-                                    </button>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-telephone-fill" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
+                                    </svg>
                                     <div class="voiceip-button__desc voiceip-button__desc--end">
                                         Kết thúc
                                     </div>
                                 </div>
-                                <div class="voiceip-button voiceip-decline">
-                                    <button class="btn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-telephone-fill" viewBox="0 0 16 16">
-                                            <path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
-                                        </svg>
-                                    </button>
-                                    <div class="voiceip-button__desc voiceip-button__desc--decline">
-                                        Từ chối
-                                    </div>
-                                </div>
                                 <div class="voiceip-button voiceip-accept">
-                                    <button class="btn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-telephone-fill" viewBox="0 0 16 16">
-                                            <path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
-                                        </svg>
-                                    </button>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-telephone-fill" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
+                                    </svg>
                                     <div class="voiceip-button__desc voiceip-button__desc--accept">
                                         Trả lời
                                     </div>
                                 </div>
                                 <div class="voiceip-button voiceip-update" booking_id="" booking_name="" type_call_booking="">
-                                    <button class="btn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
-                                            <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
-                                            <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
-                                        </svg>
-                                    </button>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
+                                        <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+                                        <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
+                                    </svg>
                                     <div class="voiceip-button__desc voiceip-button__desc--update">
-                                        Cập nhật
+                                        Hoàn tất
                                     </div>
                                 </div>
                                 <div class="voiceip-button voiceip-viewbooking">
-                                    <button class="btn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
-                                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
-                                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
-                                        </svg>
-                                    </button>
-                                    <div class="voiceip-button__desc voiceip-button__desc--viewbooking">Xem thêm</div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-stopwatch-fill" viewBox="0 0 16 16">
+                                        <path d="M6.5 0a.5.5 0 0 0 0 1H7v1.07A7.001 7.001 0 0 0 8 16a7 7 0 0 0 5.29-11.584l.013-.012.354-.354.353.354a.5.5 0 1 0 .707-.707l-1.414-1.415a.5.5 0 1 0-.707.707l.354.354-.354.354-.012.012A6.97 6.97 0 0 0 9 2.071V1h.5a.5.5 0 0 0 0-1zm2 5.6V9a.5.5 0 0 1-.5.5H4.5a.5.5 0 0 1 0-1h3V5.6a.5.5 0 1 1 1 0"/>
+                                    </svg>
+                                    <div class="voiceip-button__desc voiceip-button__desc--viewbooking">Gần đây</div>
                                 </div>
                                 <div class="voiceip-button voiceip-mute">
-                                    <button class="btn">
-                                        <svg width="24px" height="24px" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="#fff" stroke="#fff" class="i-mute"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><title>ionicons-v5-g</title><line x1="432" y1="400" x2="96" y2="64" style="fill:none;stroke:#fff;stroke-linecap:square;stroke-miterlimit:10;stroke-width:32px"></line><path d="M368,192v48a111.74,111.74,0,0,1-2.93,25.45L390.65,291A143.07,143.07,0,0,0,400,240V192Z"></path><path d="M272,432V383.11a143.11,143.11,0,0,0,56.65-18.83L305,340.65A112.13,112.13,0,0,1,144,240V192H112v48c0,74,56.1,135.12,128,143.11V432H176v32H336V432Z"></path><path d="M336,236.37V128c0-44.86-35.14-80-80-80a79.68,79.68,0,0,0-69,39.34"></path><path d="M176,211.63V239a80.89,80.89,0,0,0,23.45,56.9,78.55,78.55,0,0,0,81,20.21Z"></path></g></svg>
-                                        <svg width="24px" height="24px" viewBox="0 0 512.00 512.00" xmlns="http://www.w3.org/2000/svg" fill="#fff" stroke="#fff" class="i-unmute"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><title>ionicons-v5-g</title><line x1="192" y1="448" x2="320" y2="448" style="fill:none;stroke:#fff;stroke-linecap:square;stroke-miterlimit:10;stroke-width:32px"></line><path d="M384,208v32c0,70.4-57.6,128-128,128h0c-70.4,0-128-57.6-128-128V208" style="fill:none;stroke:#fff;stroke-linecap:square;stroke-miterlimit:10;stroke-width:32px"></path><line x1="256" y1="368" x2="256" y2="448" style="fill:none;stroke:#fff;stroke-linecap:square;stroke-miterlimit:10;stroke-width:32px"></line><path d="M256,320a78.83,78.83,0,0,1-56.55-24.1A80.89,80.89,0,0,1,176,239V128a79.69,79.69,0,0,1,80-80c44.86,0,80,35.14,80,80V239C336,283.66,300.11,320,256,320Z"></path></g></svg>
-                                    </button>
+                                    <svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="#333" class="i-mute"><g stroke-width="0"></g><g stroke-linecap="round" stroke-linejoin="round"></g><g><title>ionicons-v5-g</title><line x1="432" y1="400" x2="96" y2="64" style="fill:none;stroke:#333;stroke-linecap:square;stroke-miterlimit:10;stroke-width:32px"></line><path d="M368,192v48a111.74,111.74,0,0,1-2.93,25.45L390.65,291A143.07,143.07,0,0,0,400,240V192Z"></path><path d="M272,432V383.11a143.11,143.11,0,0,0,56.65-18.83L305,340.65A112.13,112.13,0,0,1,144,240V192H112v48c0,74,56.1,135.12,128,143.11V432H176v32H336V432Z"></path><path d="M336,236.37V128c0-44.86-35.14-80-80-80a79.68,79.68,0,0,0-69,39.34"></path><path d="M176,211.63V239a80.89,80.89,0,0,0,23.45,56.9,78.55,78.55,0,0,0,81,20.21Z"></path></g></svg>
+                                    <svg width="24" height="24" viewBox="0 0 512.00 512.00" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="#333" class="i-unmute"><g stroke-width="0"></g><g stroke-linecap="round" stroke-linejoin="round"></g><g><title>ionicons-v5-g</title><line x1="192" y1="448" x2="320" y2="448" style="fill:none;stroke:#333;stroke-linecap:square;stroke-miterlimit:10;stroke-width:32px"></line><path d="M384,208v32c0,70.4-57.6,128-128,128h0c-70.4,0-128-57.6-128-128V208" style="fill:none;stroke:#333;stroke-linecap:square;stroke-miterlimit:10;stroke-width:32px"></path><line x1="256" y1="368" x2="256" y2="448" style="fill:none;stroke:#333;stroke-linecap:square;stroke-miterlimit:10;stroke-width:32px"></line><path d="M256,320a78.83,78.83,0,0,1-56.55-24.1A80.89,80.89,0,0,1,176,239V128a79.69,79.69,0,0,1,80-80c44.86,0,80,35.14,80,80V239C336,283.66,300.11,320,256,320Z"></path></g></svg>
                                     <div class="voiceip-button__desc">Tắt âm</div>
                                 </div>
                                 <div class="voiceip-button voiceip-dtmf">
-                                    <button class="btn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="2"></circle><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="6" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="6" cy="12" r="2"></circle><circle cx="18" cy="12" r="2"></circle><circle cx="12" cy="18" r="2"></circle></svg>
-                                    </button>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="2"></circle><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="6" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="6" cy="12" r="2"></circle><circle cx="18" cy="12" r="2"></circle><circle cx="12" cy="18" r="2"></circle></svg>
                                     <div class="voiceip-button__desc">Bàn phím</div>
                                 </div>
                             </div>
@@ -1316,29 +1377,19 @@ EOHTML;
                     <div id="popup-inforbooking"></div>
                 </div>
             ';
-            
-            $css = '
-                <link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=2.4">
-            ';
 
-            // if($current_user->id == '1' || $current_user->id == '493ad5e5-ffea-a84f-96d7-6577fed623d6' || $current_user->id = '168889bb-54c2-59c7-8b3f-649102530d3c')
-            //     $js = '<audio id="audio_jssip"></audio>
-            //         <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-            //         <script src="custom/jssip_webrtc/call2.js?ver='.date("YmdHi").'"></script>
-            //     ';
-            // else 
-                $js = '<audio id="audio_jssip"></audio>
+            $js_file = 'call.js';
+            $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=' . date("YmdHi") . '">';
+            $js .= '<audio id="audio_jssip" loop="true"></audio>
                     <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-                    <script src="custom/jssip_webrtc/call.js?vver='.date("YmdHi").'"></script>
-                ';
-        }
-        else {
+                    <script src="custom/jssip_webrtc/' . $js_file . '?ver=' . date("YmdHi") . '"></script>
+            ';
+        } else {
             $html .= '<input type="hidden" name="sip_user" id="sip_user" value="" disabled />';
             $html .= '<input type="hidden" name="sip_password" id="sip_password" value="" disabled />';
-            $css = $js = '';
         }
 
-        echo $css.$html.$js;
+        echo $css . $html . $js;
     }
 
     /**
@@ -1346,7 +1397,8 @@ EOHTML;
      */
     protected function _displaySubPanels()
     {
-        if (isset($this->bean) &&
+        if (
+            isset($this->bean) &&
             !empty($this->bean->id) &&
             (file_exists('modules/' . $this->module . '/metadata/subpaneldefs.php') ||
                 file_exists('custom/modules/' . $this->module . '/metadata/subpaneldefs.php') ||
@@ -1448,7 +1500,7 @@ EOHTML;
             number_format(round($deltaTime, 2), 2) .
             ' ' .
             $GLOBALS['app_strings']['LBL_SERVER_RESPONSE_TIME_SECONDS'];
-        $return = $response_time_string. '<br />';
+        $return = $response_time_string . '<br />';
 
         if (!empty($GLOBALS['sugar_config']['show_page_resources'])) {
             // Print out the resources used in constructing the page.
@@ -1561,7 +1613,8 @@ EOHTML;
         if (file_exists('custom/modules/' . $module . '/Ext/Menus/menu.ext.php')) {
             require('custom/modules/' . $module . '/Ext/Menus/menu.ext.php');
         }
-        if (!file_exists(get_custom_file_if_exists('modules/' . $module . '/Menu.php')) &&
+        if (
+            !file_exists(get_custom_file_if_exists('modules/' . $module . '/Menu.php')) &&
             !file_exists('custom/modules/' . $module . '/Ext/Menus/menu.ext.php') &&
             !empty($GLOBALS['mod_strings']['LNK_NEW_RECORD'])
         ) {
@@ -1647,7 +1700,7 @@ EOHTML;
     ) {
         global $sugar_version, $sugar_flavor, $server_unique_key, $current_language, $action;
 
-        $theTitle = "<div class='moduleTitle moduleTitle-sugarview__in-includes'>\n";
+        $theTitle = "<div class='moduleTitle moduleTitle-sugarview__in-includes d-flex align-items-center justify-content-between'>\n";
 
         $module = preg_replace("/ /", "", $this->module);
 
@@ -1670,52 +1723,12 @@ EOHTML;
             }
         }
 
-        // if (!empty($paramString)) {
-        //     $theTitle .= "<h2 class='module-title-text'> $paramString </h2>";
-
-        //     if ($this->type == "detail") {
-        //         $theTitle .= "<div class='favorite' record_id='" .
-        //             $this->bean->id .
-        //             "' module='" .
-        //             $this->bean->module_dir .
-        //             "'><div class='favorite_icon_outline'>" .
-        //             "<span class='suitepicon suitepicon-favorite-star-outline'></span></div>
-        //                                             <div class='favorite_icon_fill' 'title=\"' . translate('LBL_DASHLET_EDIT', 'Home') . '\" border=\"0\"  align=\"absmiddle\"'>" .
-
-        //             "<span class='suitepicon suitepicon-favorite-star'></span></div></div>";
-        //     }
-        // }
         if (!empty($paramString)) {
             $theTitle .= "<h2 class='module-title-text'> $paramString </h2>";
         }
 
-        // bug 56131 - restore conditional so that link doesn't appear where it shouldn't
-        if ($show_help || $this->type == 'list') {
-            $theTitle .= "<span class='utils'>";
-            // $createImageURL = SugarThemeRegistry::current()->getImageURL('create-record.gif');
-            $createImageURL = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
-                            </svg>';
-            if ($this->type == 'list') {
-                $theTitle .= '<a href="#" class="btn btn-success showsearch"><span class=" glyphicon glyphicon-search" aria-hidden="true"></span></a>';
-            }
-            $url = ajaxLink("index.php?module=$module&action=EditView&return_module=$module&return_action=DetailView");
-            if ($show_help) {
-                $theTitle .= <<<EOHTML
-&nbsp;
-<a id="create_image" href="{$url}" class="utilsLink">
-$createImageURL
-<a id="create_link" href="{$url}" class="utilsLink">
-{$GLOBALS['app_strings']['LNK_CREATE']}
-</a>
-EOHTML;
-            }
-            $theTitle .= "</span>";
-        }
-
-        // Custom icon filter - listview
-        if($this->action == "ListView"){
-            $theTitle .= '<svg id="filter_report" width="32" height="32" fill="currentColor" class="bi bi-filter d-xxl-none d-xl-none d-lg-none d-block" viewBox="0 0 16 16"><path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path></svg>';
+        if (strpos($this->type, 'list') !== false) {
+            $theTitle .= '<div id="filter_report" class="flex-start cursor-pointer"><span class="filter_report small fw-semibold">Bộ lọc</span><svg width="32" height="32" fill="currentColor" class="bi bi-filter" viewBox="0 0 16 16"><path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path></svg></div>';
         }
 
         $theTitle .= "</div>\n";
@@ -1775,21 +1788,32 @@ EOHTML;
         if (isset($this->action)) {
             switch ($this->action) {
                 case 'EditView':
-                    if (!empty($this->bean->id) &&
+                    if (
+                        !empty($this->bean->id) &&
                         (empty($_REQUEST['isDuplicate']) || $_REQUEST['isDuplicate'] === 'false')
                     ) {
-                        $params[] =
-                            "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>" .
-                            $this->bean->get_summary_text() .
-                            "</a>";
+                        // $params[] =
+                        //     "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>" .
+                        //     $this->bean->get_summary_text() .
+                        //     "</a>";
+                        if (isset($this->bean)) {
+                            $params[] =
+                                "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>" .
+                                $this->bean->get_summary_text() .
+                                "</a>";
+                        }
                         $params[] = $GLOBALS['app_strings']['LBL_EDIT_BUTTON_LABEL'];
                     } else {
                         $params[] = $GLOBALS['app_strings']['LBL_CREATE_BUTTON_LABEL'];
                     }
                     break;
                 case 'DetailView':
-                    $beanName = $this->bean->get_summary_text();
-                    $params[] = $beanName;
+                    if (isset($this->bean)) {
+                        $beanName = $this->bean->get_summary_text();
+                        $params[] = $beanName;
+                    }
+                    // $beanName = $this->bean->get_summary_text();
+                    // $params[] = $beanName;
                     break;
             }
         }
@@ -1999,7 +2023,6 @@ EOHTML;
             // $favicon = $themeObject->getImageURL('sugar_icon.ico', false);
             // $favicon = $themeObject->getImageURL('favicon-96.png', false);
             $favicon = $themeObject->getImageURL('suitenp_fav.png', false);
-
         }
 
         $extension = pathinfo($favicon, PATHINFO_EXTENSION);
@@ -2088,7 +2111,8 @@ EOHTML;
     {
         //if the referrer is post, and the post array is empty, then an error has occurred, most likely
         //while uploading a file that exceeds the post_max_size.
-        if (empty($_FILES) &&
+        if (
+            empty($_FILES) &&
             empty($_POST) &&
             isset($_SERVER['REQUEST_METHOD']) &&
             strtolower($_SERVER['REQUEST_METHOD']) == 'post'

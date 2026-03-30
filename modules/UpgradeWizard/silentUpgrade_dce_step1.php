@@ -1,58 +1,11 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-//// This is a stand alone file that can be run from the command prompt for upgrading a
-//// SuiteCRM Instance. Three parameters are required to be defined in order to execute this file.
-//// php.exe -f silentUpgrade.php [Path to Upgrade Package zip] [Path to Log file] [Path to Instance]
-//// See below the Usage for more details.
-/////////////////////////////////////////////////////////////////////////////////////////
 ini_set('memory_limit', -1);
+
 ///////////////////////////////////////////////////////////////////////////////
 ////	UTILITIES THAT MUST BE LOCAL :(
 function prepSystemForUpgradeSilent()
 {
     global $subdirs;
-    global $cwd;
-    global $sugar_config;
 
     // make sure dirs exist
     foreach ($subdirs as $subdir) {
@@ -77,46 +30,46 @@ function clearCacheSU($thedir, $extension)
         }
     }
 }
- //Bug 24890, 24892. default_permissions not written to config.php. Following function checks and if
- //no found then adds default_permissions to the config file.
- function checkConfigForPermissions()
- {
-     if (file_exists(getcwd().'/config.php')) {
-         require(getcwd().'/config.php');
-     }
-     global $sugar_config;
-     if (!isset($sugar_config['default_permissions'])) {
-         $sugar_config['default_permissions'] = array(
-                     'dir_mode' => 02770,
-                     'file_mode' => 0660,
-                     'user' => '',
-                     'group' => '',
-             );
-         ksort($sugar_config);
-         if (is_writable('config.php') && write_array_to_file("sugar_config", $sugar_config, 'config.php')) {
-             //writing to the file
-         }
-     }
- }
+//Bug 24890, 24892. default_permissions not written to config.php. Following function checks and if
+//no found then adds default_permissions to the config file.
+function checkConfigForPermissions()
+{
+    if (file_exists(getcwd() . '/config.php')) {
+        require(getcwd() . '/config.php');
+    }
+    global $sugar_config;
+    if (!isset($sugar_config['default_permissions'])) {
+        $sugar_config['default_permissions'] = array(
+            'dir_mode' => 02770,
+            'file_mode' => 0660,
+            'user' => '',
+            'group' => '',
+        );
+        ksort($sugar_config);
+        if (is_writable('config.php') && write_array_to_file("sugar_config", $sugar_config, 'config.php')) {
+            //writing to the file
+        }
+    }
+}
 function checkLoggerSettings()
 {
-    if (file_exists(getcwd().'/config.php')) {
-        require(getcwd().'/config.php');
+    if (file_exists(getcwd() . '/config.php')) {
+        require(getcwd() . '/config.php');
     }
     global $sugar_config;
     if (!isset($sugar_config['logger'])) {
-        $sugar_config['logger'] =array(
-            'level'=>'fatal',
+        $sugar_config['logger'] = array(
+            'level' => 'fatal',
             'file' =>
-             array(
-              'ext' => '.log',
-              'name' => 'sugarcrm',
-              'dateFormat' => '%c',
-              'maxSize' => '10MB',
-              'maxLogs' => 10,
-              'suffix' => '', // bug51583, change default suffix to blank for backwards comptability
+            array(
+                'ext' => '.log',
+                'name' => 'sugarcrm',
+                'dateFormat' => '%c',
+                'maxSize' => '10MB',
+                'maxLogs' => 10,
+                'suffix' => '', // bug51583, change default suffix to blank for backwards comptability
             ),
-          );
+        );
         ksort($sugar_config);
         if (is_writable('config.php') && write_array_to_file("sugar_config", $sugar_config, 'config.php')) {
             //writing to the file
@@ -126,24 +79,23 @@ function checkLoggerSettings()
 
 function checkResourceSettings()
 {
-    if (file_exists(getcwd().'/config.php')) {
-        require(getcwd().'/config.php');
+    if (file_exists(getcwd() . '/config.php')) {
+        require(getcwd() . '/config.php');
     }
     global $sugar_config;
     if (!isset($sugar_config['resource_management'])) {
         $sugar_config['resource_management'] =
-          array(
-            'special_query_limit' => 50000,
-            'special_query_modules' =>
             array(
-              0 => 'AOR_Reports',
-              1 => 'Export',
-              2 => 'Import',
-              3 => 'Administration',
-              4 => 'Sync',
-            ),
-            'default_limit' => 1000,
-          );
+                'special_query_limit' => 50000,
+                'special_query_modules' =>
+                array(
+                    1 => 'Export',
+                    2 => 'Import',
+                    3 => 'Administration',
+                    4 => 'Sync',
+                ),
+                'default_limit' => 1000,
+            );
         ksort($sugar_config);
         if (is_writable('config.php') && write_array_to_file("sugar_config", $sugar_config, 'config.php')) {
             //writing to the file
@@ -156,19 +108,19 @@ function checkResourceSettings()
 function rebuildRelations($pre_path = '')
 {
     $_REQUEST['silent'] = true;
-    include($pre_path.'modules/Administration/RebuildRelationship.php');
+    include($pre_path . 'modules/Administration/RebuildRelationship.php');
     $_REQUEST['upgradeWizard'] = true;
-    include($pre_path.'modules/ACL/install_actions.php');
+    include($pre_path . 'modules/ACL/install_actions.php');
 }
 
 function createMissingRels()
 {
-    $relForObjects = array('leads'=>'Leads','campaigns'=>'Campaigns','prospects'=>'Prospects');
-    foreach ($relForObjects as $relObjName=>$relModName) {
+    $relForObjects = array('leads' => 'Leads', 'campaigns' => 'Campaigns', 'prospects' => 'Prospects');
+    foreach ($relForObjects as $relObjName => $relModName) {
         //assigned_user
         $guid = create_guid();
         $query = "SELECT id FROM relationships WHERE relationship_name = '{$relObjName}_assigned_user'";
-        $result= DBManagerFactory::getInstance()->query($query, true);
+        $result = DBManagerFactory::getInstance()->query($query, true);
         $a = null;
         $a = DBManagerFactory::getInstance()->fetchByAssoc($result);
         if (!isset($a['id']) && empty($a['id'])) {
@@ -179,7 +131,7 @@ function createMissingRels()
         //modified_user
         $guid = create_guid();
         $query = "SELECT id FROM relationships WHERE relationship_name = '{$relObjName}_modified_user'";
-        $result= DBManagerFactory::getInstance()->query($query, true);
+        $result = DBManagerFactory::getInstance()->query($query, true);
         $a = null;
         $a = DBManagerFactory::getInstance()->fetchByAssoc($result);
         if (!isset($a['id']) && empty($a['id'])) {
@@ -190,7 +142,7 @@ function createMissingRels()
         //created_by
         $guid = create_guid();
         $query = "SELECT id FROM relationships WHERE relationship_name = '{$relObjName}_created_by'";
-        $result= DBManagerFactory::getInstance()->query($query, true);
+        $result = DBManagerFactory::getInstance()->query($query, true);
         $a = null;
         $a = DBManagerFactory::getInstance()->fetchByAssoc($result);
         if (!isset($a['id']) && empty($a['id'])) {
@@ -212,20 +164,20 @@ function createMissingRels()
 function merge_passwordsetting($sugar_config, $sugar_version)
 {
     $passwordsetting_defaults = array(
-    'passwordsetting' => array(
-        'SystemGeneratedPasswordON' => '',
-        'generatepasswordtmpl' => '',
-        'lostpasswordtmpl' => '',
-        'forgotpasswordON' => false,
-        'linkexpiration' => '1',
-        'linkexpirationtime' => '30',
-        'linkexpirationtype' => '1',
-        'systexpiration' => '0',
-        'systexpirationtime' => '',
-        'systexpirationtype' => '0',
-        'systexpirationlogin' => '',
-        'factoremailtmpl' => '',
-        ) ,
+        'passwordsetting' => array(
+            'SystemGeneratedPasswordON' => '',
+            'generatepasswordtmpl' => '',
+            'lostpasswordtmpl' => '',
+            'forgotpasswordON' => false,
+            'linkexpiration' => '1',
+            'linkexpirationtime' => '30',
+            'linkexpirationtype' => '1',
+            'systexpiration' => '0',
+            'systexpirationtime' => '',
+            'systexpirationtype' => '0',
+            'systexpirationlogin' => '',
+            'factoremailtmpl' => '',
+        ),
     );
 
 
@@ -245,17 +197,17 @@ function merge_passwordsetting($sugar_config, $sugar_version)
 
 function addDefaultModuleRoles($defaultRoles = array())
 {
-    foreach ($defaultRoles as $roleName=>$role) {
-        foreach ($role as $category=>$actions) {
-            foreach ($actions as $name=>$access_override) {
+    foreach ($defaultRoles as $roleName => $role) {
+        foreach ($role as $category => $actions) {
+            foreach ($actions as $name => $access_override) {
                 $query = "SELECT * FROM acl_actions WHERE name='$name' AND category = '$category' AND acltype='$roleName' AND deleted=0 ";
                 $result = DBManagerFactory::getInstance()->query($query);
                 //only add if an action with that name and category don't exist
-                $row=DBManagerFactory::getInstance()->fetchByAssoc($result);
+                $row = DBManagerFactory::getInstance()->fetchByAssoc($result);
                 if ($row == null) {
                     $guid = create_guid();
                     $currdate = gmdate($GLOBALS['timedate']->get_db_date_time_format());
-                    $query= "INSERT INTO acl_actions (id,date_entered,date_modified,modified_user_id,name,category,acltype,aclaccess,deleted ) VALUES ('$guid','$currdate','$currdate','1','$name','$category','$roleName','$access_override','0')";
+                    $query = "INSERT INTO acl_actions (id,date_entered,date_modified,modified_user_id,name,category,acltype,aclaccess,deleted ) VALUES ('$guid','$currdate','$currdate','1','$name','$category','$roleName','$access_override','0')";
                     DBManagerFactory::getInstance()->query($query);
                 }
             }
@@ -286,7 +238,7 @@ function verifyArguments($argv, $usage_dce, $usage_regular)
         // 7 arguments
         if (count($argv) < 7) {
             echo "*******************************************************************************\n";
-            echo "*** ERROR: Missing required parameters.  Received ".count($argv)." argument(s), require 7.\n";
+            echo "*** ERROR: Missing required parameters.  Received " . count($argv) . " argument(s), require 7.\n";
             echo $usage_dce;
             echo "FAILURE\n";
             exit(1);
@@ -304,16 +256,16 @@ function verifyArguments($argv, $usage_dce, $usage_regular)
             //this should be a regular sugar install
             $upgradeType = constant('SUGARCRM_INSTALL');
             //check if this is a valid zip file
-        if (!is_file($argv[1])) { // valid zip?
-            echo "*******************************************************************************\n";
-            echo "*** ERROR: First argument must be a full path to the patch file. Got [ {$argv[1]} ].\n";
-            echo $usage_regular;
-            echo "FAILURE\n";
-            exit(1);
-        }
+            if (!is_file($argv[1])) { // valid zip?
+                echo "*******************************************************************************\n";
+                echo "*** ERROR: First argument must be a full path to the patch file. Got [ {$argv[1]} ].\n";
+                echo $usage_regular;
+                echo "FAILURE\n";
+                exit(1);
+            }
             if (count($argv) < 5) {
                 echo "*******************************************************************************\n";
-                echo "*** ERROR: Missing required parameters.  Received ".count($argv)." argument(s), require 5.\n";
+                echo "*** ERROR: Missing required parameters.  Received " . count($argv) . " argument(s), require 5.\n";
                 echo $usage_regular;
                 echo "FAILURE\n";
                 exit(1);
@@ -326,8 +278,8 @@ function verifyArguments($argv, $usage_dce, $usage_regular)
         }
     }
 
-    if (isset($argv[7]) && file_exists($argv[7].'SugarTemplateUtilties.php')) {
-        require_once($argv[7].'SugarTemplateUtilties.php');
+    if (isset($argv[7]) && file_exists($argv[7] . 'SugarTemplateUtilties.php')) {
+        require_once($argv[7] . 'SugarTemplateUtilties.php');
     }
 
     return $upgradeType;
@@ -336,7 +288,7 @@ function verifyArguments($argv, $usage_dce, $usage_regular)
 function upgradeDCEFiles($argv, $instanceUpgradePath)
 {
     //copy and update following files from upgrade package
-    $upgradeTheseFiles = array('cron.php','download.php','index.php','install.php','soap.php','sugar_version.php','vcal_server.php');
+    $upgradeTheseFiles = array('cron.php', 'download.php', 'index.php', 'sugar_version.php', 'vcal_server.php');
     foreach ($upgradeTheseFiles as $file) {
         $srcFile = clean_path("{$instanceUpgradePath}/$file");
         $destFile = clean_path("{$argv[3]}/$file");
@@ -348,7 +300,7 @@ function upgradeDCEFiles($argv, $instanceUpgradePath)
             $_GET['TEMPLATE_PATH'] = $destFile;
             $_GET['CONVERT_FILE_ONLY'] = true;
             if (!class_exists('TemplateConverter')) {
-                include($argv[7].'templateConverter.php');
+                include($argv[7] . 'templateConverter.php');
             } else {
                 TemplateConverter::convertFile($_GET['TEMPLATE_PATH']);
             }
@@ -383,7 +335,7 @@ $_SERVER['PHP_SELF'] = 'silentUpgrade.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 ////	USAGE
-$usage_dce =<<<eoq1
+$usage_dce = <<<eoq1
 Usage: php.exe -f silentUpgrade.php [upgradeZipFile] [logFile] [pathToSuiteCRMInstance]
 
 On Command Prompt Change directory to where silentUpgrade.php resides. Then type path to
@@ -404,7 +356,7 @@ Arguments:
 
 eoq1;
 
-$usage_regular =<<<eoq2
+$usage_regular = <<<eoq2
 Usage: php.exe -f silentUpgrade.php [upgradeZipFile] [logFile] [pathToSuiteCRMInstance] [admin-user]
 
 On Command Prompt Change directory to where silentUpgrade.php resides. Then type path to
@@ -453,14 +405,14 @@ $upgradeType = verifyArguments($argv, $usage_dce, $usage_regular);
 ///////////////////////////////////////////////////////////////////////////////
 ////	PREP LOCALLY USED PASSED-IN VARS & CONSTANTS
 
-$path			= $argv[2]; // custom log file, if blank will use ./upgradeWizard.log
+$path            = $argv[2]; // custom log file, if blank will use ./upgradeWizard.log
 //$db				= &DBManagerFactory::getInstance();  //<---------
 
 
 //$UWstrings		= return_module_language('en_us', 'UpgradeWizard');
 //$adminStrings	= return_module_language('en_us', 'Administration');
 //$mod_strings	= array_merge($adminStrings, $UWstrings);
-$subdirs		= array('full', 'langpack', 'module', 'patch', 'theme', 'temp');
+$subdirs        = array('full', 'langpack', 'module', 'patch', 'theme', 'temp');
 
 //$_REQUEST['zip_from_dir'] = $zip_from_dir;
 
@@ -506,7 +458,7 @@ if ($upgradeType == constant('DCE_INSTANCE')) {
     //This is DCE instance
     global $sugar_config;
     global $sugar_version;
-//    require_once("{$cwd}/sugar_version.php"); //provides instance version, flavor etc..
+    //    require_once("{$cwd}/sugar_version.php"); //provides instance version, flavor etc..
     //provides instance version, flavor etc..
     $isDCEInstance = true;
     prepSystemForUpgradeSilent();
@@ -514,8 +466,8 @@ if ($upgradeType == constant('DCE_INSTANCE')) {
     /////retrieve admin user
     $configOptions = $sugar_config['dbconfig'];
 
-    $GLOBALS['log']	= LoggerManager::getLogger();
-    $db				= &DBManagerFactory::getInstance();
+    $GLOBALS['log']    = LoggerManager::getLogger();
+    $db                = &DBManagerFactory::getInstance();
     ///////////////////////////////////////////////////////////////////////////////
     ////	MAKE SURE PATCH IS COMPATIBLE
 

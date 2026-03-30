@@ -67,16 +67,6 @@ $listViewDefs['Contacts'] = array(
         'label' => 'LBL_PHONE_MOBILE',
         'default' => true,
     ),
-    'ZALO_ID' => array(
-        'width' => '15%',
-        'label' => 'LBL_ZALO_ID',
-        'default' => true,
-    ),
-    // 'ZALO_ID' => array(
-    //     'width' => '15%',
-    //     'label' => 'LBL_ZALO_ID',
-    //     'default' => true
-    // ),
     'EMAIL1' => array(
         'width' => '15%',
         'label' => 'LBL_LIST_EMAIL_ADDRESS',
@@ -84,6 +74,11 @@ $listViewDefs['Contacts'] = array(
         'link' => true,
         'customCode' => '{$EMAIL1_LINK}',
         'default' => true
+    ),
+    'POINTS' => array(
+        'width' => '10%',
+        'label' => 'LBL_POINTS',
+        'default' => true,
     ),
     'PHONE_WORK' => array(
         'width' => '15%',
@@ -191,6 +186,24 @@ $listViewDefs['Contacts'] = array(
         'width' => '10%',
         'default' => false,
         'sortable' => false,
+    ),
+    'IS_UNCOMFORTABLE' => array(
+        'type' => 'bool',
+        'label' => 'LBL_IS_UNCOMFORTABLE',
+        'width' => '10%',
+        'default' => true,
+    ),
+    'IS_COMPARE_PRICE' => array(
+        'type' => 'bool',
+        'label' => 'LBL_IS_COMPARE_PRICE',
+        'width' => '10%',
+        'default' => true,
+    ),
+    'IS_CTV' => array(
+        'type' => 'bool',
+        'label' => 'LBL_IS_CTV',
+        'width' => '10%',
+        'default' => true,
     ),
     'DATE_ENTERED' => array(
         'width' => '10',

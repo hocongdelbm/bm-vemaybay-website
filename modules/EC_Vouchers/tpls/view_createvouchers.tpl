@@ -1,190 +1,91 @@
-<script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
-{literal}
-<script>
-	$(document).ready(function() {
-		Calendar.setup ({
-			inputField : "from_date",
-			daFormat : "%d-%m-%Y %H:%M",
-			button : "from_date_trigger",
-			singleClick : true,
-			dateStr : "'.date('d-m-Y').'",
-			step : 1,
-			weekNumbers:false
-		});
-		Calendar.setup ({
-			inputField : "to_date",
-			daFormat : "%d-%m-%Y %H:%M",
-			button : "to_date_trigger",
-			singleClick : true,
-			dateStr : "'.date('d-m-Y').'",
-			step : 1,
-			weekNumbers:false
-		});
-
-        	$(".allow-number-only").number(true, 0, dec_sep, num_grp_sep);
-
-		$(document).on("keyup","#voucher_code, #condition_value_journey",function() {
-			this.value = this.value.toLocaleUpperCase();
-		});
-
-		$(document).on("input",".numbersOnly",function() {
-			$(this).val(Number($(this).val().replace(/\D/g, '')).toLocaleString());
-		});
-
-		$("#create_voucher_frm").submit(function() {
-			let qty 	= parseInt($("#voucher_qty").val()) || 0;
-			let price = parseInt($("#voucher_price").val()) || 0;
-			if(qty <= 0) {
-				let text_warning = 'Vui lòng bổ sung số lượng voucher phát hành!';
-				showToastWarning(text_warning);
-				$("#voucher_qty").focus();
-				return false;
-			} else if(price <= 0) {
-				let text_warning = 'Vui lòng bổ sung mệnh giá voucher phát hành!';
-				showToastWarning(text_warning);
-				$("#voucher_price").focus();
-				return false;
-			} 
-
-			let code_voucher = $("#voucher_code").val();
-
-			if(code_voucher.length < 3 || code_voucher.length > 6){
-				let text_warning = 'Mã voucher tối thiểu 3 kí tự';
-				showToastWarning(text_warning);
-				$("#voucher_code").focus();
-				return false;
-			}
-
-			if($('#condition_value_total_qty').length !== 0 && $('#condition_value_total_qty').val() == ''){
-				let text_warning = 'Vui lòng nhập số vé.';
-				showToastWarning(text_warning);
-				$("#condition_value_total_qty").focus();
-				return false;
-			}
-			if($('#condition_value_total_amount').length !== 0 && $('#condition_value_total_amount').val() == ''){
-				let text_warning = 'Vui lòng nhập đơn giá tối thiểu.';
-				showToastWarning(text_warning);
-				$("#condition_value_total_amount").focus();
-				return false;
-			}
-
-			if($('#condition_value_journey').length !== 0 && $('#condition_value_journey').val() == ''){
-				let text_warning = 'Vui lòng nhập hành trình áp dụng voucher.';
-				showToastWarning(text_warning);
-				$("#condition_value_journey").focus();
-				return false;
-			} 
-
-			return true;
-		});
-
-		$("#voucher_condition").on('change', function(){
-			$("#voucher_condition").after(insertConditionVoucher($(this).val()));
-		});
-
-		$(document).on("click",".remove_condition",function() {
-			let id_condition = $(this).attr('data-field').trim();
-			$("#"+id_condition).remove();
-		});
-
-		function insertConditionVoucher(field){
-			let condition_id = $("#"+field);
-
-			if(field && condition_id.length === 0){
-				let text_value 	= '';
-				let text_lass 		= '';
-				let placeholder 	= '';
-				let selected 		= '';
-				let hide_type  = '', hide_journey = '';
-
-				if(field == 'total_qty'){
-					text_value = 'Số vé';
-					placeholder = '2';
-					text_lass = 'numbersOnly';
-				} else if(field == 'journey'){
-					text_value = 'Hành trình áp dụng';
-					placeholder = 'SGN-HAN|DAD-TBB';
-					selected = 'selected';
-					hide_journey = 'd-none';
-				} else if(field == 'total_amount'){
-					text_value = 'Đơn giá tối thiểu';
-					placeholder = '100000';
-					text_lass = 'numbersOnly';
-				} else if(field == 'ticket_type'){
-					text_value = 'Phạm vi áp dụng';
-					selected = 'selected';
-					hide_type  = 'd-none';
-				} else if(field == 'flight_type'){
-					text_value = 'Chuyến bay';
-					hide_type = 'd-none';
-					selected = 'selected';
-				}
-				
-				let html = `<div class="condition-wrap mt-2" id="${field}">
-							<div class="d-flex align-items-center gap-2">
-								<input type="text" class="w-33 box-input" value="${text_value}" disabled />
-								<input type="hidden" name="field[]" id="condition_field_${field}" value="${field}" />
-								<select name="operator[]" id="condition_operator_${field}" class="w-33 box-select text-start">
-									<option class="${hide_type} ${hide_journey}" value="<">Nhỏ hơn</option>
-									<option class="${hide_type} ${hide_journey}" value="<=">Nhỏ hơn hoặc bằng</option>
-									<option ${selected} value="==">Bằng</option>
-									<option class="${hide_type} ${hide_journey}" value=">">Lớn hơn</option>
-									<option class="${hide_type} ${hide_journey}" value=">=">Lớn hơn hoặc bằng</option>
-									<option class="${hide_type}" value="!=">Khác</option>
-								</select>`;
-
-								if(field == 'ticket_type'){
-									html += `<select name="value[]" id="condition_value_${field}" class="w-33 box-select">
-											<option value="1">Nội địa</option>
-											<option value="2">Quốc tế</option>
-										</select>`;
-								} else if(field == 'flight_type'){
-									html += `<select name="value[]" id="condition_value_${field}" class="w-33 box-select">
-											<option value="1">Một chiều</option>
-											<option value="0">Khứ hồi</option>
-										</select>`;
-								} else {
-									html += `<input type="text" name="value[]" id="condition_value_${field}" placeholder="${placeholder}" class="w-33 box-input ${text_lass}" />`;
-								}
-								
-						html += `<button data-field="${field}" class="remove_condition button-remove-in-edit" title="Xóa điều kiện" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ec2029" class="bi bi-dash-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path><path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"></path></svg></button>
-					</div>
-				</div>`;
-	
-				return html;
-			} else {
-				let text_warning = 'Điều kiện đã được chọn!';
-				showToastWarning(text_warning);
-				return false;
-			}
-		}
-	});
-</script>
-{/literal}
+<link rel="stylesheet" href="modules/EC_Vouchers/css/createvouchers.css">
 
 <h1 class="title">PHÁT HÀNH VOUCHER</h1>
 
-<div id="create_voucher">
-	<form id="create_voucher_frm" class="box-section w-60" method="post">
-		<table id="voucher_tbl" class="table-edit table-release__voucher" cellpadding="0" cellspacing="0">
+<div class="box-create-voucher box-section w-70">
+	<form id="form_create_voucher" method="post">
+		<input type="hidden" name="module" value="EC_Vouchers">
+		<input type="hidden" name="action" value="Save">
+		<table id="voucher_tbl" class="table-edit table-release__voucher table-create-voucher" cellpadding="0" cellspacing="0">
 			<tbody>
-				<tr>
-					<td class="align-top" width="25%">Tên Sự kiện:</td>
-					<td width="75%">
-						<input type="text" name="campaign_name" value="{$CAMPAIGN_NAME}" class="box-input">
+				<tr class="row-type">
+					<td class="label">Loại voucher:</td>
+					<td class="value">
+						<div class="d-flex gap-4">
+							<div class="form-check">
+								<input class="form-check-input" type="radio" name="type" id="voucher_type_group" value="group" checked />
+								<label class="form-check-label" for="voucher_type_group">
+								  	Nhóm (Mã chung)
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input" type="radio" name="type" id="voucher_type_single" value="single" />
+								<label class="form-check-label" for="voucher_type_single">
+									Đơn (Mỗi voucher mã khác nhau)
+								</label>
+							</div>
+						</div>
 					</td>
 				</tr>
-				<tr>
-					<td class="align-top" >Mã voucher: (<span class="fw-bold color-red">*</span>)</td>
-					<td><input type="text" class="box-input" id="voucher_code" name="voucher_code" minlength="3" maxlength="6" value="{$PREFIX}"></td>
+				<tr class="row-campaign">
+					<td class="label">Tên sự kiện: <span class="fw-bold color-red">*</span></td>
+					<td class="value">
+						<input type="text" name="campaign_name" class="box-input" required />
+					</td>
 				</tr>
-				<tr>
-					<td class="align-top" >Thời hạn:</td>
-					<td>
-						<div class="from-to-date--wrap d-inline-flex gap-2 align-items-center">
+				<tr class="row-voucher-code">
+					<td class="label">Mã voucher:</td>
+					<td class="value d-flex gap-3">
+						<input type="text" name="voucher_code" id="voucher_code" class="box-input" minlength="6" maxlength="24" />
+						<div class="form-check-hide-voucher">
+							<input type="checkbox" name="is_hidden" id="is_hidden" class="box-input" value="1" />
+							<label class="ms-1" for="is_hidden">Ẩn voucher</label>
+						</div>
+					</td>
+				</tr>
+				<tr class="row-price">
+					<td class="label">
+						Mệnh giá: <span class="fw-bold color-red">*</span>
+						<p class="text-secondary fw-light fst-italic pt-1">(Điền 1 trong 2)</p>
+					</td>
+					<td class="value">
+						<div class="d-flex gap-3">
+							<div>
+								<label>Số tiền giảm giá</label>
+								<input type="text" class="allow-number-only box-input" id="reduce_amount" name="reduce_amount" value="" />
+							</div>
+							<div>
+								<label>Phần trăm giảm giá</label>
+								<input type="text" class="allow-number-only box-input" id="reduce_percent" name="reduce_percent" value="" maxlength="3" />
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr class="row-quantity">
+					<td class="label">Số lượng:</td>
+					<td class="value">
+						<input type="text" class="allow-number-only box-input" id="voucher_qty" name="voucher_qty" required />
+					</td>
+				</tr>
+				<tr class="row-website">
+					<td class="label">Website áp dụng: <span class="fw-bold color-red">*</span></td>
+					<td class="value">
+						<select name="website" id="website" class="form-select">
+							<option value="timchuyenbay.com">timchuyenbay.com</option>
+							<option value="app.vemaybay.website">app.vemaybay.website</option>
+						</select>
+					</td>
+				</tr>
+				<tr class="row-datetime">
+					<td class="label">Thời gian diễn ra: <span class="fw-bold color-red">*</span></td>
+					<td class="value">
+						<div class="d-inline-flex gap-2 align-items-center">
 							<div class="dateTime d-flex gap-2 position-relative">
-								<input type="text" id="from_date" name="from_date" value="{$FROM_DATE}" class="date_input box-input">
-								<button class="icon_dateTime" type="button" id="from_date_trigger" onclick="return false;">
+								<input type="text" name="start_date" id="start_date" value="{$START_DATE}" class="date_input box-input">
+								<input type="text" name="start_hour" id="start_hour" value="00" class="hour_input box-input" maxlength="2" size="2"/>
+								<b>:</b>
+								<input type="text" name="start_minute" id="start_minute" value="00" class="minute_input box-input" maxlength="2" size="2" />
+								<button class="icon_dateTime" type="button" id="start_date_trigger" onclick="return false;">
 									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2" viewBox="0 0 16 16">
 										<path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2z"></path>
 										<path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"></path>
@@ -192,7 +93,8 @@
 								</button>
 							</div>
 							<svg width="40" height="20" fill="none">
-								<g clip-path="url(#icon_arrow_flight_long_svg__clip0)" stroke="#718096" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+								<g clip-path="url(#icon_arrow_flight_long_svg__clip0)" stroke="#718096"
+									stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
 									<path d="M33.5 8.5L36 11M4 11h32"></path>
 								</g>
 								<defs>
@@ -202,8 +104,11 @@
 								</defs>
 							</svg>
 							<div class="dateTime d-flex gap-2 position-relative">
-								<input type="text" id="to_date" name="to_date" value="{$TO_DATE}" class="date_input box-input">
-								<button class="icon_dateTime" type="button" id="to_date_trigger" onclick="return false;">
+								<input type="text" name="end_date" id="end_date" value="{$END_DATE}" class="date_input box-input">
+								<input type="text" name="end_hour" id="end_hour" value="00" class="hour_input box-input" maxlength="2" size="2"/>
+								<b>:</b>
+								<input type="text" name="end_minute" id="end_minute" value="00" class="minute_input box-input" maxlength="2" size="2" />
+								<button class="icon_dateTime" type="button" id="end_date_trigger" onclick="return false;">
 									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2" viewBox="0 0 16 16">
 										<path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2z"></path>
 										<path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"></path>
@@ -213,41 +118,88 @@
 						</div>
 					</td>
 				</tr>
-				<tr>
-					<td class="align-top" >Số lượng:</td>
-					<td><input type="text" class="allow-number-only box-input" id="voucher_qty" name="voucher_qty" value="{$VOUCHER_QTY}"></td>
+				<tr class="row-condition-apply">
+					<td class="label align-top">Điều kiện áp dụng:</td>
+					<td class="value">
+						<div class="list_condition">
+							<div class="condition">
+								<div class="condition-name">Cho SĐT:</div>
+								<div class="condition-value">
+									<input type="text" name="for_phone_value" class="box-input allow-number-only" value="" />
+								</div>
+							</div>
+							<div class="condition">
+								<div class="condition-name">Đơn tối thiểu:</div>
+								<div class="condition-value">
+									<input type="text" name="min_order_value" class="box-input allow-number-only" value="0" />
+								</div>
+							</div>
+							<div class="condition">
+								<div class="condition-name">Số lượng vé:</div>
+								<div class="condition-value">
+									<input type="text" name="number_of_tickets" class="box-input allow-number-only" value="0" />
+								</div>
+							</div>
+							<div class="condition">
+								<div class="condition-name">Loại chuyến:</div>
+								<div class="condition-value">
+									<input type="radio" class="form-check-input" id="flight_type_domestic" name="flight_type" value="domestic">
+  									<label class="form-check-label" for="flight_type_domestic">Nội địa</label>
+									<input type="radio" class="form-check-input" id="flight_type_international" name="flight_type" value="international">
+  									<label class="form-check-label" for="flight_type_international">Quốc tế</label>
+									<input type="radio" class="form-check-input" id="flight_type_all" name="flight_type" value="" checked>
+  									<label class="form-check-label" for="flight_type_all">Tất cả</label>
+								</div>
+							</div>
+							<div class="condition">
+								<div class="condition-name">Loại vé:</div>
+								<div class="condition-value">
+									<input type="radio" class="form-check-input" id="ticket_type_one_way" name="ticket_type" value="1">
+  									<label class="form-check-label" for="ticket_type_one_way">Một chiều</label>
+									<input type="radio" class="form-check-input" id="ticket_type_round_trip" name="ticket_type" value="2">
+  									<label class="form-check-label" for="ticket_type_round_trip">Khứ hồi</label>
+									<input type="radio" class="form-check-input" id="ticket_type_all" name="ticket_type" value="" checked>
+  									<label class="form-check-label" for="ticket_type_all">Tất cả</label>
+								</div>
+							</div>
+							<div class="condition">
+								<div class="condition-name">Hành trình:</div>
+								<div class="condition-value">
+									<textarea class="form-control" rows="3" id="journey" name="journey" placeholder="SGN-HAN,HAN-SGN"></textarea>
+								</div>
+							</div>
+							<div></div>
+						</div>
+					</td>
 				</tr>
-				<tr>
-					<td class="align-top" >Mệnh giá:</td>
-					<td><input type="text" class="allow-number-only box-input" id="voucher_price" name="voucher_price" value="{$VOUCHER_PRICE}"></td>
+				<tr class="row-condition-included">
+					<td class="label align-top">Điều kiện đi kèm:</td>
+					<td class="value">
+						<div class="list_condition">
+							<div class="condition">
+								<div class="condition-name">Giảm tối đa:</div>
+								<div class="condition-value">
+									<input type="text" name="max_discount" class="box-input allow-number-only" />
+								</div>
+							</div>
+						</div>
+					</td>
 				</tr>
-				<tr>
-					<td class="align-top" >Điều kiện áp dụng:</td>
-					<td>
-						<select name="voucher_condition" id="voucher_condition" class="box-select">
-							<option value="">---Chọn điều kiện---</option>
-							<option value="flight_type">Chuyến bay</option>
-							<option value="ticket_type">Phạm vi áp dụng</option>
-							<option value="total_qty">Số vé</option>
-							<option value="journey">Hành trình áp dụng</option>
-							<option value="total_amount">Đơn giá tối thiểu</option>
-						</select>
+				<tr class="row-description">
+					<td class="label align-top">Mô tả:</td>
+					<td class="value">
+						<textarea name="description" id="description" class="box-textarea" rows="5"></textarea>
 					</td>
 				</tr>
 				<tr>
-					<td class="align-top" width="25%">Mô tả:</td>
-					<td width="75%">
-						<textarea class="box-textarea" name="voucher_description" id="voucher_description" style="min-height: 150px;"></textarea>
+					<td colspan="2" align="center">
+						<input type="submit" id="create_voucher_btn" class="btn btn-primary extra_amt" value="Phát hành">
 					</td>
-				</tr>
-				<tr>
-					<td colspan="2" align="center"><input type="submit" id="create_voucher_btn" class="btn btn-primary extra_amt" value="Phát hành"></td>
 				</tr>
 			</tbody>
 		</table>
-		<input type="hidden" name="module" value="EC_Vouchers">
-		<input type="hidden" name="action" value="Save">
-		<input type="hidden" name="createMultipleVoucher">
 	</form>
-	{$VOUCHER_TBL}
 </div>
+
+<script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
+<script src="modules/EC_Vouchers/js/createvouchers.js"></script>

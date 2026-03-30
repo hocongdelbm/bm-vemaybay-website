@@ -1,16 +1,50 @@
 $(document).ready(function () {
+	const formDetailView = $('#formDetailView');
+	const bookingId = formDetailView.find('input[name="record"]').val();
 
 	// Hover button RECALL
 	$(document).on('mouseenter', '.btn-calling--wrap', function () {
 		$(this).addClass('active');
 		$(this).children('.box-list--calling').addClass('show');
 		$(this).children('.recall-link').removeClass('collapsed');
-	   });
-	 
-	   $(document).on('mouseleave', '.btn-calling--wrap', function () {
+	});
+
+	$(document).on('mouseleave', '.btn-calling--wrap', function () {
 		$(this).removeClass('active');
 		$(this).children('.box-list--calling').removeClass('show');
 		$(this).children('.recall-link').addClass('collapsed');
+	});
+
+	// XEM DANH SÁCH BOOKING CỦA CONTACTS
+	$('.card-contact-footer').click(function () {
+		let contact_id = $(this).attr('contact_id');
+		let booking_id = $(this).attr('booking_id');
+
+		if (contact_id.length > 0) {
+			$.ajax({
+				cache: false,
+				type: 'post',
+				data: {
+					contact_id: contact_id,
+					booking_id: booking_id,
+					for: "showHistoryBookingContact"
+				},
+				async: false,
+				url: 'index.php?entryPoint=entryPointFlightBookings',
+				beforeSend: function () {
+					$('.container-waiting').show();
+				},
+				success: function (output) {
+					$('.container-waiting').hide();
+					$('#dialog-history-bookings').html(output);
+				},
+				error: function (XMLHttpRequest, textStatus, errorThrown) {
+					console.error(XMLHttpRequest);
+					console.error("Status: " + textStatus);
+					console.error("Error: " + errorThrown);
+				}
+			});
+		}
 	});
 
 	// Xem danh sách cuộc gọi
@@ -50,7 +84,7 @@ $(document).ready(function () {
 				booking: $("form[name='DetailView']>input[name='record']").val(),
 				for: "getInvoiceInf"
 			},
-			
+
 			beforeSend: function () {
 				$("#invoice_inf").html("<div>Please wait for a moment...</div>");
 			},
@@ -84,7 +118,6 @@ $(document).ready(function () {
 
 	// Lấy tên các hành khách được chọn
 	$(document).on('change', '#applied_passenger', function () {
-
 		var passengers = $('#applied_passenger').val();
 
 		if (passengers == null || passengers.length == 0) {
@@ -169,14 +202,12 @@ $(document).ready(function () {
 		type: "POST",
 		data: {
 			id: $("form[name='DetailView']>input[name='record']").val(),
-			pass_qty: $("#total_pass_qty").val(),
 			for: "showChangedPassenger"
 		},
 		success: function (response) {
 			if (response != '') {
-				$("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax").append(response);
+				$("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax tbody").append(response);
 			} else {
-				// $("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax").append("<tr class='edited_pass_line'><td colspan='10' style='border: 1px solid #ccc; padding: 5px 3px;'>Chưa có hành khách nào đổi thông tin.</td></tr>");
 				$("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax #no-change__edit-pass").append("Chưa có hành khách nào thay đổi thông tin.");
 			}
 		}
@@ -192,10 +223,7 @@ $(document).ready(function () {
 		$('form[name="DetailView"] input:button[name="Edit"]').remove();
 	}
 
-	if(booking_status == '8' && is_invoice_export == '1'){
-		$('#btnCheckInvoiceExport').hide();
-	}
-	if(booking_status == '8' && is_invoice_input_export == '1'){
+	if (booking_status == '8' && is_invoice_input_export == '1') {
 		$('#btnCheckInvoiceInputExport').hide();
 	}
 
@@ -205,41 +233,82 @@ $(document).ready(function () {
 		else return true;
 	});
 
-	// Click button Remind
-	$(document).on('click', 'input[name="btnRemind"]', function () {
-		let journey_id 	= $(this).attr('iti_id');
-		$('input[name="current-journey-id"]').val(journey_id);
+	$(document).on('click', '#update_revenue', function () {
+		if (!confirm('Bạn có chắc chắn muốn cập nhật doanh số cho booking này?')) return false;
+		else {
+			let booking_id = $("input[name='booking_id']").val();
 
-		$("#dlgRemind").dialog({
-			title: "Thông báo lịch bay cho hành khách",
-			width: 400,
-			modal: true,
-			resizable: false,
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				data: {
+					booking_id: booking_id,
+					for: "updateRevenueBooking",
+				},
+				type: "POST",
+				cache: false,
+				success: function (response) {
+					if (response == 1) {
+						let text_warning = 'Cập nhật doanh số thành công.';
+						showModalNotify(1, text_warning);
+						$('.modal-overlay, .btn-modal-close').addClass('reload');
+					} else {
+						let text_warning = 'Cập nhật thất bại. Vui lòng liên hệ IT để được hỗ trợ.';
+						showModalNotify(0, text_warning);
+						$('.modal-overlay, .btn-modal-close').addClass('reload');
+					}
+				}
+			});
+		};
+	});
+
+	$(document).on('click', '#btnAutoMapping', function () {
+		let booking_id = $(this).attr('booking_id');
+		let booking_name = $(this).attr('booking_name');
+		let phone = $(this).attr('phone');
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointCallContact",
+			data: {
+				booking_id: booking_id,
+				booking_name: booking_name,
+				phone: phone,
+				type: "map_call_booking_auto",
+			},
+			type: "POST",
+			cache: false,
+			success: function (response) {
+				if (response == 1) {
+					let text_warning = 'Liên kết cuộc gọi thành công.';
+					showModalNotify(1, text_warning);
+					$('.modal-overlay, .btn-modal-close').addClass('reload');
+				} else if (response == 2) {
+					showModalNotify(2, "Vui lòng cập nhật thông tin cuộc gọi trước khi liên kết");
+				} else if (response == 400) {
+					showModalNotify(2, "SĐT hoặc ID của Booking không xác định. Vui lòng kiểm tra lại hoặc liên hệ IT để được hỗ trợ!");
+				} else {
+					let text_warning = 'LK thất bại. Không tìm thấy cuộc gọi để liên kết!';
+					showModalNotify(0, text_warning);
+					$('.modal-overlay, .btn-modal-close').addClass('reload');
+				}
+			}
 		});
 	});
 
-	$(document).on('click', '#btn-confirm-remind', function () {
-		let name 			= $('#note-name').val(); //booking_name
-		let parent_id 		= $('#note-parent-id').val(); // booking_id
-		let booking_status 	= $('#note-booking-status').val();
-		let description 	= $("#txtRemind").val();
-		let journey_id 	= $("#current-journey-id").val();
+	$(document).on('click', '#confirm-remind', function () {
+		let journey_id = $(this).attr('iti_id');
+		let booking_id = $(this).attr('booking_id');
 
 		$.ajax({
 			url: "index.php?entryPoint=entryPointFlightBookings",
 			data: {
-				name: name,
-				parent_id: parent_id,
-				description: description,
-				booking_status: booking_status,
 				journey_id: journey_id,
+				booking_id: booking_id,
 				for: "remindFlightSchedules",
 			},
 			type: "POST",
 			cache: false,
 			success: function (response) {
-				$('#dlgRemind').dialog('close');
-				if(response == 1){
+				if (response == 1) {
 					let text_warning = 'Thông báo lịch bay cho khách hàng thành công.';
 					showModalNotify(1, text_warning);
 					$('.modal-overlay, .btn-modal-close').addClass('reload');
@@ -252,19 +321,82 @@ $(document).ready(function () {
 		});
 	});
 
-	/* Cancel remind */
-	$('#btn-cancel-remind').on('click', function(){
-		$('#dlgRemind').dialog('close');
+	// Change checkin status
+	$(document).on("change", "select.checkin_status_iti", function () {
+		if (!confirm('Thay đổi trạng thái checkin?')) return false;
+		else {
+			let status = $(this).find(":selected").val();
+			let journey_id = $(this).attr('iti_id');
+			let journey_name = $(this).attr('iti_name');
+			let booking_id = $(this).attr('booking_id');
+			let record_name = $(this).attr('record_name');
+
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				data: {
+					status: status,
+					journey_id: journey_id,
+					journey_name: journey_name,
+					booking_id: booking_id,
+					record_name: record_name,
+					for: "changeCheckinStatus",
+				},
+				type: "POST",
+				cache: false,
+				success: function (response) {
+					if (response == 1) {
+						setTimeout(() => {
+							location.reload();
+						}, 150);
+					} else {
+						let text_warning = 'Lỗi khi thực hiện thay đổi trạng thái checkin. Vui lòng liên hệ IT để được hỗ trợ.';
+						showModalNotify(0, text_warning);
+						$('.modal-overlay, .btn-modal-close').addClass('reload');
+					}
+				}
+			});
+		};
+
 	});
 
 	// Open form send mail
-	$('#btnSendMail').on('click', function(){
+	$('#btnSendMail').on('click', function () {
 		$('#frmContinueSendMail').css('display', 'block');
 		$(this).hide();
 	});
 
+	// Preview form send mail
+	$('#btnPreviewSendMail').on('click', function () {
+		$("#dialog_mail_confirm_preview").dialog({
+			title: "Xác nhận thông tin",
+			width: 700,
+			modal: true,
+			resizable: false,
+			position: {
+				my: "center top",
+				at: "center top+50",
+				of: window
+			}
+		});
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointFlightBookings",
+			type: "POST",
+			data: {
+				"booking_id": $(this).attr('booking_id'),
+				"for": "previewSendMail",
+			},
+			beforeSend: function () {
+				$("#dialog_mail_confirm_preview").html('');
+			},
+			success: function (response) {
+				$("#dialog_mail_confirm_preview").html(response);
+			}
+		});
+	});
+
 	// Close form send mail
-	$('#btnCancelSendMail').on('click', function(){
+	$('#btnCancelSendMail').on('click', function () {
 		$('#frmContinueSendMail').hide();
 		$('#btnSendMail').show();
 	});
@@ -284,11 +416,33 @@ $(document).ready(function () {
 	// Print eticket button
 	$(document).on('click', 'input[name="btnPrintEticket"]', function () {
 		var ln = $(this).attr('ln');
+		// var timesChangeIti = $(this).attr('data-times-change');
 		$('#what_form').val($(this).closest('form[name="frmPrintEticket"]').attr('id'));
-		$('#frmPrintEticket' + ln).attr('target', '_blank');
-		$('#frmPrintEticket' + ln).attr('action', 'index.php?print=true');
-		$('#frmPrintEticket' + ln + ' input:hidden[name="action"]').val('printeticket');
-		$('#frmPrintEticket' + ln + ' input:hidden[name="return_action"]').val('');
+		$(`#frmPrintEticket${ln}`).attr('target', '_blank');
+		$(`#frmPrintEticket${ln}`).attr('action', 'index.php?print=true');
+		$(`#frmPrintEticket${ln} input:hidden[name="action"]`).val('printeticket');
+		$(`#frmPrintEticket${ln} input:hidden[name="return_action"]`).val('');
+
+		let checkBoxPassengers = '';
+		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function (index, element) {
+			// if(ln > 0 && index + 1 < ln) {
+			// 	console.warn(ln, index);
+			// 	return true; // Skip
+			// }
+
+			// let timesChangePass = $(this).attr('data-times-change');
+			// if(timesChangeIti != timesChangePass) {
+			// 	return true; // Skip
+			// }
+
+			let passId = $(this).attr('data-id');
+			let passName = $(this).find('td.passenger_name .fullname').text();
+			checkBoxPassengers += `<div class="form-check">
+				<input class="form-check-input" type="checkbox" id="pass${passId}" name="passenger_list_print_eticket[]" value="${passId}" checked />
+				<label class="form-check-label" for="pass${passId}" style="vertical-align:sub;">${passName}</label>
+			</div>`;
+		});
+		$('#dlgChonNgonNgu .option-passenger').html(checkBoxPassengers);
 
 		$('#dlgChonNgonNgu').dialog({
 			height: 80,
@@ -299,31 +453,61 @@ $(document).ready(function () {
 		Set_Cookie('showLeftCol', 'false', 30, '/', '', '');
 	});
 
-	$(document).on('click', '#btnChonNgonNgu', function () {
-		var what_form 	= '#' + $('#what_form').val();
-		var lang 		= $('input:radio[name="ngonngu"]:checked').val();
-		var khuhoi 	= $('#khuhoi').is(':checked') ? 1 : 0;
-		var wayflight 	= $(what_form + ' input:hidden[name="direction"]').val();
-
-		$(what_form).attr('action', $(what_form).attr('action') + '&lang=' + lang + '&khuhoi=' + khuhoi + '&wayflight=' + wayflight);
-		$(what_form).submit();
-	});
-
 	// Send mail eticket button
-	$(document).on('click', 'input[name="btnSendEticket"]', function () {
+	$(document).on('click', 'input[name="btnSendEticket"]', function (index, element) {
 		var ln = $(this).attr('ln');
+		// var timesChangeIti = $(this).attr('data-times-change');
 		$('#what_form').val($(this).closest('form[name="frmPrintEticket"]').attr('id'));
+		$(`#frmPrintEticket${ln}`).attr('target', '_self');
+		$(`#frmPrintEticket${ln}`).attr('action', 'index.php?print=false');
+		$(`#frmPrintEticket${ln} input:hidden[name="action"]`).val('sendeticket');
+		$(`#frmPrintEticket${ln} input:hidden[name="return_action"]`).val('DetailView');
 
-		$('#frmPrintEticket' + ln).attr('target', '_self');
-		$('#frmPrintEticket' + ln).attr('action', 'index.php?print=false');
-		$('#frmPrintEticket' + ln + ' input:hidden[name="action"]').val('sendeticket');
-		$('#frmPrintEticket' + ln + ' input:hidden[name="return_action"]').val('DetailView');
+		let checkBoxPassengers = '';
+		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function () {
+			// if(ln > 0 && index + 1 < ln) return true; // Skip
+
+			// let timesChangePass = $(this).attr('data-times-change');
+			// if(timesChangeIti !== timesChangePass) return true; // Skip
+
+			let passId = $(this).attr('data-id');
+			let passName = $(this).find('td.passenger_name .fullname').text();
+			checkBoxPassengers += `<div class="form-check">
+				<input class="form-check-input" type="checkbox" id="pass${passId}" name="passenger_list_print_eticket[]" value="${passId}" checked />
+				<label class="form-check-label" for="pass${passId}" style="vertical-align:sub;">${passName}</label>
+			</div>`;
+		});
+		$('#dlgChonNgonNgu .option-passenger').html(checkBoxPassengers);
+
 		$('#dlgChonNgonNgu').dialog({
 			height: 80,
 			width: 320,
 			modal: true,
 			resizable: false
 		});
+	});
+
+	$(document).on('click', '#btnChonNgonNgu', function () {
+		let what_form = '#' + $('#what_form').val();
+		let lang = $('input:radio[name="ngonngu"]:checked').val();
+		let khuhoi = $('#khuhoi').is(':checked') ? 1 : 0;
+		let new_version = $('#new_version').is(':checked') ? 1 : 0;
+		let wayflight = $(`${what_form} input:hidden[name="direction"]`).val(); // 0:dep 1:ret
+		let checkedPassIds = $("input[name='passenger_list_print_eticket[]']:checked").map(function () {
+			return $(this).val();
+		}).get();
+		let listPassengers = encodeURIComponent(checkedPassIds.join(','));
+
+		let currentAction = $(what_form).find('input[name="action"]').val();
+		if (new_version) {
+			if (!currentAction.includes("new")) $(what_form).find('input[name="action"]').val(`${currentAction}new`);
+			$(what_form).attr('action', $(what_form).attr('action') + `&lang=${lang}&isRoundTrip=${khuhoi}&listPassengers=${listPassengers}`);
+		}
+		else {
+			$(what_form).find('input[name="action"]').val(currentAction.replace("new", ""));
+			$(what_form).attr('action', $(what_form).attr('action') + `&lang=${lang}&khuhoi=${khuhoi}&wayflight=${wayflight}&listPassengers=${listPassengers}`);
+		}
+		$(what_form).submit();
 	});
 
 	// Ticket exported button
@@ -342,10 +526,10 @@ $(document).ready(function () {
 				return false;
 			}
 
-			var bought_price 	= document.getElementsByName('check_total_bought_price[]'); // giá mua
-			var supplier_id 	= document.getElementsByName('check_supplier_id[]'); // id NCC
-			var price_err 		= 0;
-			var supplier_err 	= 0;
+			var bought_price = document.getElementsByName('check_total_bought_price[]'); // giá mua
+			var supplier_id = document.getElementsByName('check_supplier_id[]'); // id NCC
+			var price_err = 0;
+			var supplier_err = 0;
 
 			for (var j = 0; j < bought_price.length; j++) {
 				// Trường hợp Vé đã xuất trong ngày, có thể Void ( có thể hiểu là huỷ đặt chỗ ) giá mua có thể = 0 chỉ đối với VNA
@@ -369,10 +553,10 @@ $(document).ready(function () {
 			}
 
 
-			var flight_type 	= $(this).find('input:hidden[name="flight_type"]').val();
-			var arr 			= document.getElementsByName('eticket_outbound[]');
-			var outbound_err 	= 0;
-			var inbound_err 	= 0;
+			var flight_type = $(this).find('input:hidden[name="flight_type"]').val();
+			var arr = document.getElementsByName('eticket_outbound[]');
+			var outbound_err = 0;
+			var inbound_err = 0;
 
 
 			for (var i = 0; i < arr.length; i++) {
@@ -384,7 +568,7 @@ $(document).ready(function () {
 				) {
 					outbound_err++;
 				}
-				
+
 				if (flight_type == '0' && (
 					$('#eticket_inbound' + i).val() == ''
 					|| $('#eticket_inbound' + i).val().length < 5
@@ -429,102 +613,102 @@ $(document).ready(function () {
 	});
 
 	// Line Note Message - Made by: DucPham at 28/09/2022
-	const MESSAGE_LIST_CHAT_ID 		= "#message_list";
-	const HEIGHT_ROW_TEXTAREA 		= 17; // 17px
-	const HEIGHT_MESSAGE_LIST_CHAT 	= 465; // 465px
-	const tag_textarea 				= $('textarea#note-description');
+	const MESSAGE_LIST_CHAT_ID = "#message_list";
+	const HEIGHT_ROW_TEXTAREA = 17; // 17px
+	const HEIGHT_MESSAGE_LIST_CHAT = 465; // 465px
+	const tag_textarea = $('textarea#note-description');
+	// KHI TEXTAREA FOCUS
+	tag_textarea.focus(function () {
+		$('svg#icon-send-notes').css('fill', 'rgb(0, 132, 255)');
+		$('.wrap-cancel svg g').attr('stroke', 'rgb(0, 132, 255)');
+	});
+	// KHI TEXTAREA KHÔNG FOCUS
+	tag_textarea.blur(function () {
+		$('svg#icon-send-notes').css('fill', '#BCC0C4');
+		$('.wrap-cancel svg g').attr('stroke', '#BCC0C4');
 
-	$(document).ready(function () {
-		// KHI TEXTAREA FOCUS
-		tag_textarea.focus(function () {
-			$('svg#icon-send-notes').css('fill', 'rgb(0, 132, 255)');
-			$('.wrap-cancel svg g').attr('stroke', 'rgb(0, 132, 255)');
-		});
-		// KHI TEXTAREA KHÔNG FOCUS
-		tag_textarea.blur(function () {
-			$('svg#icon-send-notes').css('fill', '#BCC0C4');
-			$('.wrap-cancel svg g').attr('stroke', '#BCC0C4');
-
-		});
-
-		// Change textarea height when texting
-		tag_textarea.keyup(function (event) {
-			if (event.keyCode == 13 && event.shiftKey) { // Khi bấm xuống hàng
-				let rows = parseInt($(this).attr('rows')) + 1;
-				let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - HEIGHT_ROW_TEXTAREA;
-				if (rows <= 5) {
-					$(this).attr('rows', rows);
-					$(MESSAGE_LIST_CHAT_ID).height(height);
-				}
+	});
+	// Change textarea height when texting
+	tag_textarea.keyup(function (event) {
+		if (event.keyCode == 13 && event.shiftKey) { // Khi bấm xuống hàng
+			let rows = parseInt($(this).attr('rows')) + 1;
+			let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - HEIGHT_ROW_TEXTAREA;
+			if (rows <= 5) {
+				$(this).attr('rows', rows);
+				$(MESSAGE_LIST_CHAT_ID).height(height);
 			}
-			else { // Xuống hàng do độ dài
-				let count_row = countRows($(this).val());
-				let rows = parseInt($(this).attr('rows'));
-
-				if (1 < count_row && count_row <= 5 && count_row > rows) {
-					let t = count_row - rows;
-					let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - t * HEIGHT_ROW_TEXTAREA;
-					$(this).attr('rows', count_row);
-					$(MESSAGE_LIST_CHAT_ID).height(height);
-				}
-			}
-		});
-		tag_textarea.bind("paste", function (e) { // Copy paste
-			let count_row = countRows(e.originalEvent.clipboardData.getData('text'));
+		}
+		else { // Xuống hàng do độ dài
+			let count_row = countRows($(this).val());
 			let rows = parseInt($(this).attr('rows'));
 
-			if (1 < count_row && count_row > rows) {
+			if (1 < count_row && count_row <= 5 && count_row > rows) {
 				let t = count_row - rows;
 				let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - t * HEIGHT_ROW_TEXTAREA;
 				$(this).attr('rows', count_row);
 				$(MESSAGE_LIST_CHAT_ID).height(height);
 			}
-		});
-		tag_textarea.on('keydown keyup', function () {
-			var key = event.keyCode || event.charCode;
-
-			if (key == 8 || key == 46) {
-				let count_row = $(this).val().split("\n").length;
-				let rows = parseInt($(this).attr('rows'));
-
-				if (count_row - 1 > 0) { // Có ký tự /n
-					if (count_row < 5 && count_row < rows) {
-						let t = rows - count_row;
-						let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) + t * HEIGHT_ROW_TEXTAREA;
-						$(this).attr('rows', count_row);
-						$(MESSAGE_LIST_CHAT_ID).height(height);
-					}
-				}
-				else {
-					count_row = countRows($(this).val());
-					if (1 <= count_row && count_row <= 5 && count_row < rows) {
-						let t = rows - count_row;
-						let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) + t * HEIGHT_ROW_TEXTAREA;
-						$(this).attr('rows', count_row);
-						$(MESSAGE_LIST_CHAT_ID).height(height);
-					}
-				}
-
-				if ($(this).val().length == 0) $(MESSAGE_LIST_CHAT_ID).height(HEIGHT_MESSAGE_LIST_CHAT);
-			}
-		});
+		}
 	});
+	tag_textarea.bind("paste", function (e) { // Copy paste
+		let count_row = countRows(e.originalEvent.clipboardData.getData('text'));
+		let rows = parseInt($(this).attr('rows'));
 
+		if (1 < count_row && count_row > rows) {
+			let t = count_row - rows;
+			let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) - t * HEIGHT_ROW_TEXTAREA;
+			$(this).attr('rows', count_row);
+			$(MESSAGE_LIST_CHAT_ID).height(height);
+		}
+	});
+	tag_textarea.on('keydown keyup', function () {
+		var key = event.keyCode || event.charCode;
+
+		if (key == 8 || key == 46) {
+			let count_row = $(this).val().split("\n").length;
+			let rows = parseInt($(this).attr('rows'));
+
+			if (count_row - 1 > 0) { // Có ký tự /n
+				if (count_row < 5 && count_row < rows) {
+					let t = rows - count_row;
+					let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) + t * HEIGHT_ROW_TEXTAREA;
+					$(this).attr('rows', count_row);
+					$(MESSAGE_LIST_CHAT_ID).height(height);
+				}
+			}
+			else {
+				count_row = countRows($(this).val());
+				if (1 <= count_row && count_row <= 5 && count_row < rows) {
+					let t = rows - count_row;
+					let height = parseInt($(MESSAGE_LIST_CHAT_ID).height()) + t * HEIGHT_ROW_TEXTAREA;
+					$(this).attr('rows', count_row);
+					$(MESSAGE_LIST_CHAT_ID).height(height);
+				}
+			}
+
+			if ($(this).val().length == 0) $(MESSAGE_LIST_CHAT_ID).height(HEIGHT_MESSAGE_LIST_CHAT);
+		}
+	});
+	
 	$('#btn-open-mobile-menu').click(function () {
 		$('.message_list').scrollTop($('.message_list')[0].scrollHeight);
 	});
 
 	$('#icon-send-notes').click(function () {
-		let name 			= $('#note-name').val();
-		let parent_id 		= $('#note-parent-id').val();
-		let booking_status 	= $('#note-booking-status').val();
-		let description 	= $('#note-description').val().trim();
-		let username 		= $('#note-username').val();
-		let send_loading 	= '<div class="lds-ring-notes"><div></div><div></div><div></div><div></div></div>';
+		let name = $('#note-name').val();
+		let parent_id = $('#note-parent-id').val();
+		let booking_status = $('#note-booking-status').val();
+		let description = $('#note-description').val().trim();
+		let username = $('#note-username').val();
+		let contact_name = $('#note-contact-name').val();
+		let total_amount = $('#note-total-amount').val();
+		let total_qty = $('#note-total-qty').val();
+		let customer_source = $('#note-customer-source').val();
+		let send_loading = '<div class="lds-ring-notes"><div></div><div></div><div></div><div></div></div>';
 
-		let dt 			= new Date();
-		let datetime 	= ("0" + dt.getHours()).slice(-2) + ":" + ("0" + dt.getMinutes()).slice(-2) + ",  " + ("0" + dt.getDate()).slice(-2) + "/" + ("0" + (dt.getMonth() + 1)).slice(-2) + "/" + dt.getFullYear();
-		let new_row 	= `<div class="row-mess row-this">
+		let dt = new Date();
+		let datetime = ("0" + dt.getHours()).slice(-2) + ":" + ("0" + dt.getMinutes()).slice(-2) + ",  " + ("0" + dt.getDate()).slice(-2) + "/" + ("0" + (dt.getMonth() + 1)).slice(-2) + "/" + dt.getFullYear();
+		let new_row = `<div class="row-mess row-this">
 							<div class="row-time">${datetime}</div>
 							<div class="row-user">${username}</div>
 							<div class="row-content">${description}${send_loading}</div>
@@ -546,11 +730,15 @@ $(document).ready(function () {
 			url: "index.php?entryPoint=entryPointSaveNote",
 			type: "POST",
 			data: {
+				type: "ADD",
 				name: name,
 				parent_id: parent_id,
 				description: description,
 				booking_status: booking_status,
-				type: "ADD"
+				contact_name: contact_name,
+				total_amount: total_amount,
+				total_qty: total_qty,
+				customer_source: customer_source
 			},
 			success: function (res) {
 				if (res == 1) {
@@ -561,7 +749,6 @@ $(document).ready(function () {
 			error: function (XMLHttpRequest, textStatus, errorThrown) {
 				let text_warning = 'ERROR: Vui lòng liên hệ bộ phận IT!';
 				showToastWarning(text_warning);
-
 				console.error("Status: " + textStatus);
 				console.error("Error: " + errorThrown);
 			}
@@ -574,11 +761,11 @@ $(document).ready(function () {
 	});
 
 	$(document).on('click', '.action-remove', function () {
-		const dialog 		= $('#confirm_delete_message_dialog');
-		let id_note 		= $(this).attr("data-id-note");
-		let id_process 	= $(this).attr("data-id-process");
-		let type_process 	= $(this).attr("data-type-process");
-		let booking_id 	= $(this).attr("booking-id");
+		const dialog = $('#confirm_delete_message_dialog');
+		let id_note = $(this).attr("data-id-note");
+		let id_process = $(this).attr("data-id-process");
+		let type_process = $(this).attr("data-type-process");
+		let booking_id = $(this).attr("booking-id");
 
 		if (id_process === undefined) id_process = "";
 
@@ -595,10 +782,10 @@ $(document).ready(function () {
 	});
 
 	$('#confirm_delete_message').click(function (event) {
-		let id_note 		= $(this).attr("data-id-note");
-		let id_process 	= $(this).attr("data-id-process");
-		let type_process 	= $(this).attr("data-type-process");
-		let booking_id 	= $(this).attr("booking-id");
+		let id_note = $(this).attr("data-id-note");
+		let id_process = $(this).attr("data-id-process");
+		let type_process = $(this).attr("data-type-process");
+		let booking_id = $(this).attr("booking-id");
 		if (id_process === undefined) id_process = "";
 
 		$('.action-remove[data-id-note=' + id_note + ']').closest('.row-mess').fadeOut(1000, function () { $(this).remove(); });
@@ -616,7 +803,7 @@ $(document).ready(function () {
 			success: function (res) { },
 			error: function (XMLHttpRequest, textStatus, errorThrown) {
 				let text_warning = 'ERROR: Vui lòng liên hệ bộ phận IT!';
-      			showToastWarning(text_warning);
+				showToastWarning(text_warning);
 
 				console.error("Status: " + textStatus);
 				console.error("Error: " + errorThrown);
@@ -663,15 +850,21 @@ $(document).ready(function () {
 		var frmSaveWorkingProcess = $(this).attr('id');
 		$('#frmSaveWorkingProcess').val(frmSaveWorkingProcess);
 		var booking_status = $('#' + frmSaveWorkingProcess + ' input:hidden[name="booking_status"]').val();
-	
+
 		if ($('#' + frmSaveWorkingProcess + ' input:hidden[name="bonus"]').length > 0) {
 			$('#txtBonus').val($('#' + frmSaveWorkingProcess + ' input:hidden[name="bonus"]').val());
 			$('#txtBonus').parent().parent().show();
 		}
 
 		if (booking_status == '8' && frmSaveWorkingProcess == 'frmCompleted') {
+			let complete_ok = parseInt($(`#${frmSaveWorkingProcess} input:hidden[name="complete_ok"]`).val());
+			if (!complete_ok) {
+				showModalNotify(2, "Vui lòng điền đầy đủ giá bán hành lý trước khi hoàn tất");
+				return;
+			}
 			$(this).submit();
-		} else {
+		}
+		else {
 			if (!$(this).hasClass("error")) {
 				$('#dlgWorkingProcessNote').dialog({
 					modal: true,
@@ -687,13 +880,13 @@ $(document).ready(function () {
 		$(this).attr("disabled", "disabled");
 		var frmSaveWorkingProcess = $('#frmSaveWorkingProcess').val();
 
-		if ($('#' + frmSaveWorkingProcess + ' input:hidden[name="booking_status"]').val() == '8') {
-			$('#' + frmSaveWorkingProcess + ' input:hidden[name="lydothangthua_id"]').val($('input:radio[name="radWinLoseReason"]:checked').val());
-			$('#' + frmSaveWorkingProcess + ' input:hidden[name="ghichuthangthua"]').val($.trim($('#txtWorkingProcessNote').val()));
+		if ($(`#${frmSaveWorkingProcess} input:hidden[name="booking_status"]`).val() == '8') {
+			$(`#${frmSaveWorkingProcess} input:hidden[name="lydothangthua_id"]`).val($('input:radio[name="radWinLoseReason"]:checked').val());
+			$(`#${frmSaveWorkingProcess} input:hidden[name="ghichuthangthua"]`).val($.trim($('#txtWorkingProcessNote').val()));
 		}
 
-		if ($('#' + frmSaveWorkingProcess + ' input:hidden[name="bonus"]').length > 0) {
-			$('#' + frmSaveWorkingProcess + ' input:hidden[name="bonus"]').val($.trim($('#txtBonus').val()));
+		if ($(`#${frmSaveWorkingProcess} input:hidden[name="bonus"]`).length > 0) {
+			$(`#${frmSaveWorkingProcess} input:hidden[name="bonus"]`).val($.trim($('#txtBonus').val()));
 		}
 
 		// Kiểm tra diễn giải phải dài hơn 30 ký tự và tối đa 200 ký tự, không tính khoảng trắng, chấm và phẩy
@@ -705,17 +898,17 @@ $(document).ready(function () {
 
 		if (des.length < 20) {
 			$('#dlgWorkingProcessNote').dialog('close');
-			let text_warning = 'Bạn note quá ít! Trang sẽ tự động reload trong vòng <span id="count-down" class="fw-semibold color-red"> ' + countdownAndReload(10) +'</span> nữa.';
+			let text_warning = 'Bạn note quá ít! Trang sẽ tự động reload trong vòng <span id="count-down" class="fw-semibold color-red"> ' + countdownAndReload(10) + '</span> nữa.';
 			showModalNotify(0, text_warning);
 			$('.modal-overlay, .btn-modal-close').addClass('reload');
 		} else if (des.length > 200) {
 			$('#dlgWorkingProcessNote').dialog('close');
-			let text_warning = 'Bạn note quá nhiều! Trang sẽ tự động reload trong vòng <span id="count-down" class="fw-semibold color-red"> ' + countdownAndReload(10) +'</span> nữa.';
+			let text_warning = 'Bạn note quá nhiều! Trang sẽ tự động reload trong vòng <span id="count-down" class="fw-semibold color-red"> ' + countdownAndReload(10) + '</span> nữa.';
 			showModalNotify(0, text_warning);
 			$('.modal-overlay, .btn-modal-close').addClass('reload');
 		}
 		else {
-			var save_post_data = $('#' + frmSaveWorkingProcess).serialize();
+			var save_post_data = $(`#${frmSaveWorkingProcess}`).serialize();
 			save_post_data += '&txtWorkingProcessNote=' + $.trim($('#txtWorkingProcessNote').val());
 
 			$.ajax({
@@ -729,7 +922,7 @@ $(document).ready(function () {
 				success: function (res) {
 					res = parseInt(res);
 					if (res == 1) {
-						$('#' + frmSaveWorkingProcess).unbind('submit');
+						$(`#${frmSaveWorkingProcess}`).unbind('submit');
 						event.preventDefault();
 						$('.container-waiting').show();
 						location.reload();
@@ -761,37 +954,6 @@ $(document).ready(function () {
 	});
 	// End open working process popup
 
-	// Begin check contact info
-	$('#btnCheckContactInfo').click(function () {
-		$('#CheckContactInfoDialog').dialog({
-			minHeight: 200,
-			width: 1000,
-			modal: true,
-			resizable: false,
-		});
-	});
-
-	$('#CheckContactInfoDialog').on('dialogopen', function (event, ui) {
-		var ct_name 		= $('#btnCheckContactInfo').attr('ct_name');
-		var ct_mobile 		= $('#btnCheckContactInfo').attr('ct_mobile');
-		var ct_email 		= $('#btnCheckContactInfo').attr('ct_email');
-		var ct_id_booking 	= $('#btnCheckContactInfo').attr('ct_id_booking');
-
-		if (ct_name != '' && (ct_mobile != '' || ct_email != '')) {
-			$.ajax({
-				cache: false,
-				type: 'post',
-				data: 'ct_name=' + ct_name + '&ct_mobile=' + ct_mobile + '&ct_email=' + ct_email + '&ct_id_booking=' + ct_id_booking,
-				async: false,
-				url: 'index.php?entryPoint=entryPointMyCheckContactInfo',
-				success: function (output) {
-					$('#CheckContactInfoDialog').html(output);
-				}
-			});
-		}
-	});
-	// End check contact info
-
 	// Begin edit booking detail
 	$("#edit_bkg_btn").on("click", function () {
 		$.ajax({
@@ -817,14 +979,13 @@ $(document).ready(function () {
 	});
 	// End edit booking detail
 
-	
 	// Thông tin những người đã xem booking
 	$("#btnViewBooking").on("click", function () {
 		$.ajax({
 			url: "index.php?entryPoint=entryPointTracker",
 			type: "POST",
 			data: {
-				"item_id" : $("#frmViewedBooking input[name='record']").val(), 
+				"item_id": $("#frmViewedBooking input[name='record']").val(),
 				"for": "Tracker_ViewBooking",
 			},
 			beforeSend: function () {
@@ -851,7 +1012,6 @@ $(document).ready(function () {
 		}
 		return true;
 	});
-
 
 	// Begin add luggage
 	$("#add_luggage_btn").click(function () {
@@ -890,7 +1050,6 @@ $(document).ready(function () {
 	});
 	// End add luggage
 
-
 	// Begin change name
 	$("#change_name_btn").click(function () {
 		$.ajax({
@@ -911,7 +1070,6 @@ $(document).ready(function () {
 			resizable: false,
 		});
 	});
-	
 	$("#change_name").submit(function () {
 		if (!checkLineItems(2)) {
 			return false;
@@ -929,7 +1087,7 @@ $(document).ready(function () {
 			data: "for=changeFlightTime&id=" + $("form[name='DetailView']>input[name='record']").val(),
 			beforeSend: function () {
 				$("body").css({ "cursor": "wait" });
-				$("#line_itineraries_area").html("Loading, Please wait ... ");
+				$("#line_itineraries_area").html("<center><i>Vui lòng chờ trong giây lát...</i></center>");
 			},
 			success: function (response) {
 				$("#line_itineraries_area").html(response);
@@ -956,34 +1114,40 @@ $(document).ready(function () {
 		});
 	});
 
-	$("#tbl_change_flight_time").on("submit", function (event) {
+	$(document).on('change', 'select[name="pass_luggage_ob[]"], select[name="pass_luggage_ib[]"]', function () {
+		let name = $(this).attr('name'); // name="pass_luggage_ob[]" or "...ib[]"
+		let index = $(`select[name="${name}"]`).index(this);
+		// let value = $(this).val(); // selected option value
+		let dataCost = $(this).find(':selected').data('cost'); // get data-cost
+		// let dataText  = $(this).find(':selected').data('text'); // get data-text
+		// let dataValue = $(this).find(':selected').data('value'); // get data-value
 
-		if (!checkLineItems(3)) {
-			return false;
+		// Update luggage_price[] at same index
+		if (name == 'pass_luggage_ob[]') {
+			$('input[name="pass_luggage_price[]"]').eq(index).val(formatNumber(dataCost));
 		}
+		else if (name == 'pass_luggage_ib[]') {
+			$('input[name="pass_luggage_price_inbound[]"]').eq(index).val(formatNumber(dataCost));
+		}
+	});
 
+	$("#tbl_change_flight_time").on("submit", function (event) {
+		if (!checkLineItems(3)) return false;
 		return true;
 	});
 	// End change flight time
 
-
 	$(document).on("focus", ".allow-number-only", function () {
-		var cal_date_format 	= $('#cal_date_format').val();
-		var dec_seperator 		= $('#dec_seperator').val();
-		var grp_seperator 		= $('#grp_seperator').val();
-		var sig_digits 		= $('#sig_digits').val();
+		var dec_seperator = $('#dec_seperator').val();
+		var grp_seperator = $('#grp_seperator').val();
+		var sig_digits = $('#sig_digits').val();
 		$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
 	});
 
 	$(document).on("change", "#receipt_type", function () {
-		var type = $("#receipt_type").val();
-		if (type == 'cash') {
-			$("#com_location_id").show();
-			$("#tknganhang_id").hide();
-		} else {
-			$("#tknganhang_id").show();
-			$("#com_location_id").hide();
-		}
+		const isCash = $(this).val() === "cash";
+		$("#com_location_id").toggle(isCash);
+		$("#tknganhang_id").toggle(!isCash);
 	});
 
 	$(".input_hour, .input_minute").on('keydown', function (event) {
@@ -1001,67 +1165,6 @@ $(document).ready(function () {
 		$("body").css({ "cursor": "default" });
 	});
 
-	// Nút chia doanh số
-	$("#share_profit_btn").on("click", function () {
-
-		$("#share_profit_frm").dialog({
-			title: "Thông tin chia doanh số",
-			width: 400,
-			modal: true,
-			resizable: false,
-		});
-
-		$.ajax({
-			url: "index.php?entryPoint=entryPointFlightBookings",
-			type: "POST",
-			data: {
-				"bk": $(this).attr("bk"),
-				"for": "getShareProfit",
-			},
-			beforeSend: function () {
-				$("#bk_ttl_amt").text("");
-				// $("#share_profit_tbl>tbody").html("<tr class='share_profit_loading'><td><img src='custom/themes/default/images/loading.gif' width='23'></td></tr>");
-			},
-			success: function (response) {
-				res = JSON.parse(response);
-				// $(".share_profit_loading").remove();
-				$("#bk_ttl_amt").text(res.profit);
-				$("#share_profit_tbl>tbody").html(res.html);
-				$("#shareprofit_cnt").val(res.line_cnt);
-			}
-		});
-	});
-
-	$(document).on("click", "#add_shareprofit_line", function () {
-		var ln = $("#shareprofit_cnt").val();
-		$("#share_profit_tbl>tbody>tr").last().before(
-			`<tr class='profit_ln'>
-				<td id='share_profit_no${ln}' class="fw-bold text-center align-center"></td>
-				<td>
-					<div class="d-flex align-items-center gap-2">
-						<input class="box-input" type='text' name='share_profit_user[]' id='share_profit_user${ln}' size='20' autocomplete='off'>
-						<input type='button' class='btn btn-primary' value='Chọn' onclick='open_popup(&quot;Users&quot;, 600, 400, &quot;&quot;, true, false, {&quot;call_back_function&quot;:&quot;set_return&quot;,&quot;form_name&quot;:&quot;share_profit_frm&quot;,&quot;field_to_name_array&quot;:{&quot;id&quot:&quot;share_profit_user_id${ln}&quot;,&quot;user_name&quot;:&quot;share_profit_user${ln}&quot;}},&quot;single&quot;, true);' style='vertical-align: baseline;'>
-						<input type='hidden' name='share_profit_userid[]' id='share_profit_user_id${ln}'>
-					</div>
-				</td>
-				<td>
-					<input class="box-input text-end w-100" type='text' name='share_profit_amt[]' id='share_profit_amt${ln}' oninput='this.value = formatNumber(unformatNumber(this.value)); calculateTotalShareProfit();'>
-				</td>
-				<td class="text-center">
-					<svg xmlns="http://www.w3.org/2000/svg" class="cursor-pointer" onclick="markShareProfitDelete(${ln});" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
-					<input type='hidden' name='share_profit_delete[]' id='share_profit_delete${ln}' value='0'>
-					<input type='hidden' name='share_profit_id[]'>
-				</td>
-			</tr>`);
-
-		markOrderProfitLine();
-		$("#shareprofit_cnt").val(parseInt(ln) + 1);
-	});
-
-	$("#share_profit_frm").submit(function () {
-		return checkShareProfit();
-	});
-
 	// Change booking status
 	$(document).on("change", "select#booking_status", function () {
 		let status = $(this).find(":selected").val();
@@ -1072,61 +1175,287 @@ $(document).ready(function () {
 
 		let myModal = new bootstrap.Modal(document.getElementById('modal-confirm'))
 		myModal.show();
-    });
+	});
 
 	$(document).on("click", "#confirm-modal", function () {
 		$('#frmChangeStatus').submit();
 	});
 
+	// Icon get QR code
+	$('#get_qr_code').on('click', function () {
+		showDialog("dialog_qr_code");
+	});
+	$('#select_bank_get_qr_code').change(function () {
+		let selectedValue = $(this).val();
+		if (selectedValue) {
+			$("#img_qr_code").attr('src', selectedValue);
+			$("#copyQRCodeImage").show();
+			$(".wrap-redo").show();
+		}
+	});
+	$(document).on("click", "#copyQRCodeImage", async function () {
+		let img = document.getElementById("img_qr_code");
 
-	// Icon copy
-	$('#copy_payment_link').on('click', function(){
-		// Get the text field
-		var copyText = document.getElementById("payment_link_hidden");
+		try {
+			if (img) {
+				const response = await fetch(img.src);
+				const blob = await response.blob();
+				const clipboardItem = new ClipboardItem({ "image/png": blob });
+				await navigator.clipboard.write([clipboardItem]);
 
-		// Select the text field
-		copyText.select();
-		copyText.setSelectionRange(0, 99999); // For mobile devices
-
-		// Copy the text inside the text field
-		navigator.clipboard.writeText(copyText.value);
-
-		showToastWarning("Đã sao chép liên kết");
+				showToastNotify("success", "Đã sao chép ảnh QR Code");
+			} else {
+				showToastNotify("error", "Không tìm thấy QR Code");
+			}
+		} catch (error) {
+			showToastNotify("error", "Không thể sao chép ảnh!");
+			console.error("Lỗi copy ảnh:", error);
+		}
+	});
+	$(document).on("click", "#btnRenderQRCode", async function () {
+		let qrcode = $('#img_qr_code').attr("src");
+		let new_amount = parseInt($('#new_payment_amount').val().trim() ?? 0);
+		if (!new_amount || !Number.isInteger(new_amount) || new_amount < 1000) {
+			alert("Số tiền không hợp lệ");
+			return false;
+		}
+		$('#img_qr_code').attr("src", updateAmountInUrl(qrcode, new_amount));
+		$('#new_payment_amount').val('');
 	});
 
-	
+	// GET THÔNG TIN BANK - SEND CUSTOMER
+	$('#get_bank').on('click', function () {
+		let booking_id = $(this).attr('booking_id');
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointBankAccount",
+			type: "POST",
+			data: {
+				booking: booking_id,
+				type: 'get_infor_bank',
+				for: "changeBankAccountPosition",
+			},
+			beforeSend: function () { },
+			success: function (response) {
+				if (response.length > 0) {
+					copyContent(response);
+				}
+			}
+		});
+	});
+
 	// Handle mapping call with booking
-	$('#btn-mapping-call-booking').click( function() {
+	$('#btn-mapping-call-booking').click(function () {
 		let call_name = $('input[name=call_name]').val().trim();
 		let booking_id = $(this).attr('booking_id');
 		let booking_name = $(this).attr('booking_name');
-		if(call_name.length == 0 || call_name.length > 20 || booking_id.length == 0) return;
+		if (call_name.length == 0 || call_name.length > 20 || booking_id.length == 0) return;
 
 		$.ajax({
 			url: "index.php?entryPoint=entryPointCallContact",
 			data: {
-				type : "map_call_booking",
-				call_name : call_name,
-				booking_id : booking_id,
-				booking_name : booking_name
+				type: "map_call_booking",
+				call_name: call_name,
+				booking_id: booking_id,
+				booking_name: booking_name
 			},
 			type: "POST",
 			cache: false,
 			success: function (response) {
 				closeDialog("mapping_call_booking");
-				if(response == 1) {
+				if (response == 1) {
 					showModalNotify(1, "Liên kết cuộc gọi thành công");
 					$('.modal-overlay, .btn-modal-close').addClass('reload');
-				} else if(response == 2){
+				} else if (response == 2) {
 					// warning
 					showModalNotify(2, "Vui lòng cập nhật thông tin cuộc gọi trước khi liên kết");
 				}
 				else {
 					showModalNotify(0, "Thao tác không thành công. Liên hệ IT để được hỗ trợ.");
-				} 
+				}
 			}
 		});
 	});
+
+	// Voucher
+	$('.voucher').on('click', function () {
+		let id = $(this).attr('for');
+
+		$(`#${id}`).dialog({
+			width: 500,
+			modal: true,
+			resizable: false,
+			closeOnEscape: false,
+			title: "Chi tiết voucher"
+		});
+	});
+
+	// Points
+	$('.btn-use-point').on('click', function () {
+		let id = $(this).attr('for');
+
+		$(`#${id}`).dialog({
+			width: 400,
+			modal: true,
+			resizable: false,
+			closeOnEscape: false,
+			title: "Dùng điểm tích lũy"
+		});
+	});
+	$('input[name="point_of_use"]').on('input', function () {
+		let p = $(this).val();
+		let step = parseInt($(this).attr('min'));
+		let ttp = parseInt($('#tt_points').attr('data'));
+
+		if (p < step || p > ttp || p % step != 0) {
+			$('#btn_apply_points_discount').prop('disabled', true);
+			$('input[name="points_discount"]').val(0);
+		}
+		else {
+			$('#btn_apply_points_discount').prop('disabled', false);
+			$('input[name="points_discount"]').val(p * 1000);
+		}
+	});
+
+	$('#btn_apply_points_discount').click(function () {
+		let p = $('input[name="point_of_use"]').val();
+		let step = parseInt($('input[name="point_of_use"]').attr('min'));
+		let ttp = parseInt($('#tt_points').attr('data'));
+		let contact_id = $(this).attr('contact_id');
+		let booking_id = $(this).attr('booking_id');
+
+		if (p < step || p > ttp || p % step != 0) {
+			showModalNotify(2, "Số điểm áp dụng không hợp lệ");
+			return false;
+		}
+
+		if (contact_id.length > 0) {
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				data: {
+					for: "apply_points",
+					apply_points: p,
+					contact_id: contact_id,
+					booking_id: booking_id
+				},
+				type: "POST",
+				cache: false,
+				beforeSend: function () { $('.container-waiting').show(); },
+				success: function (response) {
+					$('.container-waiting').hide();
+					try {
+						let obj = JSON.parse(response);
+
+						if (obj.error == 0) {
+							showModalNotify(1, "Áp điểm thành công");
+							$('.modal-overlay, .btn-modal-close').addClass('reload');
+						}
+						else {
+							let m = obj.message ? obj.message : 'Thao tác không thành công. Liên hệ IT để được hỗ trợ.';
+							showModalNotify(0, m);
+						}
+					}
+					catch (err) {
+						console.error(err);
+						showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+					}
+				},
+				error: function (XMLHttpRequest, textStatus, errorThrown) {
+					$('.container-waiting').hide();
+					console.error("Status: " + textStatus);
+					console.error("Error: " + errorThrown);
+					showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+				}
+			});
+		}
+	});
+
+	// Change customer source
+	$('input[name="customer_source"]').click(function () {
+		let customer_source = $(this).val();
+		if (customer_source && customer_source.length > 0) {
+			$.ajax({
+				url: "index.php?entryPoint=entryPointGeneral",
+				type: "POST",
+				contentType: "application/json",
+				dataType: "json",
+				data: JSON.stringify({
+					class: "entryBookingClass",
+					method: "updateFields",
+					params: {
+						bookingId: bookingId,
+						fields: { customer_source: customer_source }
+					}
+				}),
+				beforeSend: function () {
+					$('.container-waiting').show();
+				},
+				success: function (res) {
+					if ('status' in res && res.status === 1) {
+						$('input[type="checkbox"][name="customer_source"]').prop('checked', false);
+						$(`input#customer_source_${customer_source}`).prop('checked', true);
+					}
+					else {
+						$(`input#customer_source_${customer_source}`).prop('checked', false);
+					}
+				},
+				error: function (XMLHttpRequest, textStatus, errorThrown) {
+					$(`input#customer_source_${customer_source}`).prop('checked', false);
+					console.error("Status: " + textStatus);
+					console.error("Error: " + errorThrown);
+					showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+				},
+				complete: function () {
+					$('.container-waiting').hide();
+				},
+			});
+		}
+	});
+
+	// Get location from geocode in booking
+	const regexlatlong = /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/;
+	const latlong= $("#city").text().trim();
+	if(regexlatlong.test(latlong)) {
+		const latlongparts = latlong.split(',');
+		if (latlongparts.length != 2) return false;
+		const lat = latlongparts[0].trim();
+		const long = latlongparts[1].trim();
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointGeneral&class=entryBookingClass&method=getLocation",
+			type: "POST",
+			contentType: "application/json", 
+			dataType: "json",  
+			data: JSON.stringify({
+				params: {
+					lat: lat,
+					long: long,
+					bookingId: bookingId,
+				}
+			}),
+			beforeSend: function () {
+				$("#city").append(`<i id="location-loading" class="ms-2" style="color:#a7a7a7;">Đang định vị...</i>`);
+			},
+			success: function (res) {
+				$("#location-loading").remove();
+				if('status' in res && res.status === 1) {
+					if(res.data.length > 0) $("#city").text(res.data);
+				}
+				else {
+					let message = res.message || 'Có lỗi xảy ra khi lấy dữ liệu';
+					$("#city").append(`
+						<span class="ms-1" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="${message}">
+							<svg width="14px" height="14px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12ZM10.0586 6.05547C10.0268 5.48227 10.483 5 11.0571 5H12.9429C13.517 5 13.9732 5.48227 13.9414 6.05547L13.5525 13.0555C13.523 13.5854 13.0847 14 12.554 14H11.446C10.9153 14 10.477 13.5854 10.4475 13.0555L10.0586 6.05547ZM14 17C14 18.1046 13.1046 19 12 19C10.8954 19 10 18.1046 10 17C10 15.8954 10.8954 15 12 15C13.1046 15 14 15.8954 14 17Z" fill="#ff0000"></path></g></svg>
+						</span>
+					`);
+				}
+			},
+			error: function (XMLHttpRequest, textStatus, errorThrown) {
+				console.error("Status: " + textStatus);
+				console.error("Error: " + errorThrown);
+			},
+		});
+	}
 });
 
 // Count row for textarea
@@ -1372,8 +1701,8 @@ function checkLineItems(type) {
 	} else if (type == 3) { // check thông tin đổi ngày bay, hành trình
 
 		// tối đa 4 ô, 2 ô ở chiều đi, 2 ô ở chiều về (nếu có)
-		var iti_hour_arr 	= document.getElementsByClassName('input_hour');
-		var iti_minute_arr 	= document.getElementsByClassName('input_minute');
+		var iti_hour_arr = document.getElementsByClassName('input_hour');
+		var iti_minute_arr = document.getElementsByClassName('input_minute');
 
 		if (iti_hour_arr.length > 0) {
 			for (var i = 0; i < 2; i++) {
@@ -1528,64 +1857,28 @@ function getPassengerLine(booking_id, pass_id = '', type = '') {
 				$(".pass_order").eq(index).text("Hành khách " + (index + 1) + ":");
 				addToValidate('tbl_change_flight_time', 'pass_birthday' + index, 'date', false, 'Ngày phải nhập theo cú pháp: 01-01-2022');
 			});
+
+			// Active select2
+			$('.table-change-passengers select.box-select2').select2();
+			$('.table-change-passengers select.box-select2-non-search').select2({
+				minimumResultsForSearch: Infinity
+			});
 		}
 	});
 }
-
-function markOrderProfitLine() {
-	var i = 0;
-	$(".profit_ln").each(function (ind) {
-		if ($("#share_profit_delete" + (ind + 1)).val() == 0) {
-			$("#share_profit_no" + (ind + 1)).text(i + 1);
-			i++;
-		}
-	});
-}
-
-function calculateTotalShareProfit() {
-	var share_profit = 0;
-	$(".profit_ln").each(function (ind) {
-		if ($("#share_profit_delete" + (ind + 1)).val() == 0) {
-			share_profit += parseInt(unformatNumber($("#share_profit_amt" + (ind + 1)).val()));
-		}
-	});
-	$("#ttl_share_profit").text(formatNumber(share_profit));
-	return share_profit;
-}
-
-function markShareProfitDelete(ln) {
-	$("#share_profit_delete" + ln).val(1);
-	$("#share_profit_delete" + ln).parent().parent().hide();
-	markOrderProfitLine();
-	calculateTotalShareProfit();
-}
-
-function checkShareProfit() {
-	// DS chia không thể cao hơn tổng DS
-	var total_profit = unformatNumber($("#bk_ttl_amt").text());
-	var share_profit = calculateTotalShareProfit();
-	if (share_profit > total_profit) {
-		let text_warning = 'Không thể chia doanh số cao hơn doanh số tổng!';
-		showToastWarning(text_warning);
-		return false;
-	}
-	return true;
-}
-
 
 // BUTTON "CHỈNH SỬA CHI TIẾT BOOKING"
-// ==================================
-function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0){
+function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0) {
 	let ticket_type = $("input[name='ticket_type']").val();
-	let qty 		= unformatNumber($('#bk_edit_quantity' + ln).val());
-	let price 	 	= unformatNumber($('#bk_edit_unit_price' + ln).val());
-	let tax_fee 	= unformatNumber($('#bk_edit_tax_and_fee' + ln).val());
-	let admin_fee 	= unformatNumber($('#bk_edit_admin_fee' + ln).val());
-	let vat_admin 	= admin_fee_no_vat = 0;
+	let qty = unformatNumber($('#bk_edit_quantity' + ln).val());
+	let price = unformatNumber($('#bk_edit_unit_price' + ln).val());
+	let tax_fee = unformatNumber($('#bk_edit_tax_and_fee' + ln).val());
+	let admin_fee = unformatNumber($('#bk_edit_admin_fee' + ln).val());
+	let vat_admin = admin_fee_no_vat = 0;
 
 	// chỉ tính vat và phí admin đối với vé nội địa
 	if (ticket_type != '2') {
-		if(is_cal_tax) {
+		if (is_cal_tax) {
 			tax_fee = price * 8 / 100;
 		}
 
@@ -1601,7 +1894,7 @@ function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0){
 				tax_fee = Math.ceil(tax_fee / 1000) * 1000;
 			}
 			vat_admin = 0;
-		} 
+		}
 
 		if ((airline_inf[0] != 'VNA' && airline_inf[0] != 'VNP' && $("#bk_edit_direction" + ln).val() == 0) || (airline_inf[1] != 'VNA' && airline_inf[1] != 'VNP' && $("#bk_edit_direction" + ln).val() == 1) && is_cal_admin) {
 			vat_admin = Math.round(admin_fee / 1.08 * 0.08);
@@ -1609,28 +1902,28 @@ function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0){
 	}
 
 	// Check cái này
-	let service_fee 			= unformatNumber($('#bk_edit_service_fee' + ln).val());
-	let airport_fee 			= unformatNumber($('#bk_edit_airport_fee' + ln).val());
-	let supplier_discount 		= unformatNumber($('#bk_edit_supplier_discount' + ln).val());
-	let supplier_ticketing_fee 	= unformatNumber($('#bk_edit_supplier_ticketing_fee' + ln).val());
-	let total_price 			= 0;
-	let total_bought_price 		= 0;
+	let service_fee = unformatNumber($('#bk_edit_service_fee' + ln).val());
+	let airport_fee = unformatNumber($('#bk_edit_airport_fee' + ln).val());
+	let supplier_discount = unformatNumber($('#bk_edit_supplier_discount' + ln).val());
+	let supplier_ticketing_fee = unformatNumber($('#bk_edit_supplier_ticketing_fee' + ln).val());
+	let total_price = 0;
+	let total_bought_price = 0;
 
 	// VE QUOC TE
 	// if(ticket_type == '2') {
 	//	total_price = price + tax_fee + service_fee + admin_fee + airport_fee;
 	//	total_bought_price = price + tax_fee + admin_fee + airport_fee;
 	// } else {
-		total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
-		total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
+	total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
+	total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
 	// }
 
-	if(supplier_discount != 0){
+	if (supplier_discount != 0) {
 		total_bought_price = Math.abs(total_bought_price - supplier_discount);
 	}
-  
-	if(supplier_ticketing_fee != 0){
-		total_bought_price = Math.abs(total_bought_price + supplier_ticketing_fee);
+
+	if (supplier_ticketing_fee != 0) {
+		total_bought_price += supplier_ticketing_fee;
 	}
 
 	$('#bk_edit_quantity' + ln).val(qty);
@@ -1641,42 +1934,43 @@ function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0){
 	$('#bk_edit_total_price' + ln).val(total_price);
 	$('#bk_edit_total_bought_price' + ln).val(total_bought_price);
 	$('#bk_edit_tax_and_fee' + ln).val(tax_fee);
-	if(is_cal_admin) {
+	if (is_cal_admin) {
 		$('#bk_edit_vat_admin' + ln).val(vat_admin);
 		$('#bk_edit_admin_fee_no_vat' + ln).val(admin_fee - vat_admin);
 	}
 	calculateTotal();
 }
 
-function calculateTotal(){
-	var arr 				= document.getElementsByName('bkd_deleted[]');
-	var qty 				= document.getElementsByName('bkd_quantity[]');
-	var total_price 		= document.getElementsByName('bkd_total_price[]');
-	var total_bought_price 	= document.getElementsByName('bkd_total_bought_price[]');
+function calculateTotal() {
+	var arr = document.getElementsByName('bkd_deleted[]');
+	var qty = document.getElementsByName('bkd_quantity[]');
+	var total_price = document.getElementsByName('bkd_total_price[]');
+	var total_bought_price = document.getElementsByName('bkd_total_bought_price[]');
 
 	var total_qty = 0;
 	var subtotal_amt = 0;
 	var total_bought_amt = 0;
 
-	for(var i=0; i < arr.length; i++){
-		if(arr[i].value == '0'){
+	for (var i = 0; i < arr.length; i++) {
+		if (arr[i].value == '0') {
 			total_qty += unformatNumber(qty[i].value);
 			subtotal_amt += unformatNumber(total_price[i].value);
 			total_bought_amt += unformatNumber(total_bought_price[i].value);
 		}
 	}
 
-	var luggage_fee 	= unformatNumber($.trim($('#luggage_fee').text()));
-	var other_fee 		= unformatNumber($.trim($('#other_fee').text()));
-	var thuephi_quocte 	= unformatNumber($.trim($('#thuephi_quocte').text()));
-	var total_amount 	= subtotal_amt + luggage_fee + other_fee + thuephi_quocte;
-	
+	var luggage_fee = unformatNumber($.trim($('#luggage_fee').text()));
+	var other_fee = unformatNumber($.trim($('#other_fee').text()));
+	// var thuephi_quocte = unformatNumber($.trim($('#thuephi_quocte').text()));
+	var thuephi_quocte = 0;
+	var total_amount = subtotal_amt + luggage_fee + other_fee + thuephi_quocte;
+
 	// Hiện tại đã off % discount
-	var discount_percent = unformatNumber($('#discount_percent :selected').val());
+	// var discount_percent = unformatNumber($('#discount_percent :selected').val());
 	var discount_amount = unformatNumber($.trim($('#discount_amount span.discount_value').text()));
-	if(discount_percent > 0){
-		discount_amount = total_amount * discount_percent / 100;
-	}
+	// if (discount_percent > 0) {
+	// 	discount_amount = total_amount * discount_percent / 100;
+	// }
 	total_amount -= discount_amount;
 
 	// Display
@@ -1705,4 +1999,10 @@ function getAirLineInf() {
 	}
 
 	return iti_airline;
+}
+
+function updateAmountInUrl(url, newAmount) {
+	const urlObj = new URL(url);
+	urlObj.searchParams.set('amount', newAmount);
+	return urlObj.toString();
 }

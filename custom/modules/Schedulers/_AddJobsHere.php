@@ -1,45 +1,138 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
+use custom\services\Notification\NotificationService;
+
 $job_strings[] = 'TuDongTaoBang';  // tu dong tao bang moi chi tiet tai khoan
 $job_strings[] = 'KetChuyenTienMatSCK'; // ket chuyen tien mat so du cuoi ky vao dau moi nam
 $job_strings[] = 'KetChuyenTienGuiNganHangSCK'; // ket chuyen tien gui ngan hang so du cuoi ky vao dau moi nam
 $job_strings[] = 'KetChuyenCongNoPhaiThu'; // kết chuyển công nợ phải thu vào đầu mỗi năm
 $job_strings[] = 'KetChuyenCongNoPhaiTra'; // kết chuyển công nợ phải trả vào đầu mỗi năm
-
-
 $job_strings[] = 'createMonthSalary'; // Đầu mỗi tháng tạo 1 bảng lương
-$job_strings[] = 'updateSales'; // cập nhật thưởng doanh số trong bảng lương
 $job_strings[] = 'updateEfforts'; // cập nhật nỗ lực trong bảng lương
 $job_strings[] = 'lockSalaryAtEndMonth'; // khoá bảng lương vào cuối mỗi tháng 
 $job_strings[] = 'updateWorkingDays'; // cập nhật ngày công trong bảng lương
 $job_strings[] = 'updateMissingEfforts'; // cập nhật nỗ lực thật sự của tháng nếu bảng lương khoá trước ngày cuối tháng
 $job_strings[] = 'updateOnlineReport'; // cập nhật ds online mỗi ngày
-
 $job_strings[] = 'LoopCheckIfBookingOver24h'; // kiem tra booking co qua 24h
 // $job_strings[] = 'checkOnlineUser'; // Kiểm tra xem booking giao đã được xử lý, để biết user còn online hay không
 $job_strings[] = 'checkBookingHandle'; // Kiểm tra xem booking đã giao được xử lý hay chưa
 $job_strings[] = 'checkStatusOnlineUser'; // Kiểm tra user còn online hay không
 $job_strings[] = 'reAssignBooking'; // lặp lại việc giao booking nếu gặp booking chưa được giao
 $job_strings[] = 'calculateCashFlow'; // Tính toán dòng tiền trong 3 ngày trước
-
 $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
+$job_strings[] = 'sendAutoCheapPriceMessageZalo'; // Tự động gửi tin về giá vé rẻ qua ZBS template Zalo
+$job_strings[] = 'maintainZaloChat'; // Tự động gửi tin tư vấn Zalo để duy trì tương tác
+$job_strings[] = 'resetRewardPoints'; // Reset lại điểm tích lũy của liên hệ qua booking hằng năm
+$job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
+$job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
+$job_strings[] = 'migrateZaloImagesToNextCloud'; // Đồng bộ ảnh từ Zalo CDN sang VN Backup
 
-function sendTestTelegram($content, $parseMode = 'HTML', $timeout = 5)
+/**
+ * Thông báo hành trình cần checkin
+ */
+function notifyCheckinJourney()
 {
-	$chat_id = '-1001360390468'; // Group Test
-	$token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk'; // Bot @CronJobNewsVietjet_bot
+	global $db, $sugar_config;
+	$notification_channel = strtoupper($sugar_config['notification_channel'] ?? 'TELEGRAM');
 
-	$url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
-	$url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
-	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_URL, $url);
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
-	curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
-	$result = curl_exec($curl);
-	curl_close($curl);
-	return $result;
+	$sql = "SELECT
+				b.id AS booking_id,
+				b.name AS booking,
+				b.contact_name,
+				b.phone,
+				i.departure,
+				i.arrival,
+				i.departure_date,
+				i.arrival_date,
+				i.airline_code,
+				i.flight_number,
+				i.base_price,
+				i.ticket_class,
+				b.date_ticket_issue
+			FROM ec_booking_itineraries i
+			JOIN ec_flight_bookings b ON i.booking_id = b.id AND b.deleted = 0
+			WHERE b.booking_status IN ('7','8')
+				AND i.deleted = 0
+				AND i.departure_date != ''
+				AND i.checkin_status = 1
+				AND NOW() >= DATE_SUB(i.departure_date, INTERVAL 24 HOUR)
+				AND NOW() <= DATE_SUB(i.departure_date, INTERVAL 24 HOUR) + INTERVAL 1 MINUTE
+			ORDER BY i.departure_date ASC
+		";
+
+	$res = $db->query($sql);
+	if ($db->countRows($res) > 0) {
+		while ($row = $db->fetchByAssoc($res)) {
+			try {
+				if ($notification_channel == 'TELEGRAM') {
+					$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+					$chatId     = $sugar_config['telegram']['checkin']['chat_id'] ?? '';
+
+					$booking_id = $row['booking_id'];
+					$booking_name = $row['booking'];
+					$departure = $row['departure'];
+					$arrival = $row['arrival'];
+					$departure_date = date('d/m/Y', strtotime($row['departure_date']));
+					$departure_date_hour = date('H:i', strtotime($row['departure_date']));
+					$contact_name = $row['contact_name'];
+					$contact_phone = $row['phone'];
+
+					$link = $sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&action=DetailView&record=$booking_id";
+					$text = "<b>Checkin Booking : $booking_name</b>, $departure - $arrival ngày $departure_date lúc $departure_date_hour.";
+					$text .= "\nLiên hệ: $contact_name - $contact_phone";
+
+					$messageData = [
+						'text' => $text,
+						'parse_mode' => 'HTML',
+						'reply_markup' => [
+							'inline_keyboard' => [
+								[
+									[
+										'text' => 'Checkin ngay',
+										'url' => $link,
+									],
+								],
+							],
+						]
+					];
+					Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
+				}
+			} catch (Throwable $th) {
+				$message = "Send info checkin failed";
+				$message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+				NotificationService::sendErrorMessage($message, 'checkin');
+			}
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Cập nhật doanh số trong ngày vào ec_revenue
+ */
+function saveRevenueBookingJob()
+{
+	global $db;
+
+	$from = date('Y-m-d 00:00:00');
+	$to   = date('Y-m-d 23:59:59');
+
+	$sql = "SELECT id 
+				FROM ec_flight_bookings 
+				WHERE booking_status = 8 
+				AND date_entered BETWEEN '$from' AND '$to'
+				AND deleted = 0";
+
+	$res = $db->query($sql);
+	if ($db->countRows($res) > 0) {
+		while ($row = $db->fetchByAssoc($res)) {
+			saveRevenueBooking($row['id']);
+		}
+	}
+
+	return true;
 }
 
 function checkExpirationDateVoucher()
@@ -47,21 +140,21 @@ function checkExpirationDateVoucher()
 	global $db;
 
 	$today = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
-	$sql_check = '
-	SELECT
-		id,
-		status,
-		validate_to_date
-		FROM ec_vouchers
-		WHERE status IN ("new", "active") AND validate_to_date < "' . $today . '" AND deleted = 0
-	';
+	$sql_check = ' SELECT id FROM ec_vouchers WHERE status IN ("new", "pending") AND end_time < "' . $today . '" AND deleted = 0';
 
 	$res = $db->query($sql_check);
+	$list_voucher_expired = [];
 	while ($row = $db->fetchByAssoc($res)) {
+		$list_voucher_expired[] = '"' . $row['id'] . '"';
+	}
+
+	if (!empty($list_voucher_expired) && count($list_voucher_expired) > 0) {
 		$sql_update = '
-		UPDATE ec_vouchers
-		SET status = "expired"
-		WHERE id = "' . $row['id'] . '" AND deleted = 0';
+			UPDATE ec_vouchers 
+			SET status = "expired" 
+			WHERE id IN (' . implode(',', $list_voucher_expired) . ') 
+			AND deleted = 0
+			';
 		$db->query($sql_update);
 	}
 
@@ -82,10 +175,11 @@ function updateOnlineReport()
 		'e4a1676e-536d-b5d2-75c2-6502656a118b', //cuong
 		'493ad5e5-ffea-a84f-96d7-6577fed623d6', //booker
 		'2751ebe5-6cdc-acfc-7d70-659d08368c2e', //ancao
+
+		'c57196c6-e211-9856-43d5-6695498f39ae', //tiennguyen
 	);
 	$notInCondition = "'" . implode("', '", $arr_id_admin) . "'";
 
-	sendTestTelegram("updateOnlineReport 1 : " . date('Y-m-d H:i:s'));
 	$date_check = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
 	$sql = '
 		SELECT id, first_name, last_name, title,
@@ -124,8 +218,6 @@ function updateOnlineReport()
 	$res = $db->query($sql);
 	$i 	= 1;
 
-	sendTestTelegram("updateOnlineReport 2 : " . date('Y-m-d H:i:s'));
-	$GLOBALS['log']->debug("-------------------->  updateOnlineReport  <--------------------");
 	while ($row = $db->fetchByAssoc($res)) {
 		$sql_exist = '
 			SELECT IF(COUNT(id) > 0, 1, 0)
@@ -139,8 +231,6 @@ function updateOnlineReport()
 
 
 		// Check log
-		sendTestTelegram("updateOnlineReport 3 : " . date('Y-m-d H:i:s'));
-		$GLOBALS['log']->debug("---------------  LOG  ---------------");
 		$GLOBALS['log']->debug($sql_exist);
 		$sql_checklog = '
 			SELECT assigned_user_id,
@@ -155,7 +245,6 @@ function updateOnlineReport()
 		while ($row_checklog = $db->fetchByAssoc($res_checklog)) {
 			if ($row_checklog['is_exist'] == 0) $json[$row_checklog['assigned_user_id']] = $row_checklog['date'];
 		}
-		$GLOBALS['log']->warning(json_encode($json));
 		// End check log
 
 		if ($is_exist == 0 || !$is_exist) {
@@ -178,9 +267,9 @@ function updateOnlineReport()
 			$i++;
 		}
 	}
-	$GLOBALS['log']->debug("-------------------->  END updateOnlineReport  <--------------------");
 	return true;
 }
+
 
 function TuDongTaoBang()
 {
@@ -226,30 +315,35 @@ function TuDongTaoBang()
 
 function KetChuyenTienMatSCK()
 {
-	$GLOBALS['log']->info('----->Ket chuyen tien mat so du cuoi ky vao dau moi nam');
-	$db = DBManagerFactory::getInstance();
+	date_default_timezone_set('Asia/Ho_Chi_Minh');
+
+	global $db, $sugar_config;
+	$log_level = $sugar_config['logger']['level'] ?? 'info';
+	$GLOBALS['log']->$log_level('-----> Ket chuyen tien mat so du cuoi ky vao dau moi nam');
 
 	$report_year = date('Y');
-	$from_date = ($report_year - 1) . '-01-01';
-	$to_date = ($report_year - 1) . '-12-31';
+	$last_year = $report_year - 1;
+	$from_date = "$last_year-01-01";
+	$to_date   = "$last_year-12-31";
 
-	$sql_search = " AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($from_date)) . "' ";
-	$sql_search .= " AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d 23:59:59', strtotime($to_date)) . "' ";
+	// $sql_search  = "AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($from_date)) . "'";
+	// $sql_search .= "AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d 23:59:59', strtotime($to_date)) . "'";
 
-	$sql = "
-		SELECT 
-			(SUM(IFNULL(tmp.thutien,0)) - SUM(IFNULL(tmp.chitien,0))) AS sotien,
-			tmp.diadiem_id,
-			tmp.diadiem 
+	$sql_search  = "AND DATE(p.ngayhachtoan) >= '$from_date'";
+	$sql_search .= "AND DATE(p.ngayhachtoan) <= '$to_date'";
+
+	$sql = "SELECT (SUM(IFNULL(tmp.thutien,0)) - SUM(IFNULL(tmp.chitien,0))) AS sotien
+			,tmp.diadiem_id
+			,tmp.diadiem
 		FROM (
 			-- OPENING AMOUNT
-			SELECT
-				(IFNULL(dunodau, 0) - IFNULL(ducodau, 0)) AS thutien,
-			  	0 AS chitien,
-			  	p.location_id AS diadiem_id,
-			  	p.name AS diadiem,
-			  	p.id
-			FROM ec_chitiettaikhoan" . ($report_year - 1) . " p
+			SELECT 
+				(IFNULL(dunodau, 0) - IFNULL(ducodau, 0)) AS thutien
+			  	,0 AS chitien
+			  	,p.location_id AS diadiem_id
+			  	,p.name AS diadiem
+			  	,p.id
+			FROM ec_chitiettaikhoan{$last_year} p
 			WHERE p.deleted = 0 AND SUBSTR(TRIM(p.sotaikhoan), 1, 4) = '1111'
 
 			-- RECEIPT VOUCHER
@@ -269,7 +363,7 @@ function KetChuyenTienMatSCK()
 				AND p.receipt_type = 'cash'
 				AND p.rv_status = '1'
 				AND p.com_location_id IS NOT NULL
-				" . $sql_search . "
+				$sql_search
 
 			-- PAYMENT VOUCHER
 			UNION
@@ -288,7 +382,7 @@ function KetChuyenTienMatSCK()
 				AND p.hinhthucchi = 'cash'
 				AND p.pv_status = '3'
 				AND p.com_location_id IS NOT NULL
-				" . $sql_search . "
+				$sql_search
 
 			-- FROM TRANSFER VOUCHER
 			UNION
@@ -307,7 +401,7 @@ function KetChuyenTienMatSCK()
 				AND p.ghiso = 1
 				AND p.tutienmat = 1
 				AND p.tudiadiem_id IS NOT NULL
-				" . str_replace('p.com_location_id', 'p.tudiadiem_id', $sql_search) . "
+				$sql_search
 
 			-- TO TRANSFER VOUCHER
 			UNION
@@ -326,13 +420,13 @@ function KetChuyenTienMatSCK()
 				AND p.ghiso = 1
 				AND p.dentienmat = 1 
 				AND p.dendiadiem_id IS NOT NULL
-				" . str_replace('p.com_location_id', 'p.dendiadiem_id', $sql_search) . "
+				$sql_search
 		) AS tmp
 		GROUP BY tmp.diadiem_id";
 
+	$GLOBALS['log']->$log_level($sql);
+
 	$res = $db->query($sql);
-	// $soton = 0;
-	// $soton += getTheBeginningOfPeriod('111', $thang, $nam);
 	while ($row = $db->fetchByAssoc($res)) {
 		if ($row['sotien'] < 0) {
 			$no = 0;
@@ -343,149 +437,150 @@ function KetChuyenTienMatSCK()
 		}
 
 		// Xoá số đầu kỳ đang có cập nhật lại
-		$sql_del = '
-			UPDATE ec_chitiettaikhoan' . $report_year . ' 
+		$sql_del = "UPDATE ec_chitiettaikhoan{$report_year}
 			SET deleted = 1
-			WHERE deleted = 0 
-			AND parent_id = "' . $row['diadiem_id'] . '"';
+			WHERE deleted = 0 AND parent_id = '{$row['diadiem_id']}'";
 		$db->query($sql_del);
 
-		$sql = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
-				VALUES(
-					uuid()
-				  , "' . $row['diadiem'] . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , NULL
-				  , 0
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "1111"
-				  , ' . $no . '
-				  , ' . $co . '
-				  , "EC_Bank_Account"
-				  , NULL
-				  , NULL
-				  , "' . $row['diadiem_id'] . '"
-				)';
-		$db->query($sql);
-	} // end while
+		$sqlInsert = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
+			VALUES(
+				uuid()
+				, "' . $row['diadiem'] . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, NULL
+				, 0
+				, "' . $GLOBALS['current_user']->id . '"
+				, "1111"
+				, ' . $no . '
+				, ' . $co . '
+				, "EC_Bank_Account"
+				, NULL
+				, NULL
+				, "' . $row['diadiem_id'] . '"
+			)';
+		$db->query($sqlInsert);
+	}
 
-	$GLOBALS['log']->info("----->End Ket chuyen tien mat so du cuoi ky vao dau moi nam");
-
+	$GLOBALS['log']->$log_level('-----> End Ket chuyen tien mat so du cuoi ky vao dau moi nam');
 	return true;
 }
 
 function KetChuyenTienGuiNganHangSCK()
 {
-	$GLOBALS['log']->info('----->Ket chuyen tien gui ngan hang so du cuoi ky vao dau moi nam');
-	// $db = DBManagerFactory::getInstance();
-	global $db;
+	date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-	// kết chuyển số đầu kỳ năm mới chính là bảng dòng tiền của năm cũ
+	global $db, $sugar_config;
+	$log_level = $sugar_config['logger']['level'] ?? 'info';
+	$GLOBALS['log']->$log_level('-----> Ket chuyen tien gui ngan hang so du cuoi ky vao dau moi nam');
+
+	// Kết chuyển số đầu kỳ năm mới chính là bảng dòng tiền của năm cũ
 	$report_year = date('Y');
-	$from_date = ($report_year - 1) . '-01-01';
-	$to_date = ($report_year - 1) . '-12-31';
+	$last_year = $report_year - 1;
+	$from_date = "$last_year-01-01";
+	$to_date = "$last_year-12-31";
 
-	$sql_search = " AND DATE(p.ngayhachtoan) >= '" . date('Y-01-01', strtotime($from_date)) . "' ";
-	$sql_search .= " AND DATE(p.ngayhachtoan) <= '" . date('Y-m-d', strtotime($to_date)) . "' ";
+	$sql_search = "AND DATE(p.ngayhachtoan) >= '$from_date'";
+	$sql_search .= "AND DATE(p.ngayhachtoan) <= '$to_date'";
 
 	// lấy thông tin các tài khoản ngân hàng
 	// $location_np = $this->getLocationByDep('8df43570-09de-d2b3-b2fd-506eca7522f7');
 	// $location_tp = $this->getLocationByDep('48840c01-3a4f-c430-f703-56f32c7cd8a4');
 	// $sql_search .= " AND p.com_location_id IN ('".implode("','", $location_np).'\',\''.implode("','", $location_tp)."') ";
-	$sql_ba = "
-		SELECT 
-			SUM(IFNULL(tmp.thutien,0))
-			- SUM(IFNULL(tmp.chitien,0)) AS sotien
-		  , tmp.tknganhang_id
-		  , tmp.tknganhang
-		  , tmp.sotaikhoan 
+
+	$sql_ba = " SELECT SUM(IFNULL(tmp.thutien,0)) - SUM(IFNULL(tmp.chitien,0)) AS sotien
+		,tmp.tknganhang_id
+		,tmp.tknganhang
+		,tmp.sotaikhoan 
 		FROM (
 			-- OPENING AMOUNT
 			SELECT p.id
-				  ,(
-				  	  IFNULL(p.dunodau,0)
-				  	- IFNULL(p.ducodau,0)
-				  ) AS thutien
-				  ,0 AS chitien
-				  ,p.parent_id AS tknganhang_id
-				  ,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS tknganhang
-				  ,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS sotaikhoan
-				  ,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS ngungtheodoi
-				  ,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS assigned_user_id
-			FROM ec_chitiettaikhoan" . ($report_year - 1) . " p
-			WHERE p.deleted=0
+				,(IFNULL(p.dunodau,0) - IFNULL(p.ducodau,0)) AS thutien
+				,0 AS chitien
+				,p.parent_id AS tknganhang_id
+				,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS tknganhang
+				,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS sotaikhoan
+				,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS ngungtheodoi
+				,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS assigned_user_id
+			FROM ec_chitiettaikhoan$last_year p
+			WHERE p.deleted = 0
 			AND p.parent_type IN ('EC_TaiKhoanNganHang', 'EC_Bank_Account') 
 			AND p.parent_id IS NOT NULL
+
 			-- RECEIPT VOUCHER
 			UNION 
 			SELECT p.id
-				  ,p.amount_converted AS thutien
-				  ,0 AS chitien
-				  ,p.tknganhang_id
-				  ,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS tknganhang
-				  ,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS sotaikhoan
-				  ,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS ngungtheodoi
-				  ,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS assigned_user_id
+				,p.amount_converted AS thutien
+				,0 AS chitien
+				,p.tknganhang_id
+				,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS tknganhang
+				,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS sotaikhoan
+				,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS ngungtheodoi
+				,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS assigned_user_id
 			FROM ec_receipt_voucher p
-			WHERE p.deleted=0 
-			AND p.receipt_type='credit_transfer' 
-			AND p.amount IS NOT NULL 
-			AND p.rv_status='1' 
-			AND p.is_margin=0 " . $sql_search . "
+			WHERE p.deleted = 0 
+				AND p.receipt_type = 'credit_transfer' 
+				AND p.amount IS NOT NULL 
+				AND p.rv_status='1'
+				AND p.is_margin=0
+				$sql_search
 			
 			-- PAYMENT VOUCHER
 			UNION
 			SELECT p.id
-				  ,0 AS thutien
-				  ,p.amount AS chitien
-				  ,p.tknganhang_id
-				  ,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS tknganhang
-				  ,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS sotaikhoan
-				  ,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS ngungtheodoi
-				  ,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS assigned_user_id
+				,0 AS thutien
+				,p.amount AS chitien
+				,p.tknganhang_id
+				,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS tknganhang
+				,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS sotaikhoan
+				,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS ngungtheodoi
+				,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS assigned_user_id
 			FROM ec_payment_voucher p
 			WHERE p.deleted=0 
-			AND p.hinhthucchi='credit_transfer' 
-			AND p.amount IS NOT NULL 
-			AND p.pv_status='3' " . $sql_search . "
+				AND p.hinhthucchi='credit_transfer' 
+				AND p.amount IS NOT NULL 
+				AND p.pv_status='3'
+				$sql_search
 			
 			-- TRANSFER FROM
 			UNION
 			SELECT p.id
-				  ,0 AS thutien
-				  ,IFNULL(p.sotien,0) AS chitien
-				  ,p.tutknganhang_id AS tknganhang_id
-				  ,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS tknganhang
-				  ,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS sotaikhoan
-				  ,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS ngungtheodoi
-				  ,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS assigned_user_id
+				,0 AS thutien
+				,IFNULL(p.sotien,0) AS chitien
+				,p.tutknganhang_id AS tknganhang_id
+				,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS tknganhang
+				,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS sotaikhoan
+				,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS ngungtheodoi
+				,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS assigned_user_id
 			FROM ec_chuyentiennoibo p
 			WHERE p.deleted=0 
-			AND p.ghiso=1 
-			AND p.tutienmat=0 " . $sql_search . "
+				AND p.ghiso=1 
+				AND p.tutienmat=0
+				$sql_search
 			
 			-- TRANSFER TO
 			UNION
 			SELECT p.id
-				  ,IFNULL(p.sotien,0) AS thutien
-				  ,0 AS chitien
-				  ,p.dentknganhang_id AS tknganhang_id
-				  ,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS tknganhang
-				  ,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS sotaikhoan
-				  ,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS ngungtheodoi
-				  ,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS assigned_user_id
+				,IFNULL(p.sotien,0) AS thutien
+				,0 AS chitien
+				,p.dentknganhang_id AS tknganhang_id
+				,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS tknganhang
+				,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS sotaikhoan
+				,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS ngungtheodoi
+				,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS assigned_user_id
 			FROM ec_chuyentiennoibo p
 			WHERE p.deleted=0 
-			AND p.ghiso=1 
-			AND p.dentienmat=0 " . $sql_search . "
-				
+				AND p.ghiso=1 
+				AND p.dentienmat=0
+				$sql_search
 		) AS tmp
-		LEFT JOIN users u ON tmp.assigned_user_id=u.id AND u.deleted=0
+			LEFT JOIN users u ON tmp.assigned_user_id = u.id AND u.deleted = 0
 		WHERE tmp.ngungtheodoi=0
-		GROUP BY tmp.tknganhang_id ";
+		GROUP BY tmp.tknganhang_id";
+
+	$GLOBALS['log']->$log_level($sql_ba);
 
 	$res_ba = $db->query($sql_ba);
 	while ($row_ba = $db->fetchByAssoc($res_ba)) {
@@ -497,69 +592,63 @@ function KetChuyenTienGuiNganHangSCK()
 			$co = 0;
 		}
 
-		// xoá số đầu kỳ đang có cập nhật lại
-		$sql_del = '
-			UPDATE ec_chitiettaikhoan' . $report_year . ' 
+		// Xoá số đầu kỳ đang có cập nhật lại
+		$sql_del = "UPDATE ec_chitiettaikhoan{$report_year}
 			SET deleted = 1
-			WHERE deleted = 0 
-			AND parent_id = "' . $row_ba['tknganhang_id'] . '"';
+			WHERE deleted = 0 AND parent_id = '{$row_ba['tknganhang_id']}'";
 		$db->query($sql_del);
 
-		$sql = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
-				VALUES(
-					uuid()
-				  , "' . $row_ba['tknganhang'] . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , NULL
-				  , 0
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "1121"
-				  , ' . $no . '
-				  , ' . $co . '
-				  , "EC_Bank_Account"
-				  , "' . $row_ba['tknganhang_id'] . '"
-				  , NULL
-				  , NULL
-				)';
-		$db->query($sql);
+		$sqlInsert = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
+			VALUES(
+				uuid()
+				, "' . $row_ba['tknganhang'] . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, NULL
+				, 0
+				, "' . $GLOBALS['current_user']->id . '"
+				, "1121"
+				, ' . $no . '
+				, ' . $co . '
+				, "EC_Bank_Account"
+				, "' . $row_ba['tknganhang_id'] . '"
+				, NULL
+				, NULL
+			)';
+		$db->query($sqlInsert);
 	}
 
-	$GLOBALS['log']->info("----->End Ket chuyen tien gui ngan hang so du cuoi ky vao dau moi nam");
+	$GLOBALS['log']->$log_level('-----> End Ket chuyen tien gui ngan hang so du cuoi ky vao dau moi nam');
 	return true;
 }
 
 function KetChuyenCongNoPhaiThu()
 {
-	$GLOBALS['log']->info('----->Ket chuyen cong no phai thu cuoi ky vao dau moi nam');
-	$db = DBManagerFactory::getInstance();
+	date_default_timezone_set('Asia/Ho_Chi_Minh');
+
+	global $db, $sugar_config;
+	$log_level = $sugar_config['logger']['level'] ?? 'info';
+	$GLOBALS['log']->$log_level('-----> Ket chuyen cong no phai thu cuoi ky vao dau moi nam');
 
 	$report_year = date('Y');
-	$from_date = ($report_year - 1) . '-01-01';
-	$to_date = ($report_year - 1) . '-12-31';
+	$last_year 	= $report_year - 1;
+	$from_date 	= "$last_year-01-01";
+	$to_date 	= "$last_year-12-31";
 
-	$sql_search = "
-		AND p.date_ticket_issue >= '" . date('Y-m-d', strtotime($from_date)) . "'
-		AND p.date_ticket_issue <= '" . date('Y-m-d', strtotime($to_date)) . "'";
+	$sql_search = "AND DATE(p.ngayhachtoan) >= '$from_date' AND DATE(p.ngayhachtoan) <= '$to_date'";
 
-	$sql_search2 = "
-		AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-m-d', strtotime($from_date)) . "'
-		AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($to_date)) . "'";
-
-	$sql = "
-		SELECT 
-			SUM(IFNULL(tmp.debt_amount, 0)) - SUM(IFNULL(tmp.pay_amount, 0)) AS sotien
-		  , a.id AS agent_id
-		  , a.name AS agent_name
+	$sql = "SELECT SUM(IFNULL(tmp.debt_amount, 0)) - SUM(IFNULL(tmp.pay_amount, 0)) AS sotien
+		  	,a.id AS agent_id
+		  	,a.name AS agent_name
 		FROM (
 			-- OPENING AMOUNT
 			SELECT p.id
-				  ,p.parent_id AS agent_id
-				  ,SUM(IFNULL(p.dunodau, 0) - IFNULL(p.ducodau, 0)) AS debt_amount
-				  ,0 AS pay_amount
-			FROM ec_chitiettaikhoan" . ($report_year - 1) . " p
+				,p.parent_id AS agent_id
+				,SUM(IFNULL(p.dunodau, 0) - IFNULL(p.ducodau, 0)) AS debt_amount
+				,0 AS pay_amount
+			FROM ec_chitiettaikhoan$last_year p
 			WHERE p.deleted = 0
 			AND p.sotaikhoan = '131'
 			AND p.parent_type = 'Accounts'
@@ -568,51 +657,53 @@ function KetChuyenCongNoPhaiThu()
 			-- BOOKING
 			UNION
 			SELECT p.id
-				  ,p.agent_id
-				  ,SUM(IFNULL(p.total_amount, 0)) AS debt_amount
-				  ,0 AS pay_amount
+				,p.agent_id
+				,SUM(IFNULL(p.total_amount, 0)) AS debt_amount
+				,0 AS pay_amount
 			FROM ec_flight_bookings p
-			WHERE p.deleted = 0
-			AND p.booking_status IN ('7', '8')
-			AND p.is_agent = 1
-			" . $sql_search . "
-			
+			WHERE p.date_ticket_issue >= '$from_date'
+				AND p.date_ticket_issue <= '$to_date'
+				AND p.booking_status IN ('7', '8')
+				AND p.is_agent = 1
+				AND p.deleted = 0
 			GROUP BY p.id
 
 			-- PAYMENT VOUCHER
 			UNION
 			SELECT p.id
-				  ,p.supplier_id AS agent_id
-				  ,SUM(IFNULL(p.amount, 0)) AS debt_amount
-				  ,0 AS pay_amount
+				,p.supplier_id AS agent_id
+				,SUM(IFNULL(p.amount, 0)) AS debt_amount
+				,0 AS pay_amount
 			FROM ec_payment_voucher p
 			LEFT JOIN ec_payment_types pt ON p.ec_payment_types_id_c = pt.id AND pt.deleted = 0
 			WHERE p.deleted = 0
-			AND p.pv_status = '3'
-			AND pt.is_receipt_debt = 1
-			" . $sql_search2 . "
+				AND p.pv_status = '3'
+				AND pt.is_receipt_debt = 1
+				$sql_search
 			GROUP BY p.id
 
 			-- RECEIPT VOUCHER
 			UNION
 			SELECT p.id
-				  ,p.account_id_c AS agent_id
-				  ,0 AS debt_amount
-				  ,SUM(IFNULL(p.amount_converted, 0)) AS pay_amount
+				,p.account_id_c AS agent_id
+				,0 AS debt_amount
+				,SUM(IFNULL(p.amount_converted, 0)) AS pay_amount
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.rv_status = '1'
-			AND p.account_id_c IS NOT NULL
-			" . $sql_search2 . "
+				AND p.rv_status = '1'
+				AND p.account_id_c IS NOT NULL
+				$sql_search
 			GROUP BY p.id
 		) AS tmp
-		LEFT JOIN accounts a ON tmp.agent_id = a.id 
-		AND a.deleted = 0
+			LEFT JOIN accounts a ON tmp.agent_id = a.id AND a.deleted = 0
 		WHERE a.is_stop_tracking = 0
-		AND a.account_type IS NOT NULL
-		AND a.account_type <> 'Supplier'
+			AND a.account_type IS NOT NULL
+			AND a.account_type <> 'Supplier'
 		GROUP BY tmp.agent_id
 		HAVING sotien <> 0";
+
+	$GLOBALS['log']->$log_level($sql);
+
 	$res = $db->query($sql);
 	while ($row = $db->fetchByAssoc($res)) {
 		if ($row['sotien'] < 0) {
@@ -623,227 +714,218 @@ function KetChuyenCongNoPhaiThu()
 			$co = 0;
 		}
 
-		// xoá số đầu kỳ đang có cập nhật lại
-		$sql_del = '
-			UPDATE ec_chitiettaikhoan' . $report_year . ' 
+		// Xoá số đầu kỳ đang có cập nhật lại
+		$sql_del = "UPDATE ec_chitiettaikhoan$report_year
 			SET deleted = 1
-			WHERE deleted = 0 
-			AND parent_id = "' . $row['agent_id'] . '"';
+			WHERE deleted = 0 AND parent_id = '{$row['agent_id']}'";
 		$db->query($sql_del);
 
-		$sql = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
-				VALUES(
-					uuid()
-				  , "' . $row['agent_name'] . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , NULL
-				  , 0
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "131"
-				  , ' . $no . '
-				  , ' . $co . '
-				  , "Accounts"
-				  , "' . $row['agent_id'] . '"
-				  , NULL
-				  , NULL
-				)';
-		$db->query($sql);
+		$sqlInsert = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
+			VALUES(
+				uuid()
+				, "' . $row['agent_name'] . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, NULL
+				, 0
+				, "' . $GLOBALS['current_user']->id . '"
+				, "131"
+				, ' . $no . '
+				, ' . $co . '
+				, "Accounts"
+				, "' . $row['agent_id'] . '"
+				, NULL
+				, NULL
+			)';
+		$db->query($sqlInsert);
 	}
 
-	$GLOBALS['log']->info("----->End Ket chuyen cong no phai thu cuoi ky vao dau moi nam");
+	$GLOBALS['log']->$log_level("-----> End Ket chuyen cong no phai thu cuoi ky vao dau moi nam");
 	return true;
 }
 
 function KetChuyenCongNoPhaiTra()
 {
-	$GLOBALS['log']->info('----->Ket chuyen cong no phai tra cuoi ky vao dau moi nam');
-	$db = DBManagerFactory::getInstance();
+	date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-	$report_year 	= date('Y');
-	$from_date 	= ($report_year - 1) . '-01-01';
-	$to_date 		= ($report_year - 1) . '-12-31';
+	global $db, $sugar_config;
+	$log_level = $sugar_config['logger']['level'] ?? 'info';
+	$GLOBALS['log']->$log_level('-----> Ket chuyen cong no phai tra cuoi ky vao dau moi nam');
 
-	$sql_search = "
-		AND p.date_ticket_issue >= '" . date('Y-m-d', strtotime($from_date)) . "'
-		AND p.date_ticket_issue <= '" . date('Y-m-d', strtotime($to_date)) . "'";
+	$report_year = date('Y');
+	$last_year 	= $report_year - 1;
+	$from_date 	= "$last_year-01-01";
+	$to_date 	= "$last_year-12-31";
 
-	$sql_search2 = "
-		AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-m-d', strtotime($from_date)) . "'
-		AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($to_date)) . "'";
+	$sql_search_bk = "AND p.date_ticket_issue >= '$from_date' AND p.date_ticket_issue <= '$to_date'";
+	$sql_search = "AND DATE(p.ngayhachtoan) >= '$from_date' AND DATE(p.ngayhachtoan) <= '$to_date'";
 
-	$sql = "
-		SELECT 
-			SUM(IFNULL(tmp.debt_amount, 0)) - SUM(IFNULL(tmp.pay_amount, 0)) AS sotien
-		  , a.id AS supplier_id
-		  , a.name AS supplier
+	$sql = "SELECT SUM(IFNULL(tmp.debt_amount, 0)) - SUM(IFNULL(tmp.pay_amount, 0)) AS sotien
+			,a.id AS supplier_id
+			,a.name AS supplier
 		FROM (
 			-- START TERM
-			SELECT 
+			SELECT
 				SUM(IFNULL(p.dunodau, 0) - IFNULL(p.ducodau, 0)) AS debt_amount
-			  , 0 AS pay_amount
-			  , p.parent_id AS supplier_id 
-			  , p.id
-			FROM ec_chitiettaikhoan" . ($report_year - 1) . " p
+				,0 AS pay_amount
+				,p.parent_id AS supplier_id 
+				,p.id
+			FROM ec_chitiettaikhoan$last_year p
 			WHERE p.deleted = 0
-			AND p.parent_type = 'Accounts'
-			AND p.sotaikhoan IN ('144','331')
-			AND p.parent_id IS NOT NULL
+				AND p.parent_type = 'Accounts'
+				AND p.sotaikhoan IN ('144','331')
+				AND p.parent_id IS NOT NULL
 			GROUP BY p.parent_id
 
 			-- BOOKING DETAILS
 			UNION
-			SELECT 
+			SELECT
 				SUM(IFNULL(d.total_bought_price, 0)) AS thutien
-			  , 0 AS pay_amount
-			  , d.supplier_id
-			  , d.id
+				,0 AS pay_amount
+				,d.supplier_id
+				,d.id
 			FROM ec_booking_details d
-			LEFT JOIN ec_flight_bookings p 
-			ON d.booking_id = p.id AND p.deleted = 0
+				LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
 			WHERE d.deleted = 0
-			AND p.booking_status IN ('7', '8')
-			AND p.is_ticket_exported = 1
-			" . $sql_search . "
-			AND d.total_bought_price > 0
-			AND d.supplier_id IS NOT NULL
+				AND p.booking_status IN ('7', '8')
+				AND p.is_ticket_exported = 1
+				$sql_search_bk
+				AND d.total_bought_price > 0
+				AND d.supplier_id IS NOT NULL
 			GROUP BY d.supplier_id
 
 			-- BOOKING PAXS OUTBOUND
 			UNION
-			SELECT 
+			SELECT
 				SUM(IFNULL(d.luggage_purchase, 0)) AS debt_amount
-			  , 0 AS pay_amount
-			  , d.supplier_id
-			  , CONCAT(d.id, '-OUTBOUND') AS id
+				,0 AS pay_amount
+				,d.supplier_id
+				,CONCAT(d.id, '-OUTBOUND') AS id
 			FROM ec_booking_passengers d
-			LEFT JOIN ec_flight_bookings p 
-			ON d.booking_id = p.id AND p.deleted = 0
+				LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
 			WHERE d.deleted = 0
-			AND p.booking_status IN ('7', '8')
-			AND p.is_ticket_exported = 1
-			" . $sql_search . "
-			AND d.luggage_price > 0
-			AND d.luggage_purchase > 0
-			AND d.supplier_id IS NOT NULL
-			AND d.add_type IS NULL
+				AND p.booking_status IN ('7', '8')
+				AND p.is_ticket_exported = 1
+				$sql_search_bk
+				AND d.luggage_price > 0
+				AND d.luggage_purchase > 0
+				AND d.supplier_id IS NOT NULL
+				AND d.add_type IS NULL
 			GROUP BY d.supplier_id
 
 			-- BOOKING PAXS INBOUND
 			UNION
-			SELECT 
+			SELECT
 				SUM(IFNULL(d.luggage_purchase_inbound, 0)) AS debt_amount
-			  , 0 AS pay_amount
-			  , d.supplier_inbound_id AS supplier_id
-			  , CONCAT(d.id, '-INBOUND') AS id
+				,0 AS pay_amount
+				,d.supplier_inbound_id AS supplier_id
+				,CONCAT(d.id, '-INBOUND') AS id
 			FROM ec_booking_passengers d
-			LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
+				LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
 			WHERE d.deleted = 0
-			AND p.booking_status IN ('7', '8')
-			AND p.is_ticket_exported = 1
-			" . $sql_search . "
-			AND d.luggage_price_inbound > 0
-			AND d.luggage_purchase_inbound > 0
-			AND d.supplier_inbound_id IS NOT NULL
-			AND d.add_type IS NULL
+				AND p.booking_status IN ('7', '8')
+				AND p.is_ticket_exported = 1
+				$sql_search_bk
+				AND d.luggage_price_inbound > 0
+				AND d.luggage_purchase_inbound > 0
+				AND d.supplier_inbound_id IS NOT NULL
+				AND d.add_type IS NULL
 			GROUP BY d.supplier_inbound_id
 
 			-- RECEIPT
 			UNION
-			SELECT 
+			SELECT
 				p.amount AS debt_amount
-			  , 0 AS pay_amount
-			  , account_id_c AS supplier_id
-			  , p.id AS id
+				,0 AS pay_amount
+				,account_id_c AS supplier_id
+				,p.id AS id
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.loai_thu = '9'
-			AND p.account_id_c IS NOT NULL
-			" . $sql_search2 . "
+				AND p.loai_thu = '9'
+				AND p.account_id_c IS NOT NULL
+				$sql_search
 
 			-- SUPPLIER 1
 			UNION
-			SELECT 
+			SELECT
 				IFNULL(p.bought_amount, 0) AS debt_amount
-			  , 0 AS pay_amount
-			  , p.supplier_id
-			  , CONCAT(p.id, '-SUPPLIER1') AS id
+				,0 AS pay_amount
+				,p.supplier_id
+				,CONCAT(p.id, '-SUPPLIER1') AS id
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.loai_thu IN ('4', '5')
-			AND p.supplier_id IS NOT NULL
-			AND p.bought_amount IS NOT NULL
-			" . $sql_search2 . "
+				AND p.loai_thu IN ('4', '5')
+				AND p.supplier_id IS NOT NULL
+				AND p.bought_amount IS NOT NULL
+				$sql_search
 
 			-- SUPPLIER 2
 			UNION
-			SELECT 
+			SELECT
 				IFNULL(p.bought_amount2, 0) AS debt_amount
-			  , 0 AS pay_amount
-			  , p.supplier2_id AS supplier_id
-			  , CONCAT(p.id, '-SUPPLIER2') AS id
+				,0 AS pay_amount
+				,p.supplier2_id AS supplier_id
+				,CONCAT(p.id, '-SUPPLIER2') AS id
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.loai_thu IN ('4', '5')
-			AND p.supplier2_id IS NOT NULL
-			AND p.bought_amount2 IS NOT NULL
-			" . $sql_search2 . "
+				AND p.loai_thu IN ('4', '5')
+				AND p.supplier2_id IS NOT NULL
+				AND p.bought_amount2 IS NOT NULL
+				$sql_search
 
 			-- SUPPLIER 3
 			UNION
-			SELECT 
+			SELECT
 				IFNULL(p.bought_amount3, 0) AS debt_amount
-			  , 0 AS pay_amount
-			  , p.supplier3_id AS supplier_id
-			  , CONCAT(p.id, '-SUPPLIER3') AS id
+				,0 AS pay_amount
+				,p.supplier3_id AS supplier_id
+				,CONCAT(p.id, '-SUPPLIER3') AS id
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.loai_thu IN ('4', '5')
-			AND p.supplier3_id IS NOT NULL
-			AND p.bought_amount3 IS NOT NULL
-			" . $sql_search2 . "
+				AND p.loai_thu IN ('4', '5')
+				AND p.supplier3_id IS NOT NULL
+				AND p.bought_amount3 IS NOT NULL
+				$sql_search
 
 			-- TICKET REFUND
 			UNION
 			SELECT 
 				- SUM(IFNULL(c.sotienhang, 0)) AS debt_amount
-			  , 0 AS pay_amount
-			  , c.nhacc_id AS supplier_id
-			  , p.id
+				,0 AS pay_amount
+				,c.nhacc_id AS supplier_id
+				,p.id
 			FROM ec_chitiethoanve c
-			LEFT JOIN ec_hoanve p ON c.hoanve_id = p.id AND p.deleted = 0
+				LEFT JOIN ec_hoanve p ON c.hoanve_id = p.id AND p.deleted = 0
 			WHERE c.deleted = 0
-			AND c.dahoan = 1
-			AND p.tinhtrang = '1'
-			" . $sql_search2 . "
-			AND c.sotienhang > 0
-			AND c.nhacc_id IS NOT NULL
+				AND c.dahoan = 1
+				AND p.tinhtrang = '1'
+				$sql_search
+				AND c.sotienhang > 0
+				AND c.nhacc_id IS NOT NULL
 			GROUP BY c.nhacc_id
 
 			-- PAYMENT VOUCHER
 			UNION
 			SELECT 
 				0 AS debt_amount
-			  , IFNULL(p.amount, 0) AS pay_amount
-			  , p.supplier_id
-			  , p.id
+				,IFNULL(p.amount, 0) AS pay_amount
+				,p.supplier_id
+				,p.id
 			FROM ec_payment_voucher p
 			WHERE p.deleted = 0
-			AND p.pv_status = '3'
-			" . $sql_search2 . "
-			AND p.supplier_id IS NOT NULL
+				AND p.pv_status = '3'
+				$sql_search
+				AND p.supplier_id IS NOT NULL
 		) AS tmp
-		LEFT JOIN accounts a 
-		ON tmp.supplier_id = a.id 
-		AND a.deleted = 0
-		WHERE a.is_stop_tracking = 0
-		AND a.account_type = 'Supplier'
+		LEFT JOIN accounts a ON tmp.supplier_id = a.id AND a.deleted = 0
+		WHERE a.is_stop_tracking = 0 AND a.account_type = 'Supplier'
 		GROUP BY tmp.supplier_id
 		HAVING sotien <> 0";
 
-	$GLOBALS['log']->info($sql);
+	$GLOBALS['log']->$log_level($sql);
+
 	$res = $db->query($sql);
 	while ($row = $db->fetchByAssoc($res)) {
 		if ($row['sotien'] < 0) {
@@ -855,38 +937,37 @@ function KetChuyenCongNoPhaiTra()
 		}
 
 		// xoá số đầu kỳ đang có cập nhật lại
-		$sql_del = '
-			UPDATE ec_chitiettaikhoan' . $report_year . ' 
+		$sql_del = "UPDATE ec_chitiettaikhoan$report_year
 			SET deleted = 1
-			WHERE deleted = 0 
-			AND parent_id = "' . $row['supplier_id'] . '"';
+			WHERE deleted = 0 AND parent_id = '{$row['supplier_id']}'";
 		$db->query($sql_del);
 
-		$sql = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
-				VALUES(
-					uuid()
-				  , "' . $row['supplier'] . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , NULL
-				  , 0
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "331"
-				  , ' . $no . '
-				  , ' . $co . '
-				  , "Accounts"
-				  , "' . $row['supplier_id'] . '"
-				  , NULL
-				  , NULL
-				)';
-		$db->query($sql);
+		$sqlInsert = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
+			VALUES(
+				uuid()
+				, "' . $row['supplier'] . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, NULL
+				, 0
+				, "' . $GLOBALS['current_user']->id . '"
+				, "331"
+				, ' . $no . '
+				, ' . $co . '
+				, "Accounts"
+				, "' . $row['supplier_id'] . '"
+				, NULL
+				, NULL
+			)';
+		$db->query($sqlInsert);
 	}
 
-	$GLOBALS['log']->info("----->End Ket chuyen cong no phai tra cuoi ky vao dau moi nam");
+	$GLOBALS['log']->$log_level("-----> End Ket chuyen cong no phai tra cuoi ky vao dau moi nam");
 	return true;
 }
+
 
 /*
 	LOOP CHECK IF BOOKING OVER 24h 
@@ -977,378 +1058,6 @@ function createMonthSalary()
 		$salary->other_allowance2 		= (int)$row['other_allowance2'];
 		$salary->social_insurance 		= (int)$row['social_insurance'];
 		$salary->save();
-	}
-
-	return true;
-}
-
-/* Cập nhật thưởng doanh số nhân viên
- * Chỉ có khi doanh số công ty trong tháng > 80% của target
- */
-function updateSales()
-{
-	global $db;
-
-	$from_date 	= date('Y-m-01');
-	$to_date 		= date('Y-m-d', strtotime('-1 day'));
-
-	if (date('j') == 1) {
-		$from_date = date('Y-m-01', strtotime('-1 month'));
-		$to_date = date('Y-m-t', strtotime('-1 month'));
-	}
-
-	// lấy target của công ty trong tháng
-	$sql_target_com = '
-		SELECT target_month' . date('n', strtotime($from_date)) . ' 
-		FROM ec_targets 
-		WHERE deleted = 0 AND status = 2 
-		AND year = "' . date('Y', strtotime($from_date)) . '" 
-		AND target_type = 0';
-
-	$target_month = (int)$db->getOne($sql_target_com);
-
-	// tổng doanh số công ty
-	$sql_total_sales = '
-		SELECT (SUM(t.doanhso) 
-				- SUM(t.luggage_purchase_price))  AS doanhso 
-		FROM (
-			SELECT 	bk.assigned_user_id AS user_id,
-				bk.id, bk.id AS voucher_id,
-				COUNT( bk.id ) / COUNT( dt.id ) AS total_bk,
-				SUM( dt.quantity ) AS total_qty,
-				SUM( bk.total_amount ) / COUNT( dt.id ) - SUM(
-				IFNULL( dt.total_bought_price, 0 )) - IFNULL((SELECT SUM(amount) FROM ec_payment_voucher WHERE deleted=0 AND booking_id=bk.id AND pv_status="3" AND ec_payment_types_id_c="3f9f8060-1866-2b2e-8322-52e36b8f58d5"), 0) AS doanhso,
-				(
-					SELECT SUM(IF(luggage_price > 0, IFNULL( luggage_purchase, 0 ), 0) + IF(luggage_price_inbound > 0, IFNULL( luggage_purchase_inbound, 0 ), 0)) 
-					FROM ec_booking_passengers 
-					WHERE deleted = 0 
-					AND booking_id = bk.id 
-					AND add_type IS NULL
-				) AS luggage_purchase_price 
-			FROM
-				ec_flight_bookings bk
-				LEFT JOIN ec_booking_details dt ON dt.booking_id = bk.id 
-				AND dt.deleted = 0 
-			WHERE
-				bk.deleted = 0 
-				AND bk.booking_status = 8 
-				AND bk.date_ticket_issue >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND bk.date_ticket_issue <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY
-				bk.assigned_user_id,
-				bk.id 
-
-			-- hoanve
-			UNION
-			SELECT
-				bk.assigned_user_id AS user_id,
-				bk.id, hv.id AS voucher_id,
-				0 AS total_bk,
-				- COUNT( cthv.id ) AS total_qty,
-				IF(SUM(IFNULL( cthv.phidichvu, 0 )) > 0, 0, SUM(IFNULL( cthv.phidichvu, 0 ))) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_chitiethoanve cthv
-				LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id 
-				AND hv.deleted = 0
-				LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				cthv.deleted = 0 
-				AND hv.tinhtrang = 1 
-				AND hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '"
-			GROUP BY hv.id
-
-			-- hoanve > 0
-			UNION
-			SELECT
-				hv.assigned_user_id AS user_id,
-				bk.id, hv.id AS voucher_id,
-				0 AS total_bk,
-				0 AS total_qty,
-				SUM(IFNULL( cthv.phidichvu, 0 )) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_chitiethoanve cthv
-				LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id 
-				AND hv.deleted = 0
-				LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				cthv.deleted = 0 
-				AND hv.tinhtrang = 1 
-				AND hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY hv.id
-			HAVING SUM(IFNULL( cthv.phidichvu, 0 )) > 0
-
-			-- phieu thu hanh ly, doi ngay bay, doi ten
-			UNION
-			SELECT
-				t.assigned_user_id AS user_id,
-				bk.id, t.id AS voucher_id,
-				0 AS total_bk,
-				0 AS total_qty,
-				SUM(IFNULL( t.sell_amount, 0 ) + IFNULL( t.sell_amount2, 0 ) + IFNULL( t.sell_amount3, 0 )) 
-				- SUM(IFNULL( t.bought_amount, 0 ) + IFNULL( t.bought_amount2, 0 ) + IFNULL( t.bought_amount3, 0 )) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_receipt_voucher t
-				LEFT JOIN ec_flight_bookings bk ON bk.id = t.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				t.deleted = 0 
-				AND t.rv_status = 1 
-				AND t.loai_thu IN ( 4, 5 ) 
-				AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY t.id
-		) AS t';
-	$total_sales = $db->getOne($sql_total_sales);
-
-	if (!empty($target_month) && $total_sales > 0.8 * $target_month) {
-		// mức thưởng doanh số
-		$sql_rate_bonus = '
-			SELECT * FROM ec_commission 
-			WHERE deleted = 0 AND DATE_FORMAT(date_entered, "%Y-%m-%d") = ( 
-				SELECT DATE_FORMAT(date_entered, "%Y-%m-%d") FROM ec_commission 
-				WHERE deleted = 0 AND CONCAT(year, "-", month, "-01") <= "' . date('Y-n-01') . '"
-				ORDER BY date_entered DESC
-				LIMIT 1
-			)';
-		$res_rate_bonus = $db->query($sql_rate_bonus);
-		$m = 0;
-		while ($row_rate_bonus = $db->fetchByAssoc($res_rate_bonus)) {
-			$rate['from_value'][] = $row_rate_bonus['from_value'];
-			$rate['to_value'][] = $row_rate_bonus['to_value'];
-			$rate['percentage'][] = $row_rate_bonus['percentage'];
-			// lấy doanh số tối thiểu
-			if ($m == 0) {
-				$min_rate = $row_rate_bonus['from_value'];
-			}
-			$m++;
-		}
-	}
-	// ds thưởng = tổng doanh số - doanh số của những booking cú đêm
-	// nếu ds công ty đạt 100% thì xét thưởng
-	// nếu ds công ty từ 80% mà không đạt ds tối thiểu thì trừ lương
-	$sql = '
-		SELECT 
-			  t.user_id, CONCAT(u.last_name, " ", IFNULL( u.first_name, "" )) AS full_name
-			, u.title AS user_title
-			, SUM(t.total_bk) AS total_bk
-			, SUM(t.total_qty) AS ticket_qty
-			, (SUM(t.doanhso) - SUM(t.luggage_purchase_price) - s.profit_overnight)  AS doanhso 
-		FROM (
-			SELECT 	
-				bk.assigned_user_id AS user_id,
-				bk.id, bk.id AS voucher_id,
-				COUNT( bk.id ) / COUNT( dt.id ) AS total_bk,
-				SUM( dt.quantity ) AS total_qty,
-				SUM( bk.total_amount ) / COUNT( dt.id ) - SUM(
-				IFNULL( dt.total_bought_price, 0 )) - IFNULL((SELECT SUM(amount) FROM ec_payment_voucher WHERE deleted=0 AND booking_id=bk.id AND pv_status="3" AND ec_payment_types_id_c="3f9f8060-1866-2b2e-8322-52e36b8f58d5"), 0) AS doanhso,
-				(
-					SELECT SUM(IF(luggage_price > 0, IFNULL( luggage_purchase, 0 ), 0) + IF(luggage_price_inbound > 0, IFNULL( luggage_purchase_inbound, 0 ), 0)) 
-					FROM ec_booking_passengers 
-					WHERE
-						deleted = 0 
-						AND booking_id = bk.id 
-						AND add_type IS NULL
-				) AS luggage_purchase_price 
-			FROM
-				ec_flight_bookings bk
-				LEFT JOIN ec_booking_details dt ON dt.booking_id = bk.id 
-				AND dt.deleted = 0 
-			WHERE
-				bk.deleted = 0 
-				AND bk.booking_status = 8 
-				AND bk.date_ticket_issue >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND bk.date_ticket_issue <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY
-				bk.id 
-
-			-- hoanve
-			UNION
-			SELECT
-				bk.assigned_user_id AS user_id,
-				bk.id, hv.id AS voucher_id,
-				0 AS total_bk,
-				- COUNT( cthv.id ) AS total_qty,
-				IF(SUM(IFNULL( cthv.phidichvu, 0 )) > 0, 0, SUM(IFNULL( cthv.phidichvu, 0 ))) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_chitiethoanve cthv
-				LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id 
-				AND hv.deleted = 0
-				LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				cthv.deleted = 0 
-				AND hv.tinhtrang = 1 
-				AND hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '"
-			GROUP BY hv.id
-
-			-- hoanve > 0
-			UNION
-			SELECT
-				hv.assigned_user_id AS user_id,
-				bk.id, hv.id AS voucher_id,
-				0 AS total_bk,
-				0 AS total_qty,
-				SUM(IFNULL( cthv.phidichvu, 0 )) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_chitiethoanve cthv
-				LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id 
-				AND hv.deleted = 0
-				LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				cthv.deleted = 0 
-				AND hv.tinhtrang = 1 
-				AND hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY hv.id
-			HAVING SUM(IFNULL( cthv.phidichvu, 0 )) > 0
-
-			-- phieu thu hanh ly, doi ngay bay, doi ten
-			UNION
-			SELECT
-				t.assigned_user_id AS user_id,
-				bk.id, t.id AS voucher_id,
-				0 AS total_bk,
-				0 AS total_qty,
-				SUM(IFNULL( t.sell_amount, 0 ) + IFNULL( t.sell_amount2, 0 ) + IFNULL( t.sell_amount3, 0 )) 
-				- SUM(IFNULL( t.bought_amount, 0 ) + IFNULL( t.bought_amount2, 0 ) + IFNULL( t.bought_amount3, 0 )) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_receipt_voucher t
-				LEFT JOIN ec_flight_bookings bk ON bk.id = t.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				t.deleted = 0 
-				AND t.rv_status IN ( 1, 2 )
-				AND t.loai_thu IN ( 4, 5 )
-				AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY t.id
-		) AS t
-		LEFT JOIN users u ON u.id = t.user_id
-		LEFT JOIN ec_employee_salary s ON s.assigned_user_id = t.user_id
-		AND s.month = ' . date('n', strtotime($from_date)) . ' 
-		AND s.year = ' . date('Y', strtotime($from_date)) . ' AND s.deleted = 0
-		GROUP BY t.user_id
-		ORDER BY doanhso DESC';
-
-	$res = $db->query($sql);
-	$bonus_indirect = 0;
-	$not_enough = 0;
-	while ($row = $db->fetchByAssoc($res)) {
-		$bonus = $backup_fund = 0;
-		// nếu ds công ty đạt 100% thì xét thưởng
-		if (!empty($target_month) && $total_sales >= $target_month) {
-			// đối với booker
-			if (trim($row['user_title']) == 'Booker') {
-				// trên mức doanh số tối thiểu
-				if ($row['doanhso'] > $min_rate) {
-					for ($i = 0; $i < count($rate['from_value']); $i++) {
-						if ($row['doanhso'] > $rate['from_value'][$i] && $row['doanhso'] <= $rate['to_value'][$i]) {
-							// doanh số cho booker là 90% bonus
-							$bonus = 0.8 * ($row['doanhso'] - $rate['from_value'][0]) * $rate['percentage'][$i] / 100;
-
-							// doanh số cho khối gián tiếp là 30% bonus
-							$bonus_indirect += 0.3 * ($row['doanhso'] - $rate['from_value'][0]) * $rate['percentage'][$i] / 100;
-
-							// chia cho quỹ dự phòng
-							$backup_fund = 0.1 * ($row['doanhso'] - $rate['from_value'][0]) * $rate['percentage'][$i] / 100;
-						}
-					}
-
-					// cập nhật thưởng doanh số cho từng người
-					$sql2 = '
-						UPDATE ec_employee_salary 
-						SET sales = ' . $bonus . '
-						  , backup_fund = ' . $backup_fund . '
-						WHERE deleted = 0
-						AND assigned_user_id = "' . $row['user_id'] . '" 
-						AND month = "' . date('n', strtotime($from_date)) . '" 
-						AND year = "' . date('Y', strtotime($from_date)) . '"
-						AND is_approved = 0';
-					$db->query($sql2);
-				} else { // dưới mức ds tối thiểu trừ thu nhập
-					// kiểm tra nếu có rồi thì xoá
-					$sql_d = '
-						DELETE FROM ec_salary_details 
-						WHERE deleted = 0 AND type = "minus" 
-						AND assigned_user_id = "' . $row['user_id'] . '"
-						AND voucher_date = "' . $from_date . '"
-						AND reason = "KhongDatDSToiThieu"';
-					$db->query($sql_d);
-					if ($row['doanhso'] > 0) {
-						$sql_s = '
-							SELECT basic_salary, efficient_wage 
-							FROM ec_employee_salary
-							WHERE deleted = 0
-							AND assigned_user_id = "' . $row['user_id'] . '"
-							AND month = "' . date('n', strtotime($from_date)) . '" 
-							AND year = "' . date('Y', strtotime($from_date)) . '"';
-						$res_s = $db->query($sql_s);
-						$row_s = $db->fetchByAssoc($res_s);
-						$minus_tn = new EC_Salary_Details;
-						$minus_tn->name = $row['full_name'];
-						$minus_tn->description = 'Không đạt doanh số tối thiểu: ' . $min_rate;
-						$minus_tn->assigned_user_id = $row['user_id'];
-						$minus_tn->reason = 'KhongDatDSToiThieu';
-						$minus_tn->minus_amount = ($row_s['basic_salary'] + $row_s['efficient_wage']) - round(($row_s['basic_salary'] + $row_s['efficient_wage']) * $row['doanhso'] / $min_rate);
-						$minus_tn->type = 'minus';
-						$minus_tn->voucher_date = date('d-m-Y', strtotime($from_date));
-						$minus_tn->save();
-					}
-				}
-			}
-		} else {
-			$not_enough = 1;
-			break;
-		}
-	}
-
-	if ($bonus_indirect > 0) {
-		$sql3 = '
-			SELECT COUNT(*) FROM users 
-			WHERE deleted = 0 AND title IN (
-			"KeToan", "Leader"
-			) AND status = "Active" 
-			AND start_working_date IS NOT NULL
-			AND employee_type <> 3';
-		$indirect_ppl = $db->getOne($sql3);
-
-		($indirect_ppl == 0) ? $indirect_ppl = 1 : $indirect_ppl;
-
-		$sql_udt = '
-			UPDATE ec_employee_salary s 
-			INNER JOIN users u ON u.id = s.assigned_user_id
-			SET s.sales = ' . round($bonus_indirect / $indirect_ppl) . '
-			WHERE s.deleted = 0 AND u.deleted = 0 AND u.title IN (
-				"Leader", "KeToan"
-			) AND s.month = "' . date('m', strtotime($from_date)) . '" 
-			AND s.year = "' . date('Y', strtotime($from_date)) . '" 
-			AND u.status = "Active"
-			AND u.start_working_date IS NOT NULL
-			AND u.employee_type <> 3
-			AND s.is_approved = 0
-			AND s.deleted = 0';
-		$db->query($sql_udt);
-	}
-
-	// nếu ds công ty không đạt 100% thì không có thưởng
-	if ($not_enough) {
-		$sql2 = '
-			UPDATE ec_employee_salary SET sales = 0 WHERE deleted = 0 
-			AND month = "' . date('m', strtotime($from_date)) . '" 
-			AND year = "' . date('Y', strtotime($from_date)) . '"';
-		$db->query($sql2);
 	}
 
 	return true;
@@ -1714,11 +1423,11 @@ function updateEfforts()
 							INNER JOIN ec_flight_bookings b ON b.id = dt.booking_id AND b.deleted = 0
 						WHERE
 							dt.deleted = 0 
-							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) >= "'.$fdate.' 00:00:00"
-							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) <= "'.$tdate.' 23:59:59"
+							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) >= "' . $fdate . ' 00:00:00"
+							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) <= "' . $tdate . ' 23:59:59"
 						GROUP BY b.id
-						HAVING start_process_time >= "'.$fdate.' 00:00:00" 
-							AND start_process_time <= "'.$tdate. ' 23:59:59" 
+						HAVING start_process_time >= "' . $fdate . ' 00:00:00" 
+							AND start_process_time <= "' . $tdate . ' 23:59:59" 
 							AND start_process_time NOT BETWEEN DATE_FORMAT( start_process_time, "%Y-%m-%d 07:31:00") AND DATE_FORMAT( start_process_time, "%Y-%m-%d 20:59:59")
 					) AS o
 					GROUP BY o.assigned_user_id
@@ -1731,8 +1440,8 @@ function updateEfforts()
 						 , p.assigned_user_id 
 					FROM ec_working_process p 
 					INNER JOIN ec_flight_bookings b ON b.id = p.parent_id AND b.deleted = 0
-					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "'.$fdate.' 00:00:00" 
-					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "'.$tdate. ' 23:59:59" 
+					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "' . $fdate . ' 00:00:00" 
+					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "' . $tdate . ' 23:59:59" 
 					WHERE p.deleted = 0 AND p.ticket_delivery = 1  
 					GROUP BY p.assigned_user_id
 
@@ -1745,8 +1454,8 @@ function updateEfforts()
 					FROM ec_salary_details
 					WHERE deleted = 0
 					AND type = "bonus"
-					AND voucher_date >= "'.$fdate.'"
-					AND voucher_date <= "'.date('Y-m-d', strtotime($tdate)).'"
+					AND voucher_date >= "' . $fdate . '"
+					AND voucher_date <= "' . date('Y-m-d', strtotime($tdate)) . '"
 					GROUP BY assigned_user_id
 
 					-- Giao thuc pham ben PT
@@ -1759,8 +1468,8 @@ function updateEfforts()
 						, p.assigned_user_id 
 						FROM ec_working_process p 
 						INNER JOIN ec_receipt_voucher rv ON rv.id = p.parent_id AND rv.deleted = 0
-						AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "'.$fdate.' 00:00:00" 
-						AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "'.$tdate.' 23:59:59" 
+						AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "' . $fdate . ' 00:00:00" 
+						AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "' . $tdate . ' 23:59:59" 
 						WHERE p.deleted = 0 AND p.ticket_delivery = 1  
 					GROUP BY p.assigned_user_id
 				) AS t ON s.assigned_user_id = t.assigned_user_id
@@ -1774,12 +1483,12 @@ function updateEfforts()
 		// cập nhật cột giao vé
 		$sql2 = '
 			UPDATE ec_employee_salary 
-			SET effort = '.(empty($row['amount'])?0:$row['amount']).'
-			, delivery = '.(empty($row['delivery'])?0:$row['delivery']). '
+			SET effort = ' . (empty($row['amount']) ? 0 : $row['amount']) . '
+			, delivery = ' . (empty($row['delivery']) ? 0 : $row['delivery']) . '
 			WHERE deleted = 0 
 			AND assigned_user_id = "' . $row['assigned_user_id'] . '" 
-			AND month = "'.date('n', strtotime($fdate)).'" 
-			AND year = "'.date('Y', strtotime($fdate)).'" 
+			AND month = "' . date('n', strtotime($fdate)) . '" 
+			AND year = "' . date('Y', strtotime($fdate)) . '" 
 			AND is_approved = 0';
 		$db->query($sql2);
 	}
@@ -1964,174 +1673,41 @@ function updateMissingEfforts()
 	return true;
 }
 
-//Cập nhật status agent
-function agent_change_status($agent, $status){
-	$agent  = $agent.'@td.timchuyenbay.net';
-	$toten  = 'sdjfhsgaksuegrqw38463784672793746rwadjksfgha3e467dhcauw4y5t783yr';
-	$body_request = array(
-		'agent' => $agent,
-		'status' => $status,
-		'token' => $toten,
-	);
-
-	try {
-		 $curl = curl_init();
-		 if ($curl === false) {
-			  echo json_encode(array('error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize'));
-		 }
-
-		 curl_setopt_array($curl, array(
-			  CURLOPT_URL             => "https://td.timchuyenbay.net/agent_status/change_status.php",
-			  CURLOPT_RETURNTRANSFER => true,
-			  CURLOPT_FOLLOWLOCATION => true,
-			  CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
-			  CURLOPT_SSL_VERIFYPEER => false, // Use at localhost
-			  CURLOPT_TIMEOUT        => 0,
-			  CURLOPT_CUSTOMREQUEST   => 'POST',
-			  CURLOPT_POSTFIELDS      => $body_request,
-		 ));
-	
-		 $json = curl_exec($curl);
-		 $httpcode   = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-		 curl_close($curl);
-		 $arr = json_decode($json, true);
-	} catch(Exception $e) {
-		 return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
-	}
-}
 
 // Kiểm tra user còn online hay không
 function checkStatusOnlineUser()
 {
-	global $db, $current_user;
+	global $db;
 
-	$array_admin = [
-		'168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
-		'622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
-		'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //nhat
-		'9eb0f65f-a9f6-65bb-1985-637ca8511491', //trinh
-		'1', //DDuc
-   ];
-
+	// 0: Offline
+	// 1: Online
+	// 2: Busy
 	$path           = "secure_sessions/check_online_logs/";
-	$temp_files     = scandir($path);
-	natsort($temp_files);
-	$timestamp_now = strtotime(date('Y-m-d H:i:s', strtotime('+7 hours')));
-	$status = '';
+	$timestamp_now 	= strtotime('+7 hours');
 
-	foreach ($temp_files as $file) {
-		if ($file != "." && $file != ".." && $file != "Thumbs.db" && $file != basename(__FILE__)) {
-			$info               = pathinfo($file);
-			$file_name          = basename($file, '.' . $info['extension']);
-			$user_id            = str_replace('_', '-', $file_name);
-			$json_file          = read_file_logs_online($user_id);
-			$data_user  	    = json_decode($json_file, true);
+	foreach (array_diff(scandir($path), ['.', '..', 'Thumbs.db', basename(__FILE__)]) as $file) {
+		$user_id 		= str_replace('_', '-', pathinfo($file, PATHINFO_FILENAME));
+		$data_user 		= json_decode(read_file_logs_online($user_id), true);
+		$diffInSeconds 	= abs($timestamp_now - strtotime($data_user['last_time']));
+		$agent 			= custom_get_sip_number($user_id);
 
-			$strtotime_user 	= strtotime(date('Y-m-d H:i:s', strtotime($data_user['last_time'])));
-			$last_time_user_7 	= date('Y-m-d H:i:s', strtotime($data_user['last_time'] . ' -7 hours'));
-			$diffInSeconds  	= abs($timestamp_now - $strtotime_user);
+		if ($user_id == 'c57196c6-e211-9856-43d5-6695498f39ae') continue; //tiennguyen
 
-			// User đó busy - check 5 phút
-			if (trim($data_user['busy']) == 1) {
-				$status = 'Logged Out';
-				// Kiểm tra sự chênh lệch trong khoảng thời gian 5 phút (300 giây)
-				if ($diffInSeconds > 600) {
-					$sql_offline = '
-						UPDATE ec_online_report 
-						SET status = 0, last_online = "' . $last_time_user_7 . '"
-						WHERE assigned_user_id = "' . $user_id . '"
-						AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-						AND deleted = 0
-					';
-					$db->query($sql_offline);
-
-					$_SESSION['busy'] = 0;
-					// sendTestTelegram('Nhân viên ' .$user_id. ' đã bị off do bận quá 5 phút');
-				} else {
-					// sendTestTelegram('Nhân viên ' .$user_id. ' vẫn còn đang bận');
-				}
-			} else {
-				// Kiểm tra sự chênh lệch trong khoảng thời gian 2 phút 30s (150 giây)
-				if ($diffInSeconds > 150) {
-					$status = 'Logged Out';
-
-					$sql_offline = '
-						UPDATE ec_online_report 
-						SET status = 0, last_online = "' . $last_time_user_7 . '"
-						WHERE assigned_user_id = "' . $user_id . '"
-						AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-						AND deleted = 0
-					';
-					$db->query($sql_offline);
-					$_SESSION['busy'] 	= 0;
-					// sendTestTelegram('Nhân viên ' .$val['name_user']. ' đã bị off vì quá 2 phút không tương tác BM. '.$last_time_user_7.'');
-				} else {
-					//Online 
-					$status = 'Available';
-					
-					$sql_select = '
-								SELECT status
-								FROM ec_online_report
-								WHERE assigned_user_id = "' . $user_id . '"
-								AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-								AND deleted = 0
-								';
-					$res = $db->query($sql_select);
-					$row = $db->fetchByAssoc($res);
-
-					if ($row['status'] != 1 && $row['status'] != 2) {
-						$sql_online = '
-							UPDATE ec_online_report 
-							SET status = 1, last_online = "' . $last_time_user_7 . '"
-							WHERE assigned_user_id = "' . $user_id . '"
-							AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-							AND deleted = 0
-						';
-						$db->query($sql_online);
-						// sendTestTelegram('Nhân viên ' .$val['name_user']. ' ONLINE trở lại');
-					} else {
-						// sendTestTelegram('Nhân viên ' .$val['name_user']. ' Vẫn đang online');
-					}
-				}
-			}
-
-			// Change status
-			if(in_array($user_id, $array_admin)){
-				$status = 'Available';
-			}
-			$agent = custom_get_sip_number($user_id);
-			agent_change_status($agent, $status);
+		// Kiểm tra trạng thái busy (10 phút) và không tương tác (2 phút 30 giây)
+		if (($data_user['busy'] == 1 && $diffInSeconds > 600) || ($data_user['busy'] == 0 && $diffInSeconds > 150)) {
+			if ($agent) agent_change_status($agent, 'Logged Out');
 		}
 	}
 
 	return true;
 }
 
+
 // Kiểm tra xem booking giao cho booker đã được xử lý hay chưa? 
 // Thời gian xử lý tối đa là 2 phút
 function checkBookingHandle()
 {
-	global $db, $app_list_strings, $current_user;
-	// $sql = '
-	// 	SELECT 
-	// 		onl.id, onl.booking_id,
-	// 		b.total_qty, b.name AS booking_name, b.contact_name, b.phone,
-	// 		IF(
-	// 			b.booking_status <> 1 
-	// 			OR (
-	// 				SELECT IF(COUNT(id) > 0, 1, 0)
-	// 				FROM notes
-	// 				WHERE parent_id = b.id
-	// 			), 1, 0 
-	// 		) AS is_processed
-	// 	FROM ec_online_report onl
-	// 		LEFT JOIN ec_flight_bookings b ON b.id = onl.booking_id
-	// 	WHERE onl.deleted = 0
-	// 		AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
-	// 		AND (onl.booking_id <> "" OR onl.booking_id IS NOT NULL) 
-	// 		AND TIMESTAMPDIFF(MINUTE, DATE_FORMAT(onl.start_assign, "%Y-%m-%d %H:%i"), "' . date('Y-m-d H:i') . '") >= 5
-	// ';
-
+	global $db;
 	$sql = '
 		SELECT 
 			onl.id, onl.booking_id,
@@ -2145,11 +1721,12 @@ function checkBookingHandle()
 	 			), 1, 0 
 	 		) AS is_processed
 		FROM ec_online_report onl
-			LEFT JOIN ec_flight_bookings b ON b.id = onl.booking_id
+		LEFT JOIN ec_flight_bookings b ON b.id = onl.booking_id AND b.deleted = 0
 		WHERE onl.deleted = 0
 			AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
 			AND (onl.booking_id <> "" OR onl.booking_id IS NOT NULL) 
 			AND TIMESTAMPDIFF(MINUTE, DATE_FORMAT(onl.start_assign, "%Y-%m-%d %H:%i"), "' . date('Y-m-d H:i') . '") >= 2
+			AND b.deleted = 0
 	';
 
 	$res = $db->query($sql);
@@ -2189,49 +1766,58 @@ function checkBookingHandle()
 			UPDATE ec_online_report 
 			SET booking_id = NULL, start_assign = NULL
 			WHERE id IN ("' . implode('","', $clear_bk_onl) . '")
+			AND deleted = 0
 		';
 		$db->query($sql1);
 	}
 
 	// user off thì thông báo
 	if (count($user_off_arr) > 0) {
-		$sendStatus = myTelegramSendMessage(
-			json_encode(array(
-				'text' => 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr),
-			)),
-			$app_list_strings['system_config_list']['telegram_token_id'],
-			$app_list_strings['system_config_list']['telegram_chat_id'],
-		);
-		if ($sendStatus['code'] != 201) {
+		// $sendStatus = myTelegramSendMessage(
+		// 	json_encode(array(
+		// 		'text' => 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr),
+		// 	)),
+		// 	$app_list_strings['system_config_list']['telegram_token_id'],
+		// 	$app_list_strings['system_config_list']['telegram_chat_id'],
+		// );
+		// if ($sendStatus['code'] != 201) {
+		// 	$GLOBALS['log']->error('Telegram sent message failed.');
+		// }
+
+		$message = 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr);
+		NotificationService::sendWarningMessage($message, 'cty');
+
+		if (!$res || !isset($res['id']) || is_null($res['id'])) {
 			$GLOBALS['log']->error('Telegram sent message failed.');
 		}
 	}
-	// if(count($user_off_arr) > 0) {
-	// 	sendTestTelegram('User ' .implode(", ", $user_off_arr). ' đã bị off vì quá 2 phút không xử lý booking '.implode(", ", $booking_off).' được giao');
-	// }
 
 	// Giao lại các booking cho user onl khác
-	if (count($reassign_bk_arr) > 0) {
-		foreach ($reassign_bk_arr as $reassign_bk_arr) {
+	if (is_array($reassign_bk_arr) && count($reassign_bk_arr) > 0) {
+		foreach ($reassign_bk_arr as $reassign_bk) {
 			$onl_r = new EC_Online_Report;
-			$user_reassign_id = $onl_r->assignBooking($reassign_bk_arr['booking_id'], $reassign_bk_arr['total_qty']);
+			$user_reassign_id = $onl_r->assignBooking($reassign_bk['booking_id'], $reassign_bk['total_qty']);
 
 			// Thông báo giao lại cho booker tiếp theo
 			$user = new User;
 			$user->retrieve($user_reassign_id);
 
-			$sendStatus = myTelegramSendMessage(
-				json_encode(array(
-					'text' => 'Booking ' . $reassign_bk_arr['booking_name'] . ' được giao lại cho ' . $user->last_name . ' ' . $user->first_name . '',
-				)),
-				$app_list_strings['system_config_list']['telegram_token_id'],
-				$app_list_strings['system_config_list']['telegram_chat_id'],
-			);
-			if ($sendStatus['code'] != 201) {
+			// $sendStatus = myTelegramSendMessage(
+			// 	json_encode(array(
+			// 		'text' => 'Booking ' . $reassign_bk['booking_name'] . ' được giao lại cho ' . $user->last_name . ' ' . $user->first_name . '',
+			// 	)),
+			// 	$app_list_strings['system_config_list']['telegram_token_id'],
+			// 	$app_list_strings['system_config_list']['telegram_chat_id'],
+			// );
+			// if ($sendStatus['code'] != 201) {
+			// 	$GLOBALS['log']->error('Telegram sent message failed.');
+			// }
+
+			$message = 'Booking ' . $reassign_bk['booking_name'] . " được giao lại cho $user->last_name $user->first_name";
+			NotificationService::sendMessage($message, 'cty');
+			if (!$res || !isset($res['id']) || is_null($res['id'])) {
 				$GLOBALS['log']->error('Telegram sent message failed.');
 			}
-
-			// sendTestTelegram('Booking ' .$reassign_bk_arr['booking_name']. ' được giao lại cho ' . $user->last_name . ' ' . $user->first_name .'');
 		}
 	}
 
@@ -2264,11 +1850,11 @@ function reAssignBooking()
 		$res = $db->query($sql);
 		$row_count = $db->countRows($res);
 
-		if($row_count > 0){
+		if ($row_count > 0) {
 			while ($row = $db->fetchByAssoc($res)) {
 				$onl_r = new EC_Online_Report;
 				$assgined_user_id = $onl_r->assignBooking($row['id'], $row['total_qty']);
-	
+
 				if ($assgined_user_id != 'e3bbb3e5-6660-0bf7-8976-54869c4ee609') {
 					$user = new User;
 					$user->retrieve($assgined_user_id);
@@ -2276,12 +1862,13 @@ function reAssignBooking()
 						UPDATE ec_flight_bookings
 						SET assigned_user_id = "' . $assgined_user_id . '"
 						WHERE id = "' . $row['id'] . '"
+						AND deleted = 0 
 					';
 					$db->query($sql_upd);
-	
+
 					// lưu lại thông báo lên group
 					$reassign_bk[] = "Booking: " . $row['name'] . ' giao cho: ' . $user->last_name . ' ' . $user->first_name;
-	
+
 					// UPDATE VỀ TRẠNG THÁI BẬN
 					$sql_update_busy = '
 						SELECT id, assigned_user_id
@@ -2304,22 +1891,27 @@ function reAssignBooking()
 					$online->save();
 				}
 			}
-	
+
 			if (count($reassign_bk) > 0) {
-				$sendStatus = myTelegramSendMessage(
-					json_encode(array(
-						'text' => 'Thông tin giao lại: ' . implode("\n", $reassign_bk),
-					)),
-					$app_list_strings['system_config_list']['telegram_token_id'],
-					$app_list_strings['system_config_list']['telegram_chat_id'],
-				);
-				if ($sendStatus['code'] != 201) {
+				// $sendStatus = myTelegramSendMessage(
+				// 	json_encode(array(
+				// 		'text' => 'Thông tin giao lại: ' . implode("\n", $reassign_bk),
+				// 	)),
+				// 	$app_list_strings['system_config_list']['telegram_token_id'],
+				// 	$app_list_strings['system_config_list']['telegram_chat_id'],
+				// );
+				// if ($sendStatus['code'] != 201) {
+				// 	$GLOBALS['log']->error('Telegram sent message failed.');
+				// }
+
+				$message = 'Thông tin giao lại: ' . implode("\n", $reassign_bk);
+				NotificationService::sendMessage($message, 'cty');
+				if (!$res || !isset($res['id']) || is_null($res['id'])) {
 					$GLOBALS['log']->error('Telegram sent message failed.');
 				}
-				// sendTestTelegram('Thông tin giao lại: ' . implode("\n", $reassign_bk));
 			}
 		}
-	} 
+	}
 	return true;
 }
 
@@ -2328,5 +1920,697 @@ function calculateCashFlow()
 {
 	$EC_CashFlow = new EC_CashFlow();
 	$EC_CashFlow->handle();
+	return true;
+}
+
+/**
+ * Gửi tin nhắn tự động về giá vé rẻ qua ZBS template Zalo
+ */
+function sendAutoCheapPriceMessageZalo()
+{
+	global $db, $timedate, $sugar_config;
+	try {
+		$utcDate = $timedate->nowDb(); // Guarantee timezone is UTC
+		$utcTimestamp       = strtotime($utcDate);
+		$vietnameseTime 	= ($utcTimestamp + 7 * 3600) * 1000;
+		$date 				= date('Y-m-d', $utcTimestamp);
+		$yesterday 			= date('Y-m-d', strtotime('-1 day', $utcTimestamp));
+		$fromDateQuery 		= date('Y-m-d', strtotime('-3 day', $utcTimestamp));
+
+		// Init entry
+		$entry = new entryFactory();
+		$entryOA = $entry->create('entryZaloOAClass');
+		$entryFS = $entry->create('entryFareSystemClass');
+
+		/**
+		 * Lấy những booking tham khảo hôm qua
+		 * Chưa xắt được tiền của khách
+		 * Chưa gửi ZBS giá rẻ trong 4 tiếng hiện tại
+		 * Chưa đạt mốc gửi ZBS giá rẻ 2 lần trong ngày hiện tại
+		 * Chưa có phản hồi của khách từ sau tin ZBS gần nhất
+		 */
+		$sql = "SELECT bk.id AS booking_id
+				,bk.name AS booking_name
+				,bk.phone
+				,iti.departure AS dep_code
+				,iti.arrival AS des_code
+				,iti.departure_date
+				,(
+					SELECT GROUP_CONCAT(CONCAT(zm.date_entered, '|', zm.timestamp, '|', zm.data) SEPARATOR ';')
+					FROM ec_zalo_messages zm
+					WHERE zm.to_id = bk.phone
+						AND zm.type = 'zbs'
+						AND zm.sub_type = 'cheap-flight'
+						AND zm.date_entered BETWEEN '$yesterday 17:00:00' AND '$date 16:59:59'
+						AND zm.deleted = 0
+					ORDER BY zm.date_entered DESC
+				) AS list_message
+			FROM ec_flight_bookings bk
+				LEFT JOIN ec_booking_itineraries iti ON iti.booking_id = bk.id AND iti.direction = '0' AND iti.deleted = 0
+			WHERE UPPER(bk.contact_name) = 'THAM KHAO'
+				AND bk.total_amount = 0
+				AND bk.date_entered BETWEEN '$fromDateQuery 17:00:00' AND '$yesterday 16:59:59'
+				AND bk.phone IS NOT NULL AND bk.phone != ''
+				AND bk.booking_status NOT IN ('1', '3', '4', '7', '8')
+				AND bk.deleted = 0
+				AND NOT EXISTS (
+					SELECT 1
+					FROM ec_flight_bookings bk2
+					WHERE bk2.phone = bk.phone
+						AND bk2.id != bk.id
+						AND bk2.date_entered > bk.date_entered
+						AND bk2.booking_status IN ('3', '7', '8')
+						AND bk2.total_amount > 0
+						AND bk2.deleted = 0
+				)
+				AND NOT EXISTS (
+					SELECT 1
+					FROM ec_zalo_messages zm
+					WHERE zm.to_id = bk.phone
+						AND zm.type = 'zbs'
+						AND zm.sub_type = 'cheap-flight'
+						AND zm.timestamp > $vietnameseTime - 4*3600*1000
+						AND zm.deleted = 0
+				)";
+
+
+		$listFlightSearch = []; // Cache vars
+		$sentMap = [];
+		$failedInfo = [];
+
+		$res = $db->query($sql);
+		while ($row = $db->fetchByAssoc($res)) {
+			$phone = $row['phone'] ?? '';
+			$list_message = !empty($row['list_message']) ? explode(';', $row['list_message']) : [];
+
+			if (empty($phone) || isset($sentMap[$phone]) || count($list_message) >= 2) continue;
+
+			$is_send = true;
+			if (count($list_message) > 0) {
+				$first_element_message = explode('|', $list_message[0]);
+				$first_element_message_datetime  = $first_element_message[0];
+				// $first_element_message_timestamp = $first_element_message[1];
+
+				$sql2 = "SELECT COUNT(*)
+					FROM ec_zalo_messages zm
+						LEFT JOIN ec_zalo_contacts zc ON zc.zalo_id = zm.from_id AND zc.deleted = 0
+						LEFT JOIN contacts c ON c.id = zc.contact_id AND c.deleted = 0
+					WHERE c.mobile_phone = '{$phone}'
+						AND zm.type = 'consultation'
+						AND zm.date_entered >= '$first_element_message_datetime'
+						AND zm.deleted = 0";
+
+				$count_reply = $db->getOne($sql2) ?? 0;
+				if ($count_reply > 0) $is_send = false;
+			}
+
+			if ($is_send) {
+				$booking_id = $row['booking_id'];
+				$booking_name = $row['booking_name'] ?? '';
+				$dep_code = $row['dep_code'] ?? '';
+				$des_code = $row['des_code'] ?? '';
+				$departure_date = $row['departure_date'] ?? '';
+
+				if (empty($departure_date) || empty($dep_code) || empty($des_code) || empty($booking_name)) continue;
+
+				$departure_timestamp = strtotime($departure_date);
+				$departure_day = date('d', $departure_timestamp);
+				// If departure day is greater than 20, then set departure month to next month
+				if ((int)$departure_day > 20) {
+					$departure_timestamp = strtotime('+1 month', $departure_timestamp);
+				}
+				$departure_month = date('m', $departure_timestamp);
+				$departure_year  = date('Y', $departure_timestamp);
+
+				$depInfo = Flight::getAirport($dep_code);
+				$desInfo = Flight::getAirport($des_code);
+
+				// Get cheap price (cache)
+				$cacheKey = "$dep_code-$des_code-$departure_year-$departure_month";
+				if (!isset($listFlightSearch[$cacheKey]) || empty($listFlightSearch[$cacheKey])) {
+					$temp = $entryFS->getMinPriceInMonth([
+						"depCode" => $dep_code,
+						"desCode" => $des_code,
+						"month" => $departure_month,
+						"year" => $departure_year,
+					]);
+					$priceData = json_decode($temp, true);
+					$priceData = $priceData['data']['prices'] ?? [];
+					$listFlightSearch[$cacheKey] = $priceData;
+				} else {
+					$priceData = $listFlightSearch[$cacheKey];
+				}
+
+				if (is_array($priceData) && !empty($priceData)) {
+					$minPrice = min(array_column($priceData, 'price'));
+
+					$cheapestDays = array_values(array_filter($priceData, fn($item) => $item['price'] === $minPrice));
+					if (count($cheapestDays) > 1) {
+						$input = DateTime::createFromFormat('Y-m-d', $departure_date);
+
+						if ($input !== false) {
+							usort($cheapestDays, function ($a, $b) use ($input) {
+								$partsA = explode('-', $a['date']); // ['14', '3']
+								$partsB = explode('-', $b['date']); // ['15', '3']
+
+								$dateA = DateTime::createFromFormat('d-n', $a['date']); // 'n' = month without leading zero
+								$dateB = DateTime::createFromFormat('d-n', $b['date']);
+
+								if ($dateA === false || $dateB === false) return 0;
+
+								$dateA->setDate((int)$input->format('Y'), (int)$partsA[1], (int)$partsA[0]);
+								$dateB->setDate((int)$input->format('Y'), (int)$partsB[1], (int)$partsB[0]);
+
+								return abs($input->diff($dateA)->days) <=> abs($input->diff($dateB)->days);
+							});
+						}
+
+						$cheapestDays = array_slice(array_values($cheapestDays), 0, 6);
+					}
+
+					$listDate = implode(', ', array_map(function ($item) {
+						[$day, $month] = explode('-', $item['date']);
+						return str_pad($day, 2, '0', STR_PAD_LEFT) . '/' . str_pad($month, 2, '0', STR_PAD_LEFT);
+					}, $cheapestDays));
+
+					// Check if the latest message is the same price, then discount 10-20k
+					$message_latest = $list_message[0] ?? [];
+					if (!empty($message_latest)) {
+						$data_latest = explode('|', $message_latest);
+						$data_latest = json_decode(html_entity_decode($data_latest[2] ?? ''), true) ?? [];
+						if (isset($data_latest['ticket_price']) && (int)$data_latest['ticket_price'] == $minPrice && $minPrice > 0) {
+							$values = [9000, 10000, 12000, 16000, 18000, 20000];
+							$minPrice -= $values[array_rand($values)]; // Discount 10-20k
+							if ($minPrice <= 0) $minPrice = abs($minPrice);
+						}
+					}
+
+					if ($minPrice == 0) $minPrice = 8000;
+
+					if (!empty($listDate)) {
+						$params = [
+							"phoneNumber" => $phone,
+							"type" => "cheap-flight",
+							"parentId" => $booking_id,
+							"parentType" => "EC_Flight_Bookings",
+							"templateData" => [
+								"customer_name" => "bạn",
+								"code" => $booking_name,
+								"ticket_price" => $minPrice,
+								"city_pair" => trim("{$depInfo['CityName']} ($dep_code) đi {$desInfo['CityName']} ($des_code)"),
+								"list_departure_date" => $listDate,
+							],
+						];
+						$sendResult = $entryOA->sendTemplateMessage($params);
+
+						if (isset($sendResult['status']) && $sendResult['status'] == 1) $sentMap[$phone] = true;
+						else {
+							$sentMap[$phone] = false;
+
+							$errCode = $sendResult['error'] ?? null;
+							if(!is_null($errCode)) {
+								if(!isset($failedInfo[$errCode])) {
+									$failedInfo[$errCode]['message'] = $sendResult['message'] ?? '';
+									$failedInfo[$errCode]['count'] = 1;
+								}
+								else $failedInfo[$errCode]['count'] += 1;
+							}
+
+							$GLOBALS['log']->fatal(
+								"Send auto message Zalo ZBS (cheap-price) failed: " . json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
+							);
+						}
+					}
+				}
+			}
+		}
+
+		// Send info to notification channel
+		$countSent = count(array_filter($sentMap));
+		$countFailed = count(array_filter($sentMap, fn($v) => !$v));
+
+		$mFailed = "";
+		if(count($failedInfo) > 0) {
+			foreach($failedInfo as $err_code => $errInfo) {
+				$mFailed .= "\n<b>-</b> {$errInfo['message']} ($err_code): <b>{$errInfo['count']}</b> số";
+			}
+		}
+
+		if ($countSent > 0) {
+			$countTotal = $countSent + $countFailed;
+			$m = "<b>⚙️Auto:</b> Đã gửi tin CSKH Zalo (Booking tham khảo) cho <b>{$countSent}</b>/{$countTotal} số";
+			$m .= $mFailed;
+			NotificationService::sendMessage($m, "zalo");
+		}
+		else if($countFailed > 0) {
+			$m = "Gửi tin CSKH Zalo (Booking tham khảo)";
+			$m .= $mFailed;
+			$m .= "\n\n<i>Please check suitecrm log <code>_AddJobsHere.php -> " . __FUNCTION__ . "()</code></i>";
+			NotificationService::sendWarningMessage($m, "", ['threadKey' => 'logs']);
+		}
+	}
+	catch (Throwable $th) {
+		$m = "Cronjob " . __FUNCTION__ . "() failed";
+		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
+	}
+}
+
+/**
+ * Tự động gửi tin tư vấn Zalo để duy trì tương tác
+ */
+function maintainZaloChat() {
+	global $db, $timedate, $sugar_config;
+
+	try {
+		$domain = $sugar_config['host_name'] ?? $_SERVER['SERVER_NAME'];
+
+		$utcDate = $timedate->nowDb(); // Guarantee timezone is UTC
+		$utc_timestamp = strtotime($utcDate);
+		$vn_timestamp = $utc_timestamp + 7 * 3600;
+
+		$within24 = date('Y-m-d H:i:s', strtotime('-24 hour', $utc_timestamp));
+		$within48 = date('Y-m-d H:i:s', strtotime('-48 hour', $utc_timestamp));
+		$within6days = date('Y-m-d H:i:s', strtotime('-6 days', $utc_timestamp));
+		$within7days = date('Y-m-d H:i:s', strtotime('-7 days', $utc_timestamp));
+		$six_hours_in_seconds = 6 * 3600;
+		$twelve_hours_in_seconds = 12 * 3600;
+
+		// Data to get cheap price
+		$departure_timestamp = $vn_timestamp;
+		$departure_day = date('d', $departure_timestamp);
+		// If departure day is greater than 15, then set departure month to next month
+		if ((int)$departure_day > 15) {
+			$departure_timestamp = strtotime('+1 month', $departure_timestamp);
+		}
+		$departure_month = date('m', $departure_timestamp);
+		$departure_year  = date('Y', $departure_timestamp);
+
+		$template_text = "🔥 Giá rẻ tháng $departure_month\n\n";
+		$template_text .= "Nhằm đồng hành cùng Quý khách trong hành trình nghỉ dưỡng sắp tới, chúng tôi xin cập nhật bảng giá vé ưu đãi mới nhất cho mùa du lịch năm nay.\nVới mạng lưới đường bay đa dạng và khung giờ linh hoạt, đây là cơ hội tuyệt vời để Quý khách tận hưởng kỳ nghỉ bên gia đình với chi phí tiết kiệm nhất.";
+
+		$listImages = [
+			"HAN" => "https://$domain/themes/SuiteP/images/zalo_messages/cheap-flights-tcb-han.jpg",
+			"DAD" => "https://$domain/themes/SuiteP/images/zalo_messages/cheap-flights-tcb-dad.jpg",
+		];
+
+		// Init entry
+		$entry = new entryFactory();
+		$entryOA = $entry->create('entryZaloOAClass');
+		$entryFS = $entry->create('entryFareSystemClass');
+
+		/**
+		 * Lấy zalo user tương tác từ 24-48 giờ trước
+		 * Gửi thông tin giá rẻ của các hành trình phổ biến (SGN-HAN, SGN-DAD, SGN-PQC)
+		 */
+		$sql =
+			"SELECT zc.zalo_id
+				,zc.oa_id
+				,zc.id AS user_external_id
+				,zc.contact_id
+				,c.phone_mobile AS phone_number
+				,zc.name AS display_name
+				,zc.alias AS user_alias
+				,zc.last_interaction
+				,zc.is_follower
+				,zc.tags
+				,province_city
+				,zc.status
+				,(
+					SELECT CONCAT(zm.type, '|', zm.timestamp)
+					FROM ec_zalo_messages zm
+					WHERE (zm.to_id = zc.zalo_id OR zm.to_id = c.phone_mobile)
+						AND zm.src = 0
+						AND zm.deleted = 0
+					ORDER BY zm.timestamp DESC
+					LIMIT 1
+				) AS latest_message
+				,(
+					SELECT CONCAT(bk.name, '|', bk.date_entered)
+					FROM ec_flight_bookings bk
+					WHERE bk.phone = c.phone_mobile
+						AND bk.booking_status NOT IN ('3', '7', '8')
+						AND bk.deleted = 0
+					ORDER BY bk.date_entered DESC
+					LIMIT 1
+				) AS latest_completed_booking
+			FROM ec_zalo_contacts zc
+				LEFT JOIN contacts c on c.id = zc.contact_id AND c.deleted = 0
+			WHERE (zc.last_interaction BETWEEN '$within48' AND '$within24'
+					OR zc.last_interaction BETWEEN '$within7days' AND '$within6days')
+				AND zc.deleted = 0";
+
+		$sentMap = [];
+		$failedInfo = [];
+
+		$res = $db->query($sql);
+		while ($row = $db->fetchByAssoc($res)) {
+			$last_interaction_timestamp = !is_null($row['last_interaction']) && !empty($row['last_interaction']) ? strtotime($row['last_interaction']) : 0;
+			$latest_message = !is_null($row['latest_message']) && !empty($row['latest_message']) ? explode('|', $row['latest_message']) : [];
+			$latest_completed_booking = !is_null($row['latest_completed_booking']) && !empty($row['latest_completed_booking']) ? explode('|', $row['latest_completed_booking']) : [];
+
+			$is_send = true;
+			// Chỉ gửi nếu user chưa chốt đơn trong 12h từ tương tác cuối
+			if (!empty($latest_completed_booking)) {
+				if (abs($last_interaction_timestamp - strtotime($latest_completed_booking[1])) < $twelve_hours_in_seconds) $is_send = false;
+			}
+			// Chỉ gửi nếu OA chưa có tương tác trong 6h gần nhất
+			if (!empty($latest_message)) {
+				$latest_message_timestamp = (int)(($latest_message[1] ?? 0) / 1000);
+				if ($latest_message_timestamp > 0 && $vn_timestamp - $latest_message_timestamp < $six_hours_in_seconds) $is_send = false;
+			}
+
+			if ($is_send) {
+				if (!isset($sentMap[$row['zalo_id']])) {
+					// Get cheap price (cache)
+					$dep_code = 'SGN';
+					$des_code = ['HAN', 'DAD', 'PQC'];
+					$des_code = $des_code[array_rand($des_code)];
+
+					$depInfo = Flight::getAirport($dep_code);
+					$desInfo = Flight::getAirport($des_code);
+					$cacheKey = "$dep_code-$des_code-$departure_year-$departure_month";
+					if (!isset($listFlightSearch[$cacheKey]) || empty($listFlightSearch[$cacheKey])) {
+						$temp = $entryFS->getMinPriceInMonth([
+							"depCode" => $dep_code,
+							"desCode" => $des_code,
+							"month" => $departure_month,
+							"year" => $departure_year,
+						]);
+						$priceData = json_decode($temp, true);
+						$priceData = $priceData['data']['prices'] ?? [];
+						$listFlightSearch[$cacheKey] = $priceData;
+					} else {
+						$priceData = $listFlightSearch[$cacheKey];
+					}
+
+					if (is_array($priceData) && !empty($priceData)) {
+						$minPrice = min(array_column($priceData, 'price'));
+
+						$cheapestDays = array_values(array_filter($priceData, fn($item) => $item['price'] === $minPrice));
+						if (count($cheapestDays) > 1) {
+							$input = DateTime::createFromFormat('Y-m-d', date('Y-m-d', $vn_timestamp));
+
+							if ($input !== false) {
+								usort($cheapestDays, function ($a, $b) use ($input) {
+									$partsA = explode('-', $a['date']); // ['14', '3']
+									$partsB = explode('-', $b['date']); // ['15', '3']
+
+									$dateA = DateTime::createFromFormat('d-n', $a['date']); // 'n' = month without leading zero
+									$dateB = DateTime::createFromFormat('d-n', $b['date']);
+
+									if ($dateA === false || $dateB === false) return 0;
+
+									$dateA->setDate((int)$input->format('Y'), (int)$partsA[1], (int)$partsA[0]);
+									$dateB->setDate((int)$input->format('Y'), (int)$partsB[1], (int)$partsB[0]);
+
+									return abs($input->diff($dateA)->days) <=> abs($input->diff($dateB)->days);
+								});
+							}
+
+							$cheapestDays = array_slice(array_values($cheapestDays), 0, 7);
+						}
+
+						$listDate = implode(', ', array_map(function ($item) {
+							[$day, $month] = explode('-', $item['date']);
+							return str_pad($day, 2, '0', STR_PAD_LEFT) . '/' . str_pad($month, 2, '0', STR_PAD_LEFT);
+						}, $cheapestDays));
+
+						if ($minPrice > 0 && !empty($listDate)) {
+							$text = $template_text;
+							$text .= "\n";
+							$text .= "\n✈️ {$depInfo['CityName']} đi {$desInfo['CityName']}";
+							$text .= "\n💰 Giá vé " . number_format($minPrice, 0, ',', '.') . " VNĐ";
+							$text .= "\n🗓 Ngày đi: " . $listDate;
+							$text .= "\n🌐 Đặt vé tại timchuyenbay.com hoặc để lại lời nhắn để được tư vấn trực tiếp miễn phí";
+							$text .= "\n\nChúc quý khách ngày mới tràn đầy năng lượng!";
+
+							$image_url = $listImages[$des_code] ?? '';
+							if (!empty($image_url)) {
+								$params = [
+									'zalo_id' => $row['zalo_id'],
+									'oa_id' => $row['oa_id'],
+									'type' => 'image',
+									'url' => $image_url,
+									'text' => $text,
+								];
+							} else {
+								$params = [
+									'zalo_id' => $row['zalo_id'],
+									'oa_id' => $row['oa_id'],
+									'type' => 'text',
+									'text' => $text,
+								];
+							}
+
+							$sendResult = $entryOA->sendMessage($params);
+
+							if (isset($sendResult['status']) && $sendResult['status'] == 1) $sentMap[$row['zalo_id']] = true;
+							else {
+								$sentMap[$row['zalo_id']] = false;
+
+								$errMessage = $sendResult['message'] ?? '';
+								if(!empty($errMessage)) {
+									if(!isset($failedInfo[$errMessage])) $failedInfo[$errMessage] = 1;
+									else $failedInfo[$errMessage] += 1;
+								}
+
+								$GLOBALS['log']->fatal(
+									"Send message to maintain zalo chat failed: " .
+										json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
+								);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Send info to notification channel
+		$countSent = count(array_filter($sentMap));
+		$countFailed = count(array_filter($sentMap, fn($v) => !$v));
+
+		$mFailed = "";
+		if(count($failedInfo) > 0) {
+			foreach($failedInfo as $err_message => $err_count) {
+				$mFailed .= "\n<b>-</b> $err_message: <b>$err_count</b> user";
+			}
+		}
+			
+		if ($countSent > 0) {
+			$countTotal = $countSent + $countFailed;
+			$m = "<b>⚙️Auto:</b> Đã gửi tin tư vấn giá rẻ duy trì tương tác Zalo cho <b>{$countSent}</b>/{$countTotal} người dùng";
+			$m .= $mFailed;
+			NotificationService::sendMessage($m, "zalo");
+		}
+		else if($countFailed > 0) {
+			$m = "Gửi tin tư vấn giá rẻ duy trì tương tác Zalo";
+			$m .= $mFailed;
+			$m .= "\n\n<i>Please check suitecrm log <code>_AddJobsHere.php -> " . __FUNCTION__ . "()</code></i>";
+			NotificationService::sendWarningMessage($m, "", ['threadKey' => 'logs']);
+		}
+	} catch (Throwable $th) {
+		$m = "Cronjob " . __FUNCTION__ . "() failed";
+		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
+	}
+}
+
+/**
+ * Reset lại điểm tích lũy của liên hệ qua booking hằng năm
+ */
+function resetRewardPoints()
+{
+	global $db;
+
+	$sql = "SELECT c.id
+		,c.phone_mobile AS phone_number
+		,c.points
+		FROM contacts c
+		WHERE c.points > 0 AND c.deleted = 0";
+
+	try {
+		$res = $db->query($sql);
+		while ($row = $db->fetchByAssoc($res)) {
+			// Record point log
+			$point_log = new EC_Contact_Points_Log();
+			$point_log->id = '';
+			$point_log->name = 'Hệ thống reset điểm';
+			$point_log->description = 'Đặt lại điểm hằng năm';
+			$point_log->contact_id = $row['id'];
+			$point_log->contact_phone = $row['phone_number'];
+			$point_log->up = 0;
+			$point_log->down = $row['points'];
+			$point_log->current_point = 0;
+			$point_log->parent_type = '';
+			$point_log->parent_id = '';
+			$point_log->save();
+		}
+
+		$updatesql = "UPDATE contacts SET points = 0 WHERE points > 0";
+		if ($db->query($updatesql)) {
+			NotificationService::sendMessage("⚙️ <b>Hệ thống đã reset điểm tích lũy của liên hệ hằng năm</b>", "", ['threadKey' => 'system']);
+		} else {
+			NotificationService::sendErrorMessage("Reset điểm tích lũy của liên hệ hằng năm chưa thành công", "", ['threadKey' => 'logs']);
+		}
+	} catch (Throwable $th) {
+		$m = "Cronjob " . __FUNCTION__ . "() failed";
+		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
+	}
+}
+
+/**
+ * Cuối mỗi ngày: tìm tất cả tin nhắn Zalo có ảnh (URL còn trỏ về Zalo CDN),
+ * tải về local, upload lên NextCloud, tạo public share, cập nhật lại DB.
+ */
+function migrateZaloImagesToNextCloud()
+{
+	global $db, $timedate;
+	$utcDate = $timedate->nowDb(); // Guarantee timezone is UTC
+	$utcTimestamp       = strtotime($utcDate);
+	$today 				= date('Y-m-d', $utcTimestamp);
+	$yesterday 			= date('Y-m-d', strtotime('-1 day', $utcTimestamp));
+
+	// ── 1. Lấy những record cần xử lý ──────────────────────────────────────
+	// Chỉ lấy trong ngày hôm nay, type=consultation, sub_type=image,
+	// thumbnail/url vẫn còn là link Zalo CDN (chưa phải link NextCloud).
+
+	$sql = "SELECT id, url
+            FROM ec_zalo_messages
+            WHERE date_entered BETWEEN '$yesterday 17:00:00' AND '$today 16:59:59'
+				AND sub_type = 'image'
+                AND type = 'consultation'
+                AND url IS NOT NULL
+                AND url != ''
+                AND url NOT LIKE 'https://vnbackup.com/s/%'
+				AND deleted = 0"; //vì link public dạng này:https://vnbackup.com/s/hdhdhdsjdh 
+
+	$res = $db->query($sql);
+	if ($db->countRows($res) == 0) {
+		$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": No records to migrate today.");
+		return true;
+	}
+
+	// ── 2. Khởi tạo APINextCloud & tạo folder theo ngày ────────────────────
+	require_once 'custom/include/helpers/api/APINextCloud.php';
+	$api = new APINextCloud();
+
+	$folderParts = [
+		'bmvmb',
+		'bmvmb/modules',
+		'bmvmb/modules/ec_zalo_messages',
+		'bmvmb/modules/ec_zalo_messages/' . date('Y'),
+		'bmvmb/modules/ec_zalo_messages/' . date('Y') . '/' . date('m'),
+		'bmvmb/modules/ec_zalo_messages/' . date('Y') . '/' . date('m') . '/' . date('d'),
+	];
+	foreach ($folderParts as $part) {
+		$api->createFolder($part); // MKCOL: bỏ qua 405 nếu folder đã có
+	}
+
+	$folderPath  = end($folderParts);
+	$uploadDir   = 'cache/upload/';
+	if (!is_dir($uploadDir)) {
+		sugar_mkdir($uploadDir, 0755, true);
+	}
+
+	// ── 3. Lặp từng record ──────────────────────────────────────────────────
+	while ($row = $db->fetchByAssoc($res)) {
+		try {
+			$imageUrl = $row['url'];
+
+			// 3a. Tải ảnh từ Zalo CDN về local
+			$fetchResult = $api->fetchPublicFile($imageUrl);
+			if (!$fetchResult['success']) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Download failed for id={$row['id']}, url=$imageUrl, error={$fetchResult['error']}");
+				continue;
+			}
+
+			// 3b. Xác định extension
+			$ext = 'jpg';
+			if (preg_match('/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i', $imageUrl, $m)) {
+				$ext = strtolower($m[1]);
+			} elseif (!empty($fetchResult['contentType'])) {
+				$mimeMap = [
+					'image/jpeg' => 'jpg',
+					'image/png'  => 'png',
+					'image/gif'  => 'gif',
+					'image/webp' => 'webp',
+				];
+				$ct  = strtolower(explode(';', $fetchResult['contentType'])[0]);
+				$ext = $mimeMap[trim($ct)] ?? 'jpg';
+			}
+
+			$safeId     = str_replace('-', '', $row['id']);
+			$fileName   = $safeId . '_' . time() . '.' . $ext;
+			$localPath  = $uploadDir . $fileName;
+			$remotePath = $folderPath . '/' . $fileName;
+
+			// 3c. Lưu file tạm
+			if (file_put_contents($localPath, $fetchResult['data']) === false) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Cannot write local file $localPath");
+				continue;
+			}
+
+			// 3d. Upload lên NextCloud
+			$uploadResult = json_decode($api->uploadFile($localPath, $remotePath), true);
+			if (empty($uploadResult) || (int)($uploadResult['status'] ?? 0) !== 1) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Upload failed for id={$row['id']}, remote=$remotePath, response=" . json_encode($uploadResult));
+				@unlink($localPath);
+				continue;
+			}
+
+			// 3e. Tạo public share (read-only, no password)
+			$shareResult = json_decode($api->createShare($remotePath, 1), true);
+			if (empty($shareResult) || (int)($shareResult['status'] ?? 0) !== 1) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Share creation failed for id={$row['id']}, response=" . json_encode($shareResult));
+				@unlink($localPath);
+				continue;
+			}
+
+			// NextCloud trả về share URL dạng: https://vnbackup.com/s/abcsiueh
+			// Download trực tiếp: thêm /download vào cuối
+			$shareUrl    = rtrim($shareResult['data']['url'] ?? '', '/');
+			if (empty($shareUrl)) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Empty share URL for id={$row['id']}");
+				@unlink($localPath);
+				continue;
+			}
+
+			// 3f. Cập nhật JSON trong field `data`
+			$dataJson = json_decode($row['data'] ?? '{}', true);
+			if (isset($dataJson['message']['attachments']) && is_array($dataJson['message']['attachments'])) {
+				foreach ($dataJson['message']['attachments'] as &$attachment) {
+					if (($attachment['type'] ?? '') === 'image') {
+						$attachment['payload']['thumbnail'] = $shareUrl;
+						$attachment['payload']['url']       = $shareUrl;
+					}
+				}
+				unset($attachment);
+			}
+
+			// 3g. UPDATE database
+			$safeShareUrl = $db->quote($shareUrl);
+			$db->query("
+                UPDATE ec_zalo_messages
+                SET thumbnail     = '$safeShareUrl',
+                    url           = '$safeShareUrl',
+                    date_modified = NOW()
+                WHERE id = '{$row['id']}'
+                  AND deleted = 0
+            ");
+
+			$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": Successfully migrated image for id={$row['id']}, shareUrl=$shareUrl");
+		} catch (Throwable $th) {
+			$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Exception for id={$row['id']}: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+		} finally {
+			// Luôn xoá file tạm dù thành công hay thất bại
+			if (!empty($localPath) && file_exists($localPath)) {
+				@unlink($localPath);
+			}
+		}
+	}
+
+	$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": Done.");
 	return true;
 }

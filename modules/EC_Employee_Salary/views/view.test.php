@@ -1,55 +1,57 @@
 <?php
 
-if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-class Viewtest extends SugarView {
+class Viewtest extends SugarView
+{
 
- 	function display() {
- 		// $this->updateWorkingDays();
- 		// $this->updateSales();
- 		// $this->updateEfforts();
- 		// $this->updateMissingEfforts();
- 		// $this->createMonthSalary();
+	function display()
+	{
+		// $this->updateWorkingDays();
+		// $this->updateEfforts();
+		// $this->updateMissingEfforts();
+		// $this->createMonthSalary();
 		// $this->updateBKSale();
 		// $this->updateBkQty();
 		// $this->updateBKMark();
 		// $this->updateBkTicket();
 		// $this->createBKCompleted();
- 	}
+		// $this->checkStatusOnlineUser();
+	}
 
- 	function updateWorkingDays() {
+	function updateWorkingDays()
+	{
 		global $db, $current_user;
 
-		// $today 			= '2024-01-01';
-		$today 	= date('Y-m-d H:i:s', strtotime('+7 hours'));
+		$today = date('Y-m-d');
 		$start_date 		= date('Y-m-01', strtotime($today));
-		$end_date 		= date('Y-m-t', strtotime($today));
-		$month 			= date('m-Y', strtotime($today));
+		$end_date 			= date('Y-m-t', strtotime($today));
+		$month 				= date('m-Y', strtotime($today));
 		$month_before 		= date('m-Y', strtotime('-1 month', strtotime($today)));
 		$end_date_before 	= date('Y-m-t', strtotime('-1 month', strtotime($start_date)));
-		
-		// từ ngày phải lấy ngày duyệt lương của tháng trước
+
+		// Ngày duyệt lương của tháng trước
 		$sql = '
 			SELECT DATE_FORMAT(approved_date, "%Y-%m-%d") AS from_date 
 			FROM ec_employee_salary 
 			WHERE deleted = 0 
-			AND month = "' . date('n', strtotime('01-'.$month.' -1 month')) . '" 
-			AND year = "' . date('Y', strtotime('01-'.$month.' -1 month')) . '"
+			AND month = "' . date('n', strtotime('01-' . $month . ' -1 month')) . '" 
+			AND year = "' . date('Y', strtotime('01-' . $month . ' -1 month')) . '"
 			LIMIT 1
 		';
-		$res = $db->query($sql);
-		$row_fdate = $db->fetchByAssoc($res);
-		$from_date_q = '';
+		$res 			= $db->query($sql);
+		$row_fdate 		= $db->fetchByAssoc($res);
+		$from_date_q 	= '';
 
-		if(strtotime($row_fdate['from_date']) < strtotime('01-'.$month) && strtotime($row_fdate['from_date']) != false) {
+		if (strtotime($row_fdate['from_date']) < strtotime('01-' . $month) && strtotime($row_fdate['from_date']) != false) {
 			$from_date_s = $row_fdate['from_date'];
 			$from_date_q = ' AND from_date >= "' . $row_fdate['from_date'] . '"';
-			$first_sunday_lastm = 7 - date('N', strtotime($from_date_s)) + 1; 
+			$first_sunday_lastm = 7 - date('N', strtotime($from_date_s)) + 1;
 
-		    for($i = $first_sunday_lastm; $i <= date('t', strtotime('-1 month')); $i+=7) {
-		        if($i > (int)date('d', strtotime($from_date_s)))
-		        	$sundays_lastm_left[] = $i;
-		    }
+			for ($i = $first_sunday_lastm; $i <= date('t', strtotime('-1 month')); $i += 7) {
+				if ($i > (int)date('d', strtotime($from_date_s)))
+					$sundays_lastm_left[] = $i;
+			}
 		} else {
 			$from_date_s = $start_date;
 		}
@@ -60,6 +62,9 @@ class Viewtest extends SugarView {
 				  , ot.working_hour AS overtime
 				  , u.id AS user_id, u.his_stt
 				  , u.start_working_date
+				, u.his_date_start
+              	, u.his_date_end
+				, CONCAT(u.last_name, " ", u.first_name) AS full_name
 				  , (
 					 	SELECT SUM(d.working_hour) / 8
 					 	FROM ec_workingovertimedetails d
@@ -68,7 +73,7 @@ class Viewtest extends SugarView {
 					 	AND t.status = 2
 					 	WHERE d.deleted = 0
 					 	AND d.assigned_user_id = u.id
-					 	AND DATE_FORMAT(t.bonus_month, "%m-%Y") = "'.$month.'" 
+					 	AND DATE_FORMAT(t.bonus_month, "%m-%Y") = "' . $month . '" 
 					 ) AS bonus_work_days
 			FROM (
 					SELECT usr.id, usr.start_working_date
@@ -77,12 +82,13 @@ class Viewtest extends SugarView {
 						 , his.description AS history_desc
 						 , his.status AS his_stt
 						 , his.date_start AS his_date_start 
+						, his.date_end AS his_date_end
 					FROM users usr
 					INNER JOIN ec_workhistory his
 					ON his.assigned_user_id = usr.id
 					AND his.deleted = 0
-					AND DATE_FORMAT(his.date_start, "%Y-%m-01") <= "'.$start_date.'"
-					AND LAST_DAY(IFNULL(his.date_end, "'.$end_date.'")) >= "'.$end_date.'"
+					AND DATE_FORMAT(his.date_start, "%Y-%m-01") <= "' . $start_date . '"
+					AND LAST_DAY(IFNULL(his.date_end, "' . $end_date . '")) >= "' . $end_date . '"
 					WHERE usr.deleted = 0
 				) AS u
 			LEFT JOIN (
@@ -91,12 +97,12 @@ class Viewtest extends SugarView {
 				 , SUM(
 				   IF( from_date > "' . $today . '"
 				   	,  0
-				   	,  CASE WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "'.$month.'" 
-					   AND DATE_FORMAT( to_date, "%m-%Y" ) = "'.$month.'" 
+				   	,  CASE WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "' . $month . '" 
+					   AND DATE_FORMAT( to_date, "%m-%Y" ) = "' . $month . '" 
 					   THEN IFNULL( absence_days, 0 )
-					   WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "'.$month.'" 
-					   THEN DATEDIFF("'.$end_date.'", from_date) + 1
-					   ELSE DATEDIFF(to_date, "'.$start_date.'") + 1 END 
+					   WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "' . $month . '" 
+					   THEN DATEDIFF("' . $end_date . '", from_date) + 1
+					   ELSE DATEDIFF(to_date, "' . $start_date . '") + 1 END 
 				   )
 				 ) AS absence_days
 				 , SUM(
@@ -104,21 +110,21 @@ class Viewtest extends SugarView {
 				   	,  0
 				   	,  CASE 
 				   			-- trong thang, hom nay > ngay ket thuc nghi
-				   			WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "'.$month.'" AND DATE_FORMAT( to_date, "%m-%Y" ) = "'.$month.'" AND (to_date <= "'.$today.'"  OR DATEDIFF("'.$today.'", from_date) >= no_paid_days)
+				   			WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "' . $month . '" AND DATE_FORMAT( to_date, "%m-%Y" ) = "' . $month . '" AND (to_date <= "' . $today . '"  OR DATEDIFF("' . $today . '", from_date) >= no_paid_days)
 				   			THEN IFNULL(no_paid_days, 0)
 
 				   			-- trong thang, hom nay < ngay ket thuc nghi, co chon ngay nghi 0.5 buoi 
-				   			WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "'.$month.'" AND DATE_FORMAT( to_date, "%m-%Y" ) = "'.$month.'" AND to_date > "'.$today.'" AND part_date <= "'.$today.'"
-					   		THEN DATEDIFF("'.$today.'", from_date) + 0.5
+				   			WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "' . $month . '" AND DATE_FORMAT( to_date, "%m-%Y" ) = "' . $month . '" AND to_date > "' . $today . '" AND part_date <= "' . $today . '"
+					   		THEN DATEDIFF("' . $today . '", from_date) + 0.5
 
 					   		-- trong thang, hom nay < ngay ket thuc nghi, ko chon ngay nghi 0.5 buoi 
-					   		WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "'.$month.'" AND DATE_FORMAT( to_date, "%m-%Y" ) = "'.$month.'" AND to_date > "'.$today.'"
-					   		THEN DATEDIFF("'.$today.'", from_date) + 1
+					   		WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "' . $month . '" AND DATE_FORMAT( to_date, "%m-%Y" ) = "' . $month . '" AND to_date > "' . $today . '"
+					   		THEN DATEDIFF("' . $today . '", from_date) + 1
 
 					   		-- khac thang
-						   	WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "'.$month.'" 
-						   	THEN DATEDIFF("'.$end_date.'", from_date) + 1
-						   	ELSE DATEDIFF("'.$end_date.'", "'.$start_date.'") + 1 END
+						   	WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "' . $month . '" 
+						   	THEN DATEDIFF("' . $end_date . '", from_date) + 1
+						   	ELSE DATEDIFF("' . $end_date . '", "' . $start_date . '") + 1 END
 				   ) 
 				 ) AS no_paid_days
 				 , (
@@ -126,23 +132,23 @@ class Viewtest extends SugarView {
 					FROM ec_leaveabsences
 					WHERE deleted = 0
 					AND status = 2 
-					AND (DATE_FORMAT(from_date, "%m-%Y") = "'.$month_before.'" 
-					OR DATE_FORMAT(to_date, "%m-%Y") = "'.$month_before.'")
+					AND (DATE_FORMAT(from_date, "%m-%Y") = "' . $month_before . '" 
+					OR DATE_FORMAT(to_date, "%m-%Y") = "' . $month_before . '")
 					AND assigned_user_id = a.assigned_user_id
 					GROUP BY assigned_user_id
 				) AS used_leave_days_curr
 				FROM ec_leaveabsences a
 				WHERE deleted = 0
 				AND status = 2 AND (DATE_FORMAT(from_date, "%m-%Y") = "' . $month . '" 
-				OR DATE_FORMAT(to_date, "%m-%Y") = "' . $month . '")' . $from_date_q .'
+				OR DATE_FORMAT(to_date, "%m-%Y") = "' . $month . '")' . $from_date_q . '
 				GROUP BY assigned_user_id
 			) AS l ON l.assigned_user_id = u.id
 			LEFT JOIN (
 				SELECT SUM(working_hour) AS working_hour, assigned_user_id 
 				FROM ec_workingovertimedetails
 				WHERE deleted = 0 AND status = 2 
-				AND register_date <= "'.$today.'"
-				AND register_date >= "'.$from_date_s.'"
+				AND register_date <= "' . $today . '"
+				AND register_date >= "' . $from_date_s . '"
 				GROUP BY assigned_user_id
 			) AS ot ON ot.assigned_user_id = u.id
 			WHERE u.deleted = 0 
@@ -158,124 +164,130 @@ class Viewtest extends SugarView {
 				END 
 			), u.start_working_date';
 
-		
+
 		// if($current_user->user_name == 'hungnh') {
-			// pr($sql);
-			// die();
+		// 	pr($sql);
 		// }
 
 		$res = $db->query($sql);
-		while($row = $db->fetchByAssoc($res)) {
-			if(
-				($row['his_stt'] != 'InActive' && $row['his_stt'] != 'Absent') 
+		while ($row = $db->fetchByAssoc($res)) {
+			if (
+				($row['his_stt'] != 'InActive' && $row['his_stt'] != 'Absent')
 				|| (($row['his_stt'] == 'InActive' || $row['his_stt'] == 'Absent') && date('m-Y', strtotime($row['his_date_start'])) == $month)
 			) {
-			    // tính ngày bắt đầu
-			    if($month == date('m-Y')) {
-			    		$tdate = date('j'); //Ngày hiện tại trong tháng - without leading zeros
 
-			        	if(date('m-Y') == date('m-Y', strtotime($row['his_date_start'])))
+				// tính ngày bắt đầu
+				if ($month == date('m-Y')) {
+					$tdate = date('j'); //Ngày hiện tại trong tháng - without leading zeros
+
+					if (date('m-Y') == date('m-Y', strtotime($row['his_date_start'])))
 						$working_days = date('j') - date('j', strtotime($row['his_date_start'])) + 1;
-					else 
+					else
 						$working_days = date('j', strtotime($today));
-			    } else {
+				} else {
 					$tdate = date('j', strtotime($end_date));
-					if(strtotime($end_date) < strtotime($row['his_date_start']))
+					if (strtotime($end_date) < strtotime($row['his_date_start']))
 						$working_days = $tdate = 0;
-					else if(strtotime($start_date) < strtotime($row['his_date_start']) && strtotime($end_date) >= strtotime($row['his_date_end'])) 
+					else if ($row['his_date_start'] && strtotime($start_date) < strtotime($row['his_date_start']) && $row['his_date_end'] && strtotime($end_date) >= strtotime($row['his_date_end']))
 						$working_days = date('j', strtotime($row['his_date_end'])) - date('j', strtotime($row['his_date_start'])) + 1;
 					else
 						$working_days = date('t', strtotime($start_date));
-			    }
+				}
 
-				// tính những ngày nghỉ không lương
-				$sql1 = '
-					SELECT *
-					FROM ec_leaveabsences
-					WHERE deleted = 0
-					AND status = 2 
-					AND (
-						DATE_FORMAT(from_date, "%m-%Y") = "' . $month . '" 
-						OR DATE_FORMAT(to_date, "%m-%Y") = "' . $month . '"
-					)
-					AND assigned_user_id = "' . $row['user_id'] . '"
-				';
-				$res1 = $db->query($sql1);
+				// Tính những ngày nghỉ không lương
 				$no_paid_days = 0;
+				if ($row['user_id']) {
+					$sql1 = '
+						SELECT *
+						FROM ec_leaveabsences
+						WHERE deleted = 0
+						AND status = 2 
+						AND (
+							DATE_FORMAT(from_date, "%m-%Y") = "' . $month . '" 
+							OR DATE_FORMAT(to_date, "%m-%Y") = "' . $month . '"
+						)
+						AND assigned_user_id = "' . $row['user_id'] . '"
+					';
+					$res1 = $db->query($sql1);
 
-				while($row1 = $db->fetchByAssoc($res1)) {
-					if((float)$row1['no_paid_days'] > 0) {
-						// xin trong tháng
-						if(
-							strtotime($row1['from_date']) >= strtotime($start_date)
-							&& strtotime($row1['to_date']) <= strtotime($end_date)
-						) {
-							// nếu ngày hiện tại chưa tới ngày kết thúc nghỉ
-							if(strtotime($row1['to_date']) > strtotime($today)) {
-								if(strtotime($today) > strtotime($row1['from_date'])) {
-									// đếm số ngày nghỉ cho đến hiện tại
-									$leaves = myCalculateDayBetweenDates($row1['from_date'], $today) + 1;
-									// nếu số ngày nghỉ > nghỉ không lương
-									if($leaves - $row1['no_paid_days'] >= 0) {
-										$no_paid_days += $row1['no_paid_days'];
-									// ngược lại
-									} else {
-										// kiểm tra có CN
-										$tt_sun = $this->calSundaysBetweenTwoDays($row1['from_date'], $today);
-										$no_paid_days = $leaves - $tt_sun;
-									}
-								} else $no_paid_days = 0;
-							} else {
-								$no_paid_days += $row1['no_paid_days'];
-							}
-						// xin khác tháng
-						} else {
-							// ngày bắt đầu thuộc tháng trước
-							if(strtotime($row1['from_date']) < strtotime($start_date)) {
-								$leaves = myCalculateDayBetweenDates($row1['from_date'], $end_date_before) + 1;
-								$tt_sun = $this->calSundaysBetweenTwoDays($row1['from_date'], $end_date_before);
-								if(($leaves - $tt_sun) < $row1['no_paid_days']) {
-									$row1['no_paid_days'] -= ($leaves - $tt_sun);
+					while ($row1 = $db->fetchByAssoc($res1)) {
+						if ((float)$row1['no_paid_days'] > 0) {
+							// xin trong tháng
+							if (
+								strtotime($row1['from_date']) >= strtotime($start_date)
+								&& strtotime($row1['to_date']) <= strtotime($end_date)
+							) {
+								// nếu ngày hiện tại chưa tới ngày kết thúc nghỉ
+								if (strtotime($row1['to_date']) > strtotime($today)) {
+									if (strtotime($today) > strtotime($row1['from_date'])) {
+										// đếm số ngày nghỉ cho đến hiện tại
+										$leaves = myCalculateDayBetweenDates($row1['from_date'], $today) + 1;
+										// nếu số ngày nghỉ > nghỉ không lương
+										if ($leaves - $row1['no_paid_days'] >= 0) {
+											$no_paid_days += $row1['no_paid_days'];
+											// ngược lại
+										} else {
+											// kiểm tra có CN
+											$tt_sun = $this->calSundaysBetweenTwoDays($row1['from_date'], $today);
+											$no_paid_days = $leaves - $tt_sun;
+										}
+									} else $no_paid_days = 0;
+								} else {
+									$no_paid_days += $row1['no_paid_days'];
 								}
-								if(strtotime($row1['to_date']) <= strtotime($today)) {
-									$leaves2 = myCalculateDayBetweenDates($start_date, $today) + 1;
-									$tt_sun2 = $this->calSundaysBetweenTwoDays($start_date, $today);
-									if($leaves2 - $tt_sun2 < $row1['no_paid_days']) {
-										$no_paid_days += $leaves2 - $tt_sun2;
+								// xin khác tháng
+							} else {
+								// ngày bắt đầu thuộc tháng trước
+								if (strtotime($row1['from_date']) < strtotime($start_date)) {
+									$leaves = myCalculateDayBetweenDates($row1['from_date'], $end_date_before) + 1;
+									$tt_sun = $this->calSundaysBetweenTwoDays($row1['from_date'], $end_date_before);
+									if (($leaves - $tt_sun) < $row1['no_paid_days']) {
+										$row1['no_paid_days'] -= ($leaves - $tt_sun);
+									}
+									if (strtotime($row1['to_date']) <= strtotime($today)) {
+										$leaves2 = myCalculateDayBetweenDates($start_date, $today) + 1;
+										$tt_sun2 = $this->calSundaysBetweenTwoDays($start_date, $today);
+										if ($leaves2 - $tt_sun2 < $row1['no_paid_days']) {
+											$no_paid_days += $leaves2 - $tt_sun2;
+										} else {
+											$no_paid_days += $row1['no_paid_days'];
+										}
 									} else {
 										$no_paid_days += $row1['no_paid_days'];
 									}
 								} else {
-									$no_paid_days += $row1['no_paid_days'];
-								}
-							} else {
-								$leaves = myCalculateDayBetweenDates($row1['from_date'], $end_date) + 1;
-								if ($leaves < $row['no_paid_days']) {
-									$no_paid_days += $leaves;
+									$leaves = myCalculateDayBetweenDates($row1['from_date'], $end_date) + 1;
+									if ($leaves < $row['no_paid_days']) {
+										$no_paid_days += $leaves;
+									}
 								}
 							}
 						}
 					}
 				}
 
-			    // tính các ngày chủ nhật
-			    $sundays = array();
-			    $first_sunday = 7 - date('N', strtotime($start_date)) + 1; 
-			    for($i = $first_sunday; $i <= $tdate; $i+=7) {
-			    	if(strtotime($i.'-'.$month) >= strtotime($row['his_date_start']) && strtotime($i . '-' . $month) <= strtotime($row['his_date_end']))
-			        	$sundays[] = $i;
-			    }
-			    $exclude_days = array_unique(array_merge($sundays), 0);
+				// Tính các ngày chủ nhật
+				$sundays = array();
+				$first_sunday = 7 - date('N', strtotime($start_date)) + 1;
+
+				// for ($i = $first_sunday; $i <= $tdate; $i += 7) {
+				// 	if (strtotime($i . '-' . $month) >= strtotime($row['his_date_start']) && strtotime($i . '-' . $month) <= strtotime($row['his_date_end']))
+				// 		$sundays[] = $i;
+				// }
+				for($i = $first_sunday; $i <= $tdate; $i+=7) {
+					if(strtotime($i.'-'.$month) >= strtotime($row['start_working_date']))
+						$sundays[] = $i;
+				}
+				$exclude_days = array_unique(array_merge($sundays), 0);
 
 				// tính số ngày công
-				if(strtotime($from_date_s) < strtotime($start_date)) {
+				if (strtotime($from_date_s) < strtotime($start_date)) {
 					$bonus_days = date('t', strtotime($from_date_s)) - date('d', strtotime($from_date_s)) - count($sundays_lastm_left);
 					$working_days += $bonus_days;
 				}
 
-				$working_days = $working_days - count($exclude_days) - (float)$no_paid_days + ($row['overtime'] / 8) + $row['bonus_work_days'];
-				
-				if($working_days <= 0) $working_days = 0;
+				$working_days = $working_days - count($exclude_days) - (float)$no_paid_days + (int)($row['overtime'] / 8) + (int)$row['bonus_work_days'];
+				if ($working_days <= 0) $working_days = 0;
 
 				$sql2 = '
 					UPDATE ec_employee_salary 
@@ -284,394 +296,32 @@ class Viewtest extends SugarView {
 						   , ot_days = ' . ($row['overtime'] / 8) . ' 
 						   , no_paid_days = ' . (float)$row['no_paid_days'] . '
 					WHERE is_approved = 0 
-					AND assigned_user_id = "'.$row['user_id'] . '"
-					AND month = "' .date('n', strtotime($today)) . '" 
-					AND year = "'.date('Y', strtotime($today)) . '"
+					AND assigned_user_id = "' . $row['user_id'] . '"
+					AND month = "' . date('n', strtotime($today)) . '" 
+					AND year = "' . date('Y', strtotime($today)) . '"
 					AND deleted = 0';
-
 				$db->query($sql2);
 
-			// những nhân viên đã nghỉ hoặc tạm vắng thì không tính công
+				// những nhân viên đã nghỉ hoặc tạm vắng thì không tính công
 			} else {
 				$sql2 = 'UPDATE ec_employee_salary 
 						 SET working_days = 0
 						   , ot_days = 0 
 						   , no_paid_days = 0
 						 WHERE is_approved = 0 
-						 AND assigned_user_id = "'.$row['user_id'].'"
-						 AND month="'.date('n', strtotime($today)).'" 
-						 AND year = "'.date('Y', strtotime($today)).'" 
+						 AND assigned_user_id = "' . $row['user_id'] . '"
+						 AND month="' . date('n', strtotime($today)) . '" 
+						 AND year = "' . date('Y', strtotime($today)) . '" 
 						 AND deleted = 0';
 				$db->query($sql2);
 			}
 		}
-		return true;
-	}
-
-	// thưởng doanh số
-	function updateSales() {
-		global $db;
-
-		$from_date = '2023-10-01';
-		$to_date = '2023-10-31';
-
-		if (date('j') == 1) {
-			$from_date = date('Y-m-01', strtotime('-1 month'));
-			$to_date = date('Y-m-t', strtotime('-1 month'));
-		}
-
-		// lấy target của công ty trong tháng
-		$sql_target_com = '
-			SELECT target_month' . date('n', strtotime($from_date)) . ' 
-			FROM ec_targets 
-			WHERE deleted = 0 AND status = 2 
-			AND year = "' . date('Y', strtotime($from_date)) . '" 
-			AND target_type = 0';
-		$target_month = $db->getOne($sql_target_com);
-
-		// tổng doanh số công ty
-		$sql_total_sales = '
-		SELECT (SUM(t.doanhso) 
-				- SUM(t.luggage_purchase_price))  AS doanhso 
-		FROM (
-			SELECT 	bk.assigned_user_id AS user_id,
-				bk.id, bk.id AS voucher_id,
-				COUNT( bk.id ) / COUNT( dt.id ) AS total_bk,
-				SUM( dt.quantity ) AS total_qty,
-				SUM( bk.total_amount ) / COUNT( dt.id ) - SUM(
-				IFNULL( dt.total_bought_price, 0 )) - IFNULL((SELECT SUM(amount) FROM ec_payment_voucher WHERE deleted=0 AND booking_id=bk.id AND pv_status="3" AND ec_payment_types_id_c="3f9f8060-1866-2b2e-8322-52e36b8f58d5"), 0) AS doanhso,
-				(
-					SELECT
-						SUM(IF(luggage_price > 0, IFNULL( luggage_purchase, 0 ), 0) + IF(luggage_price_inbound > 0, IFNULL( luggage_purchase_inbound, 0 ), 0)) 
-					FROM
-						ec_booking_passengers 
-					WHERE
-						deleted = 0 
-						AND booking_id = bk.id 
-						AND add_type IS NULL
-				) AS luggage_purchase_price 
-			FROM
-				ec_flight_bookings bk
-				LEFT JOIN ec_booking_details dt ON dt.booking_id = bk.id 
-				AND dt.deleted = 0 
-			WHERE
-				bk.deleted = 0 
-				AND bk.booking_status = 8 
-				AND bk.date_ticket_issue >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND bk.date_ticket_issue <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY
-				bk.assigned_user_id,
-				bk.id 
-
-			-- hoanve
-			UNION
-			SELECT
-				bk.assigned_user_id AS user_id,
-				bk.id, hv.id AS voucher_id,
-				0 AS total_bk,
-				- COUNT( cthv.id ) AS total_qty,
-				IF(SUM(IFNULL( cthv.phidichvu, 0 )) > 0, 0, SUM(IFNULL( cthv.phidichvu, 0 ))) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_chitiethoanve cthv
-				LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id 
-				AND hv.deleted = 0
-				LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				cthv.deleted = 0 
-				AND hv.tinhtrang = 1 
-				AND hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '"
-			GROUP BY hv.id
-
-			-- hoanve > 0
-			UNION
-			SELECT
-				hv.assigned_user_id AS user_id,
-				bk.id, hv.id AS voucher_id,
-				0 AS total_bk,
-				0 AS total_qty,
-				SUM(IFNULL( cthv.phidichvu, 0 )) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_chitiethoanve cthv
-				LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id 
-				AND hv.deleted = 0
-				LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				cthv.deleted = 0 
-				AND hv.tinhtrang = 1 
-				AND hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY hv.id
-			HAVING SUM(IFNULL( cthv.phidichvu, 0 )) > 0
-
-			-- phieu thu hanh ly, doi ngay bay, doi ten
-			UNION
-			SELECT
-				t.assigned_user_id AS user_id,
-				bk.id, t.id AS voucher_id,
-				0 AS total_bk,
-				0 AS total_qty,
-				SUM(IFNULL( t.sell_amount, 0 ) + IFNULL( t.sell_amount2, 0 ) + IFNULL( t.sell_amount3, 0 )) 
-				- SUM(IFNULL( t.bought_amount, 0 ) + IFNULL( t.bought_amount2, 0 ) + IFNULL( t.bought_amount3, 0 )) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_receipt_voucher t
-				LEFT JOIN ec_flight_bookings bk ON bk.id = t.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				t.deleted = 0 
-				AND t.rv_status = 1 
-				AND t.loai_thu IN ( 4, 5 ) 
-				AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY t.id
-		) AS t';
-		$total_sales = $db->getOne($sql_total_sales);
-
-		if (!empty($target_month) && $total_sales > 0.8 * $target_month) {
-			// mức thưởng doanh số
-			$sql_rate_bonus = '
-				SELECT * FROM ec_commission 
-				WHERE deleted = 0 AND DATE_FORMAT(date_entered, "%Y-%m-%d") = ( 
-					SELECT DATE_FORMAT(date_entered, "%Y-%m-%d") FROM ec_commission 
-					WHERE deleted = 0 AND CONCAT(year, "-", month, "-01") <= "' . date('Y-n-01') . '"
-					ORDER BY date_entered DESC
-					LIMIT 1
-				)';
-			$res_rate_bonus = $db->query($sql_rate_bonus);
-			$m = 0;
-			while ($row_rate_bonus = $db->fetchByAssoc($res_rate_bonus)) {
-				$rate['from_value'][] = $row_rate_bonus['from_value'];
-				$rate['to_value'][] = $row_rate_bonus['to_value'];
-				$rate['percentage'][] = $row_rate_bonus['percentage'];
-				// lấy doanh số tối thiểu
-				if ($m == 0) {
-					$min_rate = $row_rate_bonus['from_value'];
-				}
-				$m++;
-			}
-		}
-
-		// nếu ds công ty trên 80% thì không trừ lương
-		// nếu ds công ty đạt 100% thì xét thưởng  
-		// nếu có thưởng, ds booker trên ds tối thiểu thì xét thưởng theo tỉ lệ 7:2:1
-		// nếu ds booker không đạt 70tr thì trừ lương
-		// ds thưởng = tổng doanh số - doanh số của những booking cú đêm
-		$sql = '
-		SELECT 
-			  t.user_id, CONCAT(u.last_name, " ", IFNULL( u.first_name, "" )) AS full_name
-			, u.title AS user_title
-			, SUM(t.total_bk) AS total_bk
-			, SUM(t.total_qty) AS ticket_qty
-			, (SUM(t.doanhso) - SUM(t.luggage_purchase_price) - s.profit_overnight)  AS doanhso
-			, (SUM(t.doanhso) - SUM(t.luggage_purchase_price))  AS tongdoanhso 
-			, s.basic_salary, s.efficient_wage, s.working_days
-			, (IFNULL(s.gas_allowance, 0) + IFNULL(s.lunch_allowance, 0) + IFNULL(s.tele_allowance, 0) + IFNULL(s.responsible_allowance, 0) + IFNULL(s.seniority_allowance, 0) + IFNULL(s.other_allowance1, 0) + IFNULL(s.other_allowance2, 0)) AS allowance
-		FROM (
-			SELECT 	
-				bk.assigned_user_id AS user_id,
-				bk.id, bk.id AS voucher_id,
-				COUNT( bk.id ) / COUNT( dt.id ) AS total_bk,
-				SUM( dt.quantity ) AS total_qty,
-				SUM( bk.total_amount ) / COUNT( dt.id ) - SUM(
-				IFNULL( dt.total_bought_price, 0 )) - IFNULL((SELECT SUM(amount) FROM ec_payment_voucher WHERE deleted=0 AND booking_id=bk.id AND pv_status="3" AND ec_payment_types_id_c="3f9f8060-1866-2b2e-8322-52e36b8f58d5"), 0) AS doanhso,
-				(
-					SELECT
-						SUM(IF(luggage_price > 0, IFNULL( luggage_purchase, 0 ), 0) + IF(luggage_price_inbound > 0, IFNULL( luggage_purchase_inbound, 0 ), 0)) 
-					FROM
-						ec_booking_passengers 
-					WHERE
-						deleted = 0 
-						AND booking_id = bk.id 
-						AND add_type IS NULL
-				) AS luggage_purchase_price 
-			FROM
-				ec_flight_bookings bk
-				LEFT JOIN ec_booking_details dt ON dt.booking_id = bk.id 
-				AND dt.deleted = 0 
-			WHERE
-				bk.deleted = 0 
-				AND bk.booking_status = 8 
-				AND bk.date_ticket_issue >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND bk.date_ticket_issue <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY
-				bk.id 
-
-			-- hoanve
-			UNION
-			SELECT
-				bk.assigned_user_id AS user_id,
-				bk.id, hv.id AS voucher_id,
-				0 AS total_bk,
-				- COUNT( cthv.id ) AS total_qty,
-				IF(SUM(IFNULL( cthv.phidichvu, 0 )) > 0, 0, SUM(IFNULL( cthv.phidichvu, 0 ))) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_chitiethoanve cthv
-				LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id 
-				AND hv.deleted = 0
-				LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				cthv.deleted = 0 
-				AND hv.tinhtrang = 1 
-				AND hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '"
-			GROUP BY hv.id
-
-			-- hoanve > 0
-			UNION
-			SELECT
-				hv.assigned_user_id AS user_id,
-				bk.id, hv.id AS voucher_id,
-				0 AS total_bk,
-				0 AS total_qty,
-				SUM(IFNULL( cthv.phidichvu, 0 )) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_chitiethoanve cthv
-				LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id 
-				AND hv.deleted = 0
-				LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				cthv.deleted = 0 
-				AND hv.tinhtrang = 1 
-				AND hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY hv.id
-			HAVING SUM(IFNULL( cthv.phidichvu, 0 )) > 0
-
-			-- phieu thu hanh ly, doi ngay bay, doi ten
-			UNION
-			SELECT
-				t.assigned_user_id AS user_id,
-				bk.id, t.id AS voucher_id,
-				0 AS total_bk,
-				0 AS total_qty,
-				SUM(IFNULL( t.sell_amount, 0 ) + IFNULL( t.sell_amount2, 0 ) + IFNULL( t.sell_amount3, 0 )) 
-				- SUM(IFNULL( t.bought_amount, 0 ) + IFNULL( t.bought_amount2, 0 ) + IFNULL( t.bought_amount3, 0 )) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_receipt_voucher t
-				LEFT JOIN ec_flight_bookings bk ON bk.id = t.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				t.deleted = 0 
-				AND t.rv_status IN ( 1, 2 )
-				AND t.loai_thu IN ( 4, 5 )
-				AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY t.id
-		) AS t
-		LEFT JOIN users u ON u.id = t.user_id
-		LEFT JOIN ec_employee_salary s ON s.assigned_user_id = u.id
-		AND s.month = ' . date('n', strtotime($from_date)) . ' 
-		AND s.year = ' . date('Y', strtotime($from_date)) . ' AND s.deleted = 0
-		GROUP BY t.user_id
-		ORDER BY doanhso DESC';
-		$res = $db->query($sql);
-		$not_enough = 0;
-		// mức ds tối thiểu để không giảm trừ
-		$minus_sale_rate = 70000000;
-		while ($row = $db->fetchByAssoc($res)) {
-			$bonus = 0;
-			// nếu ds công ty đạt 100% thì xét thưởng
-			if (!empty($target_month) && $total_sales >= $target_month) {
-				// đối với booker
-				if (trim($row['user_title']) == 'Booker') {
-					// trên mức doanh số tối thiểu
-					if ($row['doanhso'] > $min_rate) {
-						for ($i = 0; $i < count($rate['from_value']); $i++) {
-							if ($row['doanhso'] > $rate['from_value'][$i] && $row['doanhso'] <= $rate['to_value'][$i]) {
-								// doanh số cho booker là 90% bonus
-								$bonus = 0.7 * ($row['doanhso'] - $rate['from_value'][0]) * $rate['percentage'][$i] / 100;
-
-								// chia cho quỹ dự phòng
-								$backup_fund = 0.1 * ($row['doanhso'] - $rate['from_value'][0]) * $rate['percentage'][$i] / 100;
-							}
-						}
-
-						// cập nhật thưởng doanh số cho từng người
-						$sql2 = '
-							UPDATE ec_employee_salary 
-							SET sales = ' . round($bonus) . '
-						  	  , backup_fund = ' . round($backup_fund) . '
-							WHERE deleted = 0
-							AND assigned_user_id = "' . $row['user_id'] . '" 
-							AND month = "' . date('n', strtotime($from_date)) . '" 
-							AND year = "' . date('Y', strtotime($from_date)) . '"
-							AND is_approved = 0';
-						$db->query($sql2);
-					
-					// nếu tổng doanh số < 70000000 thì trừ thu nhập
-					} else if($row['tongdoanhso'] < $minus_sale_rate) {
-						$minus_amt = ($row['basic_salary'] + $row['efficient_wage'] + $row['allowance']) / 26 * $row['working_days'] * ($minus_sale_rate - $row['tongdoanhso']) / $minus_sale_rate;
-
-						$sql2 = '
-							UPDATE ec_employee_salary 
-							SET sales = 0
-						  	  , backup_fund = 0
-							  , minus_income = ' . round($minus_amt) . '
-							WHERE deleted = 0
-							AND assigned_user_id = "' . $row['user_id'] . '" 
-							AND month = "' . date('n', strtotime($from_date)) . '" 
-							AND year = "' . date('Y', strtotime($from_date)) . '"
-							AND is_approved = 0';
-						$db->query($sql2);
-					}
-				}
-			} else {
-				$not_enough = 1;
-				if($row['tongdoanhso'] < $minus_sale_rate && trim($row['user_title']) == 'Booker') {
-					$minus_amt = round(($row['basic_salary'] + $row['efficient_wage'] + $row['allowance']) / 26 * $row['working_days']) * (1 - $row['tongdoanhso'] / $minus_sale_rate);
-
-					$sql2 = '
-						UPDATE ec_employee_salary 
-						SET sales = 0
-							, backup_fund = 0
-							, minus_income = ' . round($minus_amt) . '
-						WHERE deleted = 0
-						AND assigned_user_id = "' . $row['user_id'] . '" 
-						AND month = "' . date('n', strtotime($from_date)) . '" 
-						AND year = "' . date('Y', strtotime($from_date)) . '"
-						AND is_approved = 0';
-					$db->query($sql2);
-				} else {
-					$sql2 = '
-						UPDATE ec_employee_salary 
-						SET sales = 0
-							, backup_fund = 0
-							, minus_income = 0
-						WHERE deleted = 0
-						AND assigned_user_id = "' . $row['user_id'] . '" 
-						AND month = "' . date('n', strtotime($from_date)) . '" 
-						AND year = "' . date('Y', strtotime($from_date)) . '"
-						AND is_approved = 0';
-					$db->query($sql2);
-				}
-			}
-		}
-
-		// nếu ds công ty không đạt 100% thì không có thưởng
-		if ($not_enough) {
-			$sql2 = '
-			UPDATE ec_employee_salary 
-			SET sales = 0, backup_fund = 0
-			WHERE deleted = 0 
-			AND month = "' . date('m', strtotime($from_date)) . '" 
-			AND year = "' . date('Y', strtotime($from_date)) . '"';
-			$db->query($sql2);
-		}
 
 		return true;
 	}
 
-	function updateEfforts() {
+	function updateEfforts()
+	{
 		global $db, $current_user;
 
 		// $fdate = date('Y-m-01');
@@ -767,11 +417,11 @@ class Viewtest extends SugarView {
 							INNER JOIN ec_flight_bookings b ON b.id = dt.booking_id AND b.deleted = 0
 						WHERE
 							dt.deleted = 0 
-							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) >= "'.$fdate.' 00:00:00"
-							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) <= "'.$tdate.' 23:59:59"
+							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) >= "' . $fdate . ' 00:00:00"
+							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) <= "' . $tdate . ' 23:59:59"
 						GROUP BY b.id
-						HAVING start_process_time >= "'.$fdate.' 00:00:00" 
-							AND start_process_time <= "'.$tdate. ' 23:59:59" 
+						HAVING start_process_time >= "' . $fdate . ' 00:00:00" 
+							AND start_process_time <= "' . $tdate . ' 23:59:59" 
 							AND start_process_time NOT BETWEEN DATE_FORMAT( start_process_time, "%Y-%m-%d 07:31:00") AND DATE_FORMAT( start_process_time, "%Y-%m-%d 20:59:59")
 					) AS o
 					GROUP BY o.assigned_user_id
@@ -784,8 +434,8 @@ class Viewtest extends SugarView {
 						 , p.assigned_user_id 
 					FROM ec_working_process p 
 					INNER JOIN ec_flight_bookings b ON b.id = p.parent_id AND b.deleted = 0
-					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "'.$fdate.' 00:00:00" 
-					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "'.$tdate. ' 23:59:59" 
+					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "' . $fdate . ' 00:00:00" 
+					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "' . $tdate . ' 23:59:59" 
 					WHERE p.deleted = 0 AND p.ticket_delivery = 1  
 					GROUP BY p.assigned_user_id
 
@@ -798,8 +448,8 @@ class Viewtest extends SugarView {
 					FROM ec_salary_details
 					WHERE deleted = 0
 					AND type = "bonus"
-					AND voucher_date >= "'.$fdate.'"
-					AND voucher_date <= "'.date('Y-m-d', strtotime($tdate)).'"
+					AND voucher_date >= "' . $fdate . '"
+					AND voucher_date <= "' . date('Y-m-d', strtotime($tdate)) . '"
 					GROUP BY assigned_user_id
 
 					-- Giao thuc pham ben PT
@@ -812,8 +462,8 @@ class Viewtest extends SugarView {
 						, p.assigned_user_id 
 						FROM ec_working_process p 
 						INNER JOIN ec_receipt_voucher rv ON rv.id = p.parent_id AND rv.deleted = 0
-						AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "'.$fdate.' 00:00:00" 
-						AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "'.$tdate.' 23:59:59" 
+						AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "' . $fdate . ' 00:00:00" 
+						AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "' . $tdate . ' 23:59:59" 
 						WHERE p.deleted = 0 AND p.ticket_delivery = 1  
 					GROUP BY p.assigned_user_id
 				) AS t ON s.assigned_user_id = t.assigned_user_id
@@ -822,7 +472,7 @@ class Viewtest extends SugarView {
 				AND s.deleted = 0
 				GROUP BY s.assigned_user_id';
 
-									
+
 		// if($current_user->user_name == 'hungnh'){
 		// 	pr($sql);
 		// 	die();
@@ -830,9 +480,9 @@ class Viewtest extends SugarView {
 
 
 		$res = $db->query($sql);
-		while($row = $db->fetchByAssoc($res)) {
-			
-			if(!empty($row['overnight_bk'])) {
+		while ($row = $db->fetchByAssoc($res)) {
+
+			if (!empty($row['overnight_bk'])) {
 				// tính ds bk cú đêm được tính 20k
 				$overnight_bk_arr = explode(',', $row['overnight_bk']);
 				$total_profit = $this->calculateTotalBKProfit($row['assigned_user_id'], $fdate, $tdate, $overnight_bk_arr);
@@ -850,15 +500,15 @@ class Viewtest extends SugarView {
 			// 	AND month = "'.date('n', strtotime($fdate)).'" 
 			// 	AND year = "'.date('Y', strtotime($fdate)).'" 
 			// 	AND is_approved = 0';
-			
+
 			$sql2 = '
 				UPDATE ec_employee_salary 
-				SET effort = '.(empty($row['amount'])?0:$row['amount']).'
-				  , delivery = '.(empty($row['delivery'])?0:$row['delivery']). '
+				SET effort = ' . (empty($row['amount']) ? 0 : $row['amount']) . '
+				  , delivery = ' . (empty($row['delivery']) ? 0 : $row['delivery']) . '
 				WHERE deleted = 0 
 				AND assigned_user_id = "' . $row['assigned_user_id'] . '" 
-				AND month = "'.date('n', strtotime($fdate)).'" 
-				AND year = "'.date('Y', strtotime($fdate)).'" 
+				AND month = "' . date('n', strtotime($fdate)) . '" 
+				AND year = "' . date('Y', strtotime($fdate)) . '" 
 				AND is_approved = 0';
 			// $db->query($sql2);
 		}
@@ -909,15 +559,16 @@ class Viewtest extends SugarView {
 		$total = 0;
 		while ($row = $db->fetchByAssoc($res)) {
 			$total += $row['doanhso'];
-		}	
+		}
 		return $total;
 	}
 
-	function updateMissingEfforts() {
+	function updateMissingEfforts()
+	{
 		global $db;
 
 		// xoá hết các dòng bonus đã cộng thêm vào tháng hiện tại
-		$sql_d = 'UPDATE ec_salary_details SET deleted = 1 WHERE deleted = 0 AND name = "Bổ sung nỗ lực còn thiếu của tháng '.date('n', strtotime('-1 month')).' năm '.date('Y', strtotime('-1 month')).'"';
+		$sql_d = 'UPDATE ec_salary_details SET deleted = 1 WHERE deleted = 0 AND name = "Bổ sung nỗ lực còn thiếu của tháng ' . date('n', strtotime('-1 month')) . ' năm ' . date('Y', strtotime('-1 month')) . '"';
 		$db->query($sql_d);
 
 		// thêm bonus nỗ lực còn thiếu lại
@@ -974,11 +625,11 @@ class Viewtest extends SugarView {
 							INNER JOIN ec_flight_bookings b ON b.id = dt.booking_id AND b.deleted = 0
 						WHERE
 							dt.deleted = 0 
-							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) >= "'.$fdate.' 00:00:00"
-							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) <= "'.$tdate.' 23:59:59"
+							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) >= "' . $fdate . ' 00:00:00"
+							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) <= "' . $tdate . ' 23:59:59"
 						GROUP BY b.id
-						HAVING start_process_time >= "'.$fdate.' 00:00:00" 
-						AND start_process_time <= "'.$tdate.' 23:59:59" 
+						HAVING start_process_time >= "' . $fdate . ' 00:00:00" 
+						AND start_process_time <= "' . $tdate . ' 23:59:59" 
 						AND start_process_time NOT BETWEEN DATE_FORMAT( start_process_time, "%Y-%m-%d 07:31:00") 
 						AND DATE_FORMAT( start_process_time, "%Y-%m-%d 20:59:59")
 					) AS o
@@ -991,8 +642,8 @@ class Viewtest extends SugarView {
 					FROM ec_working_process p 
 					INNER JOIN ec_flight_bookings b ON b.id = p.parent_id AND b.deleted = 0
 					AND b.booking_status IN (3, 7, 8)
-					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "'.$fdate.' 00:00:00" 
-					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "'.$tdate.' 23:59:59" 
+					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "' . $fdate . ' 00:00:00" 
+					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "' . $tdate . ' 23:59:59" 
 					WHERE p.deleted = 0 AND p.ticket_delivery = 1  
 					GROUP BY p.assigned_user_id
 
@@ -1003,24 +654,25 @@ class Viewtest extends SugarView {
 						 , assigned_user_id			
 					FROM ec_employee_salary
 					WHERE deleted = 0
-					AND month = "'.date('n', strtotime($fdate)).'"
-					AND year = "'.date('Y', strtotime($fdate)). '"
+					AND month = "' . date('n', strtotime($fdate)) . '"
+					AND year = "' . date('Y', strtotime($fdate)) . '"
 					GROUP BY assigned_user_id
 				) AS t GROUP BY t.assigned_user_id';
 		$res = $db->query($sql);
-		while($row = $db->fetchByAssoc($res)) {
+		while ($row = $db->fetchByAssoc($res)) {
 			$bonus = (int)$row['amount'] - (int)$row['saved_overnight'] - (int)$row['saved_delivery'];
-			if($bonus != 0) {
+			if ($bonus != 0) {
 				// kiểm tra đã có chưa, nếu chưa có thì insert, còn nếu có rồi thì update
-				$sql2 = 'INSERT INTO ec_salary_details(id, name, date_entered, date_modified, modified_user_id, created_by, description, deleted, assigned_user_id, bonus_amount, reason, type, voucher_date) VALUES (uuid(), "Bổ sung nỗ lực còn thiếu của tháng '.date('n', strtotime('-1 month')).' năm '.date('Y', strtotime('-1 month')).'", "'.date('Y-m-d H:i:s').'", "'.date('Y-m-d H:i:s').'", 1, 1, "Bổ sung nỗ lực còn thiếu của tháng '.date('n', strtotime('-1 month')).' năm '.date('Y', strtotime('-1 month')).'", 0, "'.$row['assigned_user_id'].'", '.$bonus.', "Khac", "bonus", "'.date('Y-m-01').'")';
+				$sql2 = 'INSERT INTO ec_salary_details(id, name, date_entered, date_modified, modified_user_id, created_by, description, deleted, assigned_user_id, bonus_amount, reason, type, voucher_date) VALUES (uuid(), "Bổ sung nỗ lực còn thiếu của tháng ' . date('n', strtotime('-1 month')) . ' năm ' . date('Y', strtotime('-1 month')) . '", "' . date('Y-m-d H:i:s') . '", "' . date('Y-m-d H:i:s') . '", 1, 1, "Bổ sung nỗ lực còn thiếu của tháng ' . date('n', strtotime('-1 month')) . ' năm ' . date('Y', strtotime('-1 month')) . '", 0, "' . $row['assigned_user_id'] . '", ' . $bonus . ', "Khac", "bonus", "' . date('Y-m-01') . '")';
 				$db->query($sql2);
-		 	} 
+			}
 		}
 
 		return true;
 	}
 
-	function createMonthSalary() {
+	function createMonthSalary()
+	{
 		global $db;
 
 		// $this_m = '2024-01-01';
@@ -1029,7 +681,7 @@ class Viewtest extends SugarView {
 
 		// từ ngày 01 tháng trước
 		$from_date_prev_m = date('Y-m-01', strtotime('-1 month', strtotime($this_m)));
-		
+
 		// kế thừa bảng lương từ tháng trước
 		$sql = '
 			SELECT 
@@ -1047,8 +699,8 @@ class Viewtest extends SugarView {
 				INNER JOIN ec_workhistory his
 				ON his.assigned_user_id = usr.id
 				AND his.deleted = 0
-				AND DATE_FORMAT(his.date_start, "%Y-%m-01") <= "'.$this_m.'"
-				AND LAST_DAY(IFNULL(his.date_end, "'.$end_date.'")) >= "'.$end_date.'"
+				AND DATE_FORMAT(his.date_start, "%Y-%m-01") <= "' . $this_m . '"
+				AND LAST_DAY(IFNULL(his.date_end, "' . $end_date . '")) >= "' . $end_date . '"
 				WHERE usr.deleted = 0
 			) AS u ON u.id = s.assigned_user_id
 			WHERE u.his_stt <> "InActive" AND s.deleted = 0
@@ -1056,7 +708,7 @@ class Viewtest extends SugarView {
 			AND s.year = "' . date('Y', strtotime($from_date_prev_m)) . '"';
 
 		$res = $db->query($sql);
-		while($row = $db->fetchByAssoc($res)) {
+		while ($row = $db->fetchByAssoc($res)) {
 			// nếu có lệnh tạo mới, xoá hồ sơ lương đã tạo cho tháng này
 			// tạo lại hồ sơ mới
 			$sql = 'UPDATE ec_employee_salary SET deleted = 1
@@ -1085,7 +737,8 @@ class Viewtest extends SugarView {
 		}
 	}
 
-	function updateBKSale() {
+	function updateBKSale()
+	{
 		global $db;
 		$sql = '
 			SELECT * FROM ec_flight_bookings
@@ -1095,7 +748,7 @@ class Viewtest extends SugarView {
 		';
 		$res = $db->query($sql);
 
-		while($row = $db->fetchByAssoc($res)) {
+		while ($row = $db->fetchByAssoc($res)) {
 			$bk = new EC_Flight_Bookings;
 			$total_amt = $bk->calculateBKTotalAmt($row['id']);
 			$sql2 = '
@@ -1108,7 +761,8 @@ class Viewtest extends SugarView {
 		}
 	}
 
-	function updateBkQty() {
+	function updateBkQty()
+	{
 		global $db;
 		$sql = '
 			SELECT * FROM ec_flight_bookings
@@ -1131,7 +785,8 @@ class Viewtest extends SugarView {
 		}
 	}
 
-	function updateBKMark() {
+	function updateBKMark()
+	{
 		global $db;
 		$sql = '
 			SELECT SUM(IFNULL(p.total_amount, 0)) AS total_amount, b.assigned_user_id 
@@ -1144,7 +799,7 @@ class Viewtest extends SugarView {
 			GROUP BY b.assigned_user_id
 		';
 		$res = $db->query($sql);
-		while($row = $db->fetchByAssoc($res)) {
+		while ($row = $db->fetchByAssoc($res)) {
 			$sql = '
 				UPDATE users SET total_amount = "' . $row['total_amount'] . '"
 				, exp_mark = ' . (int)($row['total_amount'] / 1000) . '
@@ -1154,7 +809,8 @@ class Viewtest extends SugarView {
 		}
 	}
 
-	function updateBkTicket() {
+	function updateBkTicket()
+	{
 		global $db;
 		$sql = '
 			SELECT SUM(total_qty) AS total_qty, assigned_user_id
@@ -1165,7 +821,7 @@ class Viewtest extends SugarView {
 			GROUP BY assigned_user_id
 		';
 		$res = $db->query($sql);
-		while($row = $db->fetchByAssoc($res)) {
+		while ($row = $db->fetchByAssoc($res)) {
 			$sql2 = '
 				UPDATE users SET total_ticket = ' . $row['total_qty'] . '
 				WHERE id = "' . $row['assigned_user_id'] . '"
@@ -1175,7 +831,8 @@ class Viewtest extends SugarView {
 	}
 
 	// tính các ngày CN giữa 2 ngày
-	function calSundaysBetweenTwoDays($from_date, $to_date) {
+	function calSundaysBetweenTwoDays($from_date, $to_date)
+	{
 		$total_sunday = 0;
 		$date_range = myGetDateRange($from_date, $to_date);
 		foreach ($date_range as $val) {
@@ -1185,7 +842,4 @@ class Viewtest extends SugarView {
 		}
 		return $total_sunday;
 	}
-
 }
-
-?>

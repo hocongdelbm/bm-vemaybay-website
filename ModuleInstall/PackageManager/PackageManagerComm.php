@@ -1,44 +1,4 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
-require_once('include/nusoap/nusoap.php');
 require_once('ModuleInstall/PackageManager/PackageManagerDownloader.php');
 
 define("HTTPS_URL", "https://depot.sugarcrm.com/depot/SugarDepotSoap.php");
@@ -127,7 +87,7 @@ class PackageManagerComm
                 $params['terms_version'] = $terms_version;
             }
 
-            $result = $GLOBALS['SugarDepot']->call('depotLogin', array(array('user_name' => $credentials['username'], 'password' => $credentials['password']),'info'=>$info, 'params' => $params));
+            $result = $GLOBALS['SugarDepot']->call('depotLogin', array(array('user_name' => $credentials['username'], 'password' => $credentials['password']), 'info' => $info, 'params' => $params));
             PackageManagerComm::errorCheck();
             if (!is_array($result)) {
                 $_SESSION['SugarDepotSessionID'] = $result;
@@ -167,7 +127,7 @@ class PackageManagerComm
      * @param filter       a filter which will limit theh number of results returned
      * @return categories_and_packages
      * @see categories_and_packages
-    */
+     */
     public function getCategoryPackages($category_id, $filter = array())
     {
         PackageManagerComm::initialize();
@@ -197,7 +157,7 @@ class PackageManagerComm
      * @param filter       a filter which will limit theh number of results returned
      * @return packages
      * @see packages
-    */
+     */
     public function getPackages($category_id, $filter = array())
     {
         PackageManagerComm::initialize();
@@ -212,7 +172,7 @@ class PackageManagerComm
      * @param package_id  the package id which the release belongs to
      * @return packages
      * @see packages
-    */
+     */
     public function getReleases($category_id, $package_id, $filter = array())
     {
         PackageManagerComm::initialize();
@@ -228,7 +188,7 @@ class PackageManagerComm
      * @param release_id  the release we want to download
      * @return download
      * @see download
-    */
+     */
     public function download($category_id, $package_id, $release_id)
     {
         PackageManagerComm::initialize();
@@ -261,7 +221,7 @@ class PackageManagerComm
     {
         PackageManagerComm::initialize();
         //check for fault
-        $GLOBALS['log']->debug("Performing download from depot: Session ID: ".$_SESSION['SugarDepotSessionID']." Filename: ".$filename);
+        $GLOBALS['log']->debug("Performing download from depot: Session ID: " . $_SESSION['SugarDepotSessionID'] . " Filename: " . $filename);
         return PackageManagerDownloader::download($_SESSION['SugarDepotSessionID'], $filename);
     }
 
@@ -295,7 +255,7 @@ class PackageManagerComm
     {
         PackageManagerComm::initialize();
         //check for fault
-        $GLOBALS['log']->debug("Logging Document: ".$document_id);
+        $GLOBALS['log']->debug("Logging Document: " . $document_id);
         $GLOBALS['SugarDepot']->call('depotDownloadedDocumentation', array('session_id' => $_SESSION['SugarDepotSessionID'], 'document_id' => $document_id));
     }
 
@@ -315,10 +275,10 @@ class PackageManagerComm
         return $GLOBALS['SugarDepot']->call('depotCheckForUpdates', array('session_id' => $_SESSION['SugarDepotSessionID'], 'objects' => $objects_to_check));
     }
     /**
-    * Ping the server to determine if we have established proper communication
-    *
-    * @return true if we can communicate with the server and false otherwise
-    */
+     * Ping the server to determine if we have established proper communication
+     *
+     * @return true if we can communicate with the server and false otherwise
+     */
     public function isAlive()
     {
         PackageManagerComm::initialize(false);
@@ -331,5 +291,5 @@ class PackageManagerComm
         }
     }
     ////////// END: Base Functions for Communicating with the depot
-     ////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////
 }

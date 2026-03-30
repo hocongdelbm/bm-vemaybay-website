@@ -64,12 +64,6 @@ class EC_Flight_BookingsViewList extends ViewList {
 	}
 
 	function display() {
-		// global $current_user;
-
-		// if(isset($current_user->view_percent) && $current_user->view_percent < 100){
-		// 	header('Location: index.php?module=EC_Flight_Bookings&action=currentsales');
-		// }
-
 		$this->lv->quickViewLinks = false;
 		$this->displayCSS();
 		$this->displayJS();
@@ -77,9 +71,8 @@ class EC_Flight_BookingsViewList extends ViewList {
 	}
 
 	function displayCSS() {
-		$css = '';
-		$css = '<link type="text/css" rel="stylesheet" href="modules/'.$this->bean->module_name.'/css/view.list.css">';
-		echo $css;
+		$smarty = new Sugar_Smarty;
+		$smarty->display('modules/' . $this->bean->module_dir . '/tpls/view.list_css.tpl');
 	}
 
 	function displayJS() {

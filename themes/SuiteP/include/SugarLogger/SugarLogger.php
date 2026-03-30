@@ -2,44 +2,7 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 /*********************************************************************************
 
@@ -95,7 +58,7 @@ class SugarLogger implements LoggerTemplate
 
     public function __get(
         $key
-        ) {
+    ) {
         return $this->$key;
     }
 
@@ -131,7 +94,7 @@ class SugarLogger implements LoggerTemplate
         $this->filesuffix = $config->get('logger.file.suffix', $this->filesuffix);
         $this->defaultPerms = $config->get('logger.file.perms', $this->defaultPerms);
         $log_dir = $config->get('log_dir', $this->log_dir);
-        $this->log_dir = $log_dir . (empty($log_dir)?'':'/');
+        $this->log_dir = $log_dir . (empty($log_dir) ? '' : '/');
         unset($config);
         $this->_doInitialization();
         LoggerManager::setLogger('default', 'SugarLogger');
@@ -203,14 +166,14 @@ class SugarLogger implements LoggerTemplate
     public function log(
         $level,
         $message
-        ) {
+    ) {
         global $sugar_config;
 
         if (!$this->initialized) {
             return;
         }
         //lets get the current user id or default to -none- if it is not set yet
-        $userID = (!empty($GLOBALS['current_user']->id))?$GLOBALS['current_user']->id:'-none-';
+        $userID = (!empty($GLOBALS['current_user']->id)) ? $GLOBALS['current_user']->id : '-none-';
 
         //if we haven't opened a file pointer yet let's do that
         if (! $this->fp) {
@@ -237,7 +200,7 @@ class SugarLogger implements LoggerTemplate
         fwrite(
             $this->fp,
             strftime($this->dateFormat) . ' [' . getmypid() . '][' . $userID . '][' . strtoupper($level) . '] ' . $message . "\n"
-            );
+        );
     }
 
     /**
@@ -245,7 +208,7 @@ class SugarLogger implements LoggerTemplate
      */
     protected function rollLog(
         $force = false
-        ) {
+    ) {
         if (!$this->initialized || empty($this->logSize)) {
             return;
         }
@@ -257,16 +220,16 @@ class SugarLogger implements LoggerTemplate
             'g' => 1024 * 1024 * 1024,  //GBytes
         );
         if (preg_match('/^\s*([0-9]+\.[0-9]+|\.?[0-9]+)\s*(k|m|g|b)(b?ytes)?/i', $this->logSize, $match)) {
-            $rollAt = ( int ) $match[1] * $units[strtolower($match[2])];
+            $rollAt = (int) $match[1] * $units[strtolower($match[2])];
         }
         //check if our log file is greater than that or if we are forcing the log to roll if and only if roll size assigned the value correctly
         if ($force || ($rollAt && filesize($this->full_log_file) >= $rollAt)) {
             //now lets move the logs starting at the oldest and going to the newest
-            for ($i = $this->maxLogs - 2; $i > 0; $i --) {
-                if (file_exists($this->log_dir . $this->logfile . $this->date_suffix . '_'. $i . $this->ext)) {
+            for ($i = $this->maxLogs - 2; $i > 0; $i--) {
+                if (file_exists($this->log_dir . $this->logfile . $this->date_suffix . '_' . $i . $this->ext)) {
                     $to = $i + 1;
-                    $old_name = $this->log_dir . $this->logfile . $this->date_suffix . '_'. $i . $this->ext;
-                    $new_name = $this->log_dir . $this->logfile . $this->date_suffix . '_'. $to . $this->ext;
+                    $old_name = $this->log_dir . $this->logfile . $this->date_suffix . '_' . $i . $this->ext;
+                    $new_name = $this->log_dir . $this->logfile . $this->date_suffix . '_' . $to . $this->ext;
                     //nsingh- Bug 22548  Win systems fail if new file name already exists. The fix below checks for that.
                     //if/else branch is necessary as suggested by someone on php-doc ( see rename function ).
                     sugar_rename($old_name, $new_name);

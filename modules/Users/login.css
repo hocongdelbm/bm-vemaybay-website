@@ -64,6 +64,43 @@ textarea {
 	margin-top: 10px;
 }
 
-.dashletPanelMenu .bd .bd-center {
-	padding-top: 0px;
+/* haihugn */
+#wait_pwd_generation{
+	display: none;
+}
+
+#wait_pwd_generation.active {
+    width: 50px;
+    height: 50px;
+    display: grid;
+    border: 4px solid #0000;
+    border-radius: 50%;
+    border-color: #dbdcef #0000;
+    animation: spinner-login 1s infinite linear;
+    margin: 10px auto;
+}
+
+#wait_pwd_generation::before, #wait_pwd_generation::after {
+    content: "";
+    grid-area: 1/1;
+    margin: 2.2px;
+    border: inherit;
+    border-radius: 50%;
+}
+
+#wait_pwd_generation::before {
+    border-color: #474bff #0000;
+    animation: inherit;
+    animation-duration: 0.5s;
+    animation-direction: reverse;
+}
+
+#wait_pwd_generation::after {
+    margin: 8.9px;
+}
+
+@keyframes spinner-login {
+    100% {
+        transform: rotate(1turn);
+    }
 }

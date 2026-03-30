@@ -1,0 +1,562 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    background: #f4f5f6;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 3px 8px rgba(12, 12, 12, 0.3);
+    overflow: hidden;
+}
+
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+.header {
+    /* background:rgb(7 65 229 / 82%); */
+    /* color: white; */
+    padding: 15px 0px;
+    /* text-align: center; */
+}
+
+.searchForm {
+    padding: 1rem 0rem !important;
+}
+
+.searchForm {
+    font-size: 0.90rem;
+}
+
+.searchForm .select2-container .select2-selection--single .select2-selection__rendered {
+    font-size: 0.90rem;
+    /* height: 38px !important; */
+    /* padding-top: 0.5rem;
+    padding-bottom: 0.5rem; */
+}
+
+.select2-container .select2-selection--single {
+    height: 38px !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    display: none;
+}
+
+.searchForm .select2-selection__clear {
+    display: none !important;
+}
+
+
+.header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+/* .route-info {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 1.1em;
+    margin-top: 15px;
+} */
+.btn.btn-primary.w-100 {
+    height: 57%;
+}
+
+.tabs {
+    display: flex;
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.tab {
+    flex: 1;
+    padding: 15px;
+    text-align: center;
+    text-decoration: none;
+    color: #495057;
+    font-weight: 600;
+    transition: all 0.3s;
+    border-bottom: 3px solid transparent;
+    background: white;
+}
+
+.tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    background: white;
+}
+
+.tab-content {
+    display: none;
+    padding: 30px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.section-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #2d3748;
+    /* margin-bottom: 20px; */
+}
+
+.btnFare-update-all {
+    padding-left: 35px;
+    padding-right: 10px;
+}
+.btnFare-update-all #btnFare_dep_all {
+    padding: 4px 35px;
+}
+.btnFare-update-all #btnFare_ret_all {
+    padding: 4px 35px;
+}
+
+.section-meta {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cache-time-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #eef4ff;
+    border: 1px solid #c7dafd;
+    color: #1f3f7a;
+    font-size: 0.9rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.cache-time-label {
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.cache-time-value {
+    font-weight: 700;
+}
+
+.countdown {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #dc2626; /* đỏ */
+    white-space: nowrap;
+}
+
+
+.flight-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.flight-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.3s;
+    background: white;
+}
+
+.flight-item:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    /* transform: translateY(-2px); */
+}
+
+.flight-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+}
+
+.airline-logo img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.flight-times {
+    min-width: 150px;
+}
+
+.time {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #2d3748;
+}
+
+.airline-name {
+    color: #718096;
+    font-size: 1.2em;
+    margin-top: 5px;
+}
+
+.flight-route {
+    min-width: 120px;
+}
+
+.route-code {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.duration {
+    color: #718096;
+    font-size: 1.1em;
+    margin-top: 5px;
+}
+
+.flight_code {
+    min-width: 100px;
+}
+
+.flight-number {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #667eea;
+}
+
+.flight-details {
+    color: #718096;
+    font-size: 1.1em;
+    cursor: pointer;
+}
+
+.flight-details:hover {
+    color: #667eea;
+}
+
+.flight-price {
+    text-align: right;
+    margin-right: 20px;
+}
+
+.price-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 1.4em;
+}
+
+.price {
+    font-size: 1.5em;
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.small-arrow {
+    color: #718096;
+    text-decoration: none;
+    font-size: 0.8em;
+}
+
+.dropdown-menu {
+    min-width: 350px;
+    max-height: 250px; /* tuỳ chỉnh (vd 5 item ~ 40px * 5) */
+    overflow-y: auto;
+}
+
+/* ẩn mũi tên mặc định của bootstrap */
+.price-dropdown .small-arrow::after {
+  display: none !important;
+}
+
+.select-btn {
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    background: rgb(7 65 229 / 82%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+
+.select-btn:hover {
+    transform: scale(1.005);
+    box-shadow: 0 2px 6px rgba(72, 92, 146, 0.82);
+}
+
+.loading {
+    display: contents;
+    text-align: center;
+    padding: 50px;
+    font-size: 1.2em;
+    color: #667eea;
+}
+
+.no-flight-source {
+    width: 100%;
+    /* text-align: center; */
+    margin-top: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    /* color: #475569; */
+    color: rgb(11, 92, 211);
+}
+
+.no-flight-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    /* align-items: center; */
+}
+
+/* ======= Ô chọn ngày có biểu tượng lịch ======= */
+.between_range_section {
+    display: flex;
+    align-items: center;
+    position: relative;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    padding: 4px 8px;
+    background-color: #fff;
+    transition: all 0.2s ease-in-out;
+    height: 38px; /* chiều cao khớp với .form-control của Bootstrap */
+}
+
+.between_range_section:focus-within {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.between_range_section input.date_input {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 0.95rem;
+    background: transparent;
+    color: #212529;
+    height: 100%;
+}
+
+.between_range_section input.date_input::placeholder {
+    color: #6c757d;
+}
+
+.between_range_section .icon_dateTime {
+    background: none;
+    border: none;
+    padding: 0 4px;
+    color: #0d6efd;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.between_range_section .icon_dateTime:hover svg {
+    color: #084298;
+}
+
+.between_range_section svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Modal mới */
+.modal-backdrop.show {
+  z-index: 1030 !important;
+}
+.modal-md-lg {
+    max-width: 700px; /* nhỏ hơn modal-lg (800px) */
+}
+
+.flight-modal {
+  background: linear-gradient(135deg, #007bff, #00a8ff);
+  color: #fff;
+  border-bottom: none;
+  padding: 15px 25px;
+  border-radius: 8px 8px 0 0;
+}
+
+.airline-display {
+  font-size: 1.15rem;
+}
+
+.airline-badge {
+  background-color: #007bff;
+  font-weight: 600;
+}
+
+.flight-info-dep-des {
+    justify-content: center;
+}
+.dep-info {
+    width: 34%;
+}
+.flightNo-dep-des {
+    width: auto;
+}
+.des-info {
+    width: 34%;
+}
+
+.route-section {
+  font-size: 1.15rem;
+  color: #000000;
+} /* color: #2d3748; */
+
+.route-section .airport-name {
+  font-size: 1.15rem;
+}
+
+.route-section .airport-code {
+  font-size: 1.15rem;
+  font-weight: bold;
+}
+
+.route-section .time-info {
+  font-size: 1.15rem;
+  color: #000000 !important;
+  font-weight: 400;
+}
+
+.route-arrow {
+  font-size: 4rem;
+  color: #007bff;
+  font-weight: bold;
+}
+
+.flight-number-display {
+  margin-top: 10px;
+}
+
+.editable-field {
+  font-weight: 600;
+  text-align: right;
+}
+
+.content-price {
+    width: 55%;
+}
+.info-label {
+    font-size: 14px;
+}
+
+.btn-cancel-modal {
+    font-size: 1.10rem !important;
+}
+.btn-update {
+    font-size: 1.10rem !important;
+}
+.is-invalid {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Style cho thông báo thay đổi giá */
+#fareChangeMessage {
+    padding: 0px 0px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    animation: slideIn 0.3s ease-out;
+}
+
+#fareChangeMessage .text-success {
+    border-left-color: #28a745;
+}
+
+#fareChangeMessage .text-increase {    
+    border-left-color: #2865a7;
+    color: #2500ff;
+}
+/* border-left-color: #ffc107;
+    border-left-color: #28a745; */
+#fareChangeText {
+    white-space: nowrap;
+    overflow: visible;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Icon style */
+#fareChangeText i {
+    font-size: 1.1rem;
+    margin-right: 5px;
+}
+
+
+
+@media (max-width: 768px) {
+    .section-header {
+        align-items: flex-start;
+    }
+
+    .btnFare-update-all {
+        width: auto;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .section-meta {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .flight-item {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .flight-left {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+@media (max-width: 480px) {
+    .dep-info {
+        width: 26%;
+    }
+    .flightNo-dep-des {
+        width: auto;
+    }
+    .des-info {
+        width: 26%;
+    }
+}

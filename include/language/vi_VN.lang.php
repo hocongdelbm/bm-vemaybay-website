@@ -7,11 +7,10 @@ if (!defined('sugarEntry') || !sugarEntry) {
 //the left value is the key stored in the db and the right value is ie display value
 //to translate, only modify the right value in each key/value pair
 $app_list_strings = array(
-//e.g. auf Deutsch 'Contacts'=>'Contakten',
+    //e.g. auf Deutsch 'Contacts'=>'Contakten',
     'language_pack_name' => 'Tiếng Việt (Vietnamese) - vi_VN',
     'moduleList' => array(
         'Home' => 'Trang chủ',
-        'ResourceCalendar' => 'Quản lý lịch',
         'Contacts' => 'Liên hệ',
         'Accounts' => 'Tài khoản',
         'Alerts' => 'Cảnh báo',
@@ -26,7 +25,6 @@ $app_list_strings = array(
         'Meetings' => 'Hội họp',
         'Tasks' => 'Công việc',
         'Calendar' => 'Lịch',
-        'Leads' => 'Đầu mối',
         'Currencies' => 'Tiền tệ',
         'Activities' => 'Hoạt động',
         'Bugs' => 'Lỗi',
@@ -35,13 +33,8 @@ $app_list_strings = array(
         'TimePeriods' => 'Khoảng thời gian',
         'ContractTypes' => 'Kiểu hợp đồng',
         'Schedulers' => 'Lịch trình',
-        'Project' => 'Dự án',
-        'ProjectTask' => 'Dự án những phần việc',
-        'Campaigns' => 'Chiến dịch',
-        'CampaignLog' => 'Ghi lại chiến dịch',
         'Documents' => 'Tài liệu',
         'DocumentRevisions' => 'Phiên bản tài liệu',
-        'Connectors' => 'Kết nối',
         'Notifications' => 'Chú ý',
         'Sync' => 'Đồng bộ',
         'Users' => 'Người dùng',
@@ -50,7 +43,6 @@ $app_list_strings = array(
         'ACLRoles' => 'Vai trò',
         'InboundEmail' => 'Inbound Email Accounts',
         'Releases' => 'Phát hành',
-        'Prospects' => 'Mục tiêu',
         'Queues' => 'Hàng đợi',
         'EmailMarketing' => 'Email quảng bá',
         'EmailTemplates' => 'Email - mẫu',
@@ -62,7 +54,6 @@ $app_list_strings = array(
         'TrackerQueries' => 'Theo dõi truy vấn',
         'FAQ' => 'Hỏi đáp',
         'Newsletters' => 'Tin mới',
-        'SugarFeed' => 'Nguồn cấp dữ liệu SuiteCRM',
         'SugarFavorites' => 'Đánh dấu SuiteCRM vào mục yêu thích',
 
         'OAuthKeys' => 'Bảo Mật ',
@@ -85,17 +76,12 @@ $app_list_strings = array(
         'Meetings' => 'Hội họp',
         'Tasks' => 'Công việc',
         'Calendar' => 'Lịch',
-        'Leads' => 'Đầu mối',
         'Activities' => 'Hoạt động',
         'Bugs' => 'Phát sinh',
         'KBDocuments' => 'Kiến thức cơ sở',
         'Feeds' => 'RSS',
         'iFrames' => 'Trang của tôi',
         'TimePeriods' => 'Khoảng thời gian',
-        'Project' => 'Dự án',
-        'ProjectTask' => 'Công việc dự án',
-        'Prospects' => 'Mục tiêu',
-        'Campaigns' => 'Chiến dịch kinh doanh',
         'Documents' => 'Tài liệu',
         'Sync' => 'Đồng bộ',
         'Users' => 'Người dùng',
@@ -172,7 +158,6 @@ $app_list_strings = array(
         'Web Site' => 'Trang web',
         'Word of mouth' => 'Truyền miệng',
         'Email' => 'Email',
-        'Campaign' => 'Chiến dịch kinh doanh',
         'Other' => 'Khác',
     ),
     'opportunity_type_dom' => array(
@@ -200,7 +185,7 @@ $app_list_strings = array(
         'load-more' => 'Load More'
     ],
     //Note:  do not translate opportunity_relationship_type_default_key
-//       it is the key for the default opportunity_relationship_type_dom value
+    //       it is the key for the default opportunity_relationship_type_dom value
     'opportunity_relationship_type_default_key' => 'Primary Decision Maker',
     'opportunity_relationship_type_dom' => array(
         '' => '',
@@ -214,7 +199,7 @@ $app_list_strings = array(
         'Other' => 'Khác',
     ),
     //Note:  do not translate case_relationship_type_default_key
-//       it is the key for the default case_relationship_type_dom value
+    //       it is the key for the default case_relationship_type_dom value
     'case_relationship_type_default_key' => 'Primary Contact',
     'case_relationship_type_dom' => array(
         '' => '',
@@ -240,18 +225,18 @@ $app_list_strings = array(
         'Closed Lost' => 'Kết thúc thất bại',
     ),
     'sales_probability_dom' => // keys must be the same as sales_stage_dom
-        array(
-            'Prospecting' => '10',
-            'Qualification' => '20',
-            'Needs Analysis' => '25',
-            'Value Proposition' => '30',
-            'Id. Decision Makers' => '40',
-            'Perception Analysis' => '50',
-            'Proposal/Price Quote' => '65',
-            'Negotiation/Review' => '80',
-            'Closed Won' => '100',
-            'Closed Lost' => '0',
-        ),
+    array(
+        'Prospecting' => '10',
+        'Qualification' => '20',
+        'Needs Analysis' => '25',
+        'Value Proposition' => '30',
+        'Id. Decision Makers' => '40',
+        'Perception Analysis' => '50',
+        'Proposal/Price Quote' => '65',
+        'Negotiation/Review' => '80',
+        'Closed Won' => '100',
+        'Closed Lost' => '0',
+    ),
     'activity_dom' => array(
         'Call' => 'Cuộc gọi',
         'Meeting' => 'Hội họp',
@@ -306,10 +291,10 @@ $app_list_strings = array(
         86400 => '1 ngày',
     ),
 
-    'task_priority_default' => 'Đa phương tiện',
+    'task_priority_default' => 'Trung bình',
     'task_priority_dom' => array(
         'High' => 'Cao',
-        'Medium' => 'Đa phương tiện',
+        'Medium' => 'Trung bình',
         'Low' => 'Thấp',
     ),
     'task_status_default' => 'Not Started',
@@ -338,7 +323,7 @@ $app_list_strings = array(
         // 'Planned' => 'Đã lên kế hoạch',
         // 'Held' => 'Đã giữ lại',
         // 'Not Held' => 'Không giữ lại',
-        'new' => 'Mới tiếp nhận',
+        'new' => 'Mới tạo',
         'processing' => 'Đang xử lý',
         'done' => 'Hoàn tất',
     ),
@@ -359,7 +344,7 @@ $app_list_strings = array(
     'case_priority_default_key' => 'P2',
     'case_priority_dom' => array(
         'P1' => 'Cao',
-        'P2' => 'Đa phương tiện',
+        'P2' => 'Trung bình',
         'P3' => 'Thấp',
     ),
     'user_type_dom' => array(
@@ -384,42 +369,6 @@ $app_list_strings = array(
         'Yahoo!' => 'Yahoo!',
         'AOL' => 'AOL',
     ),
-    'project_task_priority_options' => array(
-        'High' => 'Cao',
-        'Medium' => 'Đa phương tiện',
-        'Low' => 'Thấp',
-    ),
-    'project_task_priority_default' => 'Đa phương tiện',
-
-    'project_task_status_options' => array(
-        'Not Started' => 'Chưa bắt đầu',
-        'In Progress' => 'Đang tiến hành',
-        'Completed' => 'Hoàn thành',
-        'Pending Input' => 'Đang chờ xử lý đầu vào',
-        'Deferred' => 'Hoãn lại',
-    ),
-    'project_task_utilization_options' => array(
-        '0' => 'không có',
-        '25' => '25',
-        '50' => '50',
-        '75' => '75',
-        '100' => '100',
-    ),
-
-    'project_status_dom' => array(
-        'Draft' => 'Dự thảo',
-        'In Review' => 'Đang xem xét',
-        'Underway' => 'Tiến hành',
-        'On_Hold' => 'Chờ đợi',
-        'Completed' => 'Hoàn thành',
-    ),
-    'project_status_default' => 'Dự thảo',
-
-    'project_duration_units_dom' => array(
-        'Days' => 'Ngày',
-        'Hours' => 'Giờ',
-    ),
-
     'activity_status_type_dom' => array(
         '' => '--Không--',
         'active' => 'Đang hoạt động',
@@ -434,14 +383,9 @@ $app_list_strings = array(
         'Accounts' => 'Tài khoản',
         'Opportunities' => 'Cơ hội',
         'Cases' => 'Kịch bản',
-        'Leads' => 'Đối tác tiềm năng',
         'Contacts' => 'Liên hệ', // cn (11/22/2005) added to support Emails
 
         'Bugs' => 'Phát sinh',
-        'Project' => 'Dự án',
-
-        'Prospects' => 'Mục tiêu',
-        'ProjectTask' => 'Công việc dự án',
 
         'Tasks' => 'Công việc',
 
@@ -456,16 +400,11 @@ $app_list_strings = array(
         'Accounts' => 'Tài khoản',
         'Contacts' => 'Liên hệ',
         'Opportunities' => 'Cơ hội',
-        'Campaigns' => 'Chiến dịch kinh doanh',
         'Tasks' => 'Công việc',
         'Emails' => 'Email',
 
         'Bugs' => 'Phát sinh',
-        'Project' => 'Dự án',
-        'ProjectTask' => 'Công việc dự án',
-        'Prospects' => 'Mục tiêu',
         'Cases' => 'Kịch bản',
-        'Leads' => 'Đầu mối',
 
         'Meetings' => 'Hội họp',
         'Calls' => 'Cuộc gọi',
@@ -481,16 +420,8 @@ $app_list_strings = array(
         'Accounts' => 'Tài khoản',
         'Tasks' => 'Công việc',
         'Opportunities' => 'Cơ hội',
-
         'Bugs' => 'Phát sinh',
         'Cases' => 'Kịch bản',
-        'Leads' => 'Đầu mối',
-
-        'Project' => 'Dự án',
-        'ProjectTask' => 'Công việc dự án',
-
-        'Prospects' => 'Mục tiêu',
-
         'AOS_Contracts' => 'Hợp đồng',
         'AOS_Invoices' => 'Hoá đơn',
         'AOS_Quotes' => 'Báo giá',
@@ -501,17 +432,18 @@ $app_list_strings = array(
         'AOS_Invoices' => 'Hóa đơn',
         'AOS_Contracts' => 'Hợp đồng',
     ),
-    'issue_priority_default_key' => 'Đa phương tiện',
+    'issue_priority_default_key' => 'Trung bình',
     'issue_priority_dom' => array(
         'Urgent' => 'Khẩn cấp',
         'High' => 'Cao',
-        'Medium' => 'Đa phương tiện',
+        'Medium' => 'Trung bình',
         'Low' => 'Thấp',
     ),
     'issue_resolution_default_key' => '',
     'issue_resolution_dom' => array(
         '' => '',
         'Accepted' => 'Được chấp nhận',
+        'Following' => 'Đang theo dõi',
         'Duplicate' => 'Trùng lặp',
         'Closed' => 'Đã đóng',
         'Out of Date' => 'Hết hạn',
@@ -527,22 +459,23 @@ $app_list_strings = array(
         'Rejected' => 'Đã từ chối',
     ),
 
-    'bug_priority_default_key' => 'Đa phương tiện',
+    'bug_priority_default_key' => 'Trung bình',
     'bug_priority_dom' => array(
         'Urgent' => 'Khẩn cấp',
         'High' => 'Cao',
-        'Medium' => 'Đa phương tiện',
+        'Medium' => 'Trung bình',
         'Low' => 'Thấp',
     ),
     'bug_resolution_default_key' => '',
     'bug_resolution_dom' => array(
         '' => '',
         'Accepted' => 'Được chấp nhận',
+        'Following' => 'Đang theo dõi',
         'Duplicate' => 'Trùng lặp',
-        'Fixed' => 'Đã sửa',
+        'Fixed' => 'Đã xử lý',
         'Out of Date' => 'Hết hạn',
         'Invalid' => 'Không hợp lệ',
-        'Later' => 'Sau',
+        'Later' => 'Xử lý sau',
     ),
     'bug_status_default_key' => 'Mới',
     'bug_status_dom' => array(
@@ -554,8 +487,9 @@ $app_list_strings = array(
     ),
     'bug_type_default_key' => 'Phát sinh',
     'bug_type_dom' => array(
-        'Defect' => 'Khiếm khuyết',
+        'Defect' => 'Lỗi',
         'Feature' => 'Tính năng',
+        'Require' => 'Yêu cầu',
     ),
     'case_type_dom' => array(
         'Administration' => 'Quản trị viên',
@@ -580,7 +514,6 @@ $app_list_strings = array(
         'Bugs' => 'Lỗi',
         'Calendar' => 'Lịch',
         'Calls' => 'Cuộc gọi',
-        'Campaigns' => 'Chiến dịch',
         'Cases' => 'Vụ việc',
         'Contacts' => 'Liên hệ',
         'Currencies' => 'Tiền tệ',
@@ -591,40 +524,16 @@ $app_list_strings = array(
         'Forecasts' => 'Dự báo',
         'Help' => 'Giúp đỡ',
         'Home' => 'Trang chủ',
-        'Leads' => 'Đầu mối',
         'Meetings' => 'Hội họp',
         'Notes' => 'Ghi chú',
         'Opportunities' => 'Cơ hội',
         'Outlook Plugin' => 'Outlook plugin',
-        'Projects' => 'Dự án',
         'Quotes' => 'Báo giá',
         'Releases' => 'Phát hành',
         'RSS' => 'Tin',
         'Studio' => 'Studio',
         'Upgrade' => 'Nâng cấp',
         'Users' => 'Người dùng',
-    ),
-    /*Added entries 'Queued' and 'Sending' for 4.0 release..*/
-    'campaign_status_dom' => array(
-        '' => '',
-        'Planning' => 'Lập kế hoạch',
-        'Active' => 'Đang hoạt động',
-        'Inactive' => 'Không hoạt động',
-        'Complete' => 'Hoàn tất',
-        //'In Queue' => 'In Queue',
-        //'Sending' => 'Sending',
-    ),
-    'campaign_type_dom' => array(
-        '' => '',
-        'Telesales' => 'Người bán hàng qua điện thoại',
-        'Mail' => 'Thư',
-        'Email' => 'Email',
-        'Print' => 'In',
-        'Web' => 'Web',
-        'Radio' => 'Radio',
-        'Television' => 'Ti vi',
-        'NewsLetter' => 'Bản tin',
-        'Survey' => 'Khảo sát',
     ),
 
     'newsletter_frequency_dom' => array(
@@ -733,14 +642,13 @@ $app_list_strings = array(
     'dom_email_types' => array(
         'out' => 'Gửi',
         'archived' => 'Lưu trữ',
-        'draft' => 'Dự thảo',
+        'draft' => 'Bản nháp',
         'inbound' => 'Trong giới hạn',
-        'campaign' => 'Chiến dịch kinh doanh',
     ),
     'dom_email_status' => array(
         'archived' => 'Lưu trữ',
         'closed' => 'Đã đóng',
-        'draft' => 'Dự thảo',
+        'draft' => 'Bản nháp',
         'read' => 'Đọc',
         'replied' => 'Đã trả lời',
         'sent' => 'Gửi',
@@ -822,7 +730,7 @@ $app_list_strings = array(
     'document_category_dom' => array(
         '' => '',
         'Marketing' => 'Marketing',
-        'Knowledege Base' => 'Kiến thức cơ bản',
+        'Knowledege Base' => 'Trung tâm hỗ trợ',
         'Sales' => 'Bán hàng',
     ),
 
@@ -841,9 +749,9 @@ $app_list_strings = array(
 
     'document_status_dom' => array(
         'Active' => 'Đang hoạt động',
-        'Draft' => 'Dự thảo',
+        'Draft' => 'Bản nháp',
         'FAQ' => 'Hỏi đáp',
-        'Expired' => 'hết hạn',
+        'Expired' => 'Hết hạn',
         'Under Review' => 'Đang xem xét',
         'Pending' => 'Trì hoãn',
     ),
@@ -908,7 +816,7 @@ $app_list_strings = array(
     ),
 
 
-//prospect list type dom
+    //prospect list type dom
     'prospect_list_type_dom' => array(
         'default' => 'Mặc định',
         'seed' => 'Hạt giống',
@@ -929,27 +837,6 @@ $app_list_strings = array(
         'inactive' => 'Không hoạt động',
     ),
 
-    'campainglog_activity_type_dom' => array(
-        '' => '',
-        'targeted' => 'Tin nhắn đã gửi/đã cố gắng',
-        'send error' => 'Tin nhắn bị trả về, khác',
-        'invalid email' => 'Tin nhắn bị trả về, không hợp lệ',
-        'link' => 'Bấm vào thông qua liên kết',
-        'viewed' => 'Xem tin nhắn',
-        'removed' => 'Từ chối nhận',
-        'lead' => 'Đầu mối đã tạo',
-        'contact' => 'Liên hệ đã được tạo',
-        'blocked' => 'Bị đàn áp bởi địa chỉ hoặc tên miền',
-        'Survey' => 'Survey answered',
-    ),
-
-    'campainglog_target_type_dom' => array(
-        'Contacts' => 'Liên hệ',
-        'Users' => 'Người dùng',
-        'Prospects' => 'Mục tiêu',
-        'Leads' => 'Đầu mối',
-        'Accounts' => 'Khách hàng',
-    ),
     'merge_operators_dom' => array(
         'like' => 'Có chứa',
         'exact' => 'Chính xác',
@@ -968,18 +855,6 @@ $app_list_strings = array(
         2 => 'Bộ lọc',
         3 => 'Bộ lọc được chọn mặc định',
         4 => 'Chỉ lọc',
-    ),
-
-    'projects_priority_options' => array(
-        'high' => 'Cao',
-        'medium' => 'Đa phương tiện',
-        'low' => 'Thấp',
-    ),
-
-    'projects_status_options' => array(
-        'notstarted' => 'Chưa bắt đầu',
-        'inprogress' => 'Đang tiến hành',
-        'completed' => 'Hoàn thành',
     ),
     // strings to pass to Flash charts
     'chart_strings' => array(
@@ -1024,22 +899,6 @@ $app_list_strings = array(
     'link_target_dom' => array(
         '_blank' => 'Cửa sổ Mới',
         '_self' => 'Cùng cửa sổ',
-    ),
-    'dashlet_auto_refresh_options' => array(
-        '-1' => 'Không tự làm tươi',
-        '30' => 'Mỗi 30 giây',
-        '60' => 'Mỗi 1 phút',
-        '180' => 'Mỗi 3 phút',
-        '300' => 'Mỗi 5 phút',
-        '600' => 'Mỗi 10 phút',
-    ),
-    'dashlet_auto_refresh_options_admin' => array(
-        '-1' => 'Không bao giờ',
-        '30' => 'Mỗi 30 giây',
-        '60' => 'Mỗi 1 phút',
-        '180' => 'Mỗi 3 phút',
-        '300' => 'Mỗi 5 phút',
-        '600' => 'Mỗi 10 phút',
     ),
     'date_range_search_dom' => array(
         '=' => 'Tương đương',
@@ -1099,14 +958,12 @@ $app_strings = array(
     'LBL_HIDE_SHOW' => 'Ẩn/hiện' /*for 508 compliance fix*/,
     'LBL_DELETE_INLINE' => 'Xóa' /*for 508 compliance fix*/,
     'LBL_ID_FF_CLEAR' => 'Xóa sạch' /*for 508 compliance fix*/,
-    'LBL_ID_FF_VCARD' => 'vCard' /*for 508 compliance fix*/,
     'LBL_ID_FF_REMOVE' => 'Xóa bỏ' /*for 508 compliance fix*/,
     'LBL_ID_FF_REMOVE_EMAIL' => 'Xóa địa chỉ Email' /*for 508 compliance fix*/,
     'LBL_ID_FF_OPT_OUT' => 'Chọn không tham gia',
     'LBL_ID_FF_INVALID' => 'Thực hiện không hợp lệ',
     'LBL_ADD' => 'Thêm' /*for 508 compliance fix*/,
     'LBL_COMPANY_LOGO' => 'Logo công ty' /*for 508 compliance fix*/,
-    'LBL_CONNECTORS_POPUPS' => 'Kết nối quảng cáo bật nhanh',
     'LBL_CLOSEINLINE' => 'Đóng',
     'LBL_VIEWINLINE' => 'Xem',
     'LBL_INFOINLINE' => 'Thông tin',
@@ -1233,7 +1090,7 @@ $app_strings = array(
     'LBL_EMAIL_ERROR_PROTOCOL' => 'Một giao thức máy chủ là cần thiết.',
     'LBL_EMAIL_ERROR_MONITORED_FOLDER' => 'Giám sát thư mục được yêu cầu.',
     'LBL_EMAIL_ERROR_TRASH_FOLDER' => 'Thư mục thùng rác là cần thiết.',
-    'LBL_EMAIL_ERROR_VIEW_RAW_SOURCE' => 'Thông tin này không có sẵn',
+    'LBL_EMAIL_ERROR_VIEW_RAW_SOURCE' => 'Không có thông báo!',
     'LBL_EMAIL_ERROR_NO_OUTBOUND' => 'Không có máy chủ gửi thư đi được chỉ định.',
     'LBL_EMAIL_ERROR_SENDING' => 'Lỗi gửi Email. Xin vui lòng liên hệ với quản trị của bạn để được trợ giúp.',
     'LBL_EMAIL_FOLDERS' => SugarThemeRegistry::current()->getImage('icon_email_folder', 'align=absmiddle border=0', null, null, '.gif', '') . 'Thư mục',
@@ -1315,7 +1172,6 @@ $app_strings = array(
 
     'LBL_EMAIL_QC_BUGS' => 'Phát sinh',
     'LBL_EMAIL_QC_CASES' => 'Kịch bản',
-    'LBL_EMAIL_QC_LEADS' => 'Đối tác tiềm năng',
     'LBL_EMAIL_QC_CONTACTS' => 'Liên hệ',
     'LBL_EMAIL_QC_TASKS' => 'Công việc',
     'LBL_EMAIL_QC_OPPORTUNITIES' => 'Cơ hội',
@@ -1475,7 +1331,6 @@ $app_strings = array(
     'LBL_BUGS' => 'Lỗi',
     'LBL_BY' => 'bởi',
     'LBL_CALLS' => 'Cuộc gọi',
-    'LBL_CAMPAIGNS_SEND_QUEUED' => 'Gửi đã xếp hàng chiến dịch email',
     'LBL_SUBMIT_BUTTON_LABEL' => 'Gửi',
     'LBL_CASE' => 'Kịch bản',
     'LBL_CASES' => 'Vụ việc',
@@ -1523,14 +1378,6 @@ $app_strings = array(
     'LBL_DONE_BUTTON_LABEL' => 'Xong',
     'LBL_DONE_BUTTON_TITLE' => 'Xong',
     'LBL_FAVORITES' => 'yêu thích',
-    'LBL_VCARD' => 'vCard',
-    'LBL_EMPTY_VCARD' => 'Xin chọn tập tin Vcard',
-    'LBL_EMPTY_REQUIRED_VCARD' => 'vCard không có tất cả các trường bắt buộc cho các mô-đun này. Xin vui lòng tham khảo suitecrm.log để biết chi tiết.',
-    'LBL_VCARD_ERROR_FILESIZE' => 'Các tập tin đã tải lên vượt quá giới hạn kích thước 30000 byte được chỉ ra trong các hình thức HTML.',
-    'LBL_VCARD_ERROR_DEFAULT' => 'Đã có lỗi trong khi tải lên tập tin vCard. Xin vui lòng tham khảo suitecrm.log để biết chi tiết.',
-    'LBL_IMPORT_VCARD' => 'Nhập vCard:',
-    'LBL_IMPORT_VCARD_BUTTON_LABEL' => 'Nhập vCard',
-    'LBL_IMPORT_VCARD_BUTTON_TITLE' => 'Nhập vCard',
     'LBL_VIEW_BUTTON' => 'Xem',
     'LBL_EMAIL_PDF_BUTTON_LABEL' => 'Email dưới dạng PDF',
     'LBL_EMAIL_PDF_BUTTON_TITLE' => 'Email dưới dạng PDF',
@@ -1547,14 +1394,7 @@ $app_strings = array(
     'LBL_IMPORT' => 'Nhập',
     'LBL_IMPORT_STARTED' => 'Bắt đầu nhập: ',
     'LBL_LAST_VIEWED' => 'Vừa xem qua',
-    'LBL_LEADS' => 'Đầu mối',
     'LBL_LESS' => 'ít hơn',
-    'LBL_CAMPAIGN' => 'Chiến dịch:',
-    'LBL_CAMPAIGNS' => 'Chiến dịch',
-    'LBL_CAMPAIGNLOG' => 'Log Chiến dịch',
-    'LBL_CAMPAIGN_CONTACT' => 'Chiến dịch',
-    'LBL_CAMPAIGN_ID' => 'campaign_id',
-    'LBL_CAMPAIGN_NONE' => 'Không có',
     'LBL_THEME' => 'Giao diện:',
     'LBL_FOUND_IN_RELEASE' => 'Tìm thấy trong bản phát hành',
     'LBL_FIXED_IN_RELEASE' => 'Cố định trong bản phát hành',
@@ -1639,10 +1479,7 @@ $app_strings = array(
     'LBL_PRIMARY_ADDRESS_STREET' => 'Địa chỉ:',
     'LBL_PRIMARY_ADDRESS' => 'Địa chỉ chính:',
 
-    'LBL_PROSPECTS' => 'Triển vọng',
     'LBL_PRODUCTS' => 'Sản phẩm',
-    'LBL_PROJECT_TASKS' => 'Dự án những phần việc',
-    'LBL_PROJECTS' => 'Dự án',
     'LBL_QUOTES' => 'Báo giá',
 
     'LBL_RELATED' => 'Liên quan',
@@ -1745,13 +1582,11 @@ $app_strings = array(
     'LBL_SCENARIO_MARKETING' => 'Tiếp thị',
     'LBL_SCENARIO_FINANCE' => 'Tài chính',
     'LBL_SCENARIO_SERVICE' => 'Dịch vụ',
-    'LBL_SCENARIO_PROJECT' => 'Quản lý dự án',
 
     'LBL_SCENARIO_SALES_DESCRIPTION' => 'Kịch bản này tạo thuận lợi cho việc quản lý các mặt hàng kinh doanh',
     'LBL_SCENARIO_MAKETING_DESCRIPTION' => 'Kịch bản này tạo điều kiện cho việc quản lý các mặt hàng tiếp thị',
     'LBL_SCENARIO_FINANCE_DESCRIPTION' => 'Kịch bản này tạo thuận lợi cho việc quản lý các mặt hàng liên quan đến tài chính',
     'LBL_SCENARIO_SERVICE_DESCRIPTION' => 'Kịch bản này tạo điều kiện cho việc quản lý các mặt hàng liên quan đến dịch vụ',
-    'LBL_SCENARIO_PROJECT_DESCRIPTION' => 'Kịch bản này tạo thuận lợi cho việc quản lý các hạng mục liên quan đến dự án',
 
     'LBL_SYNC' => 'Đồng phòng ban',
     'LBL_TABGROUP_ALL' => 'Tất cả',
@@ -1778,9 +1613,9 @@ $app_strings = array(
     'LBL_VIEW_IMAGE' => 'xem',
 
     'LNK_ABOUT' => 'Về',
-    'LNK_ADVANCED_FILTER' => 'Lọc nâng cao',
+    'LNK_ADVANCED_FILTER' => 'Bộ lọc',
     'LNK_BASIC_FILTER' => 'Lọc nhanh',
-    'LBL_ADVANCED_SEARCH' => 'Lọc nâng cao',
+    'LBL_ADVANCED_SEARCH' => 'Bộ lọc',
     'LBL_QUICK_FILTER' => 'Lọc nhanh',
     'LBL_BASIC_FILTER' => 'Lọc cơ bản',
     'LBL_QUICK' => 'Nhanh chóng',
@@ -1920,34 +1755,6 @@ $app_strings = array(
     'LBL_ALT_ADDRESS' => 'Địa chỉ khác:',
     'ERR_SMARTY_UNEQUAL_RELATED_FIELD_PARAMETERS' => 'Lỗi: Có một số đối số không đồng đều cho các phần tử \'key\' và \'copy\' trong mảng Params hiển thị.',
 
-    /* MySugar Framework (for Home and Dashboard) */
-    'LBL_DASHLET_CONFIGURE_GENERAL' => 'Tổng quan',
-    'LBL_DASHLET_CONFIGURE_FILTERS' => 'Lọc',
-    'LBL_DASHLET_CONFIGURE_MY_ITEMS_ONLY' => 'Chỉ dữ liệu của tôi',
-    'LBL_DASHLET_CONFIGURE_TITLE' => 'Tiêu đề',
-    'LBL_DASHLET_CONFIGURE_DISPLAY_ROWS' => 'Các dòng hiển thị',
-
-    // MySugar status strings
-    'LBL_MAX_DASHLETS_REACHED' => 'Bạn đã đạt đến số tối đa SuiteCRM Dashlets quản trị của bạn đã thiết lập. Hãy loại bỏ SuiteCRM Dashlet để thêm nhiều hơn nữa.',
-    'LBL_ADDING_DASHLET' => 'Thêm SuiteCRM Dashlet...',
-    'LBL_ADDED_DASHLET' => 'SuiteCRM Dashlet thêm',
-    'LBL_REMOVE_DASHLET_CONFIRM' => 'Bạn có chắc bạn muốn loại bỏ này SuiteCRM Dashlet?',
-    'LBL_REMOVING_DASHLET' => 'Loại bỏ các SuiteCRM Dashlet...',
-    'LBL_REMOVED_DASHLET' => 'SuiteCRM Dashlet removed',
-
-    // MySugar Menu Options
-
-    'LBL_LOADING_PAGE' => 'Đang tải trang, xin chờ...',
-
-    'LBL_RELOAD_PAGE' => 'Xin vui lòng <a href="javascript: window.location.reload()"> tải lại cửa sổ</a> để sử dụng này SuiteCRM Dashlet.',
-    'LBL_ADD_DASHLETS' => 'Thêm Dashlets',
-    'LBL_CLOSE_DASHLETS' => 'Đóng',
-    'LBL_OPTIONS' => 'Tùy chọn',
-    'LBL_1_COLUMN' => '1 cột',
-    'LBL_2_COLUMN' => '2 cột',
-    'LBL_3_COLUMN' => '3 cột',
-    'LBL_PAGE_NAME' => 'tên trang',
-
     'LBL_SEARCH_RESULTS' => 'Kết quả tìm kiếm',
     'LBL_SEARCH_MODULES' => 'Mô-đun',
     'LBL_SEARCH_TOOLS' => 'Công cụ',
@@ -2040,7 +1847,6 @@ $app_strings = array(
     'LBL_MINUTES' => 'Phút',
     'LBL_MERIDIEM' => 'Meridiem',
     'LBL_DATE' => 'Ngày giờ',
-    'LBL_DASHLET_CONFIGURE_AUTOREFRESH' => 'Tự động làm mới',
 
     'LBL_DURATION_DAY' => 'ngày',
     'LBL_DURATION_HOUR' => 'giờ',
@@ -2068,7 +1874,7 @@ $app_strings = array(
     'LBL_IMPORT_SAMPLE_FILE_TEXT' => ' "Đây là một mẫu nhập tập tin mà cung cấp một ví dụ về nội dung dự kiến của một tập tin đã sẵn sàng cho nhập khẩu." "Các tập tin là một tệp .csv phân cách bằng dấu phẩy, bằng cách sử dụng dấu ngoặc kép đôi như lĩnh vực qualifier."  "Hàng tiêu đề là hàng cao nhất trong các tập tin và bao gồm các lĩnh vực nhãn như bạn sẽ nhìn thấy chúng trong ứng dụng." "Các nhãn này được sử dụng để lập bản đồ các dữ liệu trong các tập tin đến các lĩnh vực trong ứng dụng."  "Ghi chú: tên cơ sở dữ liệu cũng có thể được sử dụng trong hàng tiêu đề. Điều này là hữu ích khi bạn đang sử dụng phpMyAdmin hoặc một cơ sở dữ liệu công cụ để cung cấp một danh sách xuất khẩu các dữ liệu nhập khẩu." "Thứ tự cột là không quan trọng vì quá trình nhập khẩu phù hợp với các dữ liệu đến các lĩnh vực thích hợp dựa trên hàng tiêu đề."   "Để sử dụng tập tin này như một mẫu, thực hiện như sau:" "1. loại bỏ các hàng mẫu dữ liệu" "2. Loại bỏ văn bản trợ giúp mà bạn đang đọc ngay bây giờ""3. Nhập vào dữ liệu của bạn vào hàng phù hợp và cột""4. Lưu tệp vào một vị trí nổi tiếng trên hệ thống của bạn""5. Nhấp vào tùy chọn nhập khẩu từ trình đơn tác vụ trong ứng dụng và chọn tập tin để tải lên"    ',
     //define labels to be used for overriding local values during import/export
 
-    'LBL_NOTIFICATIONS_NONE' => 'Không có thông báo hiện tại',
+    'LBL_NOTIFICATIONS_NONE' => 'Hiện tại không có thông báo',
     'ERR_NOTIFICATIONS_MARK_AS_READ' => 'Error while trying to mark notifications as read',
     'LBL_ALT_SORT_DESC' => 'Xếp giảm dần',
     'LBL_ALT_SORT_ASC' => 'Xếp tăng dần',
@@ -2140,8 +1946,6 @@ $app_strings = array(
 
     'ANNUAL_REVENUE_BY_ACCOUNTS' => 'Doanh thu hàng năm theo Tài khoản',
     'PIPELINE_BY_SALES_STAGE' => 'hành trình bởi giai đoạn',
-    'LEADS_BY_SOURCE' => 'Các khách hàng tiềm năng theo nguồn',
-    'LEADS_BY_STATUS' => 'Các khách hàng tiềm năng theo trạng thái',
     'ACCOUNT_TYPES_PER_MONTH' => 'Tài khoản mới theo tháng',
 
     'ERR_CONNECTOR_NOT_ARRAY' => 'đầu nối mảng trong {0} định nghĩa không chính xác hoặc có sản phẩm nào và không được sử dụng.',
@@ -2179,10 +1983,6 @@ $app_strings = array(
     'ERR_FACTOR_TPL_INVALID' => 'Thông điệp xác thực yếu tố là không hợp lệ, vui lòng liên hệ với người quản trị.',
     'LBL_SUBTHEMES' => 'Kiểu',
     'LBL_SUBTHEME_OPTIONS_DAWN' => 'Bình minh',
-    'LBL_SUBTHEME_OPTIONS_DAY' => 'Ngày',
-    'LBL_SUBTHEME_OPTIONS_DUSK' => 'Chạng vạng',
-    'LBL_SUBTHEME_OPTIONS_NIGHT' => 'Đêm',
-    'LBL_SUBTHEME_OPTIONS_NOON' => 'Trưa',
 
     'LBL_CONFIRM_DISREGARD_DRAFT_TITLE' => 'Bỏ qua bản dự thảo',
     'LBL_CONFIRM_DISREGARD_DRAFT_BODY' => 'Thao tác này sẽ xóa email này, bạn có muốn tiếp tục?',
@@ -2228,12 +2028,6 @@ $app_strings = array(
 
 $app_list_strings['moduleList']['Library'] = 'Thư viện';
 $app_list_strings['moduleList']['EmailAddresses'] = 'Địa chỉ Email ';
-$app_list_strings['project_priority_default'] = 'Đa phương tiện';
-$app_list_strings['project_priority_options'] = array(
-    'High' => 'Cao',
-    'Medium' => 'Đa phương tiện',
-    'Low' => 'Thấp',
-);
 
 //GDPR lawful basis options
 $app_list_strings['lawful_basis_dom'] = array(
@@ -2259,7 +2053,7 @@ $app_list_strings['lawful_basis_source_dom'] = array(
 );
 //End GDPR lawful basis source options
 
-$app_list_strings['moduleList']['KBDocuments'] = 'Kiến thức cơ bản';
+$app_list_strings['moduleList']['KBDocuments'] = 'Trung tâm hỗ trợ';
 
 $app_list_strings['countries_dom'] = array(
     '' => '',
@@ -2930,19 +2724,18 @@ $app_list_strings['token_status'] = array(
     3 => 'Không hợp lệ',
 );
 
-$app_list_strings ['emailTemplates_type_list'] = array(
+$app_list_strings['emailTemplates_type_list'] = array(
     '' => '',
-    'campaign' => 'Chiến dịch kinh doanh',
     'email' => 'Email',
     'event' => 'Sự kiện',
 );
 
-$app_list_strings ['emailTemplates_type_list_campaigns'] = array(
+$app_list_strings['emailTemplates_type_list_campaigns'] = array(
     '' => '',
     'campaign' => 'Chiến dịch kinh doanh',
 );
 
-$app_list_strings ['emailTemplates_type_list_no_workflow'] = array(
+$app_list_strings['emailTemplates_type_list_no_workflow'] = array(
     '' => '',
     'campaign' => 'Chiến dịch kinh doanh',
     'email' => 'Email',
@@ -2951,26 +2744,14 @@ $app_list_strings ['emailTemplates_type_list_no_workflow'] = array(
 );
 
 // knowledge base
-$app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Kiến thức cơ bản';
-$app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'KB - thể loại';
-$app_list_strings['aok_status_list']['Draft'] = 'Dự thảo';
+$app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Trung tâm hỗ trợ';
+$app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'Danh mục hỗ trợ';
+$app_list_strings['aok_status_list']['Draft'] = 'Bản nháp';
 $app_list_strings['aok_status_list']['Expired'] = 'hết hạn';
 $app_list_strings['aok_status_list']['In_Review'] = 'Đang xem xét';
 //$app_list_strings['aok_status_list']['Published'] = 'Published';
 $app_list_strings['aok_status_list']['published_private'] = 'Riêng tư';
 $app_list_strings['aok_status_list']['published_public'] = 'Công khai';
-
-$app_list_strings['moduleList']['FP_events'] = 'Sự kiện';
-$app_list_strings['moduleList']['FP_Event_Locations'] = 'Vị trí';
-
-//events
-$app_list_strings['fp_event_invite_status_dom']['Invited'] = 'Mời';
-$app_list_strings['fp_event_invite_status_dom']['Not Invited'] = 'Không được mời';
-$app_list_strings['fp_event_invite_status_dom']['Attended'] = 'Tham dự';
-$app_list_strings['fp_event_invite_status_dom']['Not Attended'] = 'Không tham dự';
-$app_list_strings['fp_event_status_dom']['Accepted'] = 'Được chấp nhận';
-$app_list_strings['fp_event_status_dom']['Declined'] = 'Đã từ chối';
-$app_list_strings['fp_event_status_dom']['No Response'] = 'Không có phản ứng';
 
 $app_strings['LBL_STATUS_EVENT'] = 'Tình trạng lời mời';
 $app_strings['LBL_ACCEPT_STATUS'] = 'trạng thái đồng ý';
@@ -3012,84 +2793,6 @@ $app_list_strings['dom_email_distribution_for_auto_create'] = array(
     'random' => 'Mặc nhiên',
 );
 
-//aor
-$app_list_strings['moduleList']['AOR_Reports'] = 'Báo cáo';
-$app_list_strings['moduleList']['AOR_Conditions'] = 'Báo cáo điều kiện';
-$app_list_strings['moduleList']['AOR_Charts'] = 'Biểu đồ báo cáo';
-$app_list_strings['moduleList']['AOR_Fields'] = 'Báo cáo lĩnh vực';
-$app_list_strings['moduleList']['AOR_Scheduled_Reports'] = 'Theo lịch trình báo cáo';
-$app_list_strings['aor_operator_list']['Equal_To'] = 'Tương đương';
-$app_list_strings['aor_operator_list']['Not_Equal_To'] = 'Không bằng';
-$app_list_strings['aor_operator_list']['Greater_Than'] = 'Lớn hơn';
-$app_list_strings['aor_operator_list']['Less_Than'] = 'Ít hơn';
-$app_list_strings['aor_operator_list']['Greater_Than_or_Equal_To'] = 'Lớn hơn hoặc bằng';
-$app_list_strings['aor_operator_list']['Less_Than_or_Equal_To'] = 'Nhỏ hơn hoặc bằng';
-$app_list_strings['aor_operator_list']['Contains'] = 'Có chứa';
-$app_list_strings['aor_operator_list']['Starts_With'] = 'Bắt đầu với';
-$app_list_strings['aor_operator_list']['Ends_With'] = 'Kết thúc bằng';
-$app_list_strings['aor_format_options'][''] = '';
-$app_list_strings['aor_format_options']['Y-m-d'] = 'Y-m-d';
-$app_list_strings['aor_format_options']['m-d-Y'] = 'tháng-ngày-năm';
-$app_list_strings['aor_format_options']['d-m-Y'] = 'ngày-tháng-năm';
-$app_list_strings['aor_format_options']['Y/m/d'] = 'năm/tháng/ngày';
-$app_list_strings['aor_format_options']['m/d/Y'] = 'tháng/ngày/năm';
-$app_list_strings['aor_format_options']['d/m/Y'] = 'd/m/Y';
-$app_list_strings['aor_format_options']['Y.m.d'] = 'năm.tháng.ngày';
-$app_list_strings['aor_format_options']['m.d.Y'] = 'tháng.ngày.năm';
-$app_list_strings['aor_format_options']['d.m.Y'] = 'ngày.tháng.năm';
-$app_list_strings['aor_format_options']['Ymd'] = 'Ymd';
-$app_list_strings['aor_format_options']['Y-m'] = 'Y-m';
-$app_list_strings['aor_format_options']['Y'] = 'Y';
-$app_list_strings['aor_condition_operator_list']['And'] = 'A';
-$app_list_strings['aor_condition_operator_list']['OR'] = 'Hoặc';
-$app_list_strings['aor_condition_type_list']['Value'] = 'Giá trị';
-$app_list_strings['aor_condition_type_list']['Field'] = 'Các trường';
-$app_list_strings['aor_condition_type_list']['Date'] = 'Ngày giờ';
-$app_list_strings['aor_condition_type_list']['Multi'] = 'Một trong';
-$app_list_strings['aor_condition_type_list']['Period'] = 'Giai đoạn';
-$app_list_strings['aor_condition_type_list']['CurrentUserID'] = 'Người dùng hiện tại';
-$app_list_strings['aor_date_type_list'][''] = '';
-$app_list_strings['aor_date_type_list']['minute'] = 'Phút';
-$app_list_strings['aor_date_type_list']['hour'] = 'Giờ';
-$app_list_strings['aor_date_type_list']['day'] = 'Ngày';
-$app_list_strings['aor_date_type_list']['week'] = 'Tuần';
-$app_list_strings['aor_date_type_list']['month'] = 'Tháng';
-$app_list_strings['aor_date_type_list']['business_hours'] = 'Giờ làm việc';
-$app_list_strings['aor_date_options']['now'] = 'Bây giờ';
-$app_list_strings['aor_date_options']['field'] = 'Trường này';
-$app_list_strings['aor_date_operator']['now'] = '';
-$app_list_strings['aor_date_operator']['plus'] = '+';
-$app_list_strings['aor_date_operator']['minus'] = '-';
-$app_list_strings['aor_sort_operator'][''] = '';
-$app_list_strings['aor_sort_operator']['ASC'] = 'tăng dần';
-$app_list_strings['aor_sort_operator']['DESC'] = 'Giảm dần';
-$app_list_strings['aor_function_list'][''] = '';
-$app_list_strings['aor_function_list']['COUNT'] = 'Đếm';
-$app_list_strings['aor_function_list']['MIN'] = 'Tối thiểu';
-$app_list_strings['aor_function_list']['MAX'] = 'Tối đa';
-$app_list_strings['aor_function_list']['SUM'] = 'Tổng';
-$app_list_strings['aor_function_list']['AVG'] = 'Trung bình';
-$app_list_strings['aor_total_options'][''] = '';
-$app_list_strings['aor_total_options']['COUNT'] = 'Đếm';
-$app_list_strings['aor_total_options']['SUM'] = 'Tổng';
-$app_list_strings['aor_total_options']['AVG'] = 'Trung bình';
-$app_list_strings['aor_chart_types']['bar'] = 'Thanh biểu đồ';
-$app_list_strings['aor_chart_types']['line'] = 'Đường biểu đồ';
-$app_list_strings['aor_chart_types']['pie'] = 'Biểu đồ tròn';
-$app_list_strings['aor_chart_types']['radar'] = 'Biểu đồ radar';
-$app_list_strings['aor_chart_types']['stacked_bar'] = 'Thanh xếp chồng';
-$app_list_strings['aor_chart_types']['grouped_bar'] = 'Thanh nhóm';
-$app_list_strings['aor_scheduled_report_schedule_types']['monthly'] = 'Hàng tháng';
-$app_list_strings['aor_scheduled_report_schedule_types']['weekly'] = 'Hàng tuần';
-$app_list_strings['aor_scheduled_report_schedule_types']['daily'] = 'Hàng ngày';
-$app_list_strings['aor_scheduled_reports_status_dom']['active'] = 'Đang hoạt động';
-$app_list_strings['aor_scheduled_reports_status_dom']['inactive'] = 'Không hoạt động';
-$app_list_strings['aor_email_type_list']['Email Address'] = 'Hộp thư đến';
-$app_list_strings['aor_email_type_list']['Specify User'] = 'Người dùng';
-$app_list_strings['aor_email_type_list']['Users'] = 'Người dùng';
-$app_list_strings['aor_assign_options']['all'] = 'Tất cả người dùng';
-$app_list_strings['aor_assign_options']['role'] = 'Tất cả người dùng trong vai trò';
-$app_list_strings['aor_assign_options']['security_group'] = 'Tất cả người dùng vào nhóm bảo mật';
 $app_list_strings['date_time_period_list']['today'] = 'Hôm nay';
 $app_list_strings['date_time_period_list']['yesterday'] = 'Hôm qua';
 $app_list_strings['date_time_period_list']['this_week'] = 'Tuần này';
@@ -3134,7 +2837,7 @@ $app_list_strings['aos_quotes_type_dom']['Prospect'] = 'Triển vọng';
 $app_list_strings['aos_quotes_type_dom']['Reseller'] = 'Đại lý';
 $app_list_strings['aos_quotes_type_dom']['Other'] = 'Khác';
 $app_list_strings['template_ddown_c_list'][''] = '';
-$app_list_strings['quote_stage_dom']['Draft'] = 'Dự thảo';
+$app_list_strings['quote_stage_dom']['Draft'] = 'Bản nháp';
 $app_list_strings['quote_stage_dom']['Negotiation'] = 'Thương lượng';
 $app_list_strings['quote_stage_dom']['Delivered'] = 'Chuyển giao';
 $app_list_strings['quote_stage_dom']['On Hold'] = 'Chờ đợi';
@@ -3188,7 +2891,6 @@ $app_list_strings['pdf_template_type_dom']['AOS_Invoices'] = 'Hóa đơn';
 $app_list_strings['pdf_template_type_dom']['AOS_Contracts'] = 'Hợp đồng';
 $app_list_strings['pdf_template_type_dom']['Accounts'] = 'Tài khoản';
 $app_list_strings['pdf_template_type_dom']['Contacts'] = 'Khách hàng';
-$app_list_strings['pdf_template_type_dom']['Leads'] = 'Đầu mối';
 $app_list_strings['pdf_template_type_dom']['EC_Flight_Booking'] = 'In vé';
 
 $app_list_strings['pdf_template_sample_dom'][''] = '';
@@ -3270,30 +2972,12 @@ $app_list_strings['aow_run_when_list']['On_Save'] = 'Chỉ lưu trữ';
 $app_list_strings['aow_run_when_list']['In_Scheduler'] = 'Chỉ có ở trình lập lịch biểu';
 
 //gant
-$app_list_strings['moduleList']['AM_ProjectTemplates'] = 'Dự án - mẫu';
-$app_list_strings['moduleList']['AM_TaskTemplates'] = 'Dự án công việc mẫu';
 $app_list_strings['relationship_type_list']['FS'] = 'Kết thúc để bắt đầu';
 $app_list_strings['relationship_type_list']['SS'] = 'Bắt đầu để bắt đầu';
 $app_list_strings['duration_unit_dom']['Days'] = 'Ngày';
 $app_list_strings['duration_unit_dom']['Hours'] = 'Giờ';
 $app_strings['LBL_GANTT_BUTTON_LABEL'] = 'Xem biểu đồ Gantt';
 $app_strings['LBL_DETAIL_BUTTON_LABEL'] = 'Xem chi tiết';
-$app_strings['LBL_CREATE_PROJECT'] = 'Tạo dự án';
-
-//gmaps
-$app_strings['LBL_MAP'] = 'Bản đồ';
-
-$app_strings['LBL_JJWG_MAPS_LNG'] = 'Kinh độ';
-$app_strings['LBL_JJWG_MAPS_LAT'] = 'Vĩ độ';
-$app_strings['LBL_JJWG_MAPS_GEOCODE_STATUS'] = 'Trạng thái Mã địa lý';
-$app_strings['LBL_JJWG_MAPS_ADDRESS'] = 'Địa chỉ';
-
-$app_list_strings['moduleList']['jjwg_Maps'] = 'Các bản đồ';
-$app_list_strings['moduleList']['jjwg_Markers'] = 'Bản đồ - đánh dấu';
-$app_list_strings['moduleList']['jjwg_Areas'] = 'Bản đồ - khu vực';
-$app_list_strings['moduleList']['jjwg_Address_Cache'] = 'Bản đồ - địa chỉ bộ nhớ Cache';
-
-$app_list_strings['moduleList']['jjwp_Partners'] = 'Đối tác JJWP';
 
 $app_list_strings['map_unit_type_list']['mi'] = 'Dặm';
 $app_list_strings['map_unit_type_list']['km'] = 'Cây số';
@@ -3301,20 +2985,14 @@ $app_list_strings['map_unit_type_list']['km'] = 'Cây số';
 $app_list_strings['map_module_type_list']['Accounts'] = 'Tài khoản';
 $app_list_strings['map_module_type_list']['Contacts'] = 'Liên hệ';
 $app_list_strings['map_module_type_list']['Cases'] = 'Kịch bản';
-$app_list_strings['map_module_type_list']['Leads'] = 'Đầu mối';
 $app_list_strings['map_module_type_list']['Meetings'] = 'Hội họp';
 $app_list_strings['map_module_type_list']['Opportunities'] = 'Cơ hội';
-$app_list_strings['map_module_type_list']['Project'] = 'Chủ đề';
-$app_list_strings['map_module_type_list']['Prospects'] = 'Đối tượng';
 
 $app_list_strings['map_relate_type_list']['Accounts'] = 'Tài khoản';
 $app_list_strings['map_relate_type_list']['Contacts'] = 'Liên hệ';
 $app_list_strings['map_relate_type_list']['Cases'] = 'Kịch bản';
-$app_list_strings['map_relate_type_list']['Leads'] = 'Đầu mối';
 $app_list_strings['map_relate_type_list']['Meetings'] = 'Hội họp';
 $app_list_strings['map_relate_type_list']['Opportunities'] = 'Cơ hội';
-$app_list_strings['map_relate_type_list']['Project'] = 'Dự án';
-$app_list_strings['map_relate_type_list']['Prospects'] = 'Mục tiêu';
 
 $app_list_strings['marker_image_list']['accident'] = 'Tai nạn';
 $app_list_strings['marker_image_list']['administration'] = 'Quản trị viên';
@@ -3608,31 +3286,6 @@ $app_list_strings['moduleList']['TemplateEditor'] = 'Bản mẫu phần biên t�
 $app_strings['LBL_CONFIRM_CANCEL_INLINE_EDITING'] = "Bạn đã nhấp vào từ các lĩnh vực mà bạn đã chỉnh sửa mà không lưu nó. Bấm ok nếu bạn đang hạnh phúc để mất của bạn thay đổi, hoặc hủy bỏ nếu bạn muốn tiếp tục chỉnh sửa";
 $app_strings['LBL_LOADING_ERROR_INLINE_EDITING'] = "Đã có lỗi trong khi tải các lĩnh vực. Phiên của bạn có thể đã hết thời gian. Xin vui lòng đăng nhập lại để sửa lỗi này";
 
-$app_list_strings['moduleList']['AOBH_BusinessHours'] = 'Giờ làm việc';
-$app_list_strings['business_hours_list']['0'] = '12 am';
-$app_list_strings['business_hours_list']['1'] = '1am';
-$app_list_strings['business_hours_list']['2'] = '2am';
-$app_list_strings['business_hours_list']['3'] = '3am';
-$app_list_strings['business_hours_list']['4'] = '4am';
-$app_list_strings['business_hours_list']['5'] = '5am';
-$app_list_strings['business_hours_list']['6'] = '6am';
-$app_list_strings['business_hours_list']['7'] = '7am';
-$app_list_strings['business_hours_list']['8'] = '8am';
-$app_list_strings['business_hours_list']['9'] = '9am';
-$app_list_strings['business_hours_list']['10'] = '10am';
-$app_list_strings['business_hours_list']['11'] = '11am';
-$app_list_strings['business_hours_list']['12'] = '12 pm';
-$app_list_strings['business_hours_list']['13'] = '1pm';
-$app_list_strings['business_hours_list']['14'] = '2pm';
-$app_list_strings['business_hours_list']['15'] = '3pm';
-$app_list_strings['business_hours_list']['16'] = '4pm';
-$app_list_strings['business_hours_list']['17'] = '5pm';
-$app_list_strings['business_hours_list']['18'] = '6pm';
-$app_list_strings['business_hours_list']['19'] = '7pm';
-$app_list_strings['business_hours_list']['20'] = '8pm';
-$app_list_strings['business_hours_list']['21'] = '9pm';
-$app_list_strings['business_hours_list']['22'] = '10pm';
-$app_list_strings['business_hours_list']['23'] = '11pm';
 $app_list_strings['day_list']['Monday'] = 'Thứ Hai';
 $app_list_strings['day_list']['Tuesday'] = 'Thứ Ba';
 $app_list_strings['day_list']['Wednesday'] = 'Thứ Tư';
@@ -3645,30 +3298,6 @@ $app_list_strings['pdf_page_size_dom']['Letter'] = 'Letter';
 $app_list_strings['pdf_page_size_dom']['Legal'] = 'Pháp lý';
 $app_list_strings['pdf_orientation_dom']['Portrait'] = 'Chiều dọc';
 $app_list_strings['pdf_orientation_dom']['Landscape'] = 'Chiều ngang';
-
-
-$app_list_strings['moduleList']['SurveyResponses'] = 'Phản hồi khảo sát';
-$app_list_strings['moduleList']['Surveys'] = 'Khảo sát';
-$app_list_strings['moduleList']['SurveyQuestionResponses'] = 'Trả lời câu hỏi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestions'] = 'Câu hỏi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestionOptions'] = 'Tùy chọn câu hỏi khảo sát';
-$app_list_strings['survey_status_list']['Draft'] = 'Dự thảo';
-$app_list_strings['survey_status_list']['Public'] = 'Công khai';
-$app_list_strings['survey_status_list']['Closed'] = 'Đã đóng';
-$app_list_strings['surveys_question_type']['Text'] = 'Văn bản';
-$app_list_strings['surveys_question_type']['Textbox'] = 'Ô văn bản';
-$app_list_strings['surveys_question_type']['Checkbox'] = 'Ô đánh dấu';
-$app_list_strings['surveys_question_type']['Radio'] = 'Radio';
-$app_list_strings['surveys_question_type']['Dropdown'] = 'Trình đơn thả xuống';
-$app_list_strings['surveys_question_type']['Multiselect'] = 'Chọn nhiều';
-$app_list_strings['surveys_question_type']['Matrix'] = 'Ma trận';
-$app_list_strings['surveys_question_type']['DateTime'] = 'DateTime';
-$app_list_strings['surveys_question_type']['Date'] = 'Ngày giờ';
-$app_list_strings['surveys_question_type']['Scale'] = 'Tỷ lệ';
-$app_list_strings['surveys_question_type']['Rating'] = 'Xếp hạng';
-$app_list_strings['surveys_matrix_options'][0] = 'Hài lòng';
-$app_list_strings['surveys_matrix_options'][1] = 'Hài lòng hay không hài lòng';
-$app_list_strings['surveys_matrix_options'][2] = 'Không hài lòng';
 
 $app_strings['LBL_OPT_IN_PENDING_EMAIL_NOT_SENT'] = 'Đang chờ xác nhận chọn tham gia, xác nhận chọn tham gia không được gửi';
 $app_strings['LBL_OPT_IN_PENDING_EMAIL_FAILED'] = 'Email xác nhận sử dụng đang gửi bị lỗi';

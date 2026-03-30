@@ -74,7 +74,7 @@ class ChatZalo implements MessageComponentInterface {
     }
 }
 
-$maxConnections = 128; // Maximum number of connections allowed
+$maxConnections = 130; // Maximum number of connections allowed
 $app = new HttpServer(
     new WsServer(
         new ChatZalo($maxConnections)

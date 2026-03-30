@@ -1,42 +1,5 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
@@ -56,9 +19,7 @@ class MetaParser
     public $mModule;
     public $mCustomPanels;
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
 
 
@@ -127,7 +88,7 @@ class MetaParser
     {
         //$exp = "'".$name."[ ]*?=[ ]*?[\'\"]([a-zA-Z0-9\_\[\]]*)[\'\"]'si";
 
-        $exp = "'".$name."[\s]*?=[\s]*?[\'\"]([^\'^\"]*?)[\'\"]'si";
+        $exp = "'" . $name . "[\s]*?=[\s]*?[\'\"]([^\'^\"]*?)[\'\"]'si";
         preg_match_all($exp, $contents, $matches, PREG_SET_ORDER);
         if (empty($filter)) {
             return !empty($matches[0][1]) ? $matches[0][1] : '';
@@ -187,7 +148,7 @@ class MetaParser
         $count = 0;
         $stag1 = "<" . trim($type, " <>") . '>';
         $stag2 = "<" . trim($type, " <>") . ' ';
-        $etag = "</".$type.">";
+        $etag = "</" . $type . ">";
         $sincrement = strlen($stag1);
         $eincrement = strlen($etag);
         $sarr = array();
@@ -227,7 +188,7 @@ class MetaParser
      */
     public function getElementValue($type, $contents, $filter = "(.*?)")
     {
-        $exp = "'<".$type."[^>]*?>".$filter."</".$type."[^>]*?>'si";
+        $exp = "'<" . $type . "[^>]*?>" . $filter . "</" . $type . "[^>]*?>'si";
         preg_match($exp, $contents, $matches);
         return isset($matches[1]) ? $matches[1] : '';
     }
@@ -352,7 +313,7 @@ class MetaParser
                 } //if
             } //foreach
 
-    $javascript = str_replace(array_keys($replace), array_values($replace), $javascript);
+            $javascript = str_replace(array_keys($replace), array_values($replace), $javascript);
         } //if
 
         if (!$addLiterals) {
@@ -438,7 +399,7 @@ class MetaParser
             }
 
             $filesInDir = $this->dirList($dir);
-            $phpFile = $matches[2].'.*?[\.]php';
+            $phpFile = $matches[2] . '.*?[\.]php';
             foreach ($filesInDir as $file) {
                 if (preg_match("/$phpFile/", $file)) {
                     $this->mPHPFile = $matches[1] . $file;
@@ -454,7 +415,7 @@ class MetaParser
 
         $phpContents = file_get_contents($this->mPHPFile);
         $uname = strtoupper($name);
-        if (preg_match("/xtpl->assign[\(][\"\']".$uname."[\"\'][\s]*?,[\s]*?[\$]focus->(.*?)[\)]/si", $phpContents, $matches)) {
+        if (preg_match("/xtpl->assign[\(][\"\']" . $uname . "[\"\'][\s]*?,[\s]*?[\$]focus->(.*?)[\)]/si", $phpContents, $matches)) {
             return $matches[1];
         }
         return $name;
@@ -471,7 +432,7 @@ class MetaParser
     public function dirList($directory)
     {
 
-    // create an array to hold directory list
+        // create an array to hold directory list
         $results = array();
 
         // create a handler for the directory
@@ -524,9 +485,9 @@ class MetaParser
 
     public function applyPreRules($moduleDir, $panels)
     {
-        if (file_exists("include/SugarFields/Parsers/Rules/".$moduleDir."ParseRule.php")) {
-            require_once("include/SugarFields/Parsers/Rules/".$moduleDir."ParseRule.php");
-            $class = $moduleDir."ParseRule";
+        if (file_exists("include/SugarFields/Parsers/Rules/" . $moduleDir . "ParseRule.php")) {
+            require_once("include/SugarFields/Parsers/Rules/" . $moduleDir . "ParseRule.php");
+            $class = $moduleDir . "ParseRule";
             $parseRule = new $class();
             $panels = $parseRule->preParse($panels, $this->mView);
         }
@@ -541,9 +502,9 @@ class MetaParser
     public function applyPostRules($moduleDir, $panels)
     {
         //Run module specific rules
-        if (file_exists("include/SugarFields/Parsers/Rules/".$moduleDir."ParseRule.php")) {
-            require_once("include/SugarFields/Parsers/Rules/".$moduleDir."ParseRule.php");
-            $class = $moduleDir."ParseRule";
+        if (file_exists("include/SugarFields/Parsers/Rules/" . $moduleDir . "ParseRule.php")) {
+            require_once("include/SugarFields/Parsers/Rules/" . $moduleDir . "ParseRule.php");
+            $class = $moduleDir . "ParseRule";
             $parseRule = new $class();
             $panels = $parseRule->parsePanels($panels, $this->mView);
         }
@@ -635,40 +596,40 @@ class MetaParser
             $keys = array_keys($viewdefs[$moduleDir][$this->mView]['panels']);
             if (!empty($keys) && count($keys) == 1) {
                 if (strtolower($keys[0]) == 'default') {
-                    $masterpanels = array('default'=>$viewdefs[$moduleDir][$this->mView]['panels'][$keys[0]]);
+                    $masterpanels = array('default' => $viewdefs[$moduleDir][$this->mView]['panels'][$keys[0]]);
                 } else {
                     $firstPanel = array_values($viewdefs[$moduleDir][$this->mView]['panels']);
-                    $masterpanels = array('default'=> $firstPanel[0]);
+                    $masterpanels = array('default' => $firstPanel[0]);
                 }
             } else {
-                $masterpanels = array('default'=>$viewdefs[$moduleDir][$this->mView]['panels']);
+                $masterpanels = array('default' => $viewdefs[$moduleDir][$this->mView]['panels']);
             }
         }
-        foreach ($masterpanels as $name=>$masterpanel) {
+        foreach ($masterpanels as $name => $masterpanel) {
             if (isset($panels[$name])) {
                 // Get all the names in the panel
                 $existingElements = array();
                 $existingLocation = array();
 
-                foreach ($panels[$name] as $rowKey=>$row) {
-                    foreach ($row as $colKey=>$column) {
+                foreach ($panels[$name] as $rowKey => $row) {
+                    foreach ($row as $colKey => $column) {
                         if (is_array($column) && !empty($column['name'])) {
                             $existingElements[$column['name']] = $column['name'];
-                            $existingLocation[$column['name']] = array("panel"=>$name, "row"=>$rowKey, "col"=>$colKey);
+                            $existingLocation[$column['name']] = array("panel" => $name, "row" => $rowKey, "col" => $colKey);
                         } else {
                             if (!is_array($column) && !empty($column)) {
                                 $existingElements[$column] = $column;
-                                $existingLocation[$column] = array("panel"=>$name, "row"=>$rowKey, "col"=>$colKey);
+                                $existingLocation[$column] = array("panel" => $name, "row" => $rowKey, "col" => $colKey);
                             }
                         }
                     } //foreach
                 } //foreach
 
-                     // Now check against the $masterCopy
-                foreach ($masterpanel as $rowKey=>$row) {
+                // Now check against the $masterCopy
+                foreach ($masterpanel as $rowKey => $row) {
                     $addRow = array();
 
-                    foreach ($row as $colKey=>$column) {
+                    foreach ($row as $colKey => $column) {
                         if (is_array($column) && isset($column['name'])) {
                             $id = $column['name'];
                         } else {
@@ -683,7 +644,8 @@ class MetaParser
                             // 1) if it is a required field (as defined in metadata)
                             // 2) or if it has a customLabel and customCode (a very deep customization)
                             if ((is_array($column) && !empty($column['displayParams']['required'])) ||
-                                 (is_array($column) && !empty($column['customCode']) && !empty($column['customLabel']))) {
+                                (is_array($column) && !empty($column['customCode']) && !empty($column['customLabel']))
+                            ) {
                                 $addRow[] = $column;
                             }
                         } else {
@@ -704,7 +666,7 @@ class MetaParser
 
         // We're not done yet... go through the $panels Array now and try to remove duplicate
         // or empty panels
-        foreach ($panels as $name=>$panel) {
+        foreach ($panels as $name => $panel) {
             if (count($panel) == 0 || !isset($masterpanels[$name])) {
                 unset($panels[$name]);
             }
@@ -765,10 +727,10 @@ class MetaParser
             } //if-else
         } //foreach
 
-   return true;
+        return true;
     }
 
-    public function getRelateFieldName($mixed='')
+    public function getRelateFieldName($mixed = '')
     {
         if (!is_array($mixed)) {
             return '';
@@ -840,7 +802,7 @@ class MetaParser
      * Scans array of form elements to see if just one is a vardef element and, if so,
      * return that vardef name
      */
-    public function findSingleVardefElement($formElements=array(), $vardefs=array())
+    public function findSingleVardefElement($formElements = array(), $vardefs = array())
     {
         if (empty($formElements) || !is_array($formElements)) {
             return '';

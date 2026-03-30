@@ -28,10 +28,7 @@ $viewdefs[$module_name]['EditView'] = array(
             ),
             array(
                 'file' => 'themes/SuiteP/js/reset.js',
-            ),
-            array(
-                'file' => 'modules/EC_HoaDonBan/js/EC_HoaDonBan.js',
-            ),
+            )
         ),
     ),
 
@@ -43,9 +40,8 @@ $viewdefs[$module_name]['EditView'] = array(
                     'label' => 'LBL_SOHOADON',
                 ),
                 array(
-                    'name' => 'tinhtrang',
-                    'label' => 'LBL_TINHTRANG',
-                    'customCode' => '<input type="hidden" id="tinhtrang" name="tinhtrang" value="{$fields.tinhtrang.value}" />'
+                    'name' => 'ngayhoadon',
+                    'label' => 'LBL_NGAYHOADON',
                 ),
             ),
             array(
@@ -54,8 +50,8 @@ $viewdefs[$module_name]['EditView'] = array(
                     'label' => 'LBL_LOAIKH',
                 ),
                 array(
-                    'name' => 'ngayhoadon',
-                    'label' => 'LBL_NGAYHOADON',
+                    'name' => 'company_unit',
+                    'label' => 'LBL_COMPANY_UNIT',
                 ),
             ),
             array(
@@ -64,8 +60,8 @@ $viewdefs[$module_name]['EditView'] = array(
                     'label' => 'LBL_LIENHE',
                 ),
                 array(
-                    'name' => 'company_unit',
-                    'label' => 'LBL_COMPANY_UNIT',
+                    'name' => 'loaihoadon',
+                    'label' => 'LBL_LOAIHOADON',
                 ),
             ),
             array(
@@ -74,8 +70,8 @@ $viewdefs[$module_name]['EditView'] = array(
                     'label' => 'LBL_TENCONGTY',
                 ),
                 array(
-                    'name' => 'loaihoadon',
-                    'label' => 'LBL_LOAIHOADON',
+                    'name' => 'kyhieuhd',
+                    'label' => 'LBL_KYHIEUHD',
                 ),
             ),
             array(
@@ -85,8 +81,8 @@ $viewdefs[$module_name]['EditView'] = array(
                     'customCode' => '{$CUSTOM_MST}'
                 ),
                 array(
-                    'name' => 'hinhthuctt',
-                    'label' => 'LBL_HINHTHUCTT',
+                    'name' => 'assigned_user_name',
+                    'label' => 'LBL_ASSIGNED_TO_NAME',
                 ),
             ),
             array(
@@ -95,15 +91,23 @@ $viewdefs[$module_name]['EditView'] = array(
                     'label' => 'LBL_EMAIL',
                 ),
                 array(
-                    'name' => 'assigned_user_name',
-                    'label' => 'LBL_ASSIGNED_TO_NAME',
+                    'name' => 'hinhthuctt',
+                    'label' => 'LBL_HINHTHUCTT',
                 ),
             ),
             array(
                 array(
+                    'name' => 'identity_number',
+                    'label' => 'LBL_IDENTITY_NUMBER',
+                    'customCode' => '{$CUSTOM_ID_NUMBER}'
+                ),
+                array(
                     'name' => 'nganhang',
                     'label' => 'LBL_NGANHANG',
                 ),
+            ),
+            array(
+                array(),
                 array(
                     'name' => 'sotaikhoan',
                     'label' => 'LBL_SOTAIKHOAN',
@@ -129,7 +133,6 @@ $viewdefs[$module_name]['EditView'] = array(
                 ),
             ),
         ),
-        
         'LBL_LINEITEM_PANEL' => array(
             array(
                 array(

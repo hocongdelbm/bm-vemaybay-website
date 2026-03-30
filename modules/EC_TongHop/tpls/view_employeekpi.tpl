@@ -2,108 +2,128 @@
 <script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
 {literal}
 	<style>
-	table.list-data-all tbody tr:nth-child(1) td a.admin-view-detail,
-	table.list-data-all tbody tr:nth-child(1) td span{
-		color: #4154f1;
-		font-weight: 600;
-	}
+		table.list-data-all tbody tr:nth-child(1) td a.admin-view-detail,
+		table.list-data-all tbody tr:nth-child(1) td span{
+			color: #4154f1;
+			font-weight: 600;
+		}
 
-	table.list-data-all tbody tr:nth-last-child(2) td a.admin-view-detail,
-	table.list-data-all tbody tr:nth-last-child(2) td span{
-		color: var(--red-vj-color);
-		font-weight: 600;
-	}
+		table.list-data-all tbody tr:nth-last-child(2) td a.admin-view-detail,
+		table.list-data-all tbody tr:nth-last-child(2) td span{
+			color: var(--red-vj-color);
+			font-weight: 600;
+		}
 
-	table.list-data-all a.showdt:hover {
-		color: var(--yellow-color);
-	}
+		table.list-data-all a.showdt:hover {
+			color: var(--yellow-color);
+		}
 
-	table.list-data-all thead th{
-		white-space: nowrap;
-	}
+		table.list-data-all thead th{
+			white-space: nowrap;
+		}
 
-	.remaining-credit span.credit{
-		color: var(--red-vj-color);
-		font-size:16px;
-	}
+		.remaining-credit span.credit{
+			color: var(--red-vj-color);
+			font-size:16px;
+		}
 
-	a.view-detail{
-		float:right;
-	}
+		a.view-detail{
+			float:right;
+		}
 
-	#dlgViewDetail{
-		display:none;
-		font-family:Arial, Helvetica, sans-serif;
-		font-size:11px;
-		overflow: auto;
-	}
+		#dlgViewDetail{
+			display:none;
+			font-family:Arial, Helvetica, sans-serif;
+			font-size:11px;
+			overflow: auto;
+		}
 
-	table.detail-data-list{
-		line-height:20px;
-		border-collapse:collapse;
-		margin:8px 0px;
-	}
+		#dlgViewDetailContent{
+			overflow-y: scroll;
+			max-height: 500px;
+		}
 
-	table.detail-data-list tr:last-child td{
-		background:#e2e2e2;
-		font-weight:bold;
-	}
+		table.detail-data-list{
+			line-height:20px;
+			border-collapse:collapse;
+		}
 
-	.calendar {
-		width: 300px;
-		height: 250px;
-		top: 202px !important;
-	}
+		table.detail-data-list th{
+			position: sticky;
+			top: -1px;
+		}
 
-	.calendar table {
-		width: 100%;
-		height: 100%;
-	}
+		table.detail-data-list tr:last-child td{
+			background:#e2e2e2;
+			font-weight:bold;
+		}
 
-	/* #mark_detail_tbl { */
-	#mark_detail_tbl--wrap {
-		display: none;
-		position: relative;
-	}
+		.calendar {
+			width: 300px;
+			height: 250px;
+			top: 202px !important;
+		}
 
-	#mark-loading {
-		padding-top: 8px;
-	}
-	.showall {
-		position: relative;
-	}
+		.calendar table {
+			width: 100%;
+			height: 100%;
+		}
 
-	.list-data tbody tr:not(:first-child, :last-child):hover {
-		background-color: #cfeafe !important;
-	}
+		/* #mark_detail_tbl { */
+		#mark_detail_tbl--wrap {
+			display: none;
+			position: relative;
+		}
+
+		#mark-loading {
+			padding-top: 8px;
+		}
+		.showall {
+			position: relative;
+		}
+
+		.list-data tbody tr:not(:first-child, :last-child):hover {
+			background-color: #cfeafe !important;
+		}
+
+		/* NOTES */
+		ul.kpi-notes{
+			list-style: none;
+			border-left: 2px solid #ffc107;
+			padding: 0 10px;
+			font-size: 13px;
+			line-height: 2;
+			margin: 15px 0 0;
+			text-align: left;
+		}
 
 	</style>
     <script>
 		$(document).ready(function(){
-			
 			// Xem chi tiết các chỉ số trên báo cáo
 			$('.view-detail, .admin-view-detail').click(function(){
-				var from_date 	= $('#from_date').val();
-				var to_date 	= $('#to_date').val();		
+				let from_date 	= $('#from_date').val();
+				let to_date 	= $('#to_date').val();		
 
 				$('#load_type').val($(this).attr('load_type'));
 				$('#user_id').val($(this).attr('user_id'));
 				$('#dlgViewDetail').dialog({
 					height: 450,
-					width: 1020,
+					width: 1300,
 					modal: true,
 					resizable: false,
 					closeOnEscape: false,
-					title: 'Xem chi tiết '+ $(this).attr('load_name') +' từ ' + from_date + ' đến ' + to_date  
+					title: 'Xem chi tiết '+ $(this).attr('load_name') +' của nhân viên '+ $(this).attr('full_name') +' từ ' + from_date + ' đến ' + to_date,
+					position: { my: "center", at: "center", of: window } // Căn giữa màn hình
 				});
 			});
 			
 			// When dialog open
 			$('#dlgViewDetail').on('dialogopen', function(event, ui){					
-				var load_type 	= $.trim($('#load_type').val());
-				var user_id 	= $.trim($('#user_id').val());
-				var from_date 	= $('#from_date').val();
-				var to_date 	= $('#to_date').val();
+				let load_type 	= $.trim($('#load_type').val());
+				let user_id 	= $.trim($('#user_id').val());
+				let from_date 	= $('#from_date').val();
+				let to_date 	= $('#to_date').val();
 
 				if(load_type != ''){
 					$.ajax({	
@@ -121,11 +141,11 @@
 
 			// Filter by employee kpi type
 			$('#btnSearchViewDetail').on('click', function(){
-				var kpi_type 	= $.trim($('#employee_kpi_type :selected').val());
-				var load_type 	= $.trim($('#load_type').val());
-				var user_id 	= $.trim($('#user_id').val());
-				var from_date 	= $('#from_date').val();
-				var to_date 	= $('#to_date').val();
+				let kpi_type 	= $.trim($('#employee_kpi_type :selected').val());
+				let load_type 	= $.trim($('#load_type').val());
+				let user_id 	= $.trim($('#user_id').val());
+				let from_date 	= $('#from_date').val();
+				let to_date 	= $('#to_date').val();
 
 				$.ajax({	
 					cache: false,
@@ -137,37 +157,6 @@
 						$('#dlgViewDetailContent').html(output);
 					}
 				});
-			});
-			
-			// Xem số dư của hãng vietjet và jetstar
-			$('#btnCheckRemainingCredit').on('click',function(){
-				var supplier_select 	= $('#aircode :selected');
-				var aircode 			= supplier_select.val();
-				var agent_id 			= supplier_select.attr('agent_id');
-				var agent_pwd 			= supplier_select.attr('agent_pwd');
-				var supplier 			= supplier_select.text();
-
-				$.ajax({
-					url:'index.php?entryPoint=entryPointGetRemainingCredit',
-					data: 'aircode='+ aircode +'&agent_id='+ agent_id +'&agent_pwd=' + agent_pwd,
-					type: 'POST',
-					cache: false,
-					beforeSend:function(){
-						$('#total_credit').text('');
-						$('#total_credit').addClass('loading');
-					},
-					error:function(data){
-						console.log(data);
-					},
-					success:function(data){
-						data = $.parseJSON(data);
-						$('#total_credit').text(supplier + ' : ' + formatNumber(data.data.total_credit));
-					},
-					complete:function(){
-						$('#total_credit').removeClass('loading');
-					}
-				});
-
 			});
 			
 			$('.allow-number-only2').on('keydown', function (event) {
@@ -193,7 +182,6 @@
 					}
 				});
 
-				// $("#mark_detail_tbl").dialog({
 				$("#mark_detail_tbl--wrap").dialog({
 					width: 700,
 					title: "Chi tiết chấm điểm",
@@ -443,35 +431,47 @@
 	</form>
 
 {if $IS_ADMIN || $ALL}
-<table class="list-data list-data-all table-details__booking mt-3" cellpadding="0" cellspacing="0">
+<table class="list-data list-data-all table-details__booking my-3" cellpadding="0" cellspacing="0">
 	<thead>
 		<tr>
 			<th width="3%">STT</th>
-			<th width="15%">Họ tên</th>
-			<th width="7%" align="center"><span title="Called">Call</span></th>
-			<th width="7%" align="center"><span title="Comepleted">Complete</span></th>
-			<th width="9%" align="center"><span title="Đã thanh toán / Đã thu">Đã TT</span></th>
-			<th width="7%" align="center"><span title="Recheck">Recheck</span></th>
-			<th width="7%" align="center"><span title="Recall">Recall</span></th>
-			<th width="8%" align="center"><span title="Chuyên môn">Chuyên môn</span></th>
-			<th width="7%" align="center"><span title="Hiệu quả">Hiệu quả</span></th>
-			<th width="7%" align="center"><span title="Ý thức">Ý thức</span></th>
-			<th width="7%" align="center"><span title="Bị trừ">Bị trừ</span></th>
+			<th width="12%">Họ tên</th>
+			<th width="5%" align="center"><span title="Called">CAL</span></th>
+			<th width="5%" align="center"><span title="Booking hoàn tất">COM</span></th>
+			<th width="5%" align="center"><span title="Đã thanh toán / Đã thu">DTT</span></th>
+			<th width="5%" align="center"><span title="Recheck booking">RCE</span></th>
+			<th width="5%" align="center"><span title="Recall">RCA</span></th>
+			<th width="5%" align="center"><span title="Hóa đơn đầu vào">HDV</span></th>
+			<th width="5%" align="center"><span title="Hóa đơn đầu ra">HDR</span></th>
+			<th width="5%" align="center"><span title="Giao vé">GVE</span></th>
+			<th width="5%" align="center"><span title="Checkin">CKI</span></th>
+			<th width="5%" align="center"><span title="Đối chiếu công nợ">DCN</span></th>
+			<th width="5%" align="center"><span title="Tạo phiếu hoàn vé">THV</span></th>
+			<th width="5%" align="center"><span title="Lập phiếu chi">LPC</span></th>
+			<th width="5%" align="center"><span title="Lập phiếu thu">LPT</span></th>
+			<th width="5%" align="center"><span title="Lập phiếu điều chuyển tiền">DCT</span></th>
+			<th width="5%" align="center"><span title="Hỗ trợ khác">SDL</span></th>
 			<th align="center"><span title="Tổng cộng">Tổng cộng</span></th>
-	</tr>
+		</tr>
 	</thead>
     {$ADMIN_DATA}
 	<tr class="footer-tr">
 		<td colspan="2" align="center">Tổng cộng</label></td>
-		<td align="center"><span title="Called">{$TTL_CALLED}</span></td>
+		<td align="center"><span title="Called"></span></td>
 		<td align="center"><span title="Completed">{$TTL_COMPLETED}</span></td>
 		<td align="center"><span title="Đã thanh toán / Đã thu">{$TTL_PAID}</span></td>
 		<td align="center"><span title="Recheck">{$TTL_RECHECK}</span></td>
 		<td align="center"><span title="Recall">{$TTL_RECALL}</span></td>
-		<td align="center"><span title="Chuyên môn">{$TTL_MANNER}</span></td>
-		<td align="center"><span title="Hiệu quả">{$TTL_EFFECTED}</span></td>
-		<td align="center"><span title="Ý thức">{$TTL_AWARENESS}</span></td>
-		<td align="center"><span title="Bị trừ">{$TTL_MINUS}</span></td>
+		<td align="center"><span title="Hóa đơn đầu vào">{$TTL_INV_IN_ISSUED}</span></td>
+		<td align="center"><span title="Hóa đơn đầu ra">{$TTL_INV_ISSUED}</span></td>
+		<td align="center"><span title="Giao vé">{$TTL_DELIVERY}</span></td>
+		<td align="center"><span title="Checkin">{$TTL_CHECKIN}</span></td>
+		<td align="center"><span title="Đối chiếu công nợ">{$TTL_COMDEBT}</span></td>
+		<td align="center"><span title="Lập phiếu hoàn vé">{$TTL_NEW_REPAID}</span></td>
+		<td align="center"><span title="Lập phiếu chi">{$TTL_PAYMENT}</span></td>
+		<td align="center"><span title="Lập phiếu thu">{$TTL_RECEIPT}</span></td>
+		<td align="center"><span title="Lập phiếu điều chuyển tiền">{$TTL_TRANSFER}</span></td>
+		<td align="center"><span title="Hỗ trợ khác">{$TTL_SUPPORT}</span></td>
 		<td align="center"><span title="Tổng cộng">{$TTL_FINAL}</span></td>
 	</tr>
 </table>
@@ -497,7 +497,7 @@
 </div>
 
 {elseif $OWNER}
-<table class="summary-report table-details__booking" cellpadding="0" cellspacing="0">
+<table class="summary-report table-details__booking my-3" cellpadding="0" cellspacing="0">
 	<thead>
 		<tr>
 			<th>Booking</th>
@@ -506,20 +506,20 @@
 			<th>% Achieved</th>
 			<th>Bonus</th>
 			<th>KPI</th>
-	</tr>
+		</tr>
 	</thead>
 	<tbody>
 		<tr>
-				<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/flight_booking.svg" alt="booking" border="0" width="96" /></td>
-				<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/ticket.svg" alt="ticket" border="0" width="96" /></td>
-				<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/target.svg" alt="target" border="0" width="96" /></td>
-				<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/percent.svg" alt="percent" border="0" width="96" /></td>
-				<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/bonus.svg" alt="check" border="0" width="96" /></td>
-				<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/kpi.svg" alt="plus" border="0" width="96" /></td>
+			<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/flight_booking.svg" alt="booking" border="0" width="96" /></td>
+			<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/ticket.svg" alt="ticket" border="0" width="96" /></td>
+			<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/target.svg" alt="target" border="0" width="96" /></td>
+			<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/percent.svg" alt="percent" border="0" width="96" /></td>
+			<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/bonus.svg" alt="check" border="0" width="96" /></td>
+			<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/kpi.svg" alt="plus" border="0" width="96" /></td>
 		</tr>
 		<tr class="footer-tr">
 			<td>{$BOOKING_COUNT}</td>
-			<td>{$TICKET_COUNT}<!--<a class="view-detail" load_type="total_ticket" load_name="số lượng vé đã xuất" href="#" title="Xem chi tiết"></a>--></td>
+			<td>{$TICKET_COUNT}</td>
 			<td>{$TICKET_TARGET}</td>
 			<td>{$PERCENT_ACHIEVED}</td>
 			<td>{$TOTAL_BONUS}<a class="view-detail" load_type="total_bonus" load_name="bonus" href="#" title="Xem chi tiết"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
@@ -533,11 +533,63 @@
 </table>
 {/if}
 
+<div class="flex-start">
+	<ul class="kpi-notes flex-fill">
+		<li>
+			<strong>CAL</strong>: <span>Cuộc gọi <span class="fw-bold text-dark">(Hoàn tất, có mô tả và hội thoại từ 20s trở lên (đi) hoặc có thoại (đến))</span></span>
+		</li>
+		<li>
+			<strong>COM</strong>: <span>Booking <span class="fw-bold text-primary">hoàn tất</span></span>
+		</li>
+		<li>
+			<strong>DTT</strong>: <span>Đã thanh toán / đã thu</span>
+		</li>
+		<li>
+			<strong>RCE</strong>: <span>Recheck thông tin</span>
+		</li>
+		<li>
+			<strong>RCA</strong>: <span>Recall cuộc gọi / Nhắc lịch bay khách hàng</span>
+		</li>
+		<li>
+			<strong>HDV</strong>: <span>Xuất hóa đơn đầu vào</span>
+		</li>
+		<li>
+			<strong>HDR</strong>: <span>Xuất hóa đơn đầu ra</span>
+		</li>
+	</ul>
+	<ul class="kpi-notes flex-fill">
+		<li>
+			<strong>GVE</strong>: <span>Giao vé / giao thực phẩm</span>
+		</li>
+		<li>
+			<strong>CKI</strong>: <span>Checkin hành trình</span>
+		</li>
+		<li>
+			<strong>DCN</strong>: <span>Đối chiếu công nợ</span>
+		</li>
+		<li>
+			<strong>THV</strong>: <span>Tạo phiếu hoàn vé</span>
+		</li>
+		<li>
+			<strong>LPC</strong>: <span>Lập phiếu chi <span class="fw-bold text-primary">(Đã chi)</span></span>
+		</li>
+		<li>
+			<strong>LPT</strong>: <span>Lập phiếu thu / PT đổi giờ bay, hành trình, tên khách / PT tiền hành lý <span class="fw-bold text-primary">(Đã thu)</span></span>
+		</li>
+		<li>
+			<strong>DCT</strong>: <span>Lập phiếu điều chuyển tiền</span>
+		</li>
+		<li>
+			<strong>SDL</strong>: <span>Hỗ trợ delay chuyến bay / Tư vấn qua Zalo OA / Hỗ trợ khác</span>
+		</li>
+	</ul>
+</div>
+
 </div>
 
 <div id="dlgViewDetail" title="Xem chi tiết">
 	<div id="dlgViewDetailFilter">
-		<div class="d-flex align-items-center gap-2">
+		<div class="d-flex align-items-center gap-2 pb-2 mb-2 border-bottom">
 			<span class="label">Loại KPI:</span>
 			<select class="box-select" id="employee_kpi_type">
 				<option value="">Tất cả</option>

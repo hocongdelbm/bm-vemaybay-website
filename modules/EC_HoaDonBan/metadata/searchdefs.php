@@ -8,22 +8,18 @@ $searchdefs[$module_name] = array(
         'widths' => array('label' => '10', 'field' => '30'),
     ),
     'layout' => array(
-        'basic_search' => 
-        array(
-            'name' =>
-            array(
+        'basic_search' => array(
+            'name' => array(
                 'name' => 'name',
                 'default' => true,
                 'width' => '10%',
             ),
-            'sohoadon' =>
-            array(
+            'sohoadon' => array(
                 'name' => 'sohoadon',
                 'default' => true,
                 'width' => '10%',
             ),
-            'ngayhoadon' =>
-            array(
+            'ngayhoadon' => array(
                 'type' => 'date',
                 'label' => 'LBL_NGAYHOADON',
                 'width' => '10%',
@@ -38,147 +34,137 @@ $searchdefs[$module_name] = array(
             //     'default' => true,
             //     'width' => '10%',
             // ),
-            'masothue' =>
-            array(
+            'masothue' => array(
                 'name' => 'masothue',
                 'default' => true,
                 'width' => '10%',
             ),
-            'tencongty' =>
-            array(
+            'tencongty' => array(
                 'name' => 'tencongty',
                 'default' => true,
                 'width' => '10%',
             ),
-            // 'email' =>
-            // array(
-            //     'name' => 'email',
-            //     'default' => true,
-            //     'width' => '10%',
-            // ),
-            'booking' =>
-            array(
+            'lienhe' => array(
+                'name' => 'lienhe',
+                'default' => true,
+                'width' => '10%',
+            ),
+            'email' => array(
+                'name' => 'email',
+                'default' => true,
+                'width' => '10%',
+            ),
+            'booking' => array(
                 'name' => 'booking',
                 'type' => 'varchar',
                 'label' => 'LBL_BOOKING',
                 'default' => true,
                 'width' => '10%',
             ),
-            'ticket_number' =>
-            array(
+            'ticket_number' => array(
                 'name' => 'ticket_number',
                 'type' => 'varchar',
                 'label' => 'LBL_TICKET_NUMBER',
                 'default' => true,
                 'width' => '10%',
             ),
-            'company_unit' =>
-            array(
-                'name' => 'company_unit',
+            'loaikh' => array(
+                'name' => 'loaikh',
                 'type' => 'enum',
-                'label' => 'LBL_COMPANY_UNIT',
+                'label' => 'LBL_LOAIKH',
                 'default' => true,
                 'width' => '10%',
             ),
-            'tinhtrang' =>
-            array(
+            'tinhtrang' => array(
                 'name' => 'tinhtrang',
                 'type' => 'enum',
                 'label' => 'LBL_TINHTRANG',
                 'default' => true,
                 'width' => '10%',
             ),
+            'company_unit' => array(
+                'name' => 'company_unit',
+                'type' => 'enum',
+                'label' => 'LBL_COMPANY_UNIT',
+                'default' => true,
+                'width' => '10%',
+            ),
         ),
-        'advanced_search' => 
-        array(
-            'name' =>
-            array(
+        'advanced_search' => array(
+            'name' => array(
                 'name' => 'name',
                 'default' => true,
                 'width' => '10%',
             ),
-            'tencongty' =>
-            array(
+            'tencongty' => array(
                 'name' => 'tencongty',
                 'default' => true,
                 'width' => '10%',
             ),
-            'date_entered' =>
-            array(
+            'date_entered' => array(
                 'label' => 'LBL_DATE_ENTERED',
                 'width' => '10%',
                 'default' => true,
                 'name' => 'date_entered',
             ),
-            'sohoadon' =>
-            array(
+            'sohoadon' => array(
                 'name' => 'sohoadon',
                 'default' => true,
                 'width' => '10%',
             ),
-            'masothue' =>
-            array(
+            'masothue' => array(
                 'name' => 'masothue',
                 'default' => true,
                 'width' => '10%',
             ),
-            'email' =>
-            array(
+            'email' => array(
                 'name' => 'email',
                 'default' => true,
                 'width' => '10%',
             ),
-            'ngayhoadon' =>
-            array(
+            'ngayhoadon' => array(
                 'type' => 'date',
                 'label' => 'LBL_NGAYHOADON',
                 'width' => '10%',
                 'default' => true,
                 'name' => 'ngayhoadon',
             ),
-            'lienhe' =>
-            array(
+            'lienhe' => array(
                 'name' => 'lienhe',
                 'default' => true,
                 'width' => '10%',
             ),
-            'assigned_user_name' =>
-            array(
+            'assigned_user_name' => array(
                 'name' => 'assigned_user_name',
                 'default' => true,
                 'width' => '10%',
             ),
-            'booking' =>
-            array(
+            'booking' => array(
                 'name' => 'booking',
                 'type' => 'varchar',
                 'label' => 'LBL_BOOKING',
                 'default' => true,
                 'width' => '10%',
             ),
-            'ticket_number' =>
-            array(
+            'ticket_number' => array(
                 'name' => 'ticket_number',
                 'type' => 'varchar',
                 'label' => 'LBL_TICKET_NUMBER',
                 'default' => true,
                 'width' => '10%',
             ),
-            'date_modified' =>
-            array(
+            'date_modified' => array(
                 'label' => 'LBL_DATE_MODIFIED',
                 'width' => '10%',
                 'default' => true,
                 'name' => 'date_modified',
             ),
-            'loaihoadon' =>
-            array(
+            'loaihoadon' => array(
                 'name' => 'loaihoadon',
                 'default' => true,
                 'width' => '10%',
             ),
-            'hinhthuctt' =>
-            array(
+            'hinhthuctt' => array(
                 'name' => 'hinhthuctt',
                 'default' => true,
                 'width' => '10%',

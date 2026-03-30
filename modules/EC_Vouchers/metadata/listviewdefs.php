@@ -1,51 +1,50 @@
 <?php
 
 if (!defined('sugarEntry') || !sugarEntry) {
-    die('Not A Valid Entry Point');
+	die('Not A Valid Entry Point');
 }
 
 $module_name = 'EC_Vouchers';
 $listViewDefs[$module_name] = array(
-	'ORDER_BY_NO' => array(
-		'width' => '10', 
-		'label' => 'LBL_ORDER_BY_NO',
-        	'default' => true
-    ),
 	'NAME' => array(
-		'width' => '10', 
-		'label' => 'LBL_NAME', 
+		'width' => '10',
+		'label' => 'LBL_NAME',
 		'default' => true,
-        	'link' => true
-    ),  
-    'STATUS' => array(
-		'width' => '10', 
-		'label' => 'LBL_STATUS', 
+		'link' => true
+	),
+	'STATUS' => array(
+		'width' => '10',
+		'label' => 'LBL_STATUS',
 		'default' => true,
-    ), 
-    'REDUCE_AMOUNT' => array(
-		'width' => '10', 
-		'label' => 'LBL_REDUCE_AMOUNT', 
+	),
+	'REDUCE_AMOUNT' => array(
+		'name' => 'reduce_amount',
+		'label' => 'LBL_DISCOUNT',
+		'type' => 'varchar',
+		'width' => '10',
 		'default' => true,
-    ),     
-	'VALIDATE_FROM_DATE' => array(
-		'width' => '20', 
-		'label' => 'LBL_DURATION', 
+		'related_fields' => array('reduce_percent'),
+	),
+	'END_TIME' => array(
+		'name' => 'end_time',
+		'width' => '20',
+		'label' => 'LBL_DURATION',
 		'default' => true,
-    ),
+		'related_fields' => array('start_time', 'end_time'),
+	),
 	'CAMPAIGN_NAME' => array(
-		'width' => '10', 
-		'label' => 'LBL_CAMPAIGN_NAME', 
+		'width' => '10',
+		'label' => 'LBL_CAMPAIGN_NAME',
 		'default' => true,
-    ),
-    'BOOKING_RECEIVE_ID' => array(
-		'name' => 'booking_receive_id',
-		'width' => '10', 
-		'label' => 'LBL_BOOKING', 
+	),
+	'WEBSITE' => array(
+		'width' => '10',
+		'label' => 'LBL_WEBSITE',
 		'default' => true,
-    ),
+	),
 	'DATE_ENTERED' => array(
-		'width' => '10', 
+		'width' => '10',
 		'label' => 'LBL_DATE_ENTERED',
-        	'default' => true
-    ),
+		'default' => true
+	),
 );

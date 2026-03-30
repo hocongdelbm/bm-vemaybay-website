@@ -1,0 +1,46 @@
+section {
+    background: #fff;
+    box-shadow: rgba(17, 17, 26, 0.05) 0px 1px 0px, rgba(17, 17, 26, 0.1) 0px 0px 8px;
+    border-radius: 4px;
+    padding: 8px;
+}
+
+section.first {
+    display: flex;
+    gap: 12px;
+}
+
+section.first .statistics {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-around;
+    width: 50%;
+    text-align: center;
+}
+section.first .statistics .item {width: 50%;}
+section.first .item .subtitle {
+    font-size: 16px;
+    font-weight: 600;
+    padding: 5px 0;
+}
+section.first .item .value {
+    font-weight: 600;
+    font-size: 18px;
+    color: blue;
+}
+
+section.first .ranking {
+    flex: 1;
+    position: relative;
+}
+section.first .ranking .subtitle {
+    text-align: center;
+    margin-bottom: 15px;
+}
+section.first .ranking .select-period {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: fit-content;
+}

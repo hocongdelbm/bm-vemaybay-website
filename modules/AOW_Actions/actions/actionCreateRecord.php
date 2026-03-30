@@ -253,28 +253,6 @@ class actionCreateRecord extends actionBase
                             $dformat = 'Y-m-d';
                         }
                         switch ($params['value'][$key][3]) {
-                            case 'business_hours':
-                                require_once 'modules/AOBH_BusinessHours/AOBH_BusinessHours.php';
-
-                                $businessHours = BeanFactory::newBean('AOBH_BusinessHours');
-
-                                $dateToUse = $params['value'][$key][0];
-                                $sign = $params['value'][$key][1];
-                                $amount = $params['value'][$key][2];
-
-                                if ($sign !== 'plus') {
-                                    $amount = 0-$amount;
-                                }
-                                if ($dateToUse === 'now') {
-                                    $value = $businessHours->addBusinessHours($amount);
-                                } elseif ($dateToUse === 'field') {
-                                    $dateToUse = $params['field'][$key];
-                                    $value = $businessHours->addBusinessHours($amount, $timedate->fromDb($bean->$dateToUse));
-                                } else {
-                                    $value = $businessHours->addBusinessHours($amount, $timedate->fromDb($bean->$dateToUse));
-                                }
-                                $value = $timedate->asDb($value);
-                                break;
                             default:
                                 if ($params['value'][$key][0] === 'now') {
                                     $date = gmdate($dformat);

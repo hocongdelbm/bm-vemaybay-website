@@ -1,6 +1,8 @@
 <?php
 $action_view_map['printeticket']        = 'printeticket';
+$action_view_map['printeticketnew']     = 'printeticketnew';
 $action_view_map['sendeticket']         = 'sendeticket';
+$action_view_map['sendeticketnew']      = 'sendeticketnew';
 $action_view_map['employeereport']      = 'employeereport';
 $action_view_map['monthlyreport']       = 'monthlyreport';
 $action_view_map['employeekpi']         = 'employeekpi';
@@ -18,4 +20,7 @@ $action_view_map['recheckbk']           = 'recheckbk';
 $action_view_map['assignbk']            = 'assignbk';
 $action_view_map['bkagent']             = 'bkagent';
 $action_view_map['issueticket']         = 'issueticket';
+$action_view_map['updateflightfare']    = 'updateflightfare';
+$action_view_map['clientphonetcb']      = 'clientphonetcb';
+$action_view_map['updateflight']        = 'updateflight';
 

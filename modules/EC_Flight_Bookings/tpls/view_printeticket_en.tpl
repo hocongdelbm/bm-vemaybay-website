@@ -17,7 +17,7 @@
                                                         <tr>
                                                             <td class="pad" style="padding-left: 25px;width: 100%;padding-right: 0px;">
                                                                 <div align="left" class="alignment" style="line-height: 10px">
-                                                                    <img alt="tcb" src="https://bm.vemaybay.website/include/images/mail/bm-tcb-logo.png" style="display: block;height: auto; border: 0; width: 75px; max-width: 100%;" title="tcb" width="75" />
+                                                                    <img alt="tcb" src="https://bm.vemaybay.website/include/images/mail/logo-tcb-blue.png" style="display: block;height: auto; border: 0; width: 75px; max-width: 100%;" title="tcb" width="75" />
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -102,7 +102,7 @@
                                     <table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 900px; padding: 0 5px 10px;font-size: 14px;" width="900">
                                         <thead>
                                             <tr>
-                                                <th width="35%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">EXTRA BAGGAGE</th>
+                                                <th width="35%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">NAME</th>
                                                 <th width="20%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">BOOKING CODE</th>
                                                 <th width="45%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">EXTRA BAGGAGE</th>
                                             </tr>
@@ -228,7 +228,7 @@
                                                             <td class="pad" style=" padding-bottom: 15px; width: 100%; padding-right: 0px; padding-left: 0px; ">
                                                                 <div align="center" class="alignment" style="line-height: 10px">
                                                                     <p style=" margin: 0; font-size: 13px; line-height: 20px; mso-line-height-alt: 21px;  ">
-                                                                        {$COM_NAME}, {$COM_ADDRESS}, TPHCM
+                                                                        {$COM_NAME}, {$COM_ADDRESS}
                                                                     </p>
                                                                     <p style=" margin: 0; font-size: 13px; line-height: 20px; mso-line-height-alt: 21px;  ">
                                                                         MST: {$COM_TAXCODE} &nbsp;&nbsp;|&nbsp;&nbsp;Tel: {$COM_PHONE}&nbsp;&nbsp;|&nbsp;&nbsp;Email: {$COM_EMAIL}

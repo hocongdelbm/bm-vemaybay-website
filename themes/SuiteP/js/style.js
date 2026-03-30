@@ -263,8 +263,8 @@ $(window).resize(function () {
 
 // jQuery to toggle sidebar
 function loadSidebar() {
-  $icon_chevron_left = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg>';
-  $icon_chevron_right = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>';
+  let $icon_chevron_left = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg>';
+  let $icon_chevron_right = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>';
 
   $('#buttontoggle').click(function () {
     $('body').toggleClass('sidebar-icon-only');
@@ -286,7 +286,6 @@ function loadSidebar() {
 
   // Lấy giá trị coolie;
   let val_sidebar_toggle = $.cookie('sidebartoggle');
-
   if (val_sidebar_toggle == 'collapsed') {
     $('#buttontoggle').html($icon_chevron_right);
     $('body').addClass('sidebar-icon-only');
@@ -517,53 +516,15 @@ $(function () {
       });
     });
 
-    $(document).click(function(event) {
-        // Kiểm tra xem người dùng click vào phần tử nào
-        // Nếu không phải là sidebar hoặc nút toggleButton, ẩn sidebar đi
-        if (!$(event.target).closest('#sidebar, .menu-mobile-icon').length) {
-            $('#sidebar').removeClass('active');
-        }
+    $(document).click(function (event) {
+      // Kiểm tra xem người dùng click vào phần tử nào
+      // Nếu không phải là sidebar hoặc nút toggleButton, ẩn sidebar đi
+      if (!$(event.target).closest('#sidebar, .menu-mobile-icon').length) {
+        $('#sidebar').removeClass('active');
+      }
     });
 
   })(jQuery);
-
-  //Open submenu on hover in compact sidebar mode and horizontal menu mode
-  // $(document).on('mouseenter mouseleave', '#buttontoggle', function (ev) {
-  //   var body = $('body');
-  //   var sidebarIconOnly = body.hasClass("sidebar-icon-only");
-  //   var sidebarFixed = body.hasClass("sidebar-fixed");
-
-  //   if (!('ontouchstart' in document.documentElement)) {
-  //     if (sidebarIconOnly) {
-
-  //       var $menuItem = $('.sidebar-current .nav-item');
-  //       if (ev.type === 'mouseenter') {
-  //         $menuItem.addClass('hover-open')
-  //         body.addClass('sidebar-visible');
-  //       } else {
-  //         $menuItem.removeClass('hover-open')
-  //         // body.removeClass('sidebar-visible');
-  //       }
-
-  //     } else {
-
-  //       if (ev.type === 'mouseenter') {
-  //         body.removeClass('sidebar-icon-only');
-  //       }
-
-  //     }
-
-  //   }
-  // });
-
-  // IMPORT
-  // WHEN USER IMPORT FILE
-  // let input_file = $("#vcard_file");
-  // let name_file  = $("#file__input-name-imported")
-  // input_file.on("change", () => {
-  //     let imported_file = document.querySelector("input[type=file]").files[0];
-  //     name_file.text(imported_file.name);
-  // })
 
   let input_userfile = $("#userfile");
   let name_userfile_imported = $("#name_file_imported")
@@ -615,31 +576,70 @@ $(document).ready(function () {
   });
 
   $("#popup__voiceip--wrap").draggable({
-    stop: function( event, ui ) {
+    stop: function (event, ui) {
       $(this).removeClass('start');
       $(this).addClass('stop');
     },
-    start: function(event, ui) {
+    start: function (event, ui) {
       $(this).removeClass('stop');
       $(this).addClass('start');
       $(this).addClass('draggable');
     }
   });
-  
+
 
   // EC_TONGHOP
-  $(document).on("click", "#btnSearch_cancel", function() {
+  $(document).on("click", "#btnSearch_cancel", function () {
     $('form[name="search_form"]').removeClass('active');
     $('.overlay-mobile').slideUp(300);
   });
 
-  $(document).on("click", "#filter_report", function() {
-    $('form[name="search_form"]').addClass('active');
-    $('.overlay-mobile').slideDown(300);
+  if (window.innerWidth <= 576) {
+    $(document).on("click", "#filter_report", function () {
+      $('form[name="search_form"]').addClass('active');
+      $('.overlay-mobile').slideDown(300);
+    });
+  } else {
+    const $form = $("#search_form");
+    let key = "searchFormVisible";
+
+    $(document).on('click', '#filter_report', function () {
+      const $btn = $(this);
+      $form.slideToggle(200, function () {
+        const isVisible = $form.is(":visible");
+        $btn.toggleClass('text-primary', isVisible);
+        localStorage.setItem(key, isVisible ? "open" : "closed");
+      });
+    });
+  }
+
+  // view password
+  const icon_hide = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 19c.946 0 1.81-.103 2.598-.281l-1.757-1.757c-.273.021-.55.038-.841.038-5.351 0-7.424-3.846-7.926-5a8.642 8.642 0 0 1 1.508-2.297L4.184 8.305c-1.538 1.667-2.121 3.346-2.132 3.379a.994.994 0 0 0 0 .633C2.073 12.383 4.367 19 12 19zm0-14c-1.837 0-3.346.396-4.604.981L3.707 2.293 2.293 3.707l18 18 1.414-1.414-3.319-3.319c2.614-1.951 3.547-4.615 3.561-4.657a.994.994 0 0 0 0-.633C21.927 11.617 19.633 5 12 5zm4.972 10.558-2.28-2.28c.19-.39.308-.819.308-1.278 0-1.641-1.359-3-3-3-.459 0-.888.118-1.277.309L8.915 7.501A9.26 9.26 0 0 1 12 7c5.351 0 7.424 3.846 7.926 5-.302.692-1.166 2.342-2.954 3.558z"></path></svg>';
+  const icon_show = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9a3.02 3.02 0 0 0-3 3c0 1.642 1.358 3 3 3 1.641 0 3-1.358 3-3 0-1.641-1.359-3-3-3z"></path><path d="M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5zm0 12c-5.351 0-7.424-3.846-7.926-5C4.578 10.842 6.652 7 12 7c5.351 0 7.424 3.846 7.926 5-.504 1.158-2.578 5-7.926 5z"></path></svg>';
+  $(document).on("click", "#view-password", function () {
+    if ($(this).hasClass('view-password')) {
+      $("#username_password").attr('type', 'password');
+      $(this).removeClass('view-password');
+      $(this).html(icon_hide);
+    } else {
+      $("#username_password").attr('type', 'text');
+      $(this).addClass('view-password');
+      $(this).html(icon_show);
+    }
   });
 
-
 });
+
+/**
+ * Hiển thị ảnh xem trước
+ */
+function demoImage(input, imgId) {
+  if (input.files && input.files[0]) {
+    let previewImage = document.getElementById(imgId);
+    previewImage.src = URL.createObjectURL(input.files[0]);
+    previewImage.style.display = '';
+  }
+}
 
 function showModalNotify(type_modal, text_modal, text_description = '') {
   let view_detail = '';
@@ -709,7 +709,7 @@ function showModalNotify(type_modal, text_modal, text_description = '') {
     $('#modal-content').append(html_error);
   } else if (type_modal == 1 || type_modal == 200 || type_modal == 'success') {
     $('#modal-content').append(html_success);
-  } else if (type_modal == 2 || type_modal == 'warning'){
+  } else if (type_modal == 2 || type_modal == 'warning') {
     $('#modal-content').append(html_warning);
   } else {
     let text_warning = 'type modal không xác định!';
@@ -794,10 +794,10 @@ function formatName(name) {
  * @return {boolean}
  */
 function showToastNotify(type = '', content = '') {
-	if (type.length == 0) { alert(content); return false; }
+  if (type.length == 0) { alert(content); return false; }
 
-	let color = ROOT_STYLE.getPropertyValue(`--${type}-color`);
-	let html = `
+  let color = ROOT_STYLE.getPropertyValue(`--${type}-color`);
+  let html = `
           <div class="toast__content d-flex align-items-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="${color}" viewBox="0 0 256 256">
               <rect width="256" height="256" fill="none"></rect>
@@ -819,15 +819,38 @@ function showToastNotify(type = '', content = '') {
           </div>
     `;
 
-	$('#toast-notify').removeClass();
-	$('#toast-notify').addClass(`toast__container--${type} active`);
-	$('#toast-notify').html(html);
-	$('#toast-notify .progress-bar').animate({ width: "100%" }, 3000);
-	setTimeout(function () {
-		$('#toast-notify').removeClass(`toast-${type} active`);
-	}, 4000);
+  $('#toast-notify').removeClass();
+  $('#toast-notify').addClass(`toast__container--${type} active`);
+  $('#toast-notify').html(html);
+  $('#toast-notify .progress-bar').animate({ width: "100%" }, 3000);
+  setTimeout(function () {
+    $('#toast-notify').removeClass(`toast-${type} active`);
+  }, 4000);
 
-	return true;
+  return true;
+}
+
+function showDialog(id) {
+  // Show dialog
+  const dialog = document.getElementById(id);
+  // If a browser doesn't support the dialog, then hide the dialog contents by default.
+  if (typeof dialog.showModal !== 'function') { dialog.hidden = true; }
+  // "Update details" button opens the <dialog> modally
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+  } else {
+    $('.toast-warning').addClass('active');
+    $('.toast-warning #toast-content').text('Chức năng không được hỗ trợ trên trình duyệt này!');
+    $('.toast-warning .progress-bar').animate({ width: "100%" }, 3000);
+    setTimeout(function () {
+      $(".toast-warning").removeClass('active');
+      location.reload();
+    }, 4000);
+  }
+}
+function closeDialog(id) {
+  dialog = document.getElementById(id);
+  dialog.close();
 }
 
 
@@ -837,17 +860,17 @@ function showToastNotify(type = '', content = '') {
  * @return {boolean}
  */
 
-function copyContent(input){
-	const copyValue = input.trim();
+function copyContent(input) {
+  const copyValue = input.length > 0 ? input.trim() : '';
 
-	if (copyValue) {
-		navigator.clipboard.writeText(copyValue).then(function() {
-			showToastNotify('success', 'Đã sao chép thành công!')
-		}).catch(function(error) {
-			showToastNotify('danger', 'Không thể sao chép văn bản!')
-		    	console.error('Không thể sao chép văn bản: ', error);
-		});
-	} else {
-		showToastNotify('danger', 'Không có thông tin để sao ché!')
-	}
+  if (copyValue) {
+    navigator.clipboard.writeText(copyValue).then(function () {
+      showToastNotify('success', 'Đã sao chép thành công!')
+    }).catch(function (error) {
+      showToastNotify('danger', 'Không thể sao chép văn bản!')
+      console.error('Không thể sao chép văn bản: ', error);
+    });
+  } else {
+    showToastNotify('danger', 'Không có thông tin để sao chép!')
+  }
 }

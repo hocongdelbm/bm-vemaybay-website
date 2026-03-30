@@ -61,4 +61,6 @@ $mod_strings = array (
   'LBL_ACCOUNT' => 'Tài khoản',
   'LBL_ACCOUNT_HOLDER' => 'Chủ tài khoản',
   'LBL_SORT' => 'Sắp xếp',
+
+  'LBL_IS_ROLL' => 'Xoay vòng',
 );

@@ -123,6 +123,12 @@ class Viewagentreport extends SugarView
 			return;
 		} // end if
 
+		$date_select .= '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'this_month' ? 'selected' : '') . ' value="this_month" data-fromdate="' . date('d-m-Y', strtotime("first day of this month")) . '" data-todate="' . date('d-m-Y', strtotime("last day of this month")) . '">Tháng này</option>';
+		$date_select .= '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'previous_month' ? 'selected' : '') . ' value="previous_month" data-fromdate="' . date('d-m-Y', strtotime("first day of previous month")) . '" data-todate="' . date('d-m-Y', strtotime("last day of previous month")) . '">Tháng trước</option>';
+		$date_select .= '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'this_year' ? 'selected' : '') . ' value="this_year" data-fromdate="' . date('01-01-Y') . '" data-todate="' . date('31-12-Y') . '">Năm nay</option>';
+		$date_select .= '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'previous_year' ? 'selected' : '') . ' value="previous_year" data-fromdate="' . date('01-01-Y', strtotime('-1 year')) . '" data-todate="' . date('31-12-Y', strtotime('-1 year')) . '">Năm trước</option>';
+		$smartyobj->assign('DATE_SELECT_OPTIONS', $date_select);
+
 		$agt_arr = $this->getAgentList($opening_year, $accounting_code, $post_fdate, $post_tdate);
 		$smartyobj->assign('AGENT_LIST', $agt_arr['html']);
 		$smartyobj->assign('TOTAL_DEBT', format_number($agt_arr['total_debt']));
@@ -221,18 +227,21 @@ class Viewagentreport extends SugarView
 		$total_debt = 0;
 		$html = '';
 		while ($row = $db->fetchByAssoc($res)) {
-			$html .= '<tr>
-			<td align="center">
-				<input type="checkbox" name="agent_id[]" value="' . $row['agent_id'] . '" />
-				<input type="hidden" name="agtcode_' . $row['agent_id'] . '" value="' . $row['agent_code'] . '" />
-				<input type="hidden" name="agtname_' . $row['agent_id'] . '" value="' . $row['agent_name'] . '" />
-			</td>
-			<td align="left">' . $row['agent_code'] . '</td>
-			<td align="left">' . $row['agent_name'] . '</td>
-			<td align="left" class="hide-mobile">' . $row['address'] . '</td>
-			<td align="left" class="hide-mobile">' . $row['phone'] . '</td>
-			<td align="right">' . format_number($row['total_debt']) . '</td>
-				</tr>';
+
+			if($row['total_debt'] != 0){
+				$html .= '<tr>
+				<td align="center">
+					<input type="checkbox" name="agent_id[]" value="' . $row['agent_id'] . '" />
+					<input type="hidden" name="agtcode_' . $row['agent_id'] . '" value="' . $row['agent_code'] . '" />
+					<input type="hidden" name="agtname_' . $row['agent_id'] . '" value="' . $row['agent_name'] . '" />
+				</td>
+				<td align="left">' . $row['agent_code'] . '</td>
+				<td align="left">' . $row['agent_name'] . '</td>
+				<td align="left" class="hide-mobile">' . $row['address'] . '</td>
+				<td align="left" class="hide-mobile">' . $row['phone'] . '</td>
+				<td align="right">' . format_number($row['total_debt']) . '</td>
+					</tr>';
+			}
 
 			//========== Begin close opening amount ==========//
 			// if ($GLOBALS['current_user']->user_name == 'nponline' && $post_fdate == '01-01-2019' && $post_tdate == '31-12-2019' && $row['total_debt'] != 0) {

@@ -174,6 +174,8 @@ $mod_strings = array(
     'LBL_CONFIGURE_GROUP_TABS' => 'Cấu hình mô-đun bộ lọc trình đơn',
     'LBL_CONFIGURE_SETTINGS_TITLE' => 'Thiết lập hệ thống',
     'LBL_CONFIGURE_SETTINGS' => 'Cấu hình cài đặt toàn bộ hệ thống',
+    'LBL_MANAGE_CONFIG_TITLE'                     => 'Thiết lập cấu hình tài khoản',
+    'LBL_MANAGE_CONFIG'                           => 'Cấu hình cài đặt tài khoản (ZaloOA, PBX, Misa, VNBackup,...)',
     'LBL_CONFIGURE_TABS_AND_SUBPANELS' => 'Mô-đun hiển thị và Tệp phụ',
     'LBL_COULD_NOT_CONNECT' => 'Lỗi: Không thể kết nối tới hệ phục vụ SuiteCRM.
 	Vui lòng kiểm tra giá trị của bạn cài đặt Proxy trong bảng quản trị <a href="index.php?module=Configurator&action=EditView">Hệ thống cài đặt</a>. Cuối cùng đã cố gắng kết nối @ ',
@@ -334,6 +336,8 @@ $mod_strings = array(
     'LBL_MANAGE_MAILBOX_OUTBOUND' => 'Email gửi đi',
     'LBL_MANAGE_PASSWORD_TITLE' => 'Quản lý mật khẩu',
     'LBL_MANAGE_PASSWORD' => 'Quản lý yêu cầu mật khẩu và hết hạn',
+    'LBL_MANAGE_PHONE_TITLE' => 'Quản lý SĐT',
+    'LBL_MANAGE_PHONE' => 'Quản lý số điện thoại tổng đài callcenter',
     'LBL_MANAGE_RELEASES' => 'Phát hành',
     'LBL_MANAGE_ROLES_TITLE' => 'Quản lý vai trò',
     'LBL_MANAGE_ROLES' => 'Quản lý vai trò thành viên và tài sản',
@@ -353,8 +357,6 @@ $mod_strings = array(
     'LBL_MI_COMPLETE' => 'Hoàn tất',
     'LBL_MI_UN_BEAN' => 'Gỡ cài đặt Bean:',
     'LBL_MI_IN_BEAN' => 'Cài đặt Bean:',
-    'LBL_MI_IN_DASHLETS' => 'Cài đặt SuiteCRM Dashlet ',
-    'LBL_MI_UN_DASHLETS' => 'Gỡ bỏ cài đặt SuiteCRM Dashlet ',
     'LBL_MI_IN_IMAGES' => 'Cài đặt hình ảnh',
     'LBL_MI_IN_MENUS' => 'Cài đặt trình đơn',
     'LBL_MI_UN_MENUS' => 'Gỡ cài đặt trình đơn',
@@ -364,8 +366,6 @@ $mod_strings = array(
     'LBL_MI_UN_RELATIONSHIPS' => 'Gỡ bỏ cài đặt mối quan hệ',
     'LBL_MI_UN_RELATIONSHIPS_DROP' => 'loại bỏ bảng ',
     'LBL_MI_REPAIR_INDICES' => 'Sửa chữa danh mục',
-    'LBL_MI_IN_CONNECTORS' => 'Cài đặt kết nối',
-    'LBL_MI_UN_CONNECTORS' => 'Gỡ bỏ cài đặt kết nối',
     'LBL_ML_ACTION' => 'Hành động',
     'LBL_ML_CANCEL' => 'Hủy',
     'LBL_ML_COMMIT' => 'Cam kết',
@@ -425,10 +425,6 @@ $mod_strings = array(
     'LBL_REBUILD_AUDIT_SKIP' => 'Kiểm tra bảng cho %1$s đã tồn tại. bỏ qua...<BR>',
     'LBL_REBUILD_CONFIG_DESC' => 'Xây dựng lại config.php bằng phiên bản Cập Nhật và thêm giá trị mặc định khi tuyên bố không rõ ràng',
     'LBL_REBUILD_CONFIG' => 'Xây dựng lại các tập tin cấu hình',
-    'LBL_REBUILD_DASHLETS_DESC_SHORT' => 'Xây dựng lại các tập tin bộ nhớ cache SuiteCRM Dashlets',
-    'LBL_REBUILD_DASHLETS_DESC_SUCCESS' => 'SuiteCRM Dashlets tệp bộ nhớ cache được xây dựng lại.',
-    'LBL_REBUILD_DASHLETS_DESC' => 'Xoá bộ nhớ cache SuiteCRM Dashlets và quét biết đến thư mục SuiteCRM Dashlet tập tin.',
-    'LBL_REBUILD_DASHLETS_TITLE' => 'Xây dựng lại SuiteCRM Dashlets',
     'LBL_REBUILD_HTACCESS_DESC' => 'Xây dựng lại htaccess để hạn chế quyền truy cập vào một số tập tin trực tiếp',
     'LBL_REBUILD_HTACCESS' => 'Xây dựng lại các tập tin htaccess',
     'LBL_REBUILD_WEBCONFIG_DESC' => 'Xây dựng lại web.config để hạn chế quyền truy cập vào một số tập tin trực tiếp',
@@ -612,7 +608,7 @@ $mod_strings = array(
     'LBL_CLEAR_VARDEFS_DATA_CACHE_TITLE' => 'Xoá bộ nhớ tạm dữ liệu Vardefs',
     'LBL_QUICK_REPAIR_AND_REBUILD' => 'Nhanh chóng sửa chữa và xây dựng lại',
     'LBL_QUICK_REPAIR_TITLE' => 'Hãy chọn mô-đun(s) để sửa chữa:',
-    'LBL_QUICK_REPAIR_AND_REBUILD_DESC' => 'Sửa chữa và xây dựng lại DB, mở rộng, Vardefs, SuiteCRM Dashlets vv.',
+    'LBL_QUICK_REPAIR_AND_REBUILD_DESC' => 'Sửa chữa và xây dựng lại DB, mở rộng, Vardefs, vv.',
     'LBL_ALL_MODULES' => 'Tất cả các mô-đun',
     'LBL_CAMPAIGN_CONFIG_TITLE' => 'Cài đặt chiến dịch Email',
     'LBL_CAMPAIGN_CONFIG_DESC' => 'Đặt cấu hình cài đặt email cho các chiến dịch',
@@ -689,7 +685,6 @@ $mod_strings = array(
     'Administration' => 'Quản trị viên',
     'Audit' => 'Kiểm toán',
     'CampaignTrackers' => 'CampaignTracker',
-    'Connectors' => 'Kết nối',
     'ContractTypes' => 'Loại hợp đồng',
     'Currencies' => 'Tiền tệ',
     'CustomFields' => 'Trường tùy chỉnh',
@@ -752,7 +747,7 @@ $mod_strings = array(
     'LBL_SELECT_MODULES_TITLE' => 'Kéo và thả để chọn mô-đun và thay đổi thứ tự hiển thị. Thực hiện một tìm kiếm để áp dụng các thay đổi.',
     'LBL_LANGUAGE_PACKS' => 'Gói ngôn ngữ' /*for 508 compliance fix*/,
     'LBL_PATCH_UPGRADES' => 'Nâng cấp bản vá lỗi' /*for 508 compliance fix*/,
-    'LBL_ADVANCED_SEARCH' => 'Bộ lọc nâng cao' /*for 508 compliance fix*/,
+    'LBL_ADVANCED_SEARCH' => 'Bộ lọc' /*for 508 compliance fix*/,
     'LBL_BASIC_SEARCH' => 'Lọc nhanh' /*for 508 compliance fix*/,
     'LBL_PROCESSING' => 'Đang xử lý' /*for 508 compliance fix*/,
 
@@ -779,17 +774,6 @@ $mod_strings = array(
 
     'LBL_GOOGLE_SUITE_ADMIN_HEADER' => 'Google Suite',
     'LBL_GOOGLE_SUITE_ADMIN_DESC' => 'Quản lý tích hợp với Google Suite.',
-
-    'LBL_JJWG_MAPS_ADMIN_CONFIG_TITLE' => 'Cài đặt bản đồ của Google',
-    'LBL_JJWG_MAPS_ADMIN_CONFIG_DESC' => 'Cài đặt cấu hình để điều chỉnh của Bản đồ Google',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODED_COUNTS_TITLE' => 'Geocoded đếm',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODED_COUNTS_DESC' => 'Cho thấy số lượng các đối tượng của mô-đun geocoded, được nhóm lại theo geocoding phản ứng.',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODE_ADDRESSES_TITLE' => 'Mã địa lý địa chỉ',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODE_ADDRESSES_DESC' => 'Mã hóa địa lý đối tượng của bạn. Quá trình này có thể mất vài phút!',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODING_TEST_TITLE' => 'Kiểm tra mã địa lý',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODING_TEST_DESC' => 'Chạy một thử nghiệm đơn geocoding với màn hình hiển thị chi tiết kết quả.',
-    'LBL_JJWG_MAPS_ADMIN_ADDRESS_CACHE_TITLE' => 'Địa chỉ bộ nhớ Cache',
-    'LBL_JJWG_MAPS_ADMIN_ADDRESS_CACHE_DESC' => 'Cung cấp quyền truy cập cho thông tin Address Cache. Đây chỉ là bộ nhớ đệm.',
 
     // Google Calendar
     'LBL_GOOGLE_AUTH_TITLE' => 'Google Sync Settings',
@@ -970,4 +954,12 @@ $mod_strings = array(
 
     // Ajax Submit
     'LBL_AJAX_SUBMIT_FAIL' => 'Lỗi đã xảy ra trong khi lưu các thiết lập.',
+
+    // PBX
+    'LBL_MANAGE_PBX_APP' => 'Quản lý ứng dụng PBX',
+    'LBL_PBX_IP' => 'Địa chỉ IP PBX',
+    'LBL_PBX_IP_OLD' => 'IP PBX khác',
+    'LBL_PBX_DOMAIN_NAME' => 'Tên miền PBX',
+    'LBL_PBX_PORT' => 'Port PBX WSS',
+    'LBL_PBX_TOKEN_API' => 'Token API',
 );

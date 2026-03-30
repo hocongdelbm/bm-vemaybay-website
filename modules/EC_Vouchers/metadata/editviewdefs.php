@@ -9,17 +9,13 @@ $viewdefs[$module_name]['EditView'] = array(
             array('label' => '10', 'field' => '30')
         ),
         'includes' => array(
-            array (
-              'file' => 'custom/jqueryui/plugins/jquery.number.min.js',
-            ),
+            array ('file' => 'custom/jqueryui/plugins/jquery.number.min.js'),
         ),
     ),
 
     'panels' =>array (
-        'default' => 
-        array (
+        'default' => array (
             array (
-                'name',
                 array(
                     'name' => 'duration',
                     'label' => 'LBL_DURATION',
@@ -28,6 +24,9 @@ $viewdefs[$module_name]['EditView'] = array(
             ),
             array (
                 'reduce_amount',
+                'reduce_percent',
+            ),
+            array(
                 array(
                     'name' => 'description',
                     'label' => 'LBL_DESCRIPTION',
@@ -36,6 +35,7 @@ $viewdefs[$module_name]['EditView'] = array(
                         'rows' => 4
                     )
                 ),
+                array()
             ),
         ),                                              
     ),

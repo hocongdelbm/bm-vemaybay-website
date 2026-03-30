@@ -17,17 +17,17 @@ $listViewDefs[$module_name] = array(
     array(
         'type' => 'enum',
         'default' => true,
-        'studio' => 'visible',
         'label' => 'LBL_RV_STATUS',
         'width' => '8%',
+        'align' => 'center'
     ),
     'BOOKING_NAME' =>
     array(
         'type' => 'relate',
-        'studio' => 'visible',
         'label' => 'LBL_BOOKING_NAME',
         'width' => '8%',
         'default' => true,
+        'align' => 'center'
     ),
     'NGAYCHUNGTU' =>
     array(
@@ -35,6 +35,7 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_NGAYCHUNGTU',
         'width' => '10%',
         'default' => true,
+        'align' => 'center'
     ),
     'AMOUNT_CONVERTED' =>
     array(
@@ -43,12 +44,12 @@ $listViewDefs[$module_name] = array(
         'width' => '11%',
         'default' => true,
         'currency_format' => true,
+        'align' => 'right'
     ),
     // 'LOAI_THU' =>
     // array(
     //     'type' => 'enum',
     //     'default' => true,
-    //     'studio' => 'visible',
     //     'label' => 'LBL_LOAI_THU',
     //     'width' => '10%',
     // ),
@@ -63,7 +64,6 @@ $listViewDefs[$module_name] = array(
     array(
         'type' => 'enum',
         'default' => true,
-        'studio' => 'visible',
         'label' => 'LBL_RECEIPT_TYPE',
         'width' => '10%',
     ),
@@ -80,6 +80,7 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_DATE_ENTERED',
         'width' => '13%',
         'default' => true,
+        'align' => 'center'
     ),
     'NGAYHACHTOAN' =>
     array(

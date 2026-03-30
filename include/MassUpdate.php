@@ -88,25 +88,25 @@ class MassUpdate
             LoggerManager::getLogger()->warn('object_name is not set for bean');
         }
 
-        $order_by_name = (isset($bean->module_dir) ? $bean->module_dir : null).'2_'.strtoupper(isset($bean->object_name) ? $bean->object_name : null).'_ORDER_BY' ;
-        $lvso = isset($_REQUEST['lvso'])?$_REQUEST['lvso']:"";
-        $request_order_by_name = isset($_REQUEST[$order_by_name])?$_REQUEST[$order_by_name]:"";
-        $action = isset($_REQUEST['action'])?$_REQUEST['action']:"";
-        $module = isset($_REQUEST['module'])?$_REQUEST['module']:"";
+        $order_by_name = (isset($bean->module_dir) ? $bean->module_dir : null) . '2_' . strtoupper(isset($bean->object_name) ? $bean->object_name : null) . '_ORDER_BY';
+        $lvso = isset($_REQUEST['lvso']) ? $_REQUEST['lvso'] : "";
+        $request_order_by_name = isset($_REQUEST[$order_by_name]) ? $_REQUEST[$order_by_name] : "";
+        $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : "";
+        $module = isset($_REQUEST['module']) ? $_REQUEST['module'] : "";
         if ($multi_select_popup) {
             $tempString = '';
         } else {
             $tempString = "<form action='index.php' method='post' name='MassUpdate'  id='MassUpdate' onsubmit=\"return check_form('MassUpdate');\">\n"
-        . "<input type='hidden' name='return_action' value='{$action}' />\n"
-        . "<input type='hidden' name='return_module' value='{$module}' />\n"
-        . "<input type='hidden' name='massupdate' value='true' />\n"
-        . "<input type='hidden' name='delete' value='false' />\n"
-        . "<input type='hidden' name='merge' value='false' />\n"
-        . "<input type='hidden' name='current_query_by_page' value='{$query}' />\n"
-        . "<input type='hidden' name='module' value='{$module}' />\n"
-        . "<input type='hidden' name='action' value='MassUpdate' />\n"
-        . "<input type='hidden' name='lvso' value='{$lvso}' />\n"
-        . "<input type='hidden' name='{$order_by_name}' value='{$request_order_by_name}' />\n";
+                . "<input type='hidden' name='return_action' value='{$action}' />\n"
+                . "<input type='hidden' name='return_module' value='{$module}' />\n"
+                . "<input type='hidden' name='massupdate' value='true' />\n"
+                . "<input type='hidden' name='delete' value='false' />\n"
+                . "<input type='hidden' name='merge' value='false' />\n"
+                . "<input type='hidden' name='current_query_by_page' value='{$query}' />\n"
+                . "<input type='hidden' name='module' value='{$module}' />\n"
+                . "<input type='hidden' name='action' value='MassUpdate' />\n"
+                . "<input type='hidden' name='lvso' value='{$lvso}' />\n"
+                . "<input type='hidden' name='{$order_by_name}' value='{$request_order_by_name}' />\n";
         }
 
         // cn: bug 9103 - MU navigation in emails is broken
@@ -122,7 +122,7 @@ class MassUpdate
                 $type = $_REQUEST['type'];
             }
             // determine owner
-            $tempString .=<<<eoq
+            $tempString .= <<<eoq
 				<input type='hidden' name='type' value="{$type}" />
 				<input type='hidden' name='ie_assigned_user_id' value="{$current_user->id}" />
 eoq;
@@ -158,14 +158,14 @@ eoq;
                 if (($this->sugarbean->field_defs[$post]['type'] == 'bool'
                     || (
                         !empty($this->sugarbean->field_defs[$post]['custom_type']) && $this->sugarbean->field_defs[$post]['custom_type'] == 'bool'
-                    ))
-                ) {
+                    ))) {
                     if (strcmp($value, '2') == 0) {
                         $_POST[$post] = 0;
                     }
-                    if (!empty($this->sugarbean->field_defs[$post]['dbType']) && strcmp(
-                        $this->sugarbean->field_defs[$post]['dbType'],
-                        'varchar'
+                    if (
+                        !empty($this->sugarbean->field_defs[$post]['dbType']) && strcmp(
+                            $this->sugarbean->field_defs[$post]['dbType'],
+                            'varchar'
                         ) == 0
                     ) {
                         if (strcmp($value, '1') == 0) {
@@ -295,7 +295,8 @@ eoq;
 
                         if (isset($this->sugarbean->assigned_user_id)) {
                             $old_assigned_user_id = $this->sugarbean->assigned_user_id;
-                            if (!empty($_POST['assigned_user_id'])
+                            if (
+                                !empty($_POST['assigned_user_id'])
                                 && ($old_assigned_user_id != $_POST['assigned_user_id'])
                                 && ($_POST['assigned_user_id'] != $current_user->id)
                             ) {
@@ -408,16 +409,17 @@ eoq;
     public function getMassUpdateForm(
         $hideDeleteIfNoFieldsAvailable = false
     ) {
-        global $app_strings;
-        global $current_user;
+        global $app_strings, $current_user;
+
         $configurator = new Configurator();
         $sugar_config = $configurator->config;
 
-        if ($this->sugarbean->bean_implements('ACL') && (!ACLController::checkAccess(
-            $this->sugarbean->module_dir,
-            'edit',
-            true
-                ) || !ACLController::checkAccess($this->sugarbean->module_dir, 'massupdate', true))
+        if (
+            $this->sugarbean->bean_implements('ACL') && (!ACLController::checkAccess(
+                $this->sugarbean->module_dir,
+                'edit',
+                true
+            ) || !ACLController::checkAccess($this->sugarbean->module_dir, 'massupdate', true))
         ) {
             return '';
         }
@@ -472,11 +474,7 @@ eoq;
                     $newhtml .= "<tr>";
                 }
 
-                if (isset($field['vname'])) {
-                    $displayname = translate($field['vname']);
-                } else {
-                    $displayname = '';
-                }
+                $displayname = isset($field['vname']) ? translate($field['vname']) : '';
 
                 if (isset($field['type']) && $field['type'] == 'relate' && isset($field['id_name']) && $field['id_name'] == 'assigned_user_id') {
                     $field['type'] = 'assigned_user_name';
@@ -505,10 +503,6 @@ eoq;
                                 $even = !$even;
                                 $newhtml .= $this->addInputType($displayname, $field['name']);
                             }
-                            break;
-                        case "contact_id":
-                            $even = !$even;
-                            $newhtml .= $this->addContactID($displayname, $field["name"]);
                             break;
                         case "assigned_user_name":
                             $even = !$even;
@@ -567,6 +561,12 @@ eoq;
                             $even = !$even;
                             $newhtml .= $this->addDate($displayname, $field["name"]);
                             break;
+                        case "varchar":
+                            if (!empty($field['massupdate']) && isset($field['massupdate'])) {
+                                $even = !$even;
+                                $newhtml .= $this->addVarchar($displayname, $field['name']);
+                            }
+                            break;
                         default:
                             $newhtml .= $this->addDefault($displayname, $field, $even);
                             break;
@@ -586,12 +586,7 @@ eoq;
             }
         }
 
-
-        if ($this->sugarbean->object_name == 'Contact' ||
-            $this->sugarbean->object_name == 'Account' ||
-            $this->sugarbean->object_name == 'Lead' ||
-            $this->sugarbean->object_name == 'Prospect'
-        ) {
+        if (in_array($this->sugarbean->object_name, ['Contact', 'Account', 'Lead', 'Prospect'])) {
             $optOutPrimaryEmail =
                 "<tr>"
                 . "<td width='15%' scope='row' class='dataLabel'>$lang_optout_primaryemail</td>"
@@ -633,7 +628,8 @@ eoq;
         //		}
 
         // only for My Inbox views - to allow CSRs to have an "Archive" emails feature to get the email "out" of their inbox.
-        if ($this->sugarbean->object_name == 'Email'
+        if (
+            $this->sugarbean->object_name == 'Email'
             && (isset($_REQUEST['assigned_user_id']) && !empty($_REQUEST['assigned_user_id']))
             && (isset($_REQUEST['type']) && !empty($_REQUEST['type']) && $_REQUEST['type'] == 'inbound')
         ) {
@@ -749,10 +745,6 @@ EOJS;
     {
         global $app_strings, $app_list_strings;
 
-        ///////////////////////////////////////
-        ///
-        /// SETUP POPUP
-
         $popup_request_data = array(
             'call_back_function' => 'set_return',
             'form_name' => 'MassUpdate',
@@ -778,13 +770,10 @@ EOJS;
         );
         $qsName = $json->encode($qsName);
 
-        //
-        ///////////////////////////////////////
-
         // $change_parent_button = "<span class='id-ff'><button title='" . $app_strings['LBL_SELECT_BUTTON_TITLE'] . "'  type='button' class='btn btn-primary' value='" . $app_strings['LBL_SELECT_BUTTON_LABEL']
         //     . "' name='button_parent_name' onclick='open_popup(document.MassUpdate.{$field['type_name']}.value, 600, 400, \"\", true, false, {$encoded_popup_request_data});'>
-		// 	<span class=\"suitepicon suitepicon-action-select\"></span>
-		// 	</button></span>";
+        // 	<span class=\"suitepicon suitepicon-action-select\"></span>
+        // 	</button></span>";
         $change_parent_button = "<span class='id-ff'><button title='" . $app_strings['LBL_SELECT_BUTTON_TITLE'] . "'  type='button' class='btn btn-primary' value='" . $app_strings['LBL_SELECT_BUTTON_LABEL']
             . "' name='button_parent_name' onclick='open_popup(document.MassUpdate.{$field['type_name']}.value, 600, 400, \"\", true, false, {$encoded_popup_request_data});'>
 			    <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z\"></path><path d=\"M11.412 8.586c.379.38.588.882.588 1.414h2a3.977 3.977 0 0 0-1.174-2.828c-1.514-1.512-4.139-1.512-5.652 0l1.412 1.416c.76-.758 2.07-.756 2.826-.002z\"></path></svg>
@@ -858,6 +847,21 @@ EOHTML;
     }
 
     /**
+     * Add a generic input type='varchar' field
+     * @param displayname Name to display in the popup window
+     * @param field_name name of the field
+     */
+    public function addVarchar($displayname, $varname)
+    {
+        $displayname = addslashes($displayname);
+        $html = <<<EOQ
+                    <td scope="row" width="20%">$displayname</td>
+                    <td class='dataField' width="30%"><input class='box-input' type="text" size="30" name='$varname' id='{$varname}' value=""></td>
+                EOQ;
+        return $html;
+    }
+
+    /**
      * Add a generic input type='text' field
      * @param displayname Name to display in the popup window
      * @param field_name name of the field
@@ -891,8 +895,6 @@ EOQ;
             $id_name = strtolower($mod_type) . "_id";
         }
 
-        ///////////////////////////////////////
-        ///
         /// SETUP POPUP
         $reportsDisplayName = showFullName() ? 'name' : 'user_name';
         $popup_request_data = array(
@@ -919,8 +921,6 @@ EOQ;
             'no_match_text' => $app_strings['ERR_SQS_NO_MATCH']
         );
         $qsName = $json->encode($qsName);
-        //
-        ///////////////////////////////////////
 
         return <<<EOHTML
 <td width='15%'  scope='row' class='dataLabel'>$displayname</td>
@@ -963,10 +963,6 @@ EOHTML;
             $id_name = strtolower($mod_type) . "_id";
         }
 
-        ///////////////////////////////////////
-        ///
-        /// SETUP POPUP
-
         $popup_request_data = array(
             'call_back_function' => 'set_return',
             'form_name' => 'MassUpdate',
@@ -991,8 +987,6 @@ EOHTML;
             'no_match_text' => $app_strings['ERR_SQS_NO_MATCH']
         );
         $qsName = $json->encode($qsName);
-        //
-        ///////////////////////////////////////
 
         return <<<EOHTML
 <td width='15%'  scope='row' class='dataLabel'>$displayname</td>
@@ -1034,10 +1028,6 @@ EOHTML;
             $id_name = "account_id";
         }
 
-        ///////////////////////////////////////
-        ///
-        /// SETUP POPUP
-
         $popup_request_data = array(
             'call_back_function' => 'set_return',
             'form_name' => 'MassUpdate',
@@ -1048,9 +1038,6 @@ EOHTML;
         );
 
         $encoded_popup_request_data = $json->encode($popup_request_data);
-
-        //
-        ///////////////////////////////////////
 
         $qsParent = array(
             'form' => 'MassUpdate',
@@ -1192,8 +1179,7 @@ EOQ;
             }
             $options = $new_options;
         }
-        $options = get_select_options_with_id_separate_key($options, $options, '', true);
-        ;
+        $options = get_select_options_with_id_separate_key($options, $options, '', true);;
 
         // cn: added "mass_" to the id tag to differentiate from the status id in StoreQuery
         $html = '<td scope="row" width="15%">' . $displayname . '</td>
@@ -1214,7 +1200,7 @@ EOQ;
         $displayname = addslashes($displayname);
         $userformat = '(' . $timedate->get_user_date_format() . ')';
         $cal_dateformat = $timedate->get_cal_date_format();
-	$cal_fdow = $current_user->get_first_day_of_week() ? $current_user->get_first_day_of_week() : '0';
+        $cal_fdow = $current_user->get_first_day_of_week() ? $current_user->get_first_day_of_week() : '0';
 
         $javascriptend = <<<EOQ
 		 <script type="text/javascript">
@@ -1270,7 +1256,7 @@ EOQ;
         global $timedate, $app_strings, $app_list_strings, $theme, $current_user;
         $userformat = $timedate->get_user_time_format();
         $cal_dateformat = $timedate->get_cal_date_format();
-	$cal_fdow = $current_user->get_first_day_of_week() ? $current_user->get_first_day_of_week() : '0';
+        $cal_fdow = $current_user->get_first_day_of_week() ? $current_user->get_first_day_of_week() : '0';
 
         $javascriptend = <<<EOQ
 		 
@@ -1336,7 +1322,8 @@ EOQ;
         //Check if none was set
         if (isset($this->sugarbean->field_defs[$field]['group'])) {
             $group = $this->sugarbean->field_defs[$field]['group'];
-            if (isset($this->sugarbean->field_defs[$group . "_flag"]) && isset($_POST[$group . "_flag"])
+            if (
+                isset($this->sugarbean->field_defs[$group . "_flag"]) && isset($_POST[$group . "_flag"])
                 && $_POST[$group . "_flag"] == 1
             ) {
                 return "";
@@ -1376,7 +1363,7 @@ EOQ;
     }
 
     public function generateSearchWhere($module, $query)
-    {//this function is similar with function prepareSearchForm() in view.list.php
+    { //this function is similar with function prepareSearchForm() in view.list.php
         $seed = loadBean($module);
         $this->use_old_search = true;
         if (file_exists('modules/' . $module . '/SearchForm.html')) {
@@ -1518,7 +1505,7 @@ EOQ;
      * @param bool $even even or odd
      * @return string html field data
      */
-    protected function addDefault($displayname, $field, & $even)
+    protected function addDefault($displayname, $field, &$even)
     {
         return '';
     }

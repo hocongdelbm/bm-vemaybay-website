@@ -28,8 +28,6 @@ class Viewioinvoice extends SugarView
     {
         global $current_user, $app_list_strings;
 
-        $where = $this->populateCondition($smarty, $post_fields);
-
         $html = '<table id="io_inv_tbl" class="table-io_inv_tbl table-details__sticky table-details__booking" cellspacing="0" cellpadding="0">
         <thead>
             <tr>
@@ -51,11 +49,25 @@ class Viewioinvoice extends SugarView
         </thead>
         <tbody>';
 
-        $sql = '
-            SELECT dt.name, dt.soluong, dt.dongia, dt.tienthue, dt.phithuho, dt.thanhtien,
-                i.ngayhoadon, i.id AS output_inv, out_bk.id AS out_bk_id, out_bk.name AS out_bk,
-                in_inv.cost_no_vat, in_inv.qty, in_inv.vat, in_inv.authorized_fee, in_inv.total, i.company_unit,
-                in_bk.id AS in_bk_id, in_bk.name AS in_bk
+        $where = $this->populateCondition($smarty, $post_fields);
+        $sql = "SELECT dt.name
+                ,dt.soluong
+                ,dt.dongia
+                ,dt.tienthue
+                ,dt.phithuho
+                ,dt.thanhtien
+                ,i.ngayhoadon
+                ,i.id AS output_inv
+                ,out_bk.id AS out_bk_id
+                ,out_bk.name AS out_bk
+                ,in_inv.cost_no_vat
+                ,in_inv.qty
+                ,in_inv.vat
+                ,in_inv.authorized_fee
+                ,in_inv.total
+                ,i.company_unit
+                ,in_bk.id AS in_bk_id
+                ,in_bk.name AS in_bk
             FROM ec_chitiethoadon dt
                 LEFT JOIN ec_hoadonban i ON i.deleted = 0 AND dt.parent_id = i.id
                 LEFT JOIN ec_flight_bookings out_bk ON out_bk.id = dt.booking_id
@@ -64,48 +76,38 @@ class Viewioinvoice extends SugarView
                     AND in_inv.id = dt.ticket_number_id
                 LEFT JOIN ec_flight_bookings in_bk ON in_bk.deleted = 0
                     AND in_bk.id = in_inv.booking_id
-            WHERE dt.deleted = 0 AND dt.ticket_number_id IS NOT NULL
-            ' . $where . '
-            ORDER BY i.ngayhoadon, i.date_entered';
+            WHERE dt.deleted = 0
+                AND dt.ticket_number_id IS NOT NULL
+                $where
+            ORDER BY i.ngayhoadon, i.date_entered";
 
-        // if($current_user->user_name == 'hungnh'){
-        //     pr($sql);
-        // }
-
-        $res    = $this->bean->db->query($sql);
-        $i      = $total = $total_qty = $total_purchase = $total_vat1 = $total_author1 = $total_sell = $total_vat2 = $total_author2 = 0;
+        $res = $this->bean->db->query($sql);
+        $i = $total = $total_qty = $total_purchase = $total_vat1 = $total_author1 = $total_sell = $total_vat2 = $total_author2 = 0;
 
         while ($row = $this->bean->db->fetchByAssoc($res)) {
-
-            // if($current_user->user_name == 'hungnh'){
-            //     pr($row);
-            // }
-            
             // COST_NO_VAT
             $cost_no_vat    = empty($row['qty']) ? '' : format_number($row['cost_no_vat'] / $row['qty'] * $row['soluong']);
             $cost_vat       = empty($row['qty']) ? '' : format_number($row['vat'] / $row['qty'] * $row['soluong']);
             $authorized_fee = empty($row['qty']) ? '' : format_number($row['authorized_fee'] / $row['qty'] * $row['soluong']);
-            
             $cost_vat_calc  = empty($row['qty']) ? 0 : ($row['vat'] / $row['qty'] * $row['soluong']);
             $difference_vat = format_number($row['tienthue'] - $cost_vat_calc);
 
-            $html .= '
-                <tr>
-                    <td class="text-center stt">' . ($i + 1) . '</td>
-                    <td class="text-center ngayhoadon">' . date('d-m-Y', strtotime($row['ngayhoadon'])) . '</td>
-                    <td class="text-center name">' . $row['name'] . '</td>
-                    <td class="text-center soluong">' . format_number($row['soluong']) . '</td>
-                    <td class="text-end cost_no_vat"><a href="index.php?module=EC_HoaDonBan&action=inputinvoice&ticket_code=' . $row['name'] . '" target="_blank">' . $cost_no_vat . '</a></td>
-                    <td class="text-end cost_vat">' . $cost_vat . '</td>
-                    <td class="text-end authorized_fee">' . $authorized_fee . '</td>
-                    <td class="text-center in_bk"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['in_bk_id'] . '" target="_blank">' . $row['in_bk'] . '</a></td>
-                    <td class="text-end dongia"><a href="index.php?module=EC_HoaDonBan&action=DetailView&record=' . $row['output_inv'] . '" target="_blank">' . format_number($row['dongia'] * $row['soluong']) . '</a></td>
-                    <td class="text-end tienthue">' . format_number($row['tienthue']) . '</td>
-                    <td class="text-end phithuho">' . format_number($row['phithuho'] * $row['soluong']) . '</td>
-                    <td class="text-center out_bk"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['out_bk_id'] . '" target="_blank">' . $row['out_bk'] . '</a></td>
-                    <td class="text-end difference_vat">' . $difference_vat . '</td>
-                    <td class="text-end company_unit_column">' . $app_list_strings['company_unit_invoice_list'][$row['company_unit']] . '</td>
-                </tr>';
+            $html .= '<tr>
+                <td class="text-center stt">' . ($i + 1) . '</td>
+                <td class="text-center ngayhoadon">' . date('d-m-Y', strtotime($row['ngayhoadon'])) . '</td>
+                <td class="text-center name">' . $row['name'] . '</td>
+                <td class="text-center soluong">' . format_number($row['soluong']) . '</td>
+                <td class="text-end cost_no_vat"><a href="index.php?module=EC_HoaDonBan&action=inputinvoice&ticket_code=' . $row['name'] . '" target="_blank">' . $cost_no_vat . '</a></td>
+                <td class="text-end cost_vat">' . $cost_vat . '</td>
+                <td class="text-end authorized_fee">' . $authorized_fee . '</td>
+                <td class="text-center in_bk"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['in_bk_id'] . '" target="_blank">' . $row['in_bk'] . '</a></td>
+                <td class="text-end dongia"><a href="index.php?module=EC_HoaDonBan&action=DetailView&record=' . $row['output_inv'] . '" target="_blank">' . format_number($row['dongia'] * $row['soluong']) . '</a></td>
+                <td class="text-end tienthue">' . format_number($row['tienthue']) . '</td>
+                <td class="text-end phithuho">' . format_number($row['phithuho'] * $row['soluong']) . '</td>
+                <td class="text-center out_bk"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['out_bk_id'] . '" target="_blank">' . $row['out_bk'] . '</a></td>
+                <td class="text-end difference_vat">' . $difference_vat . '</td>
+                <td class="text-end company_unit_column">' . $app_list_strings['company_unit_invoice_list'][$row['company_unit']] . '</td>
+            </tr>';
             $i++;
 
             $total_qty += $row['soluong'];
@@ -119,22 +121,20 @@ class Viewioinvoice extends SugarView
             $total_vat2         += $row['tienthue'];
             $total_author2      += $row['phithuho'] * $row['soluong'];
         }
-        $html .= '
-            <tr class="footer-tr">
-                <td colspan="3" class="text-end"><b>Tổng</b></td>
-                <td class="text-end"><b>' . format_number($total_qty) . '</b></td>
-                <td class="text-end"><b>' . format_number($total_purchase) . '</b></td>
-                <td class="text-end"><b>' . format_number($total_vat1) . '</b></td>
-                <td class="text-end"><b>' . format_number($total_author1) . '</b></td>
-                <td class="text-end"></td>
-                <td class="text-end"><b>' . format_number($total_sell) . '</b></td>
-                <td class="text-end"><b>' . format_number($total_vat2) . '</b></td>
-                <td class="text-end"><b>' . format_number($total_author2) . '</b></td>
-                <td class="text-end"></td>
-                <td class="text-end"><b>' . format_number($total) . '</b></td>
-                <td class="text-end"></td>
-            </tr>
-        ';
+        $html .= '<tr class="footer-tr">
+            <td colspan="3" class="text-end"><b>Tổng</b></td>
+            <td class="text-end"><b>' . format_number($total_qty) . '</b></td>
+            <td class="text-end"><b>' . format_number($total_purchase) . '</b></td>
+            <td class="text-end"><b>' . format_number($total_vat1) . '</b></td>
+            <td class="text-end"><b>' . format_number($total_author1) . '</b></td>
+            <td class="text-end"></td>
+            <td class="text-end"><b>' . format_number($total_sell) . '</b></td>
+            <td class="text-end"><b>' . format_number($total_vat2) . '</b></td>
+            <td class="text-end"><b>' . format_number($total_author2) . '</b></td>
+            <td class="text-end"></td>
+            <td class="text-end"><b>' . format_number($total) . '</b></td>
+            <td class="text-end"></td>
+        </tr>';
         $html .= '</tbody></table>';
         return $html;
     }

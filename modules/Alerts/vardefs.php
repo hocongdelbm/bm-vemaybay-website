@@ -1,96 +1,150 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
 $dictionary['Alert'] = array(
-    'table'=>'alerts',
-    'audited'=> false,
-        'duplicate_merge'=>true,
-        'fields'=>array(
-            'is_read' =>
-                array(
-                    'name'		=> 'is_read',
-                    'vname'     => 'LBL_IS_READ',
-                    'type'		=> 'bool',
-                    'massupdate' => false,
-                    'studio'=> 'false',
-                ),
-            'target_module' =>
-                array(
-                    'name'		=> 'target_module',
-                    'vname'     => 'LBL_TYPE',
-                    'type'		=> 'varchar',
-                    'massupdate' => false,
-                    'studio'=> 'false',
-                ),
-            'type' =>
-                array(
-                    'name'		=> 'type',
-                    'vname'     => 'LBL_TYPE',
-                    'type'		=> 'varchar',
-                    'massupdate' => false,
-                    'studio'=> 'false',
-                ),
-            'url_redirect' =>
-                array(
-                    'name'		=> 'url_redirect',
-                    'vname'     => 'LBL_TYPE',
-                    'type'		=> 'varchar',
-                    'massupdate' => false,
-                    'studio'=> 'false',
-                ),
-            'reminder_id' =>
-                array(
-                    'name'		=> 'reminder_id',
-                    'type' => 'id',
-                    'required' => false,
-                    'reportable' => false,
-                    'studio'=> 'false',
-                    'comment' => 'The id of the reminder that created this alert',
-                )
-),
-    'relationships'=>array(
-),
-    'optimistic_locking'=>true,
-        'unified_search'=>false,
-    );
+    'table' => 'alerts',
+    'audited' => false,
+    'duplicate_merge' => true,
+    'fields' => array(
+        'is_read' =>
+        array(
+            'name'        => 'is_read',
+            'vname'     => 'LBL_IS_READ',
+            'type'        => 'bool',
+            'massupdate' => false,
+            'studio'     => 'false',
+            'default'       => '0',
+        ),
+        'target_module' =>
+        array(
+            'name'        => 'target_module',
+            'vname'     => 'LBL_TYPE',
+            'type'        => 'varchar',
+            'massupdate' => false,
+            'studio' => 'false',
+        ),
+        'type' => array(
+            'name'        => 'type',
+            'vname'     => 'LBL_TYPE',
+            'massupdate' => false,
+            'studio' => 'false',
+            'type' => 'enum',
+            'options' => 'alert_type_list',
+            'len' => 100,
+            'audited' => true,
+        ),
+        'url_redirect' =>
+        array(
+            'name'        => 'url_redirect',
+            'vname'     => 'LBL_TYPE',
+            'type'        => 'varchar',
+            'massupdate' => false,
+            'studio' => 'false',
+        ),
+        'reminder_id' =>
+        array(
+            'name'        => 'reminder_id',
+            'type' => 'id',
+            'required' => false,
+            'reportable' => false,
+            'studio' => 'false',
+            'comment' => 'The id of the reminder that created this alert',
+        ),
+
+        // custom
+        'alert_photo' => array(
+            'name' => 'alert_photo',
+            'vname' => 'LBL_ALERT_PHOTO',
+            'type' => 'image',
+            'massupdate' => false,
+            'comments' => '',
+            'help' => '',
+            'importable' => false,
+            'border' => true,
+            'reportable' => true,
+            'len' => 255,
+            'dbType' => 'varchar',
+            'width' => '500',
+            'height' => 'auto',
+        ),
+        'filename' => array(
+            'name' => 'filename',
+            'vname' => 'LBL_FILENAME',
+            'type' => 'file',
+            'dbType' => 'varchar',
+            'len' => '255',
+            'reportable' => true,
+            'comment' => 'File name associated with the alert (attachment)',
+            'importable' => false,
+        ),
+        'parent_type' =>
+        array(
+            'required' => false,
+            'name' => 'parent_type',
+            'vname' => 'LBL_PARENT_TYPE',
+            'type' => 'parent_type',
+            'massupdate' => 0,
+            'comments' => '',
+            'help' => '',
+            'importable' => 'false',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => 0,
+            'audited' => 0,
+            'reportable' => 0,
+            'len' => 100,
+            'dbType' => 'varchar',
+        ),
+        'parent_id' =>
+        array(
+            'required' => false,
+            'name' => 'parent_id',
+            'vname' => 'LBL_PARENT_ID',
+            'type' => 'id',
+            'massupdate' => 0,
+            'comments' => '',
+            'help' => '',
+            'importable' => 'false',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => 0,
+            'audited' => 0,
+            'reportable' => 0,
+            'len' => 36,
+        ),
+        'parent_alert_id' => array(
+            'required' => false,
+            'name' => 'parent_alert_id',
+            'vname' => 'LBL_PARENT_ALERT_ID',
+            'type' => 'id',
+            'massupdate' => 0,
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => 0,
+            'audited' => 0,
+            'reportable' => 0,
+            'len' => 36,
+            'comment' => 'Khi tạo nhiều alert 1 lúc. Alert tạo đầu tiên được tạo sẽ là parent_alert.',
+        ),
+        'priority' => array(
+            'name' => 'priority',
+            'vname' => 'LBL_PRIORITY',
+            'type' => 'enum',
+            'options' => 'alert_priority_list',
+            'len' => 100,
+            'audited' => true,
+            'comment' => 'The priority of the alert',
+        ),
+        'viewed_at' => array(
+            'required' => false,
+            'name' => 'viewed_at',
+            'vname' => 'LBL_VIEWED_AT',
+            'type' => 'datetime',
+            'dbType' => 'datetime',
+            'comment' => 'Time when the alert was viewed',
+        ),
+    ),
+    'relationships' => array(),
+    'optimistic_locking' => true,
+    'unified_search' => false,
+);
 if (!class_exists('VardefManager')) {
     require_once('include/SugarObjects/VardefManager.php');
 }
-VardefManager::createVardef('Alerts', 'Alert', array('basic','assignable'));
+VardefManager::createVardef('Alerts', 'Alert', array('basic', 'assignable'));

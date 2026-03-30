@@ -1,5 +1,10 @@
 <?php
+global $app_list_strings, $current_user;
 $module_name = 'EC_Flight_Bookings';
+$booking_stt_list = $app_list_strings['booking_status_list'];
+if (isManagerUser($current_user->id)) {
+    $booking_stt_list[100] = 'Thay đổi giao cho';
+}
 $searchdefs[$module_name] = array(
     'layout' => array(
         'basic_search' => array(
@@ -7,49 +12,6 @@ $searchdefs[$module_name] = array(
                 'name' => 'name',
                 'default' => true,
                 'width' => '10%',
-            ),
-            'contact_name' => array(
-                'type' => 'varchar',
-                'label' => 'LBL_CONTACT_NAME',
-                'width' => '10%',
-                'default' => true,
-                'name' => 'contact_name',
-            ),
-            'phone' => array(
-                'type' => 'phone',
-                'label' => 'LBL_PHONE',
-                'width' => '10%',
-                'default' => true,
-                'name' => 'phone',
-            ),
-            'email' => array(
-                'type' => 'varchar',
-                'label' => 'LBL_EMAIL',
-                'width' => '10%',
-                'default' => true,
-                'name' => 'email',
-            ),
-            'total_amount' => array(
-                'type' => 'currency',
-                'label' => 'LBL_TOTAL_AMOUNT',
-                'currency_format' => true,
-                'width' => '10%',
-                'default' => true,
-                'name' => 'total_amount',
-            ),
-            'pnr_outbound_search' => array(
-                'type' => 'varchar',
-                'label' => 'LBL_PNR_OUTBOUND_SEARCH',
-                'width' => '10%',
-                'default' => true,
-                'name' => 'pnr_outbound_search',
-            ),
-            'pnr_inbound_search' => array(
-                'type' => 'varchar',
-                'label' => 'LBL_PNR_INBOUND_SEARCH',
-                'width' => '10%',
-                'default' => true,
-                'name' => 'pnr_inbound_search',
             ),
             'date_entered' => array(
                 'type' => 'datetime',
@@ -103,21 +65,6 @@ $searchdefs[$module_name] = array(
                 'name' => 'itinerary_search',
             ),
 
-            // 'passenger_search' => array(
-            //     'type' => 'varchar',
-            //     'label' => 'LBL_PASSENGER_SEARCH',
-            //     'width' => '10%',
-            //     'default' => true,
-            //     'name' => 'passenger_search',
-            // ),
-            // 'airline_code_search' => array(
-            //     'type' => 'varchar',
-            //     'label' => 'LBL_AIRLINE_CODE_SEARCH',
-            //     'width' => '10%',
-            //     'default' => true,
-            //     'name' => 'airline_code_search',
-            // ),
-            
             'passenger_search' => array(
                 'type' => 'varchar',
                 'label' => 'LBL_PASSENGER_SEARCH',
@@ -162,6 +109,28 @@ $searchdefs[$module_name] = array(
                 'name' => 'eticket_inbound_search',
             ),
 
+            'email_reservation' => array(
+                'type' => 'varchar',
+                'label' => 'LBL_EMAIL_RESERVATION',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'email_reservation',
+            ),
+            'eluggage_outbound_search' => array(
+                'type' => 'varchar',
+                'label' => 'LBL_ELUGGAGE_OUTBOUND_SEARCH',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'eluggage_outbound_search',
+            ),
+            'eluggage_inbound_search' => array(
+                'type' => 'varchar',
+                'label' => 'LBL_ELUGGAGE_INBOUND_SEARCH',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'eluggage_inbound_search',
+            ),
+
             'date_entered' => array(
                 'type' => 'datetime',
                 'label' => 'LBL_DATE_ENTERED',
@@ -185,40 +154,57 @@ $searchdefs[$module_name] = array(
                 'enable_range_search' => true,
                 'options' => 'date_range_search_dom',
             ),
-            // 'order_date' =>
-            // array(
-            //   'type' => 'datetime',
-            //   'label' => 'LBL_ORDER_DATE',
-            //   'width' => '10%',    
-            //   'default' => true,
-            //   'name' => 'order_date',
+            // 'assigned_user_name' => array(
+            //     'link' => 'assigned_user_link',
+            //     'type' => 'relate',
+            //     'label' => 'LBL_ASSIGNED_TO_NAME',
+            //     'width' => '10%',
+            //     'default' => true,
+            //     'name' => 'assigned_user_name',
             // ),
-            
-            'assigned_user_name' => array(
-                'link' => 'assigned_user_link',
-                'type' => 'relate',
-                'label' => 'LBL_ASSIGNED_TO_NAME',
-                'width' => '10%',
+            'assigned_user_id' =>
+            array(
+                'name' => 'assigned_user_id',
+                'type' => 'enum',
+                'label' => 'LBL_ASSIGNED_TO',
+                'function' =>
+                array(
+                    'name' => 'UsersHelper::get_user_array_search',
+                    'params' =>
+                    array(
+                        0 => false,
+                    ),
+                ),
                 'default' => true,
-                'name' => 'assigned_user_name',
+                'width' => '10%',
             ),
-            'created_by_name' => array(
-                'type' => 'relate',
-                'link' => 'created_by_link',
+            'created_by' =>
+            array(
+                'name' => 'created_by',
+                'type' => 'enum',
                 'label' => 'LBL_CREATED',
-                'width' => '10%',
+                'function' =>
+                array(
+                    'name' => 'UsersHelper::get_user_array_search',
+                    'params' =>
+                    array(
+                        0 => false,
+                    ),
+                ),
                 'default' => true,
-                'name' => 'created_by_name',
+                'width' => '10%',
             ),
-            'current_user_only' => array(
-                'name' => 'current_user_only',
-                'label' => 'LBL_CURRENT_USER_FILTER',
-                'type' => 'bool'
-            ),
-            
+            // 'created_by_name' => array(
+            //     'type' => 'relate',
+            //     'link' => 'created_by_link',
+            //     'label' => 'LBL_CREATED',
+            //     'width' => '10%',
+            //     'default' => true,
+            //     'name' => 'created_by_name',
+            // ),
+
             'payment_type' => array(
                 'type' => 'enum',
-                'studio' => 'visible',
                 'label' => 'LBL_PAYMENT_TYPE',
                 'width' => '10%',
                 'default' => true,
@@ -227,18 +213,24 @@ $searchdefs[$module_name] = array(
             'booking_status' => array(
                 'type' => 'enum',
                 'default' => true,
-                'studio' => 'visible',
                 'label' => 'LBL_BOOKING_STATUS',
                 'width' => '10%',
                 'name' => 'booking_status',
+                'options' => $booking_stt_list,
             ),
             'ticket_type' => array(
                 'type' => 'enum',
                 'default' => true,
-                'studio' => 'visible',
                 'label' => 'LBL_TICKET_TYPE',
                 'width' => '10%',
                 'name' => 'ticket_type',
+            ),
+            'customer_source' => array(
+                'type' => 'enum',
+                'default' => true,
+                'label' => 'LBL_CUSTOMER_SOURCE',
+                'width' => '10%',
+                'name' => 'customer_source',
             ),
 
             'ip_address' => array(
@@ -248,27 +240,39 @@ $searchdefs[$module_name] = array(
                 'default' => true,
                 'name' => 'ip_address',
             ),
-            
-            'email_reservation' => array(
-                'type' => 'varchar',
-                'label' => 'LBL_EMAIL_RESERVATION',
+            'is_telesale' => array(
+                'type' => 'bool',
+                'label' => 'LBL_IS_TELESALE',
                 'width' => '10%',
                 'default' => true,
-                'name' => 'email_reservation',
+                'name' => 'is_telesale',
             ),
-
-            'has_voucher' => array(
-                'name'       => 'has_voucher',
-                'vname'      => 'LBL_HAS_VOUCHER',
-                'type'       => 'bool',
-                'default'    => true,
+            'is_ctv' => array(
+                'type' => 'bool',
+                'label' => 'LBL_IS_CTV',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'is_ctv',
             ),
-            // 'favorites_only' => 
-            // array(
-            //   'name' => 'favorites_only', 
-            //   'label' => 'LBL_FAVORITES_FILTER', 
-            //   'type' => 'bool',
-            // ),
+            'is_prior' => array(
+                'type' => 'bool',
+                'label' => 'LBL_IS_PRIOR',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'is_prior',
+            ),
+            'is_reference' => array(
+                'type' => 'bool',
+                'label' => 'LBL_IS_REFERENCE',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'is_reference',
+            ),
+            'current_user_only' => array(
+                'name' => 'current_user_only',
+                'label' => 'LBL_CURRENT_USER_FILTER',
+                'type' => 'bool'
+            ),
         ),
     ),
     'templateMeta' => array(

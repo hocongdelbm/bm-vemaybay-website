@@ -1,109 +1,40 @@
-<?php 
+<?php
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $TOKEN = 'SJKDFHASJKDFGHAJKUDSW38984729384234B23J4G2H3J4GBHMNBCVMNbdFU4G0';
-    
+
     $JSON_DATA  = file_get_contents('php://input');
     $params     = json_decode($JSON_DATA, true);
     $token      = isset($params['token']) ? trim($params['token']) : '';
     $ip         = get_ip_address_from_client();
 
-    if($token === $TOKEN){
+    if ($token === $TOKEN) {
         $IP_WHITELIST = [
             '14.161.31.237', //LBM
             '157.119.248.142', //td timchuyenbay
+            '103.160.4.96', //td timchuyenbay new
+            
+            // Haihung
+            '171.252.188.26', 
+
         ];
 
-        if(in_array($ip, $IP_WHITELIST)) {
-            // LIST PHONE
-            $list_phone = [
-                'viettel' => [
-                    [
-                        'phone' => '0964031020',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0962768782',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0963323407',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0963498793',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0963678130',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0963986905',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0963987527',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0964031020',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0964359785',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                ],
-                'mobiphone' => [
-                    [
-                        'phone' => '0933296508',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0933625233',
-                        'address' => '103.199.78.74:65000',
-                    ],
-                    [
-                        'phone' => '0933799860',
-                        'address' => '103.199.78.74:65000',
-                    ],
-                    [
-                        'phone' => '0933026416',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0933297608',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0933611306',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0937451098',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0937523198',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                ],
-                'vinaphone' => [
-                    [
-                        'phone' => '0913030802',
-                        'address' => '14.238.2.146:5060',
-                    ],
-                    [
-                        'phone' => '0918038348',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                    [
-                        'phone' => '0919018102',
-                        'address' => '103.232.121.103:55000',
-                    ],
-                ]
-            ];
+        if (in_array($ip, $IP_WHITELIST)) {
+            $list_phone = [];
+
+            $pbx = BeanFactory::getBean('Calls');
+            $list_phone_round_robin = $pbx->get_list_phone_pbx('', 1);
+
+            if (!empty($list_phone_round_robin) && is_array($list_phone_round_robin)) {
+                foreach ($list_phone_round_robin as $network_provider => $phones) {
+                    $list_phone[strtolower($network_provider)] = array_map(function ($phone) {
+                        return [
+                            'phone' => trim($phone['name']),
+                            'address' => trim($phone['proxy']),
+                        ];
+                    }, $phones);
+                }
+            }
 
             $response['success'] = array(
                 'code' => 200,

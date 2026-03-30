@@ -7,7 +7,7 @@ require_once('include/SugarObjects/forms/FormBase.php');
 
 class CallFormBase extends FormBase
 {
-    public function getFormBody($prefix, $mod='', $formname='', $cal_date='', $cal_time='')
+    public function getFormBody($prefix, $mod = '', $formname = '', $cal_date = '', $cal_time = '')
     {
         if (!ACLController::checkAccess('Calls', 'edit', true)) {
             return '';
@@ -40,11 +40,11 @@ class CallFormBase extends FormBase
         $lbl_date = $mod_strings['LBL_DATE'];
         $lbl_time = $mod_strings['LBL_TIME'];
         $ntc_date_format = $timedate->get_user_date_format();
-        $ntc_time_format = '('.$timedate->get_user_time_format().')';
+        $ntc_time_format = '(' . $timedate->get_user_time_format() . ')';
 
         $user_id = $current_user->id;
         $default_status = $app_list_strings['call_status_default'];
-        $default_parent_type= $app_list_strings['record_type_default_key'];
+        $default_parent_type = $app_list_strings['record_type_default_key'];
         $date = TimeDate::getInstance()->nowDb();
         $default_date_start = $timedate->to_display_date($date, false);
         $default_time_start = $timedate->to_display_time($date);
@@ -52,7 +52,7 @@ class CallFormBase extends FormBase
         $lbl_save_button_title = $app_strings['LBL_SAVE_BUTTON_TITLE'];
         $lbl_save_button_key = $app_strings['LBL_SAVE_BUTTON_KEY'];
         $lbl_save_button_label = $app_strings['LBL_SAVE_BUTTON_LABEL'];
-        $form =	<<<EOQ
+        $form =    <<<EOQ
 			<form name="${formname}" onSubmit="return check_form('${formname}') "method="POST" action="index.php">
 			<input type="hidden" name="${prefix}module" value="Calls">
 			<input type="hidden" name="${prefix}action" value="Save">
@@ -95,12 +95,12 @@ EOQ;
         $javascript->setFormName($formname);
         $javascript->setSugarBean(BeanFactory::newBean('Calls'));
         $javascript->addRequiredFields($prefix);
-        $form .=$javascript->getScript();
+        $form .= $javascript->getScript();
         $form .= "<td align=\"left\" valign=top><input title='$lbl_save_button_title' accessKey='$lbl_save_button_key' class='button' type='submit' name='button' value=' $lbl_save_button_label ' ></td></tr></table></form>";
         $mod_strings = $temp_strings;
         return $form;
     }
-    public function getFormHeader($prefix, $mod='', $title='')
+    public function getFormHeader($prefix, $mod = '', $title = '')
     {
         if (!ACLController::checkAccess('Calls', 'edit', true)) {
             return '';
@@ -130,7 +130,7 @@ EOQ;
 EOQ;
         return $the_form;
     }
-    public function getFormFooter($prefic, $mod='')
+    public function getFormFooter($prefic, $mod = '')
     {
         if (!ACLController::checkAccess('Calls', 'edit', true)) {
             return '';
@@ -145,7 +145,7 @@ EOQ;
         return $the_form;
     }
 
-    public function getForm($prefix, $mod='')
+    public function getForm($prefix, $mod = '')
     {
         if (!ACLController::checkAccess('Calls', 'edit', true)) {
             return '';
@@ -158,7 +158,7 @@ EOQ;
     }
 
 
-    public function handleSave($prefix, $redirect=true, $useRequired=false)
+    public function handleSave($prefix, $redirect = true, $useRequired = false)
     {
         require_once('include/formbase.php');
 
@@ -166,8 +166,8 @@ EOQ;
         global $timedate;
 
         //BUG 17418 MFH
-        if (isset($_POST[$prefix.'duration_hours'])) {
-            $_POST[$prefix.'duration_hours'] = trim($_POST[$prefix.'duration_hours']);
+        if (isset($_POST[$prefix . 'duration_hours'])) {
+            $_POST[$prefix . 'duration_hours'] = trim($_POST[$prefix . 'duration_hours']);
         }
 
         $focus = BeanFactory::newBean('Calls');
@@ -175,14 +175,14 @@ EOQ;
         if ($useRequired && !checkRequired($prefix, array_keys($focus->required_fields))) {
             return null;
         }
-        if (!isset($_POST[$prefix.'reminder_checked']) or ($_POST[$prefix.'reminder_checked'] == 0)) {
-            $GLOBALS['log']->debug(__FILE__.'('.__LINE__.'): No reminder checked, resetting the reminder_time');
-            $_POST[$prefix.'reminder_time'] = -1;
+        if (!isset($_POST[$prefix . 'reminder_checked']) or ($_POST[$prefix . 'reminder_checked'] == 0)) {
+            $GLOBALS['log']->debug(__FILE__ . '(' . __LINE__ . '): No reminder checked, resetting the reminder_time');
+            $_POST[$prefix . 'reminder_time'] = -1;
         }
 
-        if (!isset($_POST[$prefix.'reminder_time'])) {
-            $GLOBALS['log']->debug(__FILE__.'('.__LINE__.'): Getting the users default reminder time');
-            $_POST[$prefix.'reminder_time'] = $current_user->getPreference('reminder_time');
+        if (!isset($_POST[$prefix . 'reminder_time'])) {
+            $GLOBALS['log']->debug(__FILE__ . '(' . __LINE__ . '): Getting the users default reminder time');
+            $_POST[$prefix . 'reminder_time'] = $current_user->getPreference('reminder_time');
         }
 
         if (!isset($_POST['email_reminder_checked']) || (isset($_POST['email_reminder_checked']) && $_POST['email_reminder_checked'] == '0')) {
@@ -202,16 +202,16 @@ EOQ;
             $time_separator = $match[1];
         }
 
-        if (!empty($_POST[$prefix.'time_hour_start']) && empty($_POST[$prefix.'time_start'])) {
-            $_POST[$prefix.'time_start'] = $_POST[$prefix.'time_hour_start']. $time_separator .$_POST[$prefix.'time_minute_start'];
+        if (!empty($_POST[$prefix . 'time_hour_start']) && empty($_POST[$prefix . 'time_start'])) {
+            $_POST[$prefix . 'time_start'] = $_POST[$prefix . 'time_hour_start'] . $time_separator . $_POST[$prefix . 'time_minute_start'];
         }
 
-        if (isset($_POST[$prefix.'meridiem']) && !empty($_POST[$prefix.'meridiem'])) {
-            $_POST[$prefix.'time_start'] = $timedate->merge_time_meridiem($_POST[$prefix.'time_start'], $timedate->get_time_format(), $_POST[$prefix.'meridiem']);
+        if (isset($_POST[$prefix . 'meridiem']) && !empty($_POST[$prefix . 'meridiem'])) {
+            $_POST[$prefix . 'time_start'] = $timedate->merge_time_meridiem($_POST[$prefix . 'time_start'], $timedate->get_time_format(), $_POST[$prefix . 'meridiem']);
         }
 
-        if (isset($_POST[$prefix.'time_start']) && strlen($_POST[$prefix.'date_start']) == 10) {
-            $_POST[$prefix.'date_start'] = $_POST[$prefix.'date_start'] . ' ' . $_POST[$prefix.'time_start'];
+        if (isset($_POST[$prefix . 'time_start']) && strlen($_POST[$prefix . 'date_start']) == 10) {
+            $_POST[$prefix . 'date_start'] = $_POST[$prefix . 'date_start'] . ' ' . $_POST[$prefix . 'time_start'];
         }
 
         // retrieve happens here
@@ -227,31 +227,35 @@ EOQ;
         }
 
         //add assigned user and current user if this is the first time bean is saved
-        if (empty($focus->id) && !empty($_REQUEST['return_module']) && $_REQUEST['return_module'] =='Calls' && !empty($_REQUEST['return_action']) && $_REQUEST['return_action'] =='DetailView') {
+        if (empty($focus->id) && !empty($_REQUEST['return_module']) && $_REQUEST['return_module'] == 'Calls' && !empty($_REQUEST['return_action']) && $_REQUEST['return_action'] == 'DetailView') {
             //if return action is set to detail view and return module to call, then this is from the long form, do not add the assigned user (only the current user)
             //The current user is already added to UI and we want to give the current user the option of opting out of meeting.
             if ($current_user->id != $_POST['assigned_user_id']) {
-                $_POST['user_invitees'] .= ','.$_POST['assigned_user_id'].', ';
+                $_POST['user_invitees'] .= ',' . $_POST['assigned_user_id'] . ', ';
                 $_POST['user_invitees'] = str_replace(',,', ',', $_POST['user_invitees']);
             }
         } else {
             //this is not from long form so add assigned and current user automatically as there is no invitee list UI.
             //This call could be through an ajax call from subpanels or shortcut bar
-            $_POST['user_invitees'] .= ','.$_POST['assigned_user_id'].', ';
 
-            //add current user if the assigned to user is different than current user.
-            if ($current_user->id != $_POST['assigned_user_id'] && $_REQUEST['module'] != "Calendar") {
-                $_POST['user_invitees'] .= ','.$current_user->id.', ';
+            // fix warning by haihugn
+            if (isset($_POST['user_invitees']) && isset($_POST['assigned_user_id'])) {
+                $_POST['user_invitees'] .= ',' . $_POST['assigned_user_id'] . ', ';
+
+                //add current user if the assigned to user is different than current user.
+                if ($current_user->id != $_POST['assigned_user_id'] && $_REQUEST['module'] != "Calendar") {
+                    $_POST['user_invitees'] .= ',' . $current_user->id . ', ';
+                }
+
+                //remove any double commas introduced during appending
+                $_POST['user_invitees'] = str_replace(',,', ',', $_POST['user_invitees']);
             }
-
-            //remove any double commas introduced during appending
-            $_POST['user_invitees'] = str_replace(',,', ',', $_POST['user_invitees']);
         }
 
         if ((isset($_POST['isSaveFromDetailView']) && $_POST['isSaveFromDetailView'] == 'true') ||
-        (isset($_POST['is_ajax_call']) && !empty($_POST['is_ajax_call']) && !empty($focus->id) ||
-        (isset($_POST['return_action']) && $_POST['return_action'] == 'SubPanelViewer') && !empty($focus->id))
-    ) {
+            (isset($_POST['is_ajax_call']) && !empty($_POST['is_ajax_call']) && !empty($focus->id) ||
+                (isset($_POST['return_action']) && $_POST['return_action'] == 'SubPanelViewer') && !empty($focus->id))
+        ) {
             $focus->save(true);
             $return_id = $focus->id;
         } else {
@@ -273,7 +277,7 @@ EOQ;
                 $deleteUsers = array();
                 $focus->load_relationship('users');
                 // Get all users for the call
-                $q = 'SELECT mu.user_id, mu.accept_status FROM calls_users mu WHERE mu.call_id = \''.$focus->id.'\'';
+                $q = 'SELECT mu.user_id, mu.accept_status FROM calls_users mu WHERE mu.call_id = \'' . $focus->id . '\'';
                 $r = $focus->db->query($q);
                 $acceptStatusUsers = array();
                 while ($a = $focus->db->fetchByAssoc($r)) {
@@ -292,7 +296,7 @@ EOQ;
 
                     $sql = substr($sql, 1);
                     // We could run a delete SQL statement here, but will just mark as deleted instead
-                    $sql = "UPDATE calls_users set deleted = 1 where user_id in ($sql) AND call_id = '". $focus->id . "'";
+                    $sql = "UPDATE calls_users set deleted = 1 where user_id in ($sql) AND call_id = '" . $focus->id . "'";
                     $focus->db->query($sql);
                 }
 
@@ -305,7 +309,7 @@ EOQ;
 
                 $deleteContacts = array();
                 $focus->load_relationship('contacts');
-                $q = 'SELECT mu.contact_id, mu.accept_status FROM calls_contacts mu WHERE mu.call_id = \''.$focus->id.'\'';
+                $q = 'SELECT mu.contact_id, mu.accept_status FROM calls_contacts mu WHERE mu.call_id = \'' . $focus->id . '\'';
                 $r = $focus->db->query($q);
                 $acceptStatusContacts = array();
                 while ($a = $focus->db->fetchByAssoc($r)) {
@@ -323,7 +327,7 @@ EOQ;
                     }
                     $sql = substr($sql, 1);
                     // We could run a delete SQL statement here, but will just mark as deleted instead
-                    $sql = "UPDATE calls_contacts set deleted = 1 where contact_id in ($sql) AND call_id = '". $focus->id . "'";
+                    $sql = "UPDATE calls_contacts set deleted = 1 where contact_id in ($sql) AND call_id = '" . $focus->id . "'";
                     $focus->db->query($sql);
                 }
                 if (!empty($_POST['lead_invitees'])) {
@@ -336,7 +340,7 @@ EOQ;
                 $deleteLeads = array();
                 $focus->load_relationship('leads');
                 // Get all leads for the call
-                $q = 'SELECT mu.lead_id, mu.accept_status FROM calls_leads mu WHERE mu.call_id = \''.$focus->id.'\'';
+                $q = 'SELECT mu.lead_id, mu.accept_status FROM calls_leads mu WHERE mu.call_id = \'' . $focus->id . '\'';
                 $r = $focus->db->query($q);
                 $acceptStatusLeads = array();
                 while ($a = $focus->db->fetchByAssoc($r)) {
@@ -357,7 +361,7 @@ EOQ;
                     }
                     $sql = substr($sql, 1);
                     // We could run a delete SQL statement here, but will just mark as deleted instead
-                    $sql = "UPDATE calls_leads set deleted = 1 where lead_id in ($sql) AND call_id = '". $focus->id . "'";
+                    $sql = "UPDATE calls_leads set deleted = 1 where lead_id in ($sql) AND call_id = '" . $focus->id . "'";
                     $focus->db->query($sql);
                 }
                 ////	END REMOVE
@@ -379,9 +383,9 @@ EOQ;
                     $focus->leads_arr[] = $_POST['parent_id'];
                 }
                 // Call the Call module's save function to handle saving other fields besides
-            // the users and contacts relationships
-            $focus->update_vcal = false;    // Bug #49195 : don't update vcal b/s related users aren't saved yet, create vcal cache below
-            $focus->save(true);
+                // the users and contacts relationships
+                $focus->update_vcal = false;    // Bug #49195 : don't update vcal b/s related users aren't saved yet, create vcal cache below
+                $focus->save(true);
                 $return_id = $focus->id;
 
                 // Process users
@@ -400,9 +404,9 @@ EOQ;
                         $focus->users->add($user_id);
                     } else {
                         // update query to preserve accept_status
-                        $qU  = 'UPDATE calls_users SET deleted = 0, accept_status = \''.$acceptStatusUsers[$user_id].'\' ';
-                        $qU .= 'WHERE call_id = \''.$focus->id.'\' ';
-                        $qU .= 'AND user_id = \''.$user_id.'\'';
+                        $qU  = 'UPDATE calls_users SET deleted = 0, accept_status = \'' . $acceptStatusUsers[$user_id] . '\' ';
+                        $qU .= 'WHERE call_id = \'' . $focus->id . '\' ';
+                        $qU .= 'AND user_id = \'' . $user_id . '\'';
                         $focus->db->query($qU);
                     }
                 }
@@ -423,9 +427,9 @@ EOQ;
                         $focus->contacts->add($contact_id);
                     } else {
                         // update query to preserve accept_status
-                        $qU  = 'UPDATE calls_contacts SET deleted = 0, accept_status = \''.$acceptStatusContacts[$contact_id].'\' ';
-                        $qU .= 'WHERE call_id = \''.$focus->id.'\' ';
-                        $qU .= 'AND contact_id = \''.$contact_id.'\'';
+                        $qU  = 'UPDATE calls_contacts SET deleted = 0, accept_status = \'' . $acceptStatusContacts[$contact_id] . '\' ';
+                        $qU .= 'WHERE call_id = \'' . $focus->id . '\' ';
+                        $qU .= 'AND contact_id = \'' . $contact_id . '\'';
                         $focus->db->query($qU);
                     }
                 }
@@ -445,16 +449,13 @@ EOQ;
                         $focus->leads->add($lead_id);
                     } else {
                         // update query to preserve accept_status
-                        $qU  = 'UPDATE calls_leads SET deleted = 0, accept_status = \''.$acceptStatusLeads[$lead_id].'\' ';
-                        $qU .= 'WHERE call_id = \''.$focus->id.'\' ';
-                        $qU .= 'AND lead_id = \''.$lead_id.'\'';
+                        $qU  = 'UPDATE calls_leads SET deleted = 0, accept_status = \'' . $acceptStatusLeads[$lead_id] . '\' ';
+                        $qU .= 'WHERE call_id = \'' . $focus->id . '\' ';
+                        $qU .= 'AND lead_id = \'' . $lead_id . '\'';
                         $focus->db->query($qU);
                     }
                 }
 
-                // Bug #49195 : update vcal
-                vCal::cache_sugar_vcal($current_user);
-            
                 // CCL - Comment out call to set $current_user as invitee
                 //set organizer to auto-accept
                 if ($focus->assigned_user_id == $current_user->id && $newBean) {
@@ -462,7 +463,7 @@ EOQ;
                 }
 
                 ////	END REBUILD INVITEE RELATIONSHIPS
-            ///////////////////////////////////////////////////////////////////////////
+                ///////////////////////////////////////////////////////////////////////////
             }
         }
 
@@ -484,7 +485,7 @@ EOQ;
         }
     } // end handleSave();
 
-    public function getWideFormBody($prefix, $mod='', $formname='', $wide =true)
+    public function getWideFormBody($prefix, $mod = '', $formname = '', $wide = true)
     {
         if (!ACLController::checkAccess('Calls', 'edit', true)) {
             return '';
@@ -514,18 +515,18 @@ EOQ;
         $lbl_date = $mod_strings['LBL_DATE'];
         $lbl_time = $mod_strings['LBL_TIME'];
         global $timedate;
-        $ntc_date_format = '('.$timedate->get_user_date_format(). ')';
-        $ntc_time_format = '('.$timedate->get_user_time_format(). ')';
+        $ntc_date_format = '(' . $timedate->get_user_date_format() . ')';
+        $ntc_time_format = '(' . $timedate->get_user_time_format() . ')';
         $cal_dateformat = $timedate->get_cal_date_format();
 
         $user_id = $current_user->id;
         $default_status = $app_list_strings['call_status_default'];
-        $default_parent_type= $app_list_strings['record_type_default_key'];
+        $default_parent_type = $app_list_strings['record_type_default_key'];
         $date = TimeDate::getInstance()->nowDb();
         $default_date_start = $timedate->to_display_date($date);
         $default_time_start = $timedate->to_display_time($date, true);
         $time_ampm = $timedate->AMPMMenu($prefix, $default_time_start);
-        $form =	<<<EOQ
+        $form =    <<<EOQ
 			<input type="hidden"  name="${prefix}direction" value="Outbound">
 			<input type="hidden" name="${prefix}record" value="">
 			<input type="hidden" name="${prefix}status" value="${default_status}">
@@ -561,7 +562,7 @@ EOQ;
 </tr>
 EOQ;
         }
-        $form .=	<<<EOQ
+        $form .=    <<<EOQ
 
 
 <tr>
@@ -602,7 +603,7 @@ EOQ;
         $javascript->setFormName($formname);
         $javascript->setSugarBean(BeanFactory::newBean('Calls'));
         $javascript->addRequiredFields($prefix);
-        $form .=$javascript->getScript();
+        $form .= $javascript->getScript();
         $mod_strings = $temp_strings;
         return $form;
     }

@@ -4,12 +4,10 @@ $viewdefs[$module_name]['DetailView'] = array(
     'templateMeta' => array(
         'form' => array(
             'buttons' => array(
-                'EDIT',
+                // 'EDIT',
                 // 'DUPLICATE',
                 'DELETE',
-                array(
-                    'customCode' => '{$CHANGE_STATUS}',
-                ),
+                array('customCode' => '{$ACTIVE_BUTTON}'),
             )
         ),
         'maxColumns' => '2',
@@ -18,57 +16,80 @@ $viewdefs[$module_name]['DetailView'] = array(
             array('label' => '10', 'field' => '30')
         ),
         'includes' => array(
-            array(
-                'file' => 'modules/EC_Vouchers/js/view.detail.js',
-            ),
+            array('file' => 'modules/EC_Vouchers/js/view.detail.js'),
         ),
     ),
 
     'panels' => array (
         'default' => array(
-            array(
+            array (
+                array(
+                    'name' => 'name',
+                    'label' => 'LBL_NAME',
+                ),
                 array(
                     'name' => 'campaign_name',
-                    'label' => 'LBL_CAMPAIGN_NAME',
+                    'label' => 'LBL_EVENT',
                 ),
             ),
             array (
-                'name',
-                'status',
+                array(
+                    'name' => 'name',
+                    'label' => 'LBL_NAME',
+                    'customCode' => '{$CODE_FIELD}',
+                ),
+                array(
+                    'name' => 'status',
+                    'label' => 'LBL_STATUS',
+                    'customCode' => '{$STATUS_FIELD}',
+                ),
             ),
             array (
-                'reduce_amount',
+                array(
+                    'name' => 'discount',
+                    'label' => 'LBL_DISCOUNT',
+                    'customCode' => '{$DISCOUNT_FIELD}',
+                ),
                 array(
                     'name' => 'duration',
                     'label' => 'LBL_DURATION',
-                    'customCode' => '{$CUS_DURATION}',
+                    'customCode' => '{$DURATION_FIELD}',
                 ),
-            ),
-            array (
-                'account_name',
-                'account_phone',
-            ),
-            array (
-                'account_address',
-                'account_email',
             ),
             array (
                 array(
-                    'name' => 'booking',
-                    'label' => 'LBL_BOOKING',
-                    'customCode' => '{$CUS_BOOKING}',
+                    'name' => 'max_discount',
+                    'label' => 'LBL_MAX_DISCOUNT',
+                    'customCode' => '{$MAX_DISCOUNT_FIELD}',
                 ),
                 array(
-                    'name' => 'journey',
-                    'label' => 'LBL_JOURNEY',
-                    'customCode' => '{$CUS_JOURNEY}',
+                    'name' => 'quantity',
+                    'label' => 'LBL_QUANTITY',
                 ),
             ),
             array (
-                'active_date',
-                'applied_date'
+                array(
+                    'name' => 'website',
+                    'label' => 'LBL_WEBSITE',
+                    'customCode' => '{$WEBSITE_FIELD}',
+                ),
+                array(
+                    'name' => 'contact_name',
+                    'label' => 'LBL_CONTACT',
+                ),
             ),
             array (
+                array(
+                    'name' => 'condition_voucher',
+                    'label' => 'LBL_CONDITION_VOUCHER',
+                    'customCode' => '{$CONDITION_VOUCHER_FIELD}',
+                ),
+                array(
+                    'name' => 'description',
+                    'label' => 'LBL_DESCRIPTION',
+                ),
+            ),
+            array(
                   array (
                     'name' => 'date_entered',
                     'customCode' => '{$fields.date_entered.value} {$APP.LBL_BY} {$fields.created_by_name.value}',
@@ -81,15 +102,13 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
             ),
         ),
-        'lbl_panel_description' => array(
-            array (
-                'description',
-            ),
+        'LBL_BOOKINGS_PANEL' => array(
             array (
                 array (
-                    'name' => 'condition_voucher',
-                    'label' => 'LBL_CONDITION_VOUCHER',
-                    'customCode' => '{$CUS_CONDITION_VOUCHER}',
+                    'name' => 'BOOKINGS',
+                    'hideLabel' => true,
+                    'colspan' => 4,
+                    'customCode' => '{$BOOKINGS}',
                 )
             ),
         )

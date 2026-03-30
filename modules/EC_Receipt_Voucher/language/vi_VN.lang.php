@@ -68,12 +68,10 @@ $mod_strings = array(
     'LBL_VAT_BOUGHT_AMOUNT' => 'VAT giá mua 1',
     'LBL_VAT_BOUGHT_AMOUNT2' => 'VAT giá mua 2',
     'LBL_VAT_BOUGHT_AMOUNT3' => 'VAT giá mua 3',
-    'LBL_TICKET_NUMBER' => 'Số vé 1',
-    'LBL_TICKET_NUMBER2' => 'Số vé 2',
-    'LBL_TICKET_NUMBER3' => 'Số vé 3',
 
-    'LBL_RV_STATUS' => 'Tình trạng',
+    'LBL_BOOKING' => 'Booking',
     'LBL_BOOKING_NAME' => 'Booking',
+    'LBL_RV_STATUS' => 'Tình trạng',
     'LBL_NGAYCHUNGTU' => 'Ngày chứng từ',
     'LBL_NAME' => 'Số chứng từ',
     'LBL_TKNGANHANG' => 'TK Ngân hàng',
@@ -83,4 +81,5 @@ $mod_strings = array(
     'LBL_AGENT' => 'Đại lý',
     'LBL_ASSIGNED_TO_NAME' => 'Giao cho',
     'LBL_DELIVERY_MAN' => 'Giao thực phẩm',
+    'LBL_GO_WITH' => 'Lần đổi Booking'
 );

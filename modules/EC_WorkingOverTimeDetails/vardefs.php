@@ -96,7 +96,7 @@ $dictionary['EC_WorkingOverTimeDetails'] = array(
       'required' => false,
       'name' => 'multiplier',
       'vname' => 'LBL_MULTIPLIER',
-      'type' => 'int',
+      'type' => 'float',
       'massupdate' => 0,
       'comments' => '',
       'help' => '',
@@ -105,7 +105,6 @@ $dictionary['EC_WorkingOverTimeDetails'] = array(
       'duplicate_merge_dom_value' => '0',
       'audited' => 0,
       'reportable' => 0,
-      'len' => '11',
       'disable_num_format' => 1,
     ),
     'working_hour' =>

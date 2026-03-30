@@ -1,19 +1,23 @@
 /********************   DECLARE   ********************/
 const SIP_USER = document.getElementById('sip_user').value;
 const SIP_PASSWORD = document.getElementById('sip_password').value;
-// const SIP_INSTANCE  = 'uuid:' + document.getElementById('sip_instance_id').value;
+const AGENT_STATUS = document.getElementById('agent_status').value || 'Available';
+const CURRENT_USER = document.getElementById('sip_instance_id').value;
+
 const SIP_DOMAIN = 'td.timchuyenbay.net';
+const WS_SERVERS = `wss://${SIP_DOMAIN}:7444`;
 const SIP_URI = `sip:${SIP_USER}@${SIP_DOMAIN}`;
 const SIP_CONTACT = `sip:${SIP_USER}@${SIP_DOMAIN};transport=ws`;
-const WS_SERVERS = `wss://${SIP_DOMAIN}:7444`;
 const RINGTONE_FILE = 'ringtone.mp3';
 const TITLE_PAGE = document.getElementsByTagName("title")[0].innerHTML;
 
 /********************   CONFIG   ********************/
+var ua_status = '';
+var callLog = [];
 var ua;
 var session;
 var configuration = {
-    'uri': SIP_URI, // Fill sip uri here like sip:sip-user@your-domain.bwapp.bwsip.io
+    'uri': SIP_URI,
     'password': SIP_PASSWORD,
     'ws_servers': WS_SERVERS,
     'register': true,
@@ -22,37 +26,75 @@ var configuration = {
     'no_answer_timeout': 90,
     'display_name': 'Tim chuyen bay',
     'contact_uri': SIP_CONTACT,
+    'log': true,
     // 'instance_id' : SIP_INSTANCE,
     // 'stun_servers': [{ urls: 'stun.cloudflare.com:3478' }],
 };
+
+// Register callbacks to desired call events (For debug)
+let call_flow = '';
+var eventHandlers = {
+    'progress': function (e) {
+        call_flow += 'Call is in progress. ';
+    },
+    'failed': function (e) {
+        const errorCause = e.message?.data || e.cause;
+        call_flow += `Call failed with cause: ${errorCause} `;
+
+        if (errorCause && errorCause.includes('486 Busy Here')) {
+            showModalNotify('warning', 'Số máy quý khách vừa gọi hiện đang bận và không thể nhận cuộc gọi. Vui lòng liên hệ lại sau!');
+        } else if (errorCause && errorCause.includes('408 Request Timeout')) {
+            showModalNotify('warning', 'Lỗi kết nối mạng hoặc người nhận không phản hồi trong thời gian cho phép. Vui lòng liên hệ lại sau!');
+        }
+    },
+    'ended': function (e) {
+        // console.warn('call ended with cause:  ' + e.cause + ' ');
+        call_flow += 'Call ended with cause: ' + e.cause + ' ';
+    },
+    'confirmed': function (e) {
+        // console.warn('call confirmed');
+        call_flow += 'Call confirmed. ';
+    }
+};
+
+
+let pcConfig = '';
+if (apply_stun_server) {
+    pcConfig = {
+        'iceServers': [
+            // { 'urls': 'stun:stun.l.google.com:19302' }, // Máy chủ STUN của Google
+            // { 'urls': 'stun:stun.cloudflare.com:3478' }, // Máy chủ STUN của Cloudflare
+            {
+                'urls': [
+                    'stun:turn.quantri.online:3478',
+                ],
+                'username': 'quangnd',
+                'credential': 'Super@Secret@123'
+            }
+        ]
+    };
+}
+
 var callOptions = {
     'mediaConstraints': { 'audio': true, 'video': false },
     'sessionTimersExpires': 180, // Don't set a value lower than 90
-    // 'eventHandlers' : eventHandlers, // For debug
-};
-// Register callbacks to desired call events (For debug)
-var eventHandlers = {
-    'progress': function (e) {
-        console.log('call is in progress');
-    },
-    'failed': function (e) {
-        console.error('call failed with cause: ' + e.cause);
-    },
-    'ended': function (e) {
-        console.log('call ended with cause: ' + e.cause);
-    },
-    'confirmed': function (e) {
-        console.log('call confirmed');
-    }
+    'eventHandlers': eventHandlers, // For debug
+    'pcConfig': pcConfig
 };
 
 /***********   Setup audio and ringtone   *************/
 var audio_jssip = document.getElementById("audio_jssip");
 var incomingCallAudio = new window.Audio(RINGTONE_FILE);
-incomingCallAudio.loop = true;
 
 /********************   INIT   ********************/
-JsSIP.debug.enable('JsSIP:*'); // More detailed debug output
+// DEBUG
+if (logger_call_center) {
+    JsSIP.debug.enable("JsSIP:*"); // More detailed debug output
+} else {
+    JsSIP.debug.disable("JsSIP:*");
+    // JsSIP.debug.enable('JsSIP:Transport JsSIP:RTCSession*');
+}
+
 socket = new JsSIP.WebSocketInterface(WS_SERVERS);
 configuration.sockets = [socket];
 
@@ -61,25 +103,26 @@ ua = new JsSIP.UA(configuration);
 ua.start();
 
 ua.on('registrationFailed', function (ev) {
-    alert('Lỗi đăng ký máy chủ SIP: ' + ev.cause);
-    console.error(ev.cause);
+    console.error('Lỗi đăng ký máy chủ SIP: ' + ev.cause);
     configuration.uri = null;
     configuration.password = null;
     showConnect(false);
+    ua_status = 'registrationFailed';
 });
 ua.on('connecting', function (ev) {
-    console.info('Connecting');
-    showConnect(false);
+    // console.warn('Connecting');
+    ua_status = 'Connecting';
 });
 ua.on('connected', function (ev) {
-    console.info('Connected');
-    check_online_for_call();
+    // console.warn('Connected');
+    showConnect(true);
+    ua_status = 'Connected';
 });
 ua.on('disconnected', function (ev) {
-    console.info('Disconnected');
+    // console.warn('Disconnected');
     showConnect(false);
+    ua_status = 'disconnected';
 });
-
 
 /*************  CHECK ONLINE FOR CALL  *************/
 setInterval(check_online_for_call, 90000);
@@ -87,39 +130,24 @@ function check_online_for_call() {
     // On calling not check online
     if (session) return;
 
-    let sip_user = $("#sip_user").val();
     if (configuration.uri && configuration.password) {
-        $.ajax({
-            url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
-            data: {
-                for: "is_Online",
-                agent: sip_user
-            },
-            type: "POST",
-            cache: false,
-            success: function (response) {
-                let always_online = ['010', '001', '012', '888', '222'];
-                if (always_online.includes(SIP_USER)) response = 1;
-
-                if (response == 1) {
-                    if ($('input#busy_stt').prop('checked') == true) {
-                        return;
-                    }
-
-                    if (!ua.isConnected()) ua.start();
-                    showConnect(true);
-                }
-                else if (ua) {
-                    ua.stop();
-                    showConnect(false);
-                }
+        if (AGENT_STATUS == 'Available') {
+            if ($('input#busy_stt').prop('checked') == true) {
+                return;
             }
-        });
+
+            if (!ua.isConnected()) ua.start();
+            showConnect(true);
+        } else {
+            ua.stop();
+            showConnect(false);
+        }
     }
     else showConnect(false);
 }
 
 ua.on('newRTCSession', function (ev) {
+
     // When the previous call is existing
     if (session) {
         if (ev.session.direction === "incoming") {
@@ -136,13 +164,15 @@ ua.on('newRTCSession', function (ev) {
     session.on("confirmed", function () {
         $(document).prop('title', 'Đang gọi...');
 
+        // Close notification
+        closeNotification();
+
         // Change interface
         let name = $('#voiceip-info-name').html();
         let phone = $('#voiceip-info-phone').html();
         let zaloid = $('#voiceip-info-zaloid').html();
         if (name.length > 0) {
             $('#voiceip-name').val(name);
-            // $('#voiceip-name').prop('readonly', true);
         } else $('#voiceip-name').val('');
 
         if (phone.length > 0) {
@@ -154,6 +184,7 @@ ua.on('newRTCSession', function (ev) {
             $('#voiceip-zalo-id').val(zaloid);
             $('#voiceip-zalo-id').prop('readonly', true);
         } else $('#voiceip-zalo-id').val('');
+
         handleButtons('processing');
         startTimer();
 
@@ -183,18 +214,32 @@ ua.on('newRTCSession', function (ev) {
                 $('#display_dtmf').html(cur_dtml_value);
             }
         });
+
+        // UDPATE TƯƠNG TÁC KHI CUỘC GỌI ĐANG DIỄN RA
+        setInterval(function () {
+            const currentTime = new Date(new Date().toString().split('GMT')[0] + ' UTC').toISOString().split('.')[0].replace('T', ' ');
+            $.ajax({
+                url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
+                type: "POST",
+                cache: false,
+                data: {
+                    time: currentTime,
+                    for: "saveLastClickUser",
+                },
+                success: function (response) { }
+            });
+        }, 90000);
     });
 
     /************  HANDLE INBOUND CALL  ************/
     if (session.direction === "incoming") {
         incomingCallAudio.pause();
         incomingCallAudio.currentTime = 0;
-        incomingCallAudio.muted = false;
+        incomingCallAudio.muted = false;  // Không mute từ đầu
         incomingCallAudio.autoplay = true;
 
         // Get data
         let INVITE = session._request.data;
-        let hotline = extract_hotline(INVITE);
         let call_id = extract_call_id(INVITE);
         let phone = session._request.from._uri._user.length < 12 ? session._request.from._uri._user : '';
         let zalo_id = session._request.from._uri._user.length > 18 ? session._request.from._uri._user : '';
@@ -208,11 +253,36 @@ ua.on('newRTCSession', function (ev) {
             return;
         }
 
-        setTimeout(function () {
-            incomingCallAudio.play();
+        setTimeout(() => {
+            incomingCallAudio.play().catch(error => console.warn("Không thể tự động phát âm thanh:", error));
         }, 100);
+
         $(document).prop('title', 'Có cuộc gọi đến...');
-        showToastCall('incoming__call', call_id, zalo_id, phone, hotline)
+        extract_hotline(INVITE).then(hotline => {
+            showToastCall('incoming__call', call_id, zalo_id, phone, hotline);
+        });
+
+        // ADD template-notes CHO cuộc gọi đến
+        // $('#template-notes').html(`
+        //     <option value="">--Trống--</option>
+        //     <option value="in_journey">Khách hỏi hành trình</option>
+        //     <option value="in_ticket_hunt">Nhu cầu săn vé máy bay</option>
+        //     <option value="in_group_booking">Đặt vé đoàn nhiều người</option>
+        //     <option value="in_complaint_delay">Phàn nàn sự cố delay</option>
+        //     <option value="in_invoice_contact">Liên hệ kế toán hóa đơn</option>
+        //     <option value="in_mistake">Nhầm lẫn, Lý Thông linh tinh</option>
+        //     <option value="in_no_need">Khách chưa có nhu cầu</option>
+        //     <option value="in_other">Khác, chưa định nghĩa</option>
+        // `)
+        $('#template-notes').html(`
+            <option value="">--Trống--</option>
+            <option value="in_price">Hỏi giá vé máy bay</option>
+            <option value="in_consultant">Cần tư vấn thông tin</option>
+            <option value="in_mistake">Nhầm đại lý khác</option>
+            <option value="in_telesale_recall">Telephone sale gọi lại</option>
+            <option value="in_complaint_delay">Khách phàn nàn, khó chịu</option>
+            <option value="in_other">Trường hợp khác</option>
+        `)
 
         // Nghe máy
         session.on("accepted", function () {
@@ -238,6 +308,11 @@ ua.on('newRTCSession', function (ev) {
         $('.voiceip-content__client').slideDown();
         $('.calc-dtmf__wrap').slideUp();
         $(".voiceip-modal-transfer").hide();
+
+        // SAVE LOG
+        logCallEvent(session, SIP_USER, ua_status, call_flow);
+        saveCallLog();
+        call_flow = '';
         session = null;
     });
 
@@ -250,7 +325,6 @@ ua.on('newRTCSession', function (ev) {
         if (session.direction === "incoming") {
             let INVITE = session._request.data;
             let call_id = extract_call_id(INVITE);
-            let hotline = extract_hotline(INVITE);
             let phone = session._request.from._uri._user.length < 12 ? session._request.from._uri._user : '';
             let zalo_id = session._request.from._uri._user.length > 18 ? session._request.from._uri._user : '';
 
@@ -270,28 +344,53 @@ ua.on('newRTCSession', function (ev) {
                         $('#call-overlay').removeClass('opened');
                         $(`.toast__main[type="incoming__call"][call_id="${call_id}"]`).parent().remove();
 
-                        if (response == 1) showToastCall('missed__call', call_id, zalo_id, phone, hotline);
+                        if (response == 1) {
+                            extract_hotline(INVITE).then(hotline => {
+                                showToastCall('missed__call', call_id, zalo_id, phone, hotline);
+                            });
+                        }
                     }
                 });
             }, 1000);
-        }
-        else if (session.direction === "outgoing") {
-            let call_id = session._request.call_id;
-            let phone = session._request.to._uri._user.length < 12 ? session._request.to._uri._user : '';
-            let zalo_id = session._request.to._uri._user.length > 18 ? session._request.to._uri._user : '';
-
-            $('#popup-voiceip').removeClass('show');
-            $('#popup__voiceip--wrap').removeClass('show');
-            $('#call-overlay').removeClass('opened');
-            showToastCall('decline__call', call_id, zalo_id, phone);
+        } else if (session.direction === "outgoing") {
+            stopTimer();
+            handleButtons('completed');
         }
 
         $(document).prop('title', TITLE_PAGE);
+
+        // SAVE LOG
+        logCallEvent(session, SIP_USER, ua_status, '');
+        saveCallLog();
+        call_flow = '';
         session = null;
     });
 
     /************ OUTGOING CALL SOUND ************/
     if (session._connection && session.direction === "outgoing") {
+        // ADD template-notes CHO cuộc gọi ĐI
+        // $('#template-notes').html(`
+        //     <option value="">--Trống--</option>
+        //     <option value="out_no_need">Khách chưa có nhu cầu</option>
+        //     <option value="out_question_ticket">Khách hỏi vé</option>
+        //     <option value="out_interest">Đang quan tâm sơ bộ</option>
+        //     <option value="out_no_response">Không nghe máy</option>
+        //     <option value="out_no_uncomfortable">Khách khó chịu, không hài lòng, cảm thấy phiền...</option>
+        //     <option value="out_no_subscriber_unreachable">Số thuê bao, không liên lạc được</option>
+        //     <option value="out_remind">Nhắc ngày bay</option>
+        //     <option value="out_other">Khác</option>
+        // `)
+        $('#template-notes').html(`
+            <option value="">--Trống--</option>
+            <option value="out_price">Hỏi giá vé máy bay</option>
+            <option value="out_telesale_call">Telephone sale khách hàng</option>
+            <option value="out_confirm_consult">Xác nhận thông tin, tư vấn</option>
+            <option value="out_customer_care">CSKH nhắc ngày giờ bay</option>
+            <option value="out_no_subscriber_unreachable">Số thuê bao, không liên lạc</option>
+            <option value="out_no_response">Không nghe máy, chưa nghe</option>
+            <option value="out_other">Trường hợp khác</option>
+        `)
+
         if (session._connection.addEventListener) {
             session._connection.addEventListener('track', (e) => {
                 if (e.streams && e.streams[0]) {
@@ -303,10 +402,14 @@ ua.on('newRTCSession', function (ev) {
                     stream.addTrack(e.track);
                     alert("Lỗi âm thanh cuộc gọi");
                 }
-                audio_jssip.play();
+
+                // Đặt `muted = true` trước khi play để bypass chính sách autoplay của trình duyệt
+                audio_jssip.muted = true;
+                audio_jssip.play().then(() => {
+                    audio_jssip.muted = false; // Sau khi phát, bật lại âm thanh
+                }).catch(error => console.warn("Không thể tự động phát âm thanh:", error));
             });
-        }
-        else {
+        } else {
             session._connection.ontrack = (e) => {
                 if (e.streams && e.streams[0]) {
                     audio_jssip.srcObject = e.streams[0];
@@ -317,54 +420,49 @@ ua.on('newRTCSession', function (ev) {
                     stream.addTrack(e.track);
                     alert("Lỗi âm thanh cuộc gọi");
                 }
-                audio_jssip.play();
+
+                // Đặt `muted = true` trước khi play để bypass chính sách autoplay của trình duyệt
+                audio_jssip.muted = true;
+                audio_jssip.play().then(() => {
+                    audio_jssip.muted = false; // Sau khi phát, bật lại âm thanh
+                }).catch(error => console.warn("Không thể tự động phát âm thanh:", error));
             };
         }
     }
-    else if (session.direction === "outgoing") {
-        alert("Lỗi kết nối");
-    }
-
 });
 
 $(document).ready(function () {
     // Microphone permission 
     $(document).on('click', '#call-phone__circle', function () {
-        if (navigator.mediaDevices) {
-            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-                .then(stream => {
-                    // stream.getTracks().forEach(track => pc.addTrack(track, stream));
-                    console.log('allow micro');
-                })
-                .catch(function (error) {
-                    showModalNotify('error', 'Không có microphone hoặc quyền bị từ chối');
-                    $('.call-phone__numpad').hide();
-                });
-        } else {
-            showModalNotify('warning', 'Trình duyệt không hỗ trợ navigator.mediaDevices');
-            $('.call-phone__numpad').hide();
-        }
+        toggleCallNumpad();
     });
+
+    // Checked trạng thái bận của user
+    if (AGENT_STATUS == 'Available') {
+        showConnect(true);
+    } else {
+        showConnect(false);
+        ua.stop();
+    }
 
     // Checkbox busy
     $('input#busy_stt').change(function () {
-        let sip_user = $("#sip_user").val();
-        let status = '';
+        let status = 'Available';
 
         if ($(this).prop('checked') == true) {
-            status = 'Logged Out';
-            if (ua) ua.stop();
+            // status = 'Logged Out';
+            status = 'On Break';
             showConnect(false);
-        }
-        else {
-            status = 'Available';
+            if (ua) ua.stop();
+        } else {
             check_online_for_call();
+            showConnect(true);
         }
 
         $.ajax({
             url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
             data: {
-                agent: sip_user,
+                agent: SIP_USER,
                 status: status,
                 for: "changeStatusAgent"
             },
@@ -379,98 +477,121 @@ $(document).ready(function () {
     // Nút gọi đi - Phone
     $(document).on('click', '.btn-voiceip-calling', function () {
         let id = $(this).attr('id');
-        let number = '', call_id = '';
-        let booking_id = booking_name = type_call_booking = '';
+        let phone = '', call_id = '';
+        let booking_id = booking_name = type_call_booking = journey_id = '';
         let outbound_phone = $('#select-phone-outbound').val();
+        let type_call = '';
+
+        let is_call_direction_zalo = $(this).hasClass('btn-voiceip-calling-zalo') ? true : false;
 
         // Gọi bằng numpad
-        if (id == 'btn-voiceip-main-calling') {
-            number = $('#call_voiceip_main_number').val().trim();
-            $('#call_voiceip_main_number').val('');
-        }
-        else if (id == 'btnCalled' || id == 'btnRecall') {
-            number = $(this).attr('phone');
+        if (id == 'btn-voiceip-main-calling' || id == 'btn-voiceip-main-zalo') {
+            phone = $('#call_voiceip_main_number').val().trim();
+        } else if (['btnCalled','btnRecall','btnRemind'].includes(id)) {
+            phone = $(this).attr('phone');
             booking_id = $(this).attr('booking_id');
             booking_name = $(this).attr('booking_name');
-            type_call_booking = id == 'btnCalled' ? 'called' : 'recall';
+            type_call_booking = (id == 'btnCalled') ? 'called' : (id == 'btnRemind') ? 'remind' : 'recall';
+            type_call = (id == 'btnRemind' && booking_id.length > 0) ? 'out_customer_care' : 'out_confirm_consult';
+            journey_id = $(this).attr('iti_id');
         } else if (id == 'listview-call_from' || id == 'listview-call_to') {
-            number = $(this).attr('phone');
-        }
-        else if (id === undefined || id.length == '') {
-            number = $(this).attr('call_to');
+            phone = $(this).attr('phone');
+            type_call_booking = 'recall';
+        } else if (id === undefined || id.length == '') {
+            phone = $(this).attr('call_to');
             call_id = $(this).attr('call_id');
         }
 
-        if (number.length > 0 && number != SIP_USER) {
+        if (phone.length > 2 && phone != SIP_USER) {
             callOptions.extraHeaders = ['X-Caller: ' + outbound_phone]
 
             resetPopupVoiceip();
             $('.call-phone__numpad').hide();
-
-            // Map call to phone or zalo_id
-            let phone = '', zalo_id = '';
-            if (number.length < 15) {
-                phone = number;
-                $('#voiceip-info-phone').html(formatPhoneNumber(phone));
-            }
-            else {
-                zalo_id = number;
-                $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zalo_id}`);
-                $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
-                $('#voiceip-info-zaloid').html(zalo_id);
-            }
+            $('#call_voiceip_main_number').val('');
+            $('#voiceip-info-phone').html(phone);
 
             $.ajax({
                 url: "index.php?entryPoint=entryPointCallContact",
                 data: {
                     type: "get_contact",
                     phone: phone,
-                    zalo_id: zalo_id
                 },
                 type: "POST",
                 cache: false,
                 success: function (response) {
                     if (response.length > 0 && response != '[]') {
-                        data = JSON.parse(response);
+                        let data = JSON.parse(response);
 
                         let contact_id = data.id;
                         let name = data.name;
                         let email = data.email;
-                        let zaloid = (data.zalo_id && data.zalo_id.length > 0) ? data.zalo_id : zalo_id;
+                        let zaloid = (data.zalo_id && data.zalo_id.length > 0) ? data.zalo_id : '';
+                        let is_call_zalo = data.is_call_zalo ? data.is_call_zalo : false;
+                        let zalo_name = data.zalo_name ? data.zalo_name : '';
+                        let is_uncomfortable = data.is_uncomfortable ? data.is_uncomfortable : false;
+                        let is_ctv = data.is_ctv ? data.is_ctv : false;
+                        let is_compare_price = data.is_compare_price ? data.is_compare_price : false;
                         phone = (data.phone && data.phone.length > 0) ? data.phone : phone;
                         let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
 
-                        let info_booking = data.info_booking;
-                        let info_refund_ticket = data.info_refund_ticket;
-                        let info_call = data.info_call;
-                        let activity_contact = info_booking + info_refund_ticket + info_call;
-
+                        let activity_contact = (data?.info_booking || '') + (data?.info_refund_ticket || '') + (data?.info_call || '');
+                        
                         $('#popup-inforbooking').html(activity_contact);
                         $('input[name="voiceip-contact-id"]').val(contact_id);
+
+                        $('#voiceip-name').val(name);
                         $('#voiceip-info-name').html(name);
+
                         if (email && email.length > 0) {
                             $('#voiceip-email').val(email);
                         }
-                        $('#voiceip-info-phone').html(formatPhoneNumber(phone));
+                        $('#voiceip-info-phone').html(phone);
+                        $('#voiceip-phone').val(phone);
+                        $('#voiceip-phone').prop('readonly', true);
+
                         if (zaloid && zaloid.length > 0) {
                             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zaloid}`);
                             $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
                             $('#voiceip-info-zaloid').html(zaloid);
                             display_avatar_zalo(avatar);
                         }
+
+                        setTimeout(function () {
+                            const $sel = $('#template-notes');
+                            if ($sel.find(`option[value="${type_call}"]`).length) {
+                                $sel.val(type_call).trigger('change');
+                            } else {
+                                $sel.val('').trigger('change');
+                            }
+                        }, 500);
+                        
+                        if (is_uncomfortable) {
+                            $('#is_uncomfortable').prop('checked', is_uncomfortable);
+                            $('#notes-uncomfortable').html('Chú ý: Khách khó tính, khó chịu, khó ở, khó chiều.');
+                        }
+
+                        $('#is_ctv').prop('checked', is_ctv);
+                        $('#is_compare_price').prop('checked', is_compare_price);
+
+                        // Make a call
+                        if (!ua || !ua.isConnected() || !ua.isRegistered()) {
+                            showModalNotify('warning', 'Không có kết nối');
+                            return false;
+                        }
+
+                        let phone_call = phone;
+                        if(is_call_direction_zalo && zaloid && zaloid.length > 0 && is_call_zalo){
+                            phone_call = zaloid;
+                        }
+
+                        ua.call(phone_call, callOptions);
                     }
 
-                    // Make a call
-                    if (!ua || !ua.isConnected() || !ua.isRegistered()) {
-                        showModalNotify('warning', 'Không có kết nối');
-                        return false;
-                    }
-                    ua.call(number, callOptions);
-
-                    if (id == 'btnCalled' || id == 'btnRecall') {
+                    if (id == 'btnCalled' || id == 'btnRecall' || 'btnRemind') {
                         $('.voiceip-update').attr('booking_id', booking_id);
                         $('.voiceip-update').attr('booking_name', booking_name);
                         $('.voiceip-update').attr('type_call_booking', type_call_booking);
+                        $('.voiceip-update').attr('journey_id', journey_id);
                     }
 
                     handleButtons('outgoing');
@@ -489,125 +610,29 @@ $(document).ready(function () {
                     console.error("Error: " + errorThrown);
                 }
             });
+        } else {
+            showToastWarning('Vui lòng đảm bảo số gọi đi là chính xác!');
+            return false;
         }
     });
 
     $(document).keyup(function (e) {
-        if (e.keyCode === 13) {
-            $('#btn-voiceip-main-calling').click();
-        }
-    });
-
-    // Nút gọi đi - Zalo
-    $(document).on('click', '.btn-voiceip-calling-zalo', function () {
-        let id = $(this).attr('id');
-        let number = '', call_id = '';
-        let booking_id = booking_name = type_call_booking = '';
-        let outbound_phone = $('#select-phone-outbound').val();
-
-        // Gọi bằng numpad zalo
-        if (id == 'btn-voiceip-main-zalo') {
-            number = $('#call_voiceip_main_number').val().trim();
-            $('#call_voiceip_main_number').val('');
-        } else if (id == 'listview-call_from' || id == 'listview-call_to') {
-            number = $(this).attr('phone');
-        }
-        else if (id == 'btnCalledZalo' || id == 'btnRecallZalo') {
-            number = $(this).attr('phone');
-            booking_id = $(this).attr('booking_id');
-            booking_name = $(this).attr('booking_name');
-            type_call_booking = (id == 'btnCalledZalo') ? 'called' : 'recall';
+        if ($('.call-phone__numpad').is(':visible')) {
+            if (e.keyCode === 13) { //Enter
+                $('#btn-voiceip-main-calling').click();
+            }
         }
 
-        if (number.length < 15) {
-            $('#voiceip-info-phone').html(formatPhoneNumber(number));
-        }
-        else {
-            $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${number}`);
-            $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
-            $('#voiceip-info-zaloid').html(number);
+        if (e.keyCode === 113) { // F2
+            toggleCallNumpad();
         }
 
-        if (number.length > 0 && number != SIP_USER) {
-            callOptions.extraHeaders = ['X-Caller: ' + outbound_phone]
-
-            resetPopupVoiceip();
-            $('.call-phone__numpad').hide();
-
-            $.ajax({
-                url: "index.php?entryPoint=entryPointCallContact",
-                data: {
-                    type: "get_contact_zalo",
-                    number: number // Phone or Zalo id
-                },
-                type: "POST",
-                cache: false,
-                success: function (response) {
-                    let obj = JSON.parse(response);
-
-                    if (obj.error == 0) {
-                        let contact_id = obj.data.contact_id;
-                        let name = obj.data.name;
-                        let zaloid = obj.data.zalo_id;
-                        let phone = obj.data.phone;
-                        let email = obj.data.email;
-                        let avatar = obj.data.avatar ? obj.data.avatar.replace(/\\/g, "") : "";
-
-                        let info_booking = data.info_booking;
-                        let info_refund_ticket = data.info_refund_ticket;
-                        let info_call = data.info_call;
-                        let activity_contact = info_booking + info_refund_ticket + info_call;
-
-                        // Make a call
-                        if (!ua || !ua.isConnected() || !ua.isRegistered()) {
-                            showModalNotify('warning', 'Không có kết nối');
-                            return false;
-                        }
-                        ua.call(zaloid, callOptions);
-
-                        if (id == 'btnCalledZalo' || id == 'btnRecallZalo') {
-                            $('.voiceip-update').attr('booking_id', booking_id);
-                            $('.voiceip-update').attr('booking_name', booking_name);
-                            $('.voiceip-update').attr('type_call_booking', type_call_booking);
-                        }
-
-                        $('#popup-inforbooking').html(activity_contact);
-                        $('input[name="voiceip-contact-id"]').val(contact_id);
-                        $('#voiceip-info-name').html(name);
-                        $('#voiceip-info-phone').html(formatPhoneNumber(phone));
-                        if (zaloid && zaloid.length > 0) {
-                            $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zaloid}`);
-                            $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
-                            $('#voiceip-info-zaloid').html(zaloid);
-                            display_avatar_zalo(avatar);
-                        }
-
-                        if (email && email.length > 0) {
-                            $('#voiceip-email').val(email);
-                        }
-
-                        handleButtons('outgoing');
-                        if (id === undefined || id.length == '') $(`.toast__main[type="missed__call"][call_id="${call_id}"]`).parent().remove();
-                        $('.voiceip-header__title').html('Đang gọi...');
-                        $('.voiceip-timer').hide();
-                        $('#popup-voiceip').attr('call_id', session._request.call_id); // New call id
-                        $('#popup-voiceip').addClass('show');
-                        $('#popup__voiceip--wrap').addClass('show');
-                        $('#call-overlay').addClass('opened');
-                        return true;
-                    }
-                    else {
-                        showModalNotify('warning', obj.message);
-                        $('.btn-modal-close').addClass('reload');
-                        return false;
-                    }
-                },
-                error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    console.error(XMLHttpRequest);
-                    console.error("Status Zalo: " + textStatus);
-                    console.error("Error Zalo: " + errorThrown);
-                }
-            });
+        if (e.key === "Escape") {
+            if (session) {
+                session.terminate();
+                session = null;
+            }
+            handleButtons('completed');
         }
     });
 
@@ -628,18 +653,12 @@ $(document).ready(function () {
         }
     });
 
-    // Nút từ chối
-    $(document).on('click', '.voiceip-decline', function () {
-        if (session) {
-            session.terminate();
-            session = null;
-        }
-        handleButtons('completed');
-    });
-
-    // Nút gác máy
+    // Nút từ chối - Nút gác máy
     $(document).on('click', '.voiceip-end', function () {
         if (session) {
+            logCallEvent(session, SIP_USER, ua_status, '(voiceip-end)');
+            saveCallLog();
+
             session.terminate();
             session = null;
         }
@@ -656,12 +675,19 @@ $(document).ready(function () {
         let email = $('input[name="voiceip-email"]').val();
         let note = $('textarea[name="voiceip-notes"]').val();
         let call_id = $('#popup-voiceip').attr('call_id');
+        let call_reason = $('#template-notes').val();
 
         let booking_id = $(this).attr('booking_id');
         let booking_name = $(this).attr('booking_name');
         let type_call_booking = $(this).attr('type_call_booking');
+        let journey_id = $(this).attr('journey_id');
 
         let regEmailNew = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+        // Checkbox phân loại
+        let is_uncomfortable = $('input#is_uncomfortable').prop('checked');
+        let is_ctv = $('input#is_ctv').prop('checked');
+        let is_compare_price = $('input#is_compare_price').prop('checked');
 
         if (phone.length == 0 && zalo_id.length == 0) {
             showToastWarning('Vui lòng bổ sung SĐT');
@@ -683,15 +709,47 @@ $(document).ready(function () {
             $(this).css("pointer-events", "");
             return false;
         }
+        else if (call_reason.length == 0) {
+            showToastWarning('Vui lòng phân loại cuộc gọi!');
+            $(this).css("pointer-events", "");
+            return false;
+        }
 
         // Validate email
         if (email.length > 0 && !regEmailNew.test(email)) {
-            alert('Email không hợp lệ');
+            showToastWarning('Email không hợp lệ');
             return false;
+        }
+
+        // ZBS (Zalo template message)
+        const checkboxZBS = document.getElementById('switchCheckSendZBS');
+        const codeZBS = document.getElementById('ZBSAfterCallDataCode').value.trim();
+        const datetimeZBS = document.getElementById('ZBSAfterCallDataDatetime').value.trim();
+        if (checkboxZBS.checked) {
+            const regexCode = /^[A-Za-z0-9]{2}/;
+            const regexDate = /^(0[1-9]|[12][0-9]|3[01])[\/-](0[1-9]|1[0-2])[\/-]\d{4}$/;
+            const regexDateTime = /^(0[1-9]|[12][0-9]|3[01])[\/-](0[1-9]|1[0-2])[\/-]\d{4} (0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
+
+            if (!codeZBS || !datetimeZBS) {
+                showToastWarning('Vui lòng điền đẩy đủ thông tin gửi Zalo');
+                $(this).css("pointer-events", "");
+                return false;
+            }
+            if (codeZBS.length < 5 || !regexCode.test(codeZBS)) {
+                showToastWarning('Thông tin hành trình không hợp lệ');
+                $(this).css("pointer-events", "");
+                return false;
+            }
+            if (!regexDateTime.test(datetimeZBS) && !regexDate.test(datetimeZBS)) {
+                showToastWarning('Thông tin ngày giờ bay không hợp lệ');
+                $(this).css("pointer-events", "");
+                return false;
+            }
         }
 
         $.ajax({
             url: "index.php?entryPoint=entryPointCallContact",
+            type: "POST",
             data: {
                 type: "update_call",
                 call_id: call_id,
@@ -701,15 +759,27 @@ $(document).ready(function () {
                 name: name,
                 email: email,
                 note: note,
-
+                call_reason: call_reason,
+                is_uncomfortable: is_uncomfortable,
+                is_ctv: is_ctv,
+                is_compare_price: is_compare_price,
                 booking_id: booking_id,
                 booking_name: booking_name,
-                type_call_booking: type_call_booking
+                type_call_booking: type_call_booking,
+                journey_id: journey_id,
+                is_send_zbs_after_cal: checkboxZBS.checked ? 1 : 0,
+                data_zbs_after_call_code :codeZBS,
+                data_zbs_after_call_datetime :datetimeZBS,
             },
-            type: "POST",
+            dataType: 'json',
             cache: false,
+            beforeSend: function () {
+                $('.container-waiting').show();
+            },
             success: function (response) {
-                if (response.length == 1) {
+                $('.container-waiting').hide();
+
+                if ('status' in response && response.status == 1) {
                     $(".voiceip-update").css("pointer-events", "");
                     $('#popup-voiceip').removeClass('show');
                     $('#popup__voiceip--wrap').removeClass('show');
@@ -717,11 +787,25 @@ $(document).ready(function () {
                     showModalNotify('success', 'Cập nhật thông tin thành công.');
                     if (booking_id.length > 0) $('.btn-modal-close').addClass('reload');
                 }
-                else {
-                    showModalNotify('error', 'Lỗi cập nhật. Vui lòng thử lại!');
+                else if ('status' in response && response.status == 0) {
+                    showModalNotify('error', response.message || 'Lỗi cập nhật. Vui lòng đợi 1 lát rồi thử lại!');
                     $(".voiceip-update").css("pointer-events", "");
                     return false;
                 }
+                else {
+                    showModalNotify('error', 'Lỗi phát sinh chưa được xử lý');
+                    $(".voiceip-update").css("pointer-events", "");
+                    return false;
+                }
+            },
+            error: function (xhr, status, error) {
+                $('.container-waiting').hide();
+                $(".voiceip-update").css("pointer-events", "");
+
+                console.error("AJAX Error:", status, error);
+                console.error("Response text:", xhr.responseText);
+
+                showModalNotify('error', 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau!');
             }
         });
     });
@@ -817,11 +901,9 @@ $(document).ready(function () {
         if ($('.voiceip-content__client').is(':visible')) {
             $('.voiceip-content__client').slideUp();
             $('.calc-dtmf__wrap').slideDown();
-            $('.voiceip-dtmf .voiceip-button__desc').html('Ẩn phím');
         } else {
             $('.voiceip-content__client').slideDown();
             $('.calc-dtmf__wrap').slideUp();
-            $('.voiceip-dtmf .voiceip-button__desc').html('Bàn phím');
         }
     });
 
@@ -830,8 +912,148 @@ $(document).ready(function () {
         if (ua) { ua.stop(); ua.unregister({ all: true }); ua = null; }
     });
 
+    // Chỉ cho phép nhập số
+    $('#call_voiceip_main_number').on('input', function () {
+        var inputValue = $(this).val();
+        var numericValue = inputValue.replace(/[^0-9S]/g, '');
+        $(this).val(numericValue);
+    });
+
+    // Mở popup cuộc gọi
+    $(document).on('click', '.toast__main', function () {
+        resetPopupVoiceip();
+        let type = $(this).attr('type');
+        let call_id = $(this).attr('call_id');
+
+        if (type == 'incoming__call') {
+            let arg_phone = $(this).attr('phone');
+            let arg_zaloid = $(this).attr('zalo_id');
+            let switchboard = $(this).find('.switchboard').attr('data');
+
+            $.ajax({
+                url: "index.php?entryPoint=entryPointCallContact",
+                data: {
+                    type: "get_contact",
+                    phone: arg_phone,
+                    zalo_id: arg_zaloid
+                },
+                type: "POST",
+                cache: false,
+                success: function (response) {
+                    if (response.length > 0 && response != '[]') {
+                        let data = JSON.parse(response);
+                        let contact_id = data.contact_id;
+                        let name = data.name;
+                        let phone = arg_phone.length > 0 ? arg_phone : data.phone;
+                        let zaloid = arg_zaloid.length > 0 ? arg_zaloid : data.zalo_id;
+                        let email = data.email;
+                        let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
+                        let is_uncomfortable = data.is_uncomfortable ? data.is_uncomfortable : false;
+                        let is_ctv = data.is_ctv ? data.is_ctv : false;
+                        let is_compare_price = data.is_compare_price ? data.is_compare_price : false;
+
+                        let activity_contact = (data?.info_booking || '') + (data?.info_refund_ticket || '') + (data?.info_call || '');
+
+                        $('#popup-inforbooking').html(activity_contact);
+                        $('input[name="voiceip-contact-id"]').val(contact_id);
+
+                        $('#voiceip-info-name').html(name);
+                        $('#voiceip-info-phone').html(phone);
+
+                        if (zaloid.length > 0) {
+                            $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zaloid}`);
+                            $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
+                            $('#voiceip-info-zaloid').html(zaloid);
+                            display_avatar_zalo(avatar);
+                        }
+
+                        if (is_uncomfortable) {
+                            $('#is_uncomfortable').prop('checked', is_uncomfortable);
+                            $('#notes-uncomfortable').html('Chú ý: Khách khó tính, khó chịu, khó ở, khó chiều.');
+                        }
+
+                        $('#is_ctv').prop('checked', is_ctv);
+                        $('#is_compare_price').prop('checked', is_compare_price);
+
+
+                        if (email && email.length > 0) {
+                            $('#voiceip-email').val(email);
+                        }
+                    }
+                    else {
+                        $('#voiceip-info-phone').html(arg_phone);
+                        if (arg_zaloid.length > 0) {
+                            $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${arg_zaloid}`);
+                            $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
+                            $('#voiceip-info-zaloid').html(arg_zaloid);
+                        }
+                    }
+
+                    handleButtons('incomming');
+                    $('#popup-voiceip .voiceip-header__title').html(switchboard);
+                    $('#popup-voiceip').attr('call_id', call_id);
+                    $('#popup__voiceip--wrap').addClass('show');
+                    $('#popup-voiceip').addClass('show');
+                    $('#call-overlay').addClass('opened');
+                }
+            });
+
+            $(this).parent().remove();
+        }
+    });
+
+    // Xem chi tiết booking của sdt đó
+    $(document).on('click', '.voiceip-viewbooking', function () {
+        $("#popup-inforbooking").toggle("slide");
+    });
 });
 
+// CALL LOG ===============================
+// -------------------------------------------------
+// -------------------------------------------------
+function saveCallLog() {
+    var fullLog = callLog.join('\n');
+
+    $.ajax({
+        url: "index.php?entryPoint=entryPointCallContact",
+        data: {
+            type: "save_log_call",
+            log: fullLog,
+        },
+        type: "POST",
+        cache: false,
+        success: function (response) {
+
+        }
+    });
+    callLog = [];
+}
+
+function logCallEvent(session, ua, status, event = '') {
+    // INFOR CALL
+    // console.warn(session);
+    let call_id = '';
+    let direction = session.direction || '';
+    if (direction === "incoming") {
+        let INVITE = session._request.data;
+        call_id = extract_call_id(INVITE);
+    }
+    else if (direction === "outgoing") {
+        call_id = session._request.call_id;
+    }
+    let call_from = session._request.from._uri._user || '';
+    let call_to = session._request.to._uri._user || '';
+
+    var timestamp = getCurrentTimestamp();
+    var logEntry = `[${timestamp}][${ua}][${status}]:[${direction}][${call_from}][${call_to}][${call_id}] ${event}`;
+    callLog.push(logEntry);
+}
+
+function getCurrentTimestamp() {
+    var currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    return currentDate.toISOString().replace('T', ' ').split('.')[0];
+}
 
 // PUSH NOTIFICATION ===============================
 // -------------------------------------------------
@@ -840,10 +1062,12 @@ $(document).ready(function () {
 // Register a service worker
 const check_support = () => {
     if (!('serviceWorker' in navigator)) {
-        throw new Error('No Service Worker support!')
+        // throw new Error('No Service Worker support!');
+        console.warn('No Service Worker support!')
     }
     if (!('PushManager' in window)) {
-        throw new Error('No Push API Support!')
+        console.warn('No Push API Support!')
+        // throw new Error('No Push API Support!')
     }
 }
 
@@ -853,7 +1077,7 @@ const registerServiceWorker = async () => {
         await existingRegistration.unregister();
     }
 
-    const swRegistration = await navigator.serviceWorker.register('service-worker.js?v=' + Date.now() + '', { scope: "/" });
+    const swRegistration = await navigator.serviceWorker.register('service-worker.js?v=' + Date.now() + '');
     return swRegistration;
 }
 
@@ -866,92 +1090,27 @@ if (navigator.mediaDevices) {
 const requestNotificationPermission = async () => {
     const permission = await window.Notification.requestPermission()
     if (permission !== 'granted') {
-        throw new Error('Permission not granted for Notification')
+        // throw new Error('Permission not granted for Notification')
+        console.warn('Permission not granted for Notification');
     }
 }
 requestNotificationPermission()
 
-// BroadcastChannel - detect and communicate between tabs, ensuring that only one tab displays the notification.
-const broadcast = new BroadcastChannel('notify_channel');
-broadcast.onmessage = (message) => {
-    // console.warn(message);
-    if (message.data.type === 'show_notification') {
-        showNotification(message.data.phone);
-    } else if (message.data.type === 'close_notification') {
-        clearAllNotifications();
-    }
-};
-
 const sendNotification = (phone) => {
-    broadcast.postMessage({ type: 'show_notification', phone });
+    if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'show_notification', phone });
+    } else {
+        console.warn('No active Service Worker controller found.');
+    }
 };
 
 const closeNotification = () => {
-    broadcast.postMessage({ type: 'close_notification' });
-};
-
-const showNotification = async (call_from) => {
-    if (!swRegistration) {
-        console.error('Service Worker registration not found');
-        return;
-    }
-
-    try {
-        broadcast.postMessage({ type: 'SHOW_NOTIFY', call_from });
-    } catch (error) {
-        console.error('Error broadcasting notification message:', error);
+    if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'close_notification' });
+    } else {
+        console.warn('No active Service Worker controller found.');
     }
 };
-
-const clearAllNotifications = async () => {
-    if (!swRegistration) {
-        console.error('Service Worker registration not found');
-        return;
-    }
-    try {
-        broadcast.postMessage({ type: 'CLEAR_NOTIFICATIONS' });
-    } catch (error) {
-        console.error('Error sending clear notifications message:', error);
-    }
-};
-
-// Đăng ký sự kiện BroadcastChannel
-broadcast.addEventListener('message', async (event) => {
-    if (event.data.type === 'SHOW_NOTIFY') {
-        const notifications = await swRegistration.getNotifications({ tag: 'bm-tcb' });
-        if (notifications.length === 0) {
-            try {
-                await swRegistration.showNotification('Tìm chuyến bay', {
-                    body: 'Cuộc gọi đến: ' + event.data.call_from,
-                    sound: RINGTONE_FILE,
-                    tag: 'bm-tcb',
-                    icon: '',
-                    dir: 'ltr',
-                    image: '',
-                    actions: [
-                        { action: 'accept_call', title: 'Trả lời' },
-                        { action: 'reject_call', title: 'Từ chối' },
-                    ],
-                    vibrate: [300, 100, 300, 100, 300, 100, 300],
-                    requireInteraction: true,
-                    renotify: true,
-                    timestamp: Date.now(),
-                });
-            } catch (error) {
-                console.error('Error showing notification:', error);
-            }
-        }
-    } else if (event.data.type === 'CLEAR_NOTIFICATIONS') {
-        try {
-            const notifications = await swRegistration.getNotifications({ tag: 'bm-tcb' });
-            for (const notification of notifications) {
-                notification.close();
-            }
-        } catch (error) {
-            console.error('Error getting notifications:', error);
-        }
-    }
-});
 
 // Khởi tạo service worker và xin quyền thông báo
 const init = async () => {
@@ -998,18 +1157,17 @@ if ('serviceWorker' in navigator) {
                         let email = data.email;
                         let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
 
-                        let info_booking = data.info_booking;
-                        let info_refund_ticket = data.info_refund_ticket;
-                        let info_call = data.info_call;
-                        let activity_contact = info_booking + info_refund_ticket + info_call;
+                        let activity_contact = (data?.info_booking || '') + (data?.info_refund_ticket || '') + (data?.info_call || '');
 
                         $('#popup-inforbooking').html(activity_contact);
                         $('input[name="voiceip-contact-id"]').val(contact_id);
-                        $('#voiceip-info-name').html(name);
-                        $('#voiceip-info-phone').html(formatPhoneNumber(phone));
 
+                        $('#voiceip-info-name').html(name);
                         $('#voiceip-name').val(name);
+
+                        $('#voiceip-info-phone').html(phone);
                         $('#voiceip-phone').val(phone);
+                        $('#voiceip-phone').prop('readonly', true);
 
                         if (zaloid.length > 0) {
                             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zaloid}`);
@@ -1023,7 +1181,7 @@ if ('serviceWorker' in navigator) {
                         }
                     }
                     else {
-                        $('#voiceip-info-phone').html(formatPhoneNumber(call_from));
+                        $('#voiceip-info-phone').html(call_from);
                         if (zalo_id.length > 0) {
                             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zalo_id}`);
                             $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
@@ -1070,85 +1228,6 @@ if ('serviceWorker' in navigator) {
 // -- END =========================
 // --------------------------------
 
-// Mở popup cuộc gọi
-$(document).on('click', '.toast__main', function () {
-    resetPopupVoiceip();
-    let type = $(this).attr('type');
-    let call_id = $(this).attr('call_id');
-
-    if (type == 'incoming__call') {
-        let arg_phone = $(this).attr('phone');
-        let arg_zaloid = $(this).attr('zalo_id');
-        let switchboard = $(this).find('.switchboard').attr('data');
-
-        $.ajax({
-            url: "index.php?entryPoint=entryPointCallContact",
-            data: {
-                type: "get_contact",
-                phone: arg_phone,
-                zalo_id: arg_zaloid
-            },
-            type: "POST",
-            cache: false,
-            success: function (response) {
-                if (response.length > 0 && response != '[]') {
-                    data = JSON.parse(response);
-                    let contact_id = data.contact_id;
-                    let name = data.name;
-                    let phone = arg_phone.length > 0 ? arg_phone : data.phone;
-                    let zaloid = arg_zaloid.length > 0 ? arg_zaloid : data.zalo_id;
-                    let email = data.email;
-                    let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
-
-                    let info_booking = data.info_booking;
-                    let info_refund_ticket = data.info_refund_ticket;
-                    let info_call = data.info_call;
-                    let activity_contact = info_booking + info_refund_ticket + info_call;
-
-                    $('#popup-inforbooking').html(activity_contact);
-                    $('input[name="voiceip-contact-id"]').val(contact_id);
-                    $('#voiceip-info-name').html(name);
-                    $('#voiceip-info-phone').html(formatPhoneNumber(phone));
-
-                    if (zaloid.length > 0) {
-                        $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zaloid}`);
-                        $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
-                        $('#voiceip-info-zaloid').html(zaloid);
-                        display_avatar_zalo(avatar);
-                    }
-
-                    if (email && email.length > 0) {
-                        $('#voiceip-email').val(email);
-                    }
-                }
-                else {
-                    $('#voiceip-info-phone').html(formatPhoneNumber(arg_phone));
-                    if (arg_zaloid.length > 0) {
-                        $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${arg_zaloid}`);
-                        $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
-                        $('#voiceip-info-zaloid').html(arg_zaloid);
-                    }
-                }
-
-                handleButtons('incomming');
-                $('#popup-voiceip .voiceip-header__title').html(switchboard);
-                $('#popup-voiceip').attr('call_id', call_id);
-                $('#popup__voiceip--wrap').addClass('show');
-                $('#popup-voiceip').addClass('show');
-                $('#call-overlay').addClass('opened');
-            }
-        });
-
-        $(this).parent().remove();
-    }
-});
-
-// Xem chi tiết booking của sdt đó
-$(document).on('click', '.voiceip-viewbooking', function () {
-    $("#popup-inforbooking").toggle("slide");
-});
-
-
 /********************   FUNCTIONS HANDLE   ********************/
 function toast({ call_id = "", zalo_id = "", phone = "", type = "", hotline = "" }) {
     const main = document.getElementById("toast-incoming");
@@ -1183,11 +1262,6 @@ function toast({ call_id = "", zalo_id = "", phone = "", type = "", hotline = ""
         action = `<button class="btn-voiceip-calling mt-1" call_id="${call_id}" call_to="${call_from}"> 
             <svg width="25px" height="25px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#14a866"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M16.5562 12.9062L16.1007 13.359C16.1007 13.359 15.0181 14.4355 12.0631 11.4972C9.10812 8.55901 10.1907 7.48257 10.1907 7.48257L10.4775 7.19738C11.1841 6.49484 11.2507 5.36691 10.6342 4.54348L9.37326 2.85908C8.61028 1.83992 7.13596 1.70529 6.26145 2.57483L4.69185 4.13552C4.25823 4.56668 3.96765 5.12559 4.00289 5.74561C4.09304 7.33182 4.81071 10.7447 8.81536 14.7266C13.0621 18.9492 17.0468 19.117 18.6763 18.9651C19.1917 18.9171 19.6399 18.6546 20.0011 18.2954L21.4217 16.883C22.3806 15.9295 22.1102 14.2949 20.8833 13.628L18.9728 12.5894C18.1672 12.1515 17.1858 12.2801 16.5562 12.9062Z" fill="#14a866"></path> </g></svg>
         </button>`;
-    }
-    else if (type == "decline__call") {
-        title = "Cuộc gọi đã kết thúc";
-        let icon_color = '#ec2029';
-        icon = `<svg width="30px" height="30px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="${icon_color}" stroke="${icon_color}"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.43200000000000005"></g><g id="SVGRepo_iconCarrier"> <title>phone_block_fill</title> <g id="页面-1" stroke-width="0.00024000000000000003" fill="none" fill-rule="evenodd"> <g id="Contact" transform="translate(-528.000000, -48.000000)"> <g id="phone_block_fill" transform="translate(528.000000, 48.000000)"> <path d="M24,0 L24,24 L0,24 L0,0 L24,0 Z M12.5934901,23.257841 L12.5819402,23.2595131 L12.5108777,23.2950439 L12.4918791,23.2987469 L12.4918791,23.2987469 L12.4767152,23.2950439 L12.4056548,23.2595131 C12.3958229,23.2563662 12.3870493,23.2590235 12.3821421,23.2649074 L12.3780323,23.275831 L12.360941,23.7031097 L12.3658947,23.7234994 L12.3769048,23.7357139 L12.4804777,23.8096931 L12.4953491,23.8136134 L12.4953491,23.8136134 L12.5071152,23.8096931 L12.6106902,23.7357139 L12.6232938,23.7196733 L12.6232938,23.7196733 L12.6266527,23.7031097 L12.609561,23.275831 C12.6075724,23.2657013 12.6010112,23.2592993 12.5934901,23.257841 L12.5934901,23.257841 Z M12.8583906,23.1452862 L12.8445485,23.1473072 L12.6598443,23.2396597 L12.6498822,23.2499052 L12.6498822,23.2499052 L12.6471943,23.2611114 L12.6650943,23.6906389 L12.6699349,23.7034178 L12.6699349,23.7034178 L12.678386,23.7104931 L12.8793402,23.8032389 C12.8914285,23.8068999 12.9022333,23.8029875 12.9078286,23.7952264 L12.9118235,23.7811639 L12.8776777,23.1665331 C12.8752882,23.1545897 12.8674102,23.1470016 12.8583906,23.1452862 L12.8583906,23.1452862 Z M12.1430473,23.1473072 C12.1332178,23.1423925 12.1221763,23.1452606 12.1156365,23.1525954 L12.1099173,23.1665331 L12.0757714,23.7811639 C12.0751323,23.7926639 12.0828099,23.8018602 12.0926481,23.8045676 L12.108256,23.8032389 L12.3092106,23.7104931 L12.3186497,23.7024347 L12.3186497,23.7024347 L12.3225043,23.6906389 L12.340401,23.2611114 L12.337245,23.2485176 L12.337245,23.2485176 L12.3277531,23.2396597 L12.1430473,23.1473072 Z" id="MingCute" fill-rule="nonzero"> </path> <path d="M6.85728,2.44489 C7.99928,3.27790429 8.88915755,4.41552061 9.65001761,5.50316536 L10.0920364,6.14691904 L10.0920364,6.14691904 L10.509,6.76166 L10.509,6.76166 C10.9374,7.38835 10.8351,8.244 10.2531,8.74772 L8.30198,10.1967 C8.10859,10.3404 8.04429,10.6014 8.16028,10.8125 C8.60173,11.6161 9.38819,12.8119 10.2882,13.7119 C11.1891,14.6128 12.4414,15.45 13.3002,15.9412 C13.5229,16.0685 13.803,15.9948 13.9438,15.7803 L15.2131,13.8468 C15.6999,13.1991 16.6088,13.0576 17.2695,13.5149 L17.9332982,13.9735916 C19.1717645,14.8335207 20.5037538,15.8105615 21.521,17.1133 C21.8626,17.5507 21.9133,18.1227 21.7096,18.5981 C20.8728,20.5507 18.7552,22.2136 16.5524,22.1325 L16.2518759,22.1158001 L16.2518759,22.1158001 L16.0189256,22.0957065 L16.0189256,22.0957065 L15.7611336,22.0668244 L15.7611336,22.0668244 L15.4795621,22.0277651 L15.4795621,22.0277651 L15.1752731,21.97714 C15.1227241,21.9676615 15.0692729,21.9576432 15.0149414,21.9470562 L14.6785676,21.8764784 C14.6208039,21.8635009 14.5622043,21.8498968 14.5027909,21.8356372 L14.136722,21.7419821 L14.136722,21.7419821 L13.7521839,21.6312063 L13.7521839,21.6312063 L13.3502388,21.501921 C11.5039131,20.8764078 9.16110938,19.6464875 6.75735,17.2427 C4.35356813,14.8389125 3.12365344,12.4961028 2.49813876,10.6497861 L2.36885301,10.2478433 L2.36885301,10.2478433 L2.25807648,9.86330795 L2.25807648,9.86330795 L2.16442042,9.4972422 L2.16442042,9.4972422 L2.08649611,9.15070812 C2.06298899,9.03857004 2.04187237,8.92986425 2.02291481,8.82476776 L1.97228778,8.52048321 L1.97228778,8.52048321 L1.93322631,8.23891652 L1.93322631,8.23891652 L1.90434165,7.98112978 L1.90434165,7.98112978 L1.88424507,7.74818505 L1.88424507,7.74818505 L1.86754,7.44767 L1.86754,7.44767 C1.78675,5.25221 3.46855,3.11902 5.41215,2.28605 C5.86822,2.09059 6.4206,2.12636 6.85728,2.44489 Z M13.818,3.81801 C14.1785538,3.45753 14.7457349,3.42980077 15.1379989,3.73482231 L15.2322,3.81801 L17,5.58578 L18.7678,3.81801 C19.1583,3.42749 19.7915,3.42749 20.182,3.81801 C20.5424615,4.17849 20.5701893,4.74572503 20.2651834,5.1380135 L20.182,5.23222 L18.4142,6.99999 L20.182,8.76776 C20.5725,9.15828 20.5725,9.79145 20.182,10.182 C19.8215385,10.5424615 19.2542793,10.5701893 18.8620027,10.2651834 L18.7678,10.182 L17,8.4142 L15.2322,10.182 C14.8417,10.5725 14.2086,10.5725 13.818,10.182 C13.4575385,9.82149231 13.4298107,9.25425515 13.7348166,8.86196652 L13.818,8.76776 L15.5858,6.99999 L13.818,5.23222 C13.4275,4.8417 13.4275,4.20853 13.818,3.81801 Z" id="形状" fill="${icon_color}"> </path> </g> </g> </g> </g></svg>`;
     }
 
     if (main) {
@@ -1225,7 +1299,6 @@ function toast({ call_id = "", zalo_id = "", phone = "", type = "", hotline = ""
                     ${time}
                 </p>
             </div>
-            ${action != '' ? `<div class="toast__action">${action}</div>` : ''}
             <div class="toast__close">
                 <svg xmlns="http://www.w3.org/2000/svg" version="1.0" width="22" height="22" viewBox="0 0 834.000000 834.000000" preserveAspectRatio="xMidYMid meet">
                     <g transform="translate(0.000000,834.000000) scale(0.100000,-0.100000)" fill="#ff0000" stroke="none">
@@ -1252,14 +1325,18 @@ function showToastCall(type = '', call_id = '', zalo_id = '', phone = '', hotlin
 function showConnect(check = true) {
     if (check) {
         let color = '#1bcfb4';
-        let icon = `<svg width="28px" height="28px" viewBox="0 0 24 24" fill="none" class="icon icon-phone" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.096"></g><g id="SVGRepo_iconCarrier"> <path d="M17.62 10.7516C17.19 10.7516 16.85 10.4016 16.85 9.98156C16.85 9.61156 16.48 8.84156 15.86 8.17156C15.25 7.52156 14.58 7.14156 14.02 7.14156C13.59 7.14156 13.25 6.79156 13.25 6.37156C13.25 5.95156 13.6 5.60156 14.02 5.60156C15.02 5.60156 16.07 6.14156 16.99 7.11156C17.85 8.02156 18.4 9.15156 18.4 9.97156C18.4 10.4016 18.05 10.7516 17.62 10.7516Z" fill="${color}"></path> <path d="M21.2298 10.75C20.7998 10.75 20.4598 10.4 20.4598 9.98C20.4598 6.43 17.5698 3.55 14.0298 3.55C13.5998 3.55 13.2598 3.2 13.2598 2.78C13.2598 2.36 13.5998 2 14.0198 2C18.4198 2 21.9998 5.58 21.9998 9.98C21.9998 10.4 21.6498 10.75 21.2298 10.75Z" fill="${color}"></path> <path d="M11.05 14.95L9.2 16.8C8.81 17.19 8.19 17.19 7.79 16.81C7.68 16.7 7.57 16.6 7.46 16.49C6.43 15.45 5.5 14.36 4.67 13.22C3.85 12.08 3.19 10.94 2.71 9.81C2.24 8.67 2 7.58 2 6.54C2 5.86 2.12 5.21 2.36 4.61C2.6 4 2.98 3.44 3.51 2.94C4.15 2.31 4.85 2 5.59 2C5.87 2 6.15 2.06 6.4 2.18C6.66 2.3 6.89 2.48 7.07 2.74L9.39 6.01C9.57 6.26 9.7 6.49 9.79 6.71C9.88 6.92 9.93 7.13 9.93 7.32C9.93 7.56 9.86 7.8 9.72 8.03C9.59 8.26 9.4 8.5 9.16 8.74L8.4 9.53C8.29 9.64 8.24 9.77 8.24 9.93C8.24 10.01 8.25 10.08 8.27 10.16C8.3 10.24 8.33 10.3 8.35 10.36C8.53 10.69 8.84 11.12 9.28 11.64C9.73 12.16 10.21 12.69 10.73 13.22C10.83 13.32 10.94 13.42 11.04 13.52C11.44 13.91 11.45 14.55 11.05 14.95Z" fill="${color}"></path> <path d="M21.9696 18.3291C21.9696 18.6091 21.9196 18.8991 21.8196 19.1791C21.7896 19.2591 21.7596 19.3391 21.7196 19.4191C21.5496 19.7791 21.3296 20.1191 21.0396 20.4391C20.5496 20.9791 20.0096 21.3691 19.3996 21.6191C19.3896 21.6191 19.3796 21.6291 19.3696 21.6291C18.7796 21.8691 18.1396 21.9991 17.4496 21.9991C16.4296 21.9991 15.3396 21.7591 14.1896 21.2691C13.0396 20.7791 11.8896 20.1191 10.7496 19.2891C10.3596 18.9991 9.96961 18.7091 9.59961 18.3991L12.8696 15.1291C13.1496 15.3391 13.3996 15.4991 13.6096 15.6091C13.6596 15.6291 13.7196 15.6591 13.7896 15.6891C13.8696 15.7191 13.9496 15.7291 14.0396 15.7291C14.2096 15.7291 14.3396 15.6691 14.4496 15.5591L15.2096 14.8091C15.4596 14.5591 15.6996 14.3691 15.9296 14.2491C16.1596 14.1091 16.3896 14.0391 16.6396 14.0391C16.8296 14.0391 17.0296 14.0791 17.2496 14.1691C17.4696 14.2591 17.6996 14.3891 17.9496 14.5591L21.2596 16.9091C21.5196 17.0891 21.6996 17.2991 21.8096 17.5491C21.9096 17.7991 21.9696 18.0491 21.9696 18.3291Z" fill="${color}"></path></g></svg>`;
+        let icon = `<svg width="28px" height="28px" viewBox="0 0 24 24" fill="none" class="icon icon-phone icon-online" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.096"></g><g id="SVGRepo_iconCarrier"> <path d="M17.62 10.7516C17.19 10.7516 16.85 10.4016 16.85 9.98156C16.85 9.61156 16.48 8.84156 15.86 8.17156C15.25 7.52156 14.58 7.14156 14.02 7.14156C13.59 7.14156 13.25 6.79156 13.25 6.37156C13.25 5.95156 13.6 5.60156 14.02 5.60156C15.02 5.60156 16.07 6.14156 16.99 7.11156C17.85 8.02156 18.4 9.15156 18.4 9.97156C18.4 10.4016 18.05 10.7516 17.62 10.7516Z" fill="${color}"></path> <path d="M21.2298 10.75C20.7998 10.75 20.4598 10.4 20.4598 9.98C20.4598 6.43 17.5698 3.55 14.0298 3.55C13.5998 3.55 13.2598 3.2 13.2598 2.78C13.2598 2.36 13.5998 2 14.0198 2C18.4198 2 21.9998 5.58 21.9998 9.98C21.9998 10.4 21.6498 10.75 21.2298 10.75Z" fill="${color}"></path> <path d="M11.05 14.95L9.2 16.8C8.81 17.19 8.19 17.19 7.79 16.81C7.68 16.7 7.57 16.6 7.46 16.49C6.43 15.45 5.5 14.36 4.67 13.22C3.85 12.08 3.19 10.94 2.71 9.81C2.24 8.67 2 7.58 2 6.54C2 5.86 2.12 5.21 2.36 4.61C2.6 4 2.98 3.44 3.51 2.94C4.15 2.31 4.85 2 5.59 2C5.87 2 6.15 2.06 6.4 2.18C6.66 2.3 6.89 2.48 7.07 2.74L9.39 6.01C9.57 6.26 9.7 6.49 9.79 6.71C9.88 6.92 9.93 7.13 9.93 7.32C9.93 7.56 9.86 7.8 9.72 8.03C9.59 8.26 9.4 8.5 9.16 8.74L8.4 9.53C8.29 9.64 8.24 9.77 8.24 9.93C8.24 10.01 8.25 10.08 8.27 10.16C8.3 10.24 8.33 10.3 8.35 10.36C8.53 10.69 8.84 11.12 9.28 11.64C9.73 12.16 10.21 12.69 10.73 13.22C10.83 13.32 10.94 13.42 11.04 13.52C11.44 13.91 11.45 14.55 11.05 14.95Z" fill="${color}"></path> <path d="M21.9696 18.3291C21.9696 18.6091 21.9196 18.8991 21.8196 19.1791C21.7896 19.2591 21.7596 19.3391 21.7196 19.4191C21.5496 19.7791 21.3296 20.1191 21.0396 20.4391C20.5496 20.9791 20.0096 21.3691 19.3996 21.6191C19.3896 21.6191 19.3796 21.6291 19.3696 21.6291C18.7796 21.8691 18.1396 21.9991 17.4496 21.9991C16.4296 21.9991 15.3396 21.7591 14.1896 21.2691C13.0396 20.7791 11.8896 20.1191 10.7496 19.2891C10.3596 18.9991 9.96961 18.7091 9.59961 18.3991L12.8696 15.1291C13.1496 15.3391 13.3996 15.4991 13.6096 15.6091C13.6596 15.6291 13.7196 15.6591 13.7896 15.6891C13.8696 15.7191 13.9496 15.7291 14.0396 15.7291C14.2096 15.7291 14.3396 15.6691 14.4496 15.5591L15.2096 14.8091C15.4596 14.5591 15.6996 14.3691 15.9296 14.2491C16.1596 14.1091 16.3896 14.0391 16.6396 14.0391C16.8296 14.0391 17.0296 14.0791 17.2496 14.1691C17.4696 14.2591 17.6996 14.3891 17.9496 14.5591L21.2596 16.9091C21.5196 17.0891 21.6996 17.2991 21.8096 17.5491C21.9096 17.7991 21.9696 18.0491 21.9696 18.3291Z" fill="${color}"></path></g></svg>`;
         $('#call-phone__circle').html(icon);
         $('#agent-number').html(SIP_USER);
+        $("#availability-status").removeClass("busy").addClass("online");
+        $('input#busy_stt').prop("checked", false);
     }
     else {
         let color = '#ff5f4d';
-        let icon = `<svg width="28px" height="28px" viewBox="0 0 24 24" fill="none" class="icon icon-phone" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M22.0005 18.3291C22.0005 18.6891 21.9205 19.0591 21.7505 19.4191C21.5805 19.7791 21.3605 20.1191 21.0705 20.4391C20.5805 20.9791 20.0405 21.3691 19.4305 21.6191C18.8305 21.8691 18.1705 21.9991 17.4705 21.9991C16.4505 21.9991 15.3605 21.7591 14.2105 21.2691C13.0605 20.7791 11.9005 20.1191 10.7605 19.2891C10.1805 18.8591 9.61055 18.4191 9.06055 17.9391L12.3205 14.6791C12.3305 14.6791 12.3305 14.6791 12.3405 14.6891C12.8605 15.1291 13.2905 15.4291 13.6305 15.6091C13.6805 15.6291 13.7405 15.6591 13.8105 15.6891C13.8905 15.7191 13.9705 15.7291 14.0605 15.7291C14.2305 15.7291 14.3605 15.6691 14.4705 15.5591L15.2305 14.8091C15.4805 14.5591 15.7205 14.3691 15.9505 14.2491C16.1805 14.1091 16.4105 14.0391 16.6605 14.0391C16.8505 14.0391 17.0505 14.0791 17.2705 14.1691C17.4905 14.2591 17.7205 14.3891 17.9705 14.5591L21.2905 16.9091C21.5505 17.0891 21.7305 17.2991 21.8405 17.5491C21.9405 17.7991 22.0005 18.0491 22.0005 18.3291Z" fill="${color}"></path> <path d="M10.76 13.24L7.5 16.5C7.49 16.5 7.49 16.5 7.48 16.49C6.45 15.45 5.52 14.36 4.68 13.22C3.87 12.1 3.22 10.97 2.74 9.86C2.73 9.84 2.73 9.83 2.72 9.81C2.24 8.67 2 7.58 2 6.54C2 5.86 2.12 5.21 2.36 4.61C2.56 4.1 2.86 3.62 3.27 3.19C3.34 3.11 3.42 3.02 3.51 2.94C3.67 2.78 3.83 2.64 4 2.53C4.01 2.53 4.01 2.53 4.01 2.53C4.51 2.17 5.04 2 5.6 2C5.88 2 6.16 2.06 6.41 2.18C6.65 2.29 6.86 2.45 7.03 2.68C7.05 2.7 7.06 2.72 7.08 2.74L9.4 6.01C9.58 6.26 9.71 6.49 9.8 6.71C9.89 6.92 9.94 7.13 9.94 7.32C9.94 7.56 9.87 7.8 9.73 8.03C9.6 8.26 9.41 8.5 9.17 8.74L8.41 9.53C8.3 9.64 8.25 9.77 8.25 9.93C8.25 10.01 8.26 10.08 8.28 10.16C8.31 10.24 8.34 10.3 8.36 10.36C8.54 10.69 8.85 11.12 9.29 11.64C9.74 12.16 10.22 12.69 10.74 13.22C10.75 13.23 10.75 13.23 10.76 13.24Z" fill="${color}"></path> <path d="M21.7709 2.22891C21.4709 1.92891 20.9809 1.92891 20.6809 2.22891L2.23086 20.6889C1.93086 20.9889 1.93086 21.4789 2.23086 21.7789C2.38086 21.9189 2.57086 21.9989 2.77086 21.9989C2.97086 21.9989 3.16086 21.9189 3.31086 21.7689L21.7709 3.30891C22.0809 3.00891 22.0809 2.52891 21.7709 2.22891Z" fill="${color}"></path></g></svg>`;
+        let icon = `<svg width="28px" height="28px" viewBox="0 0 24 24" fill="none" class="icon icon-phone icon-busy" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M22.0005 18.3291C22.0005 18.6891 21.9205 19.0591 21.7505 19.4191C21.5805 19.7791 21.3605 20.1191 21.0705 20.4391C20.5805 20.9791 20.0405 21.3691 19.4305 21.6191C18.8305 21.8691 18.1705 21.9991 17.4705 21.9991C16.4505 21.9991 15.3605 21.7591 14.2105 21.2691C13.0605 20.7791 11.9005 20.1191 10.7605 19.2891C10.1805 18.8591 9.61055 18.4191 9.06055 17.9391L12.3205 14.6791C12.3305 14.6791 12.3305 14.6791 12.3405 14.6891C12.8605 15.1291 13.2905 15.4291 13.6305 15.6091C13.6805 15.6291 13.7405 15.6591 13.8105 15.6891C13.8905 15.7191 13.9705 15.7291 14.0605 15.7291C14.2305 15.7291 14.3605 15.6691 14.4705 15.5591L15.2305 14.8091C15.4805 14.5591 15.7205 14.3691 15.9505 14.2491C16.1805 14.1091 16.4105 14.0391 16.6605 14.0391C16.8505 14.0391 17.0505 14.0791 17.2705 14.1691C17.4905 14.2591 17.7205 14.3891 17.9705 14.5591L21.2905 16.9091C21.5505 17.0891 21.7305 17.2991 21.8405 17.5491C21.9405 17.7991 22.0005 18.0491 22.0005 18.3291Z" fill="${color}"></path> <path d="M10.76 13.24L7.5 16.5C7.49 16.5 7.49 16.5 7.48 16.49C6.45 15.45 5.52 14.36 4.68 13.22C3.87 12.1 3.22 10.97 2.74 9.86C2.73 9.84 2.73 9.83 2.72 9.81C2.24 8.67 2 7.58 2 6.54C2 5.86 2.12 5.21 2.36 4.61C2.56 4.1 2.86 3.62 3.27 3.19C3.34 3.11 3.42 3.02 3.51 2.94C3.67 2.78 3.83 2.64 4 2.53C4.01 2.53 4.01 2.53 4.01 2.53C4.51 2.17 5.04 2 5.6 2C5.88 2 6.16 2.06 6.41 2.18C6.65 2.29 6.86 2.45 7.03 2.68C7.05 2.7 7.06 2.72 7.08 2.74L9.4 6.01C9.58 6.26 9.71 6.49 9.8 6.71C9.89 6.92 9.94 7.13 9.94 7.32C9.94 7.56 9.87 7.8 9.73 8.03C9.6 8.26 9.41 8.5 9.17 8.74L8.41 9.53C8.3 9.64 8.25 9.77 8.25 9.93C8.25 10.01 8.26 10.08 8.28 10.16C8.31 10.24 8.34 10.3 8.36 10.36C8.54 10.69 8.85 11.12 9.29 11.64C9.74 12.16 10.22 12.69 10.74 13.22C10.75 13.23 10.75 13.23 10.76 13.24Z" fill="${color}"></path> <path d="M21.7709 2.22891C21.4709 1.92891 20.9809 1.92891 20.6809 2.22891L2.23086 20.6889C1.93086 20.9889 1.93086 21.4789 2.23086 21.7789C2.38086 21.9189 2.57086 21.9989 2.77086 21.9989C2.97086 21.9989 3.16086 21.9189 3.31086 21.7689L21.7709 3.30891C22.0809 3.00891 22.0809 2.52891 21.7709 2.22891Z" fill="${color}"></path></g></svg>`;
         $('#call-phone__circle').html(icon);
+        $("#availability-status").removeClass("online").addClass("busy");
+        $('input#busy_stt').prop("checked", true);
     }
 }
 
@@ -1272,72 +1349,33 @@ function extract_call_id(str) {
     return string_between_strings("X-cid: ", "\n", str).trim();
 }
 
-function extract_hotline(str) {
+async function extract_hotline(str) {
+
     const pattern = /X-Hotline:(?<regex_x_cid>\s*[\w\.-]+).*/;
     const matches = str.match(pattern);
-    if (matches && matches.groups && matches.groups.regex_x_cid) {
-        let hotline = matches.groups.regex_x_cid.trim();
 
-        switch (hotline) {
-            /**********  HOTLINE  **********/
-            case '1900636060':
-            case '1900636063':
-                return 'Tìm chuyến bay';
+    if (!matches?.groups?.regex_x_cid) return '';
 
-            /**********  VIETTEL  **********/
-            case '0962768782':
-            case '0963323407':
-            case '0963498793':
-            case '0963678130':
-            case '0963986905':
-            case '0963987527':
-            case '0964031020':
-            case '0964359785':
-                return 'Tìm chuyến bay';
-            case '02866509900':
-                return 'Sữa tươi Úc';
+    const hotline = matches.groups.regex_x_cid.trim();
 
-            /**********  MOBIFONE  **********/
-            case '0933296508':
-            case '0933297608':
-            case '0933625233':
-            case '0933799860':
-            case '0933026416':
-            case '0933611306':
-            case '0933297608':
-                return 'Tìm chuyến bay';
+    try {
+        const response = await $.ajax({
+            url: "index.php?entryPoint=entryPointCallContact",
+            data: {
+                type: "get_infor_phone",
+                phone: hotline,
+            },
+            type: "POST",
+            cache: false,
+            dataType: "json",
+        });
 
-            /**********  VINAPHONE  **********/
-            case '0913030802':
-            case '0918038348':
-            case '0919018102':
-                return 'Tìm chuyến bay';
-            case '0914491010':
-                return 'Sữa tươi Úc'
-
-            /**********  VNPT  **********/
-            case '02839977788':
-                return 'Tìm chuyến bay';
-            case '02839977799':
-                return 'Sanvemaybay (.com.vn)';
-
-            /**********  FPT  **********/
-            case '02873001886':
-                return 'Tìm chuyến bay';
-
-            /**********  ZALO  **********/
-            case '2941581384627345950101':
-                return 'Zalo nội địa';
-            case '2941581384627345950102':
-                return 'Zalo quốc tế';
-            case '2941581384627345950103':
-                return 'Khiếu nại';
-
-            default:
-                return 'Tìm chuyến bay';
-        }
+        const { label = '', website = '' } = response;
+        return label || website || '';
+    } catch (error) {
+        console.error('ajax extract hotline failed:', error);
+        return '';
     }
-    return '';
 }
 
 function handleButtons(type) {
@@ -1345,8 +1383,7 @@ function handleButtons(type) {
         $('.voiceip-calling .skype').css('animation', 'play 1.5s ease infinite');
         $('.voiceip-button').hide();
         $('.voiceip-accept').show();
-        $('.voiceip-decline').show();
-
+        $('.voiceip-end').show();
         $('#voiceip-timer').hide();
     }
     else if (type == 'outgoing') {
@@ -1374,7 +1411,10 @@ function handleButtons(type) {
         $('.voiceip-calling .skype').css('animation', 'none');
         $('.voiceip-button').hide();
         $('.voiceip-update').show();
-        // $('.voiceip-close').show();
+        $('.voiceip-dtmf').show();
+
+        $('.wrap-info-voiceip').hide();
+        $('.wrap-form-voiceip').show();
     }
 }
 
@@ -1396,6 +1436,28 @@ function hide_avatar_zalo() {
         'background-size': 'unset',
         'border': 'solid 15px #fff',
     });
+}
+
+function toggleCallNumpad() {
+    if (!ua || !ua.isConnected() || !ua.isRegistered()) {
+        showModalNotify('error', 'Không có kết nối. Vui lòng nhấn Online hoặc refresh trang và thử lại!');
+        return false;
+    } else {
+        if (navigator.mediaDevices) {
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+                .then(stream => {
+                    $(".call-phone__numpad").toggle(200);
+                    $('#call_voiceip_main_number').focus();
+                })
+                .catch(function (error) {
+                    showModalNotify('error', 'Không có microphone hoặc quyền bị từ chối');
+                    $('.call-phone__numpad').hide();
+                });
+        } else {
+            showModalNotify('warning', 'Trình duyệt không hỗ trợ navigator.mediaDevices');
+            $('.call-phone__numpad').hide();
+        }
+    }
 }
 
 // Reset popup call
@@ -1428,23 +1490,12 @@ function resetPopupVoiceip() {
     resetTimer();
 }
 
-function formatPhoneNumber(phoneNumber) {
-    const cleaned = ('' + phoneNumber).replace(/\D/g, '');
-    const match = cleaned.match(/^(\d{3})(\d{4})(\d{3})$/);
-
-    if (match) {
-        return match[1] + ' ' + match[2] + ' ' + match[3];
-    }
-
-    return phoneNumber;
-}
-
 /********************   COUNT CALL TIME   ********************/
 // Declare variable
 var call_timer;
 var seconds = 0;
 var minutes = 0;
-var hours   = 0;
+var hours = 0;
 
 function startTimer() {
     $('#voiceip-timer').show();
@@ -1497,95 +1548,6 @@ function getCurrentTime() {
 }
 
 /********************  HEADER CALL PHONE  ********************/
-$(function () {
-    var container = $(".numpad");
-    container.append(`<div class="inputBoxes"><input id="call_voiceip_main_number" type="text" oninput="addNumber_oninput(this)" name="call_voiceip_main_number"></div>`);
-    container.append("<div class='numbers'></div>");
-
-    // Chỉ cho phép nhập số
-    $('#call_voiceip_main_number').on('input', function () {
-        var inputValue = $(this).val();
-        var numericValue = inputValue.replace(/[^0-9S]/g, '');
-        $(this).val(numericValue);
-    });
-
-    var numbers = $(".numbers");
-    // Generate the numbers
-    for (var i = 1; i <= 9; i++) {
-        numbers.append(
-            "<button class='number' type='button' name='" +
-            i +
-            "' onclick='addNumber(this)'><span class='pin_font'>" +
-            i +
-            "</span></button>"
-        );
-    }
-
-    container.append(`<select name="select-phone-outbound" id="select-phone-outbound" class="box-select w-100 mt-3">
-                        <option value=""></option>
-                        <optgroup label="Viettel">
-                            <option value="0962768782@103.232.121.103:55000">0962768782</option>
-                            <option value="0963323407@103.232.121.103:55000">0963323407</option>
-                            <option value="0963498793@103.232.121.103:55000">0963498793</option>
-                            <option value="0963678130@103.232.121.103:55000">0963678130</option>
-                            <option value="0963986905@103.232.121.103:55000">0963986905</option>
-                            <option value="0963987527@103.232.121.103:55000">0963987527</option>
-                            <option value="0964031020@103.232.121.103:55000">0964031020</option>
-                            <option value="0964359785@103.232.121.103:55000">0964359785</option>
-                        </optgroup>
-                        <optgroup label="Mobiphone">
-                            <option value="0933625233@103.199.78.74:65000">0933625233</option>
-                            <option value="0933799860@103.199.78.74:65000">0933799860</option>
-                            <option value="0933296508@103.232.121.103:55000">0933296508</option>
-                            <option value="0933026416@103.232.121.103:55000">0933026416</option>
-                            <option value="0933611306@103.232.121.103:55000">0933611306</option>
-                            <option value="0933297608@103.232.121.103:55000">0933297608</option>
-                        </optgroup>
-                        <optgroup label="Vinaphone">
-                            <option value="0913030802@14.238.2.146:5060">0913030802</option>
-                            <option value="0918038348@103.232.121.103:55000">0918038348</option>
-                            <option value="0919018102@103.232.121.103:55000">0919018102</option>
-                        </optgroup>
-                    </select>`);
-
-    container.append(`<div class="call-button--wrap">
-                <button class="btn btn-calling btn-voiceip-calling-zalo" type="button" id="btn-voiceip-main-zalo">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="26" height="26"><path fill="#2962ff" d="M15,36V6.827l-1.211-0.811C8.64,8.083,5,13.112,5,19v10c0,7.732,6.268,14,14,14h10 c4.722,0,8.883-2.348,11.417-5.931V36H15z"/><path fill="#eee" d="M29,5H19c-1.845,0-3.601,0.366-5.214,1.014C10.453,9.25,8,14.528,8,19 c0,6.771,0.936,10.735,3.712,14.607c0.216,0.301,0.357,0.653,0.376,1.022c0.043,0.835-0.129,2.365-1.634,3.742 c-0.162,0.148-0.059,0.419,0.16,0.428c0.942,0.041,2.843-0.014,4.797-0.877c0.557-0.246,1.191-0.203,1.729,0.083 C20.453,39.764,24.333,40,28,40c4.676,0,9.339-1.04,12.417-2.916C42.038,34.799,43,32.014,43,29V19C43,11.268,36.732,5,29,5z"/><path fill="#2962ff" d="M36.75,27C34.683,27,33,25.317,33,23.25s1.683-3.75,3.75-3.75s3.75,1.683,3.75,3.75 S38.817,27,36.75,27z M36.75,21c-1.24,0-2.25,1.01-2.25,2.25s1.01,2.25,2.25,2.25S39,24.49,39,23.25S37.99,21,36.75,21z"/><path fill="#2962ff" d="M31.5,27h-1c-0.276,0-0.5-0.224-0.5-0.5V18h1.5V27z"/><path fill="#2962ff" d="M27,19.75v0.519c-0.629-0.476-1.403-0.769-2.25-0.769c-2.067,0-3.75,1.683-3.75,3.75 S22.683,27,24.75,27c0.847,0,1.621-0.293,2.25-0.769V26.5c0,0.276,0.224,0.5,0.5,0.5h1v-7.25H27z M24.75,25.5 c-1.24,0-2.25-1.01-2.25-2.25S23.51,21,24.75,21S27,22.01,27,23.25S25.99,25.5,24.75,25.5z"/><path fill="#2962ff" d="M21.25,18h-8v1.5h5.321L13,26h0.026c-0.163,0.211-0.276,0.463-0.276,0.75V27h7.5 c0.276,0,0.5-0.224,0.5-0.5v-1h-5.321L21,19h-0.026c0.163-0.211,0.276-0.463,0.276-0.75V18z"/></svg>
-                </button>
-                <button class="btn btn-calling btn-voiceip-calling" type="button" id="btn-voiceip-main-calling">
-                    <svg width="26px" height="26px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#fff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M16.5562 12.9062L16.1007 13.359C16.1007 13.359 15.0181 14.4355 12.0631 11.4972C9.10812 8.55901 10.1907 7.48257 10.1907 7.48257L10.4775 7.19738C11.1841 6.49484 11.2507 5.36691 10.6342 4.54348L9.37326 2.85908C8.61028 1.83992 7.13596 1.70529 6.26145 2.57483L4.69185 4.13552C4.25823 4.56668 3.96765 5.12559 4.00289 5.74561C4.09304 7.33182 4.81071 10.7447 8.81536 14.7266C13.0621 18.9492 17.0468 19.117 18.6763 18.9651C19.1917 18.9171 19.6399 18.6546 20.0011 18.2954L21.4217 16.883C22.3806 15.9295 22.1102 14.2949 20.8833 13.628L18.9728 12.5894C18.1672 12.1515 17.1858 12.2801 16.5562 12.9062Z" fill="#fff"></path> </g></svg>
-                </button>
-        </div>`);
-
-    // Delete button
-    numbers.append(
-        `<button class="number" type="button" name="del" onclick="deleteAll()">
-			<span class="pin_font">AC</span>
-		</button>`
-    );
-
-    // Zero
-    numbers.append(
-        `<button class="number" type="button" name="0" onclick="addNumber(this)"><span class="pin_font">0</span></button>`
-    );
-
-    // Backspace
-    numbers.append(
-        `<button class="number" type="button" name="clear" onclick="removeNumber(this)">
-			<span class="pin_font">
-				<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" class="bi bi-backspace" viewBox="0 0 16 16">
-					<path d="M5.83 5.146a.5.5 0 0 0 0 .708L7.975 8l-2.147 2.146a.5.5 0 0 0 .707.708l2.147-2.147 2.146 2.147a.5.5 0 0 0 .707-.708L9.39 8l2.146-2.146a.5.5 0 0 0-.707-.708L8.683 7.293 6.536 5.146a.5.5 0 0 0-.707 0z"/>
-					<path d="M13.683 1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7.08a2 2 0 0 1-1.519-.698L.241 8.65a1 1 0 0 1 0-1.302L5.084 1.7A2 2 0 0 1 6.603 1zm-7.08 1a1 1 0 0 0-.76.35L1 8l4.844 5.65a1 1 0 0 0 .759.35h7.08a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
-				</svg>
-			</span>
-		</button>`
-    );
-
-    $("#call-phone__circle").on('click', function (e) {
-        $(".call-phone__numpad").toggle();
-    });
-});
-
 var addNumber = function (field) {
     let call_number_val = $("#call_voiceip_main_number").val();
     $("#call_voiceip_main_number").val(call_number_val + field.name);
@@ -1607,12 +1569,6 @@ var removeNumber = function () {
         $('#call_voiceip_main_number').val(newValue);
     }
 };
-
-$(document).keyup(function (e) {
-    if (e.keyCode == 8) {
-        removeNumber();
-    }
-});
 
 // When click outside to close modal 
 $(document).mouseup(function (e) { // event nhả chuột

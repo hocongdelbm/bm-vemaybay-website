@@ -2,48 +2,6 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
-
-
-
 class CalendarDisplay
 {
 
@@ -64,21 +22,6 @@ class CalendarDisplay
         'Tasks' => array(
             'border' => '515A71',
             'body' => '707C9C',
-            'text' => 'E5E5E5'
-        ),
-        'FP_events' => array(
-            'border' => 'C29B8A',
-            'body' => '7D6459',
-            'text' => 'E5E5E5'
-        ),
-        'Project' => array(
-            'border' => '699DC9',
-            'body' => '557FA3',
-            'text' => 'E5E5E5'
-        ),
-        'ProjectTask' => array(
-            'border' => '83C489',
-            'body' => '659769',
             'text' => 'E5E5E5'
         ),
     );
@@ -126,7 +69,7 @@ class CalendarDisplay
         $ss->assign('activityColors', json_encode($this->checkActivity($this->activity_colors)));
         $ss->assign('dashlet', $cal->dashlet);
         $ss->assign('grid_start_ts', (int)$cal->grid_start_ts);
-        
+
         $ss->assign('year', $cal->date_time->format('Y'));
         $ss->assign('month', $cal->date_time->format('m'));
         $ss->assign('day', $cal->date_time->format('d'));
@@ -137,8 +80,8 @@ class CalendarDisplay
 
 
         $ss->assign('basic_min_height', "'auto'");
-        
-        $ss->assign('isPrint', $this->cal->isPrint() ? 'true': 'false');
+
+        $ss->assign('isPrint', $this->cal->isPrint() ? 'true' : 'false');
 
 
         if (count($cal->shared_ids)) {
@@ -215,7 +158,7 @@ class CalendarDisplay
             $dow = array();
             for ($i = $fdow; $i < $fdow + 7; $i++) {
                 $day_index = $i % 7;
-                $dow[] = array("index" => $day_index , "label" => $GLOBALS['app_list_strings']['dom_cal_day_short'][$day_index + 1]);
+                $dow[] = array("index" => $day_index, "label" => $GLOBALS['app_list_strings']['dom_cal_day_short'][$day_index + 1]);
             }
             $ss->assign("dow", $dow);
         }
@@ -233,20 +176,20 @@ class CalendarDisplay
             $activity = array_merge($activity, $newActivities);
         }
         foreach ($activity as $key => $activityItem) {
-            if (isset($GLOBALS['app_list_strings']['moduleList'][ $key ]) && !empty($GLOBALS['app_list_strings']['moduleList'][ $key ]) && !empty($this->cal->activityList[ $key ])) {
-                $activity[ $key ]['label'] = $GLOBALS['app_list_strings']['moduleList'][ $key ];
+            if (isset($GLOBALS['app_list_strings']['moduleList'][$key]) && !empty($GLOBALS['app_list_strings']['moduleList'][$key]) && !empty($this->cal->activityList[$key])) {
+                $activity[$key]['label'] = $GLOBALS['app_list_strings']['moduleList'][$key];
             } else {
-                unset($activity[ $key ]);
+                unset($activity[$key]);
             }
         }
         if (isset($activity) && !empty($activity)) {
             $this->activity_colors = $activity;
         }
         if (!empty($this->cal->activityList)) {
-            foreach ($this->cal->activityList as $key=>$value) {
-                if (isset($GLOBALS['beanList'][$key]) && !empty($GLOBALS['beanList'][$key]) && !isset($this->activity_colors[ $key ])) {
-                    $this->activity_colors[ $key ] = $GLOBALS['sugar_config']['CalendarColors'][$key];
-                    $activity[ $key ] = $GLOBALS['sugar_config']['CalendarColors'][$key];
+            foreach ($this->cal->activityList as $key => $value) {
+                if (isset($GLOBALS['beanList'][$key]) && !empty($GLOBALS['beanList'][$key]) && !isset($this->activity_colors[$key])) {
+                    $this->activity_colors[$key] = $GLOBALS['sugar_config']['CalendarColors'][$key];
+                    $activity[$key] = $GLOBALS['sugar_config']['CalendarColors'][$key];
                 }
             }
         }
@@ -262,7 +205,7 @@ class CalendarDisplay
         list($d_end_hour, $d_end_min) =  explode(":", $this->cal->day_end_time);
 
         require_once("include/utils.php");
-        global $app_strings,$app_list_strings,$beanList;
+        global $app_strings, $app_list_strings, $beanList;
         global $timedate;
 
         $user_default_date_start  = $timedate->asUser($timedate->getNow());
@@ -318,22 +261,22 @@ class CalendarDisplay
             $options = strpos($time_pref, 'a') ? $app_list_strings['dom_meridiem_lowercase'] : $app_list_strings['dom_meridiem_uppercase'];
             $TIME_START_MERIDIEM = get_select_options_with_id($options, $start_m);
             $TIME_END_MERIDIEM = get_select_options_with_id($options, $end_m);
-            $TIME_START_MERIDIEM = "<select id='day_start_meridiem' name='day_start_meridiem' tabindex='2'>".$TIME_START_MERIDIEM."</select>";
-            $TIME_END_MERIDIEM = "<select id='day_end_meridiem' name='day_end_meridiem' tabindex='2'>".$TIME_END_MERIDIEM."</select>";
+            $TIME_START_MERIDIEM = "<select id='day_start_meridiem' name='day_start_meridiem' tabindex='2'>" . $TIME_START_MERIDIEM . "</select>";
+            $TIME_END_MERIDIEM = "<select id='day_end_meridiem' name='day_end_meridiem' tabindex='2'>" . $TIME_END_MERIDIEM . "</select>";
         } else {
             $TIME_START_MERIDIEM = $TIME_END_MERIDIEM = "";
         }
-        for ($i = $start_at; $i <= $num_of_hours; $i ++) {
-            $i = $i."";
+        for ($i = $start_at; $i <= $num_of_hours; $i++) {
+            $i = $i . "";
             if (strlen($i) == 1) {
-                $i = "0".$i;
+                $i = "0" . $i;
             }
             $hours_arr[$i] = $i;
         }
         $TIME_START_HOUR_OPTIONS = get_select_options_with_id($hours_arr, $d_start_hour);
-        $TIME_START_MINUTES_OPTIONS = get_select_options_with_id(array('0'=>'00','15'=>'15','30'=>'30','45'=>'45'), $d_start_min);
+        $TIME_START_MINUTES_OPTIONS = get_select_options_with_id(array('0' => '00', '15' => '15', '30' => '30', '45' => '45'), $d_start_min);
         $TIME_END_HOUR_OPTIONS = get_select_options_with_id($hours_arr, $d_end_hour);
-        $TIME_END_MINUTES_OPTIONS = get_select_options_with_id(array('0'=>'00','15'=>'15','30'=>'30','45'=>'45'), $d_end_min);
+        $TIME_END_MINUTES_OPTIONS = get_select_options_with_id(array('0' => '00', '15' => '15', '30' => '30', '45' => '45'), $d_end_min);
 
         $displayTimeslots = $GLOBALS['current_user']->getPreference('calendar_display_timeslots');
         if (is_null($displayTimeslots)) {
@@ -371,13 +314,13 @@ class CalendarDisplay
         $dateFormat = $current_user->getUserDateTimePreferences();
 
         if ($view == 'month' || $view == 'sharedMonth') {
-            for ($i=0; $i<strlen($dateFormat['date']); $i++) {
+            for ($i = 0; $i < strlen($dateFormat['date']); $i++) {
                 switch ($dateFormat['date'][$i]) {
                     case "Y":
-                        $str .= " ".$date_time->year;
+                        $str .= " " . $date_time->year;
                         break;
                     case "m":
-                        $str .= " ".$date_time->get_month_name();
+                        $str .= " " . $date_time->get_month_name();
                         break;
                 }
             }
@@ -387,64 +330,64 @@ class CalendarDisplay
             $first_day = CalendarUtils::get_first_day_of_week($date_time);
             $last_day = $first_day->get("+6 days");
 
-            for ($i=0; $i<strlen($dateFormat['date']); $i++) {
+            for ($i = 0; $i < strlen($dateFormat['date']); $i++) {
                 switch ($dateFormat['date'][$i]) {
-                        case "Y":
-                            $str .= " ".$first_day->year;
-                            break;
-                        case "m":
-                            $str .= " ".$first_day->get_month_name();
-                            break;
-                        case "d":
-                            $str .= " ".$first_day->get_day();
-                            break;
-                    }
+                    case "Y":
+                        $str .= " " . $first_day->year;
+                        break;
+                    case "m":
+                        $str .= " " . $first_day->get_month_name();
+                        break;
+                    case "d":
+                        $str .= " " . $first_day->get_day();
+                        break;
+                }
             }
             $str .= " - ";
-            for ($i=0; $i<strlen($dateFormat['date']); $i++) {
+            for ($i = 0; $i < strlen($dateFormat['date']); $i++) {
                 switch ($dateFormat['date'][$i]) {
-                        case "Y":
-                            $str .= " ".$last_day->year;
-                            break;
-                        case "m":
-                            $str .= " ".$last_day->get_month_name();
-                            break;
-                        case "d":
-                            $str .= " ".$last_day->get_day();
-                            break;
-                    }
+                    case "Y":
+                        $str .= " " . $last_day->year;
+                        break;
+                    case "m":
+                        $str .= " " . $last_day->get_month_name();
+                        break;
+                    case "d":
+                        $str .= " " . $last_day->get_day();
+                        break;
+                }
             }
         } elseif ($view == 'agendaDay') {
-            $str .= $date_time->get_day_of_week()." ";
+            $str .= $date_time->get_day_of_week() . " ";
 
-            for ($i=0; $i<strlen($dateFormat['date']); $i++) {
+            for ($i = 0; $i < strlen($dateFormat['date']); $i++) {
                 switch ($dateFormat['date'][$i]) {
-                            case "Y":
-                                $str .= " ".$date_time->year;
-                                break;
-                            case "m":
-                                $str .= " ".$date_time->get_month_name();
-                                break;
-                            case "d":
-                                $str .= " ".$date_time->get_day();
-                                break;
-                        }
+                    case "Y":
+                        $str .= " " . $date_time->year;
+                        break;
+                    case "m":
+                        $str .= " " . $date_time->get_month_name();
+                        break;
+                    case "d":
+                        $str .= " " . $date_time->get_day();
+                        break;
+                }
             }
         } elseif ($view == 'mobile') {
-            $str .= $date_time->get_day_of_week()." ";
+            $str .= $date_time->get_day_of_week() . " ";
 
-            for ($i=0; $i<strlen($dateFormat['date']); $i++) {
+            for ($i = 0; $i < strlen($dateFormat['date']); $i++) {
                 switch ($dateFormat['date'][$i]) {
-                        case "Y":
-                            $str .= " ".$date_time->year;
-                            break;
-                        case "m":
-                            $str .= " ".$date_time->get_month_name();
-                            break;
-                        case "d":
-                            $str .= " ".$date_time->get_day();
-                            break;
-                    }
+                    case "Y":
+                        $str .= " " . $date_time->year;
+                        break;
+                    case "m":
+                        $str .= " " . $date_time->get_month_name();
+                        break;
+                    case "d":
+                        $str .= " " . $date_time->get_day();
+                        break;
+                }
             }
         } elseif ($view == 'year') {
             $str .= $date_time->year;
@@ -455,32 +398,32 @@ class CalendarDisplay
             $first_day = CalendarUtils::get_first_day_of_week($date_time);
             $last_day = $first_day->get("+6 days");
 
-            for ($i=0; $i<strlen($dateFormat['date']); $i++) {
+            for ($i = 0; $i < strlen($dateFormat['date']); $i++) {
                 switch ($dateFormat['date'][$i]) {
-                        case "Y":
-                            $str .= " ".$first_day->year;
-                            break;
-                        case "m":
-                            $str .= " ".$first_day->get_month_name();
-                            break;
-                        case "d":
-                            $str .= " ".$first_day->get_day();
-                            break;
-                    }
+                    case "Y":
+                        $str .= " " . $first_day->year;
+                        break;
+                    case "m":
+                        $str .= " " . $first_day->get_month_name();
+                        break;
+                    case "d":
+                        $str .= " " . $first_day->get_day();
+                        break;
+                }
             }
             $str .= " - ";
-            for ($i=0; $i<strlen($dateFormat['date']); $i++) {
+            for ($i = 0; $i < strlen($dateFormat['date']); $i++) {
                 switch ($dateFormat['date'][$i]) {
-                        case "Y":
-                            $str .= " ".$last_day->year;
-                            break;
-                        case "m":
-                            $str .= " ".$last_day->get_month_name();
-                            break;
-                        case "d":
-                            $str .= " ".$last_day->get_day();
-                            break;
-                    }
+                    case "Y":
+                        $str .= " " . $last_day->year;
+                        break;
+                    case "m":
+                        $str .= " " . $last_day->get_month_name();
+                        break;
+                    case "d":
+                        $str .= " " . $last_day->get_day();
+                        break;
+                }
             }
         }
         return $str;
@@ -492,15 +435,15 @@ class CalendarDisplay
      */
     protected function get_next_calendar()
     {
-        global $cal_strings,$image_path;
+        global $cal_strings, $image_path;
         $str = "";
         if ($_REQUEST['module'] == "Calendar") {
-            $str .= "<a href='".ajaxLink("index.php?action=index&module=Calendar&view=".$this->cal->view."&".$this->cal->get_neighbor_date_str("next"))."'>";
+            $str .= "<a href='" . ajaxLink("index.php?action=index&module=Calendar&view=" . $this->cal->view . "&" . $this->cal->get_neighbor_date_str("next")) . "'>";
         } else {
-            $str .= "<a href='#' onclick='return SUGAR.mySugar.retrieveDashlet(\"".$this->dashlet_id."\", \"index.php?module=Home&action=DynamicAction&DynamicAction=displayDashlet&sugar_body_only=1&".$this->cal->get_neighbor_date_str("next")."&id=".$this->dashlet_id."\")'>";
+            $str .= "<a href='#' onclick='return SUGAR.mySugar.retrieveDashlet(\"" . $this->dashlet_id . "\", \"index.php?module=Home&action=DynamicAction&DynamicAction=displayDashlet&sugar_body_only=1&" . $this->cal->get_neighbor_date_str("next") . "&id=" . $this->dashlet_id . "\")'>";
         }
 
-        $str .= "&nbsp;&nbsp;".SugarThemeRegistry::current()->getImage("calendar_next", 'align="absmiddle" border="0"', null, null, '.gif', '') . "</a>"; //setting alt tag blank on purpose for 508 compliance
+        $str .= "&nbsp;&nbsp;" . SugarThemeRegistry::current()->getImage("calendar_next", 'align="absmiddle" border="0"', null, null, '.gif', '') . "</a>"; //setting alt tag blank on purpose for 508 compliance
         return $str;
     }
 
@@ -510,12 +453,12 @@ class CalendarDisplay
      */
     protected function get_previous_calendar()
     {
-        global $cal_strings,$image_path;
+        global $cal_strings, $image_path;
         $str = "";
         if ($_REQUEST['module'] == "Calendar") {
-            $str .= "<a href='".ajaxLink("index.php?action=index&module=Calendar&view=".$this->cal->view."&".$this->cal->get_neighbor_date_str("previous")."")."'>";
+            $str .= "<a href='" . ajaxLink("index.php?action=index&module=Calendar&view=" . $this->cal->view . "&" . $this->cal->get_neighbor_date_str("previous") . "") . "'>";
         } else {
-            $str .= "<a href='#' onclick='return SUGAR.mySugar.retrieveDashlet(\"".$this->dashlet_id."\", \"index.php?module=Home&action=DynamicAction&DynamicAction=displayDashlet&sugar_body_only=1&".$this->cal->get_neighbor_date_str("previous")."&id=".$this->dashlet_id."\")'>";
+            $str .= "<a href='#' onclick='return SUGAR.mySugar.retrieveDashlet(\"" . $this->dashlet_id . "\", \"index.php?module=Home&action=DynamicAction&DynamicAction=displayDashlet&sugar_body_only=1&" . $this->cal->get_neighbor_date_str("previous") . "&id=" . $this->dashlet_id . "\")'>";
         }
         $str .= SugarThemeRegistry::current()->getImage('calendar_previous', 'align="absmiddle" border="0"', null, null, '.gif', ''); //setting alt tag blank on purpose for 508 compliance
         $str .= "&nbsp;&nbsp;</a>";
@@ -537,7 +480,7 @@ class CalendarDisplay
         $ss->assign('print', $this->cal->isPrint());
 
         if ($controls) {
-            $current_date = str_pad($this->cal->date_time->month, 2, '0', STR_PAD_LEFT)."/".str_pad($this->cal->date_time->day, 2, '0', STR_PAD_LEFT)."/".$this->cal->date_time->year;
+            $current_date = str_pad($this->cal->date_time->month, 2, '0', STR_PAD_LEFT) . "/" . str_pad($this->cal->date_time->day, 2, '0', STR_PAD_LEFT) . "/" . $this->cal->date_time->year;
 
             $tabs = $this->views;
             $tabs_params = array();
@@ -638,9 +581,9 @@ class CalendarDisplay
         //Hack to make this 6.5 compatible until this module is converted to MVC
 
         if ($this->cal->view == "mobile") {
-            $buttons = array("Meeting","Call","Task");
+            $buttons = array("Meeting", "Call", "Task");
 
-            echo "<div class='custom_module_title moduleTitle'><h2>". $mod_strings['LBL_MODULE_TITLE'] ."</h2></div>";
+            echo "<div class='custom_module_title moduleTitle'><h2>" . $mod_strings['LBL_MODULE_TITLE'] . "</h2></div>";
             echo "<div style='float:right;' class='moduleTitle'>";
 
             echo '<div class="btn-group">
@@ -648,12 +591,12 @@ class CalendarDisplay
                        <ul class="dropdown-menu pull-left" style="right: 0; left: auto;">';
 
             foreach ($buttons as $module) {
-                echo '<li><a href="index.php?return_module=Calendar&return_action=index&module=' . $module .'s&action=EditView">Add ' . $module .'</a></li>';
+                echo '<li><a href="index.php?return_module=Calendar&return_action=index&module=' . $module . 's&action=EditView">Add ' . $module . '</a></li>';
             }
 
             echo '</ul></div></div>';
         } else {
-            echo "<div class='moduleTitle'><h2>". $mod_strings['LBL_MODULE_TITLE'] ."</h2></div>";
+            echo "<div class='moduleTitle'><h2>" . $mod_strings['LBL_MODULE_TITLE'] . "</h2></div>";
         }
     }
 
@@ -662,7 +605,7 @@ class CalendarDisplay
      */
     public function display_shared_html($view)
     {
-        global $app_strings,$cal_strings,$action;
+        global $app_strings, $cal_strings, $action;
 
         $ss = new Sugar_Smarty();
         $ss->assign("APP", $app_strings);

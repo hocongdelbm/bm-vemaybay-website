@@ -1,50 +1,12 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
-
 namespace SuiteCRM\API\OAuth2\Repositories;
 
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
 use SuiteCRM\API\OAuth2\Entities\AccessTokenEntity;
+use Throwable;
+use custom\services\Notification\NotificationService;
 
 class AccessTokenRepository implements AccessTokenRepositoryInterface
 {
@@ -115,9 +77,29 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
             if (!empty($expires)) {
                 $now = new \DateTime('now', $expires->getTimezone());
                 if ($now > $expires || (bool)$token->token_is_revoked === true) {
-                    $token->token_is_revoked = true;
-                    $token->save();
-                    return true;
+                    try {
+                        // Sentele test
+                        $log_token = [
+                            'path' => 'lib/API/OAuth2/Repositories/AccessTokenRepository.php',
+                            'tokenId' => $tokenId,
+                            'now' => $now,
+                            'expires' => $expires,
+                            'getTimezone' => $expires->getTimezone(),
+                            'token_is_revoked' => $token->token_is_revoked,
+                            'access_token_expires' => $token->access_token_expires,
+                        ];
+                        $message = "The problem with tokens";
+                        $message .= "\n<pre>". json_encode($log_token) ."</pre>";
+                        NotificationService::sendErrorMessage($message, 'default', ['threadKey' => 'logs']);
+                    }
+                    catch(Throwable $th) {
+                        $GLOBALS['log']->fatal($th->getMessage());
+                    }
+                    finally {
+                        $token->token_is_revoked = true;
+                        $token->save();
+                        return true;
+                    }
                 }
             }
         }

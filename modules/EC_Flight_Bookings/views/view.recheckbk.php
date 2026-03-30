@@ -12,24 +12,35 @@ class Viewrecheckbk extends SugarView {
     function populateContent($smarty) {
         global $app_list_strings;
         $params = array();
+
         // từ ngày
-        if(!empty($_POST['from_date'])) {
+        if(isset($_POST['from_date']) && !empty($_POST['from_date'])) {
             $from_date = date('Y-m-d', strtotime($_POST['from_date']));
-        // } else $from_date = date('Y-m-01'); 
         } else $from_date = date('Y-m-d'); 
+
         // đến ngày
-        if (!empty($_POST['to_date'])) {
+        if (isset($_POST['to_date']) && !empty($_POST['to_date'])) {
             $to_date = date('Y-m-d', strtotime($_POST['to_date']));
-        // } else $to_date = date('Y-m-t');
         } else $to_date = date('Y-m-d');
+
         // hãng 
-        if(!empty($_POST['rc_airline'])) {
+        $airline_arr = $app_list_strings['aircode_list'] + array('OTH' => 'Các hãng khác');
+        if(isset($_POST['rc_airline']) && !empty($_POST['rc_airline'])) {
             $params['airline'] = $_POST['rc_airline'];
+            $smarty->assign('RC_AIRLINE', get_select_options_with_id($airline_arr, $_POST['rc_airline']));
+        } else {
+            $smarty->assign('RC_AIRLINE', get_select_options_with_id($airline_arr, ''));
         }
+
         // thông tin recheck
-        if (!empty($_POST['rc_inf'])) {
+        $rc_inf = array(0 => 'Tất cả', 1 => 'Chưa có');
+        if (isset($_POST['rc_inf']) && !empty($_POST['rc_inf'])) {
             $params['recheck'] = $_POST['rc_inf'];
+            $smarty->assign('RC_INF', get_select_options_with_id($rc_inf, $_POST['rc_inf']));
+        } else {
+            $smarty->assign('RC_INF', get_select_options_with_id($rc_inf, ''));
         }
+
         // tìm những bk chưa đủ số lần recheck tối thiểu
         if (isset($_POST['multi_airline_recheck'])) {
             $params['multi_airline_recheck'] = $_POST['multi_airline_recheck'];
@@ -39,17 +50,10 @@ class Viewrecheckbk extends SugarView {
             $multi_check = '';
             $other_search_disabled = '';
         }
+        
         $smarty->assign('RECHECK_TBL', $this->populateRecheckTable($from_date, $to_date, $params));
         $smarty->assign('FROM_DATE', date('d-m-Y', strtotime($from_date)));
         $smarty->assign('TO_DATE', date('d-m-Y', strtotime($to_date)));
-
-        $airline_arr = $app_list_strings['aircode_list'] + array('OTH' => 'Các hãng khác');
-
-        $smarty->assign('RC_AIRLINE', get_select_options_with_id($airline_arr, $_POST['rc_airline']));
-
-        $rc_inf = array(0 => 'Tất cả', 1 => 'Chưa có');
-
-        $smarty->assign('RC_INF', get_select_options_with_id($rc_inf, $_POST['rc_inf']));
 
         $smarty->assign('RC_MULTI_MISSING', $multi_check);
         $smarty->assign('OTH_DISABLED', $other_search_disabled);
@@ -76,7 +80,7 @@ class Viewrecheckbk extends SugarView {
         );
 
         // tìm hãng
-        if(!empty($params['airline'])) {
+        if(isset($params['airline']) && !empty($params['airline'])) {
             if($params['airline'] != 'OTH') {
                 $sql_airline .= ' AND ';
                 if(in_array($params['airline'], array_keys($airline_arr))) {
@@ -115,15 +119,16 @@ class Viewrecheckbk extends SugarView {
         }
 
         // tìm thông tin recheck
-        if (!empty($params['recheck'])) {
+        if (isset($params['recheck']) && !empty($params['recheck'])) {
             if (empty($sql_having)) $sql_having .= 'HAVING';
             else $sql_having .= ' AND ';
             $sql_having .= ' recheck_inf IS NULL';
         }
 
         // tìm bk chưa đủ số lần recheck
-        if(!empty($params['multi_airline_recheck'])) {
-            $sql_recheck_cnt = '
+        $sql_recheck_cnt = '';
+        if(isset($_POST['multi_airline_recheck']) && !empty($params['multi_airline_recheck'])) {
+            $sql_recheck_cnt .= '
                 , (
                     SELECT COUNT(p.id)
                     FROM ec_working_process p 
@@ -169,6 +174,7 @@ class Viewrecheckbk extends SugarView {
                     INNER JOIN users u ON u.id = p.assigned_user_id
                     WHERE p.parent_id = b.id AND p.deleted = 0 AND p.recheck > 0
                 ) AS recheck_inf
+                , b.date_ticket_issue as date_ticket_issue
             ' . $sql_recheck_cnt . '
             FROM ec_flight_bookings b 
             WHERE
@@ -189,7 +195,7 @@ class Viewrecheckbk extends SugarView {
         $bk_arr = array();
 
         while($row = $this->bean->db->fetchByAssoc($res)) {
-            $bk_arr[] = $row;
+            $bk_arr[]   = $row;
             $sort_col[] = $row['expticket_time'];
         }
 
@@ -211,10 +217,20 @@ class Viewrecheckbk extends SugarView {
             }
 
             $rw_span    = count($bk_airline);
+            // $html .= '
+            // <tr class="line' . $i . '">
+            //     <td class="text-center fw-bold" rowspan="' . $rw_span  . '">' . ($i + 1) . '</td>
+            //     <td class="text-center" rowspan="' . $rw_span  . '">' . date('d-m-Y', strtotime($bk_arr[$i]['expticket_time'])) . '    ' . date('H:i', strtotime($bk_arr[$i]['expticket_time'])) . '</td>
+            //     <td class="text-center" rowspan="' . $rw_span  . '"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $bk_arr[$i]['booking_id'] . '" target="_blank">' . $bk_arr[$i]['booking'] . '</a></td>
+            //     <td class="text-center"><span class="label_badge badge '.$color_airline.'">'.$bk_airline[0].'</span></td>
+            //     <td class="recheck_col p-0" rowspan="' . $rw_span  . '" colspan="3">
+            //         ' . $this->genRecheck($bk_arr[$i]['recheck_inf']) . '
+            //     </td>
+            // </tr>';
             $html .= '
             <tr class="line' . $i . '">
                 <td class="text-center fw-bold" rowspan="' . $rw_span  . '">' . ($i + 1) . '</td>
-                <td class="text-center" rowspan="' . $rw_span  . '">' . date('d-m-Y', strtotime($bk_arr[$i]['expticket_time'])) . '    ' . date('H:i', strtotime($bk_arr[$i]['expticket_time'])) . '</td>
+                <td class="text-center" rowspan="' . $rw_span  . '">' . date('d-m-Y', strtotime($bk_arr[$i]['date_ticket_issue'])) . '</td>
                 <td class="text-center" rowspan="' . $rw_span  . '"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $bk_arr[$i]['booking_id'] . '" target="_blank">' . $bk_arr[$i]['booking'] . '</a></td>
                 <td class="text-center"><span class="label_badge badge '.$color_airline.'">'.$bk_airline[0].'</span></td>
                 <td class="recheck_col p-0" rowspan="' . $rw_span  . '" colspan="3">

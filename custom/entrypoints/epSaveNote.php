@@ -1,29 +1,56 @@
 <?php
+use custom\services\Notification\NotificationService;
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     global $db;
     $type = isset($_POST["type"]) ? $_POST["type"] : null;
     
     if($type == 'ADD') {
         // Validate
-        $name           = (isset($_POST["name"]) && !empty($_POST["name"])) ? $_POST["name"] : null;
-        $description    = (isset($_POST["description"]) && !empty($_POST["description"])) ? $_POST["description"] : null;
-        $parent_id      = (isset($_POST["parent_id"]) && !empty($_POST["parent_id"])) ? $_POST["parent_id"] : null;
-        $booking_status = (isset($_POST["booking_status"]) && !empty($_POST["booking_status"])) ? $_POST["booking_status"] : null;
-        if(is_null($name)  || is_null($description) || is_null($parent_id) || is_null($booking_status)) {
+        $booking_name   = $_POST["name"] ?? "";
+        $description    = $_POST["description"] ?? "";
+        $parent_id      = $_POST["parent_id"] ?? "";
+        $booking_status = $_POST["booking_status"] ?? null;
+        $contact_name   = $_POST["contact_name"] ?? "";
+        $total_amount   = $_POST["total_amount"] ?? null;
+        $total_qty      = $_POST["total_qty"] ?? null;
+
+        if(empty($booking_name) || empty($description) || empty($parent_id) || is_null($booking_status)) {
             echo 0;
             exit();
         }
 
         $n = new Note();
-        $n->name            = $name;
+        $n->name            = $booking_name;
         $n->description     = $description;
         $n->parent_type     = 'EC_Flight_Bookings';
         $n->parent_id       = $parent_id;
         $n->booking_status  = $booking_status;
-        $check = $n->save();
+        if($n->save()) {
+            if (mb_stripos($description, "Đã chuyển khoản") !== false) {
+                global $sugar_config, $app_list_strings;
+                $channel = $sugar_config['notification_channel'] ?? 'Telegram';
 
-        if(strlen($check) > 0) echo 1;
+                $m = '';
+                if($n->hasMoney($description)) $m = trim("$booking_name - $contact_name - $description");
+                else {
+                    $total_amount_format = !is_null($total_amount) ? number_format($total_amount, 0) : '';
+                    $m = trim("$booking_name - $contact_name - $description $total_amount_format ($total_qty vé)");
+                }
+
+                $customer_source = $db->getOne("SELECT customer_source FROM ec_flight_bookings WHERE id = '$parent_id' AND deleted = 0");
+                if(isset($app_list_strings['booking_customer_source_list'][$customer_source])) {
+                    $c = $app_list_strings['booking_customer_source_list'][$customer_source];
+                    if($c == 'Mới') $c = 'KH ' . strtolower($c);
+                    $m .= " - <b>$c</b>";
+                }
+
+                NotificationService::sendMessage($m, 'thongbao');
+            }
+            echo 1;
+        }
         else echo 0;
+
         exit();
     }
     elseif ($type == "DELETE") {
@@ -62,9 +89,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $count += $db->query($sql_status);
             }
         }
-
-        // UPDATE booking_status - EC_customer
-        UpdateInforBookingOfCustomer($booking_id);
 
         echo $count;
         exit();

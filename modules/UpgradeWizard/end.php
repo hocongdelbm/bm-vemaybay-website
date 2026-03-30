@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
@@ -81,14 +82,14 @@ foreach ($beanFiles as $bean => $file) {
             if (!isset($repairedTables[$focus->table_name])) {
                 $sql = DBManagerFactory::getInstance()->repairTable($focus, true);
                 if (trim($sql) != '') {
-                    logThis('Running sql:'.$sql, $path);
+                    logThis('Running sql:' . $sql, $path);
                 }
                 $repairedTables[$focus->table_name] = true;
             }
 
             //Check to see if we need to create the audit table
             if ($focus->is_AuditEnabled() && !$focus->db->tableExists($focus->get_audit_table_name())) {
-                logThis('Creating audit table:'.$focus->get_audit_table_name(), $path);
+                logThis('Creating audit table:' . $focus->get_audit_table_name(), $path);
                 $focus->create_audit_table();
             }
         }
@@ -114,7 +115,7 @@ foreach ($dictionary as $meta) {
     $indices = $meta['indices'];
     $sql = DBManagerFactory::getInstance()->repairTableParams($tablename, $fielddefs, $indices, true);
     if (trim($sql) != '') {
-        logThis('Running sql:'.$sql, $path);
+        logThis('Running sql:' . $sql, $path);
     }
     $repairedTables[$tablename] = true;
 }
@@ -132,13 +133,13 @@ if (!isset($sugar_config['logger'])) {
     $sugar_config['logger'] = array(
         'level' => 'fatal',
         'file' => array(
-                'ext' => '.log',
-                'name' => 'suitecrm',
-                'dateFormat' => '%c',
-                'maxSize' => '10MB',
-                'maxLogs' => 10,
-                'suffix' => '', // bug51583, change default suffix to blank for backwards comptability
-            ),
+            'ext' => '.log',
+            'name' => 'suitecrm',
+            'dateFormat' => '%c',
+            'maxSize' => '10MB',
+            'maxLogs' => 10,
+            'suffix' => '', // bug51583, change default suffix to blank for backwards comptability
+        ),
     );
 }
 //for upgraded version, set default lead conversion activity option to 'copy'
@@ -258,18 +259,14 @@ $host = ($parsedSiteUrl['host'] != $httpHost) ? $httpHost : $parsedSiteUrl['host
 
 // aw: 9747 - use SERVER_PORT for users who don't plug in the site_url at install correctly
 if ($_SERVER['SERVER_PORT'] != 80) {
-    $port = ':'.$_SERVER['SERVER_PORT'];
+    $port = ':' . $_SERVER['SERVER_PORT'];
 } elseif (isset($parsedSiteUrl['port']) && $parsedSiteUrl['port'] != 80) {
-    $port = ':'.$parsedSiteUrl['port'];
+    $port = ':' . $parsedSiteUrl['port'];
 } else {
     $port = '';
 }
 $path = $parsedSiteUrl['path'];
 $cleanUrl = "{$parsedSiteUrl['scheme']}://{$host}{$port}{$path}/index.php";
-
-/*ob_start();
-check_now(get_sugarbeat());
-ob_end_clean();*/
 
 include 'PasswordExpirationService.php';
 $expirationMessage = (new PasswordExpirationService())->getExpirationMessage();

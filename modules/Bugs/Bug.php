@@ -2,60 +2,6 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Bug is used to store customer information.
 class Bug extends SugarBean
@@ -111,9 +57,16 @@ class Bug extends SugarBean
     // This is used to retrieve related fields from form posts.
     public $additional_column_fields = array('assigned_user_name', 'assigned_user_id', 'case_id', 'account_id', 'contact_id', 'task_id', 'note_id', 'meeting_id', 'call_id', 'email_id');
 
-    public $relationship_fields = array('case_id'=>'cases', 'account_id' => 'accounts', 'contact_id'=>'contacts',
-                                    'task_id'=>'tasks', 'note_id'=>'notes', 'meeting_id'=>'meetings',
-                                    'call_id'=>'calls', 'email_id'=>'emails');
+    public $relationship_fields = array(
+        'case_id' => 'cases',
+        'account_id' => 'accounts',
+        'contact_id' => 'contacts',
+        'task_id' => 'tasks',
+        'note_id' => 'notes',
+        'meeting_id' => 'meetings',
+        'call_id' => 'calls',
+        'email_id' => 'emails'
+    );
 
     public function __construct()
     {
@@ -127,13 +80,7 @@ class Bug extends SugarBean
         }
     }
 
-
-
     public $new_schema = true;
-
-
-
-
 
     public function get_summary_text()
     {
@@ -173,9 +120,9 @@ class Bug extends SugarBean
 
 
         if ($where != "") {
-            $query .= "where $where AND ".$where_auto;
+            $query .= "where $where AND " . $where_auto;
         } else {
-            $query .= "where ".$where_auto;
+            $query .= "where " . $where_auto;
         }
         if (substr_count($order_by, '.') > 0) {
             $query .= " ORDER BY $order_by";
@@ -189,7 +136,7 @@ class Bug extends SugarBean
         return $query;
     }
 
-    public function create_export_query($order_by, $where, $relate_link_join='')
+    public function create_export_query($order_by, $where, $relate_link_join = '')
     {
         $custom_join = $this->getCustomJoin(true, true, $where);
         $custom_join['join'] .= $relate_link_join;
@@ -210,9 +157,9 @@ class Bug extends SugarBean
                 ";
 
         if ($where != "") {
-            $query .= " where $where AND ".$where_auto;
+            $query .= " where $where AND " . $where_auto;
         } else {
-            $query .= " where ".$where_auto;
+            $query .= " where " . $where_auto;
         }
 
         if ($order_by != "") {
@@ -229,7 +176,7 @@ class Bug extends SugarBean
         // Fill in the assigned_user_name
         //$this->assigned_user_name = get_assigned_user_name($this->assigned_user_id);
 
-//	   $this->set_fixed_in_release();
+        //	   $this->set_fixed_in_release();
     }
 
     public function fill_in_additional_detail_fields()
@@ -313,25 +260,17 @@ class Bug extends SugarBean
         $mod_strings = return_module_language($current_language, 'Bugs');
 
         $this->set_release();
-
-        // The new listview code only fetches columns that we're displaying and not all
-        // the columns so we need these checks.
         $the_array['NAME'] = (($this->name == "") ? "<em>blank</em>" : $this->name);
-        $the_array['PRIORITY'] = empty($this->priority)? "" : (!isset($app_list_strings[$this->field_name_map['priority']['options']][$this->priority]) ? $this->priority : $app_list_strings[$this->field_name_map['priority']['options']][$this->priority]);
-        $the_array['STATUS'] = empty($this->status)? "" : (!isset($app_list_strings[$this->field_name_map['status']['options']][$this->status]) ? $this->status : $app_list_strings[$this->field_name_map['status']['options']][$this->status]);
-        $the_array['TYPE'] = empty($this->type)? "" : (!isset($app_list_strings[$this->field_name_map['type']['options']][$this->type]) ? $this->type : $app_list_strings[$this->field_name_map['type']['options']][$this->type]);
+        $the_array['PRIORITY'] = empty($this->priority) ? "" : (!isset($app_list_strings[$this->field_name_map['priority']['options']][$this->priority]) ? $this->priority : $app_list_strings[$this->field_name_map['priority']['options']][$this->priority]);
+        $the_array['STATUS'] = empty($this->status) ? "" : (!isset($app_list_strings[$this->field_name_map['status']['options']][$this->status]) ? $this->status : $app_list_strings[$this->field_name_map['status']['options']][$this->status]);
+        $the_array['TYPE'] = empty($this->type) ? "" : (!isset($app_list_strings[$this->field_name_map['type']['options']][$this->type]) ? $this->type : $app_list_strings[$this->field_name_map['type']['options']][$this->type]);
 
-        $the_array['RELEASE']= $this->release_name;
         $the_array['BUG_NUMBER'] = $this->bug_number;
-        $the_array['ENCODED_NAME']=$this->name;
+        $the_array['ENCODED_NAME'] = $this->name;
 
         return  $the_array;
     }
 
-    /**
-    	builds a generic search based on the query string using or
-    	do not include any $this-> because this is called on without having the class instantiated
-    */
     public function build_generic_where_clause($the_query_string)
     {
         $where_clauses = array();
@@ -373,13 +312,83 @@ class Bug extends SugarBean
     public function bean_implements($interface)
     {
         switch ($interface) {
-            case 'ACL':return true;
+            case 'ACL':
+                return true;
         }
         return false;
     }
 
     public function save($check_notify = false)
     {
+        global $current_user, $sugar_config;
+
+        if (isset($_POST['type']) && $_POST['type'] == 'report_bug_calls') {
+            $this->id = create_guid();
+            $this->new_with_id = true;
+            $this->name = $_POST['bugs_title'];
+            $this->description = $_POST['bugs_description'];
+            $this->type = 'Defect';
+            $this->status = 'New';
+            $this->priority = 'Medium';
+            $this->parent_id = $_POST['parent_id'];
+            $this->parent_type = $_POST['parent_type'];
+            $this->assigned_user_id = $_POST['current_user_id'];
+
+            if (!empty($this->id)) {
+                $list_user = [
+                    '168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
+                    '1', //admin
+                ];
+
+                $alertData = [
+                    'name'         => '[Lỗi]: ' . $this->name,
+                    'parent_type'  => 'Bugs',
+                    'parent_id'    => $this->id,
+                    'description'  => $this->description,
+                    'url_redirect' => 'index.php?module=Bugs&action=DetailView&record=' . $this->id . '',
+                    'priority'     => 'medium',
+                    'type'         => 'readonly',
+                ];
+
+                $alert         = new Alert();
+                $alert->autoCreateAlert('Bugs', $list_user, $alertData);
+
+                // // Send message to telegram
+                // $messages = "- Nhân viên: <b>" . $current_user->full_name . "</b>\n" .
+                //             "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
+                //             "<pre>[LỖI CUỘC GỌI]: " . $this->description . "</pre>";
+
+                // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                // sendTelegramWarningSystem(
+                //     json_encode(array(
+                //         'text' => $content,
+                //         'parse_mode' => 'HTML',
+                //         'reply_markup' => array(
+                //             'inline_keyboard' => array(
+                //                 array(
+                //                     array(
+                //                         'text' => 'Redirect',
+                //                         'url' => $sugar_config['site_url'].'/index.php?module='.$this->parent_type.'&&action=DetailView&record='.$this->parent_id.'',
+                //                     ),
+                //                 ),
+                //             ),
+                //         ),
+                //     ), JSON_UNESCAPED_UNICODE),
+                // );
+
+                // Send message to Mattermost
+                $link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=$this->parent_type&action=DetailView&record=$this->parent_id", "Redirect");
+                $message = Mattermost::$line_separation;
+                $message = Mattermost::markdownHeading("[ERROR] Call");
+                $message .= "\n- Nhân viên: **$current_user->full_name**";
+                $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
+                $message .= "\n- Description: **$this->description**";
+                $message .= "\n$link";
+                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+            }
+            unset($_POST['type']);
+        }
+
         return parent::save($check_notify);
     }
 }

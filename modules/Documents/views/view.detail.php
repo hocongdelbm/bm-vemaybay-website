@@ -54,7 +54,7 @@ class DocumentsViewDetail extends ViewDetail
         $params = array();
         $params[] = $this->_getModuleTitleListParam($browserTitle);
         $params[] = $this->bean->document_name;
-        
+
         return $params;
     }
 
@@ -67,7 +67,64 @@ class DocumentsViewDetail extends ViewDetail
             $this->displayErrors();
         }
 
-
+        $this->populateCustomCode();
         parent::display();
+        $this->getScripts();
+    }
+
+    private function populateCustomCode()
+    {
+        global $sugar_config;
+
+        // Custom filename display with direct download link from doc_url
+        $filename_html = '';
+        if (!empty($this->bean->filename)) {
+            // Use direct public share download URL (already has /download)
+            $downloadUrl = !empty($this->bean->doc_url) ? $this->bean->doc_url . '/download' : "";
+            
+            if (!empty($downloadUrl)) {
+                $filename_html = '<a href="' . $downloadUrl . '" target="_blank" class="tabDetailViewDFLink">' . $this->bean->filename . '</a>';
+            } else {
+                $filename_html = '<span class="tabDetailViewDFLink">' . $this->bean->filename . '</span>';
+            }
+        }
+        $this->ss->assign('CUSTOM_FILENAME', $filename_html);
+
+        $preview_html = '';
+
+        // Get the document revision to check MIME type
+        $revision = BeanFactory::getBean('DocumentRevisions', $this->bean->document_revision_id);
+        
+        // Check if the file is an image based on MIME type
+        if (!empty($revision->id) && !empty($revision->file_mime_type) && strpos($revision->file_mime_type, 'image/') === 0) {
+            // Use direct public share download URL (already has /download)
+            $previewUrl = !empty($revision->doc_url) ? $revision->doc_url . '/preview' : (!empty($this->bean->doc_url) ? $this->bean->doc_url : "");
+            
+            if (!empty($previewUrl)) {
+                // Render HTML - Using direct public share URL with /download (works for both preview and download)
+                $preview_html = '<div class="preview-photo-container">
+                    <img id="previewImage" src="' . $previewUrl . '"
+                        style="max-width: 70%; max-height: 300px; object-fit: contain; cursor: zoom-in;"
+                        alt="Preview Photo"
+                        onerror="this.parentElement.innerHTML=\'<div class=\\\'no-preview-photo\\\' style=\\\'color:#999;\\\'>Không thể tải ảnh (Lỗi kết nối)</div>\';">
+                </div>';
+            } else {
+                $preview_html = '<div class="no-preview-photo" style="color:#999;">Chưa có link download công khai</div>';
+            }
+        } else {
+            // Not an image or no revision found - show placeholder
+            $preview_html = '<div class="no-preview-photo" style="color:#999;">File không phải là hình ảnh</div>';
+        }
+
+        $this->ss->assign('PREVIEW_IMAGE_HTML', $preview_html);
+    }
+    //Load ViewerJS scripts (for zoom image)
+    private function getScripts()
+    {
+        echo '
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.css">
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.js"></script>
+            <script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.0.0">
+        ';
     }
 }

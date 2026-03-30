@@ -10,8 +10,8 @@ require_once('include/EditView/SugarVCR.php');
  */
 class ListView
 {
-    public $local_theme= null;
-    public $local_app_strings= null;
+    public $local_theme = null;
+    public $local_app_strings = null;
     public $local_image_path = null;
     public $local_current_module = null;
     public $local_mod_strings = null;
@@ -46,12 +46,12 @@ class ListView
     public $child_focus = '';
     public $layout_manager = null;
     public $process_for_popups = false;
-    public $multi_select_popup=false;
+    public $multi_select_popup = false;
     public $_additionalDetails = false;
     public $additionalDetailsFunction = null;
     public $sort_order = '';
-    public $force_mass_update=false;
-    public $keep_mass_update_form_open=false;
+    public $force_mass_update = false;
+    public $keep_mass_update_form_open = false;
     public $ignorePopulateOnly = false;
 
     public function setDataArray($value)
@@ -66,7 +66,7 @@ class ListView
         echo "<form name='MassUpdate' method='post' action='index.php'>";
         $this->processListViewTwo($seed, $xTemplateSection, $html_varName);
 
-        echo "<a href='javascript:" . ((!$this->multi_select_popup) ? 'sListView.' : ''). "check_all(document.MassUpdate, \"mass[]\", true)'>".translate('LBL_CHECKALL')."</a> - <a href='javascript:sListView.check_all(document.MassUpdate, \"mass[]\", false);'>".translate('LBL_CLEARALL')."</a>";
+        echo "<a href='javascript:" . ((!$this->multi_select_popup) ? 'sListView.' : '') . "check_all(document.MassUpdate, \"mass[]\", true)'>" . translate('LBL_CHECKALL') . "</a> - <a href='javascript:sListView.check_all(document.MassUpdate, \"mass[]\", false);'>" . translate('LBL_CLEARALL') . "</a>";
         echo '<br><br>';
     }
 
@@ -77,13 +77,13 @@ class ListView
 
         $populateOnly = $this->ignorePopulateOnly ? false : (!empty($sugar_config['save_query']) && $sugar_config['save_query'] == 'populate_only');
         if (isset($seed->module_dir) && $populateOnly) {
-            if (empty($GLOBALS['displayListView']) && strcmp(strtolower($_REQUEST['action']), 'popup') != 0 && (!empty($_REQUEST['clear_query']) || $_REQUEST['module'] == $seed->module_dir && ((empty($_REQUEST['query']) || $_REQUEST['query'] == 'MSI')&& (empty($_SESSION['last_search_mod']) || $_SESSION['last_search_mod'] != $seed->module_dir)))) {
-                $_SESSION['last_search_mod'] = $_REQUEST['module'] ;
+            if (empty($GLOBALS['displayListView']) && strcmp(strtolower($_REQUEST['action']), 'popup') != 0 && (!empty($_REQUEST['clear_query']) || $_REQUEST['module'] == $seed->module_dir && ((empty($_REQUEST['query']) || $_REQUEST['query'] == 'MSI') && (empty($_SESSION['last_search_mod']) || $_SESSION['last_search_mod'] != $seed->module_dir)))) {
+                $_SESSION['last_search_mod'] = $_REQUEST['module'];
                 return;
             }
         }
         if (strcmp(strtolower($_REQUEST['action']), 'popup') != 0) {
-            $_SESSION['last_search_mod'] = $_REQUEST['module'] ;
+            $_SESSION['last_search_mod'] = $_REQUEST['module'];
         }
         //following session variable will track the detail view navigation history.
         //needs to the reset after each search.
@@ -93,16 +93,16 @@ class ListView
         $mass = new MassUpdate();
         $add_acl_javascript = false;
         if (!isset($_REQUEST['action'])) {
-            $this->shouldProcess=false;
+            $this->shouldProcess = false;
         } else {
             $this->shouldProcess = is_subclass_of($seed, "SugarBean")
-        && (($_REQUEST['action'] == 'index') || ('ListView' == substr($_REQUEST['action'], 0, 8)) /* cn: to include all ListViewXXX.php type views */)
-        && ($_REQUEST['module'] == $seed->module_dir);
+                && (($_REQUEST['action'] == 'index') || ('ListView' == substr($_REQUEST['action'], 0, 8)) /* cn: to include all ListViewXXX.php type views */)
+                && ($_REQUEST['module'] == $seed->module_dir);
         }
 
         //when processing a multi-select popup.
         if ($this->process_for_popups && $this->multi_select_popup) {
-            $this->shouldProcess =true;
+            $this->shouldProcess = true;
         }
         //mass update turned off?
         if (!$this->show_mass_update) {
@@ -117,7 +117,7 @@ class ListView
                     return;
                 }
                 if (!ACLController::checkAccess($seed->module_dir, 'export', true)) {
-                    $sugar_config['disable_export']= true;
+                    $sugar_config['disable_export'] = true;
                 }
             }
         }
@@ -169,9 +169,9 @@ class ListView
         $parent_data = $list_data['parent_data'];
 
         if ($subpanel_def->isCollection()) {
-            $thepanel=$subpanel_def->get_header_panel_def();
+            $thepanel = $subpanel_def->get_header_panel_def();
         } else {
-            $thepanel=$subpanel_def;
+            $thepanel = $subpanel_def;
         }
 
 
@@ -228,11 +228,11 @@ class ListView
         //Either retrieve the is_fill_in_additional_fields property from the lone
         //subpanel or visit each subpanel's subpanels to retrieve the is_fill_in_addition_fields
         //property
-        $subpanel_list=array();
+        $subpanel_list = array();
         if ($subpanel_def->isCollection()) {
-            $subpanel_list=$subpanel_def->sub_subpanels;
+            $subpanel_list = $subpanel_def->sub_subpanels;
         } else {
-            $subpanel_list[]= $subpanel_def;
+            $subpanel_list[] = $subpanel_def;
         }
 
         foreach ($subpanel_list as $this_subpanel) {
@@ -244,21 +244,22 @@ class ListView
 
         if (empty($data)) {
             $this->xTemplate->assign("ROW_COLOR", 'oddListRow');
-            $thepanel=$subpanel_def;
+            $thepanel = $subpanel_def;
             if ($subpanel_def->isCollection()) {
-                $thepanel=$subpanel_def->get_header_panel_def();
+                $thepanel = $subpanel_def->get_header_panel_def();
             }
             $this->xTemplate->assign("COL_COUNT", count($thepanel->get_list_fields()));
-            $this->xTemplate->parse($xtemplateSection.".nodata");
+            $this->xTemplate->parse($xtemplateSection . ".nodata");
         }
         foreach ($data as $aVal => $aItem) {
             $subpanel_item_count++;
             $aItem->check_date_relationships_load();
             // TODO: expensive and needs to be removed and done better elsewhere
 
-            if (!empty($fill_additional_fields[$aItem->object_name])
-        || ($aItem->object_name == 'Case' && !empty($fill_additional_fields['aCase']))
-        ) {
+            if (
+                !empty($fill_additional_fields[$aItem->object_name])
+                || ($aItem->object_name == 'Case' && !empty($fill_additional_fields['aCase']))
+            ) {
                 $aItem->fill_in_additional_list_fields();
                 //$aItem->fill_in_additional_detail_fields();
             }
@@ -285,7 +286,7 @@ class ListView
 
             if ($this->shouldProcess) {
                 if ($aItem->ACLAccess('EditView')) {
-                    $this->xTemplate->assign('PREROW', "<input type='checkbox' class='checkbox' name='mass[]' value='". $fields['ID']. "' />");
+                    $this->xTemplate->assign('PREROW', "<input type='checkbox' class='checkbox' name='mass[]' value='" . $fields['ID'] . "' />");
                 } else {
                     $this->xTemplate->assign('PREROW', '');
                 }
@@ -294,7 +295,7 @@ class ListView
                 } else {
                     $this->xTemplate->assign('TAG_NAME', 'span');
                 }
-                $this->xTemplate->assign('CHECKALL', "<label class=\"hidden glyphicon bootstrap-checkbox glyphicon-unchecked\"><span class='suitepicon suitepicon-action-caret'></span></label><input type='checkbox'  title='".$GLOBALS['app_strings']['LBL_SELECT_ALL_TITLE']."' class='bootstrap-checkbox-hidden checkbox' name='massall' id='massall' value='' onclick='sListView.check_all(document.MassUpdate, \"mass[]\", this.checked);' />");
+                $this->xTemplate->assign('CHECKALL', "<label class=\"hidden glyphicon bootstrap-checkbox glyphicon-unchecked\"><span class='suitepicon suitepicon-action-caret'></span></label><input type='checkbox'  title='" . $GLOBALS['app_strings']['LBL_SELECT_ALL_TITLE'] . "' class='bootstrap-checkbox-hidden checkbox' name='massall' id='massall' value='' onclick='sListView.check_all(document.MassUpdate, \"mass[]\", this.checked);' />");
             }
 
             if ($oddRow) {
@@ -321,9 +322,9 @@ class ListView
             //select which sub-panel to display here, the decision will be made based on the type of
             //the sub-panel and panel in the bean being processed.
             if ($subpanel_def->isCollection()) {
-                $thepanel=$subpanel_def->sub_subpanels[$aItem->panel_name];
+                $thepanel = $subpanel_def->sub_subpanels[$aItem->panel_name];
             } else {
-                $thepanel=$subpanel_def;
+                $thepanel = $subpanel_def;
             }
 
             /* BEGIN - SECURITY GROUPS */
@@ -346,8 +347,8 @@ class ListView
             /* END - SECURITY GROUPS */
 
             //get data source name
-            $linked_field=$thepanel->get_data_source_name();
-            $linked_field_set=$thepanel->get_data_source_name(true);
+            $linked_field = $thepanel->get_data_source_name();
+            $linked_field_set = $thepanel->get_data_source_name(true);
             static $count;
             if (!isset($count)) {
                 $count = 0;
@@ -358,17 +359,17 @@ class ListView
         $field_acl['ListView'] = $aItem->ACLAccess('ListView');
         $field_acl['EditView'] = $aItem->ACLAccess('EditView');
         $field_acl['Delete'] = $aItem->ACLAccess('Delete');
-            */
+             */
             //pass is_owner, in_group...vars defined above
             $field_acl['DetailView'] = $aItem->ACLAccess('DetailView', $aclaccess_is_owner, $aclaccess_in_group);
             $field_acl['ListView'] = $aItem->ACLAccess('ListView', $aclaccess_is_owner, $aclaccess_in_group);
             $field_acl['EditView'] = $aItem->ACLAccess('EditView', $aclaccess_is_owner, $aclaccess_in_group);
             $field_acl['Delete'] = $aItem->ACLAccess('Delete', $aclaccess_is_owner, $aclaccess_in_group);
             /* END - SECURITY GROUPS */
-            foreach ($thepanel->get_list_fields() as $field_name=>$list_field) {
+            foreach ($thepanel->get_list_fields() as $field_name => $list_field) {
                 //add linked field attribute to the array.
-                $list_field['linked_field']=$linked_field;
-                $list_field['linked_field_set']=$linked_field_set;
+                $list_field['linked_field'] = $linked_field;
+                $list_field['linked_field_set'] = $linked_field_set;
 
                 $usage = empty($list_field['usage']) ? '' : $list_field['usage'];
                 if ($usage == 'query_only' && !empty($list_field['force_query_only_display'])) {
@@ -379,13 +380,13 @@ class ListView
                     $this->xTemplate->assign('CLASS', "");
                     $this->xTemplate->assign('CELL_COUNT', $count);
                     $this->xTemplate->assign('CELL', $widget_contents);
-                    $this->xTemplate->parse($xtemplateSection.".row.cell");
+                    $this->xTemplate->parse($xtemplateSection . ".row.cell");
                 } else {
                     if ($usage != 'query_only') {
-                        $list_field['name']=$field_name;
+                        $list_field['name'] = $field_name;
 
-                        $module_field = $field_name.'_mod';
-                        $owner_field = $field_name.'_owner';
+                        $module_field = $field_name . '_mod';
+                        $owner_field = $field_name . '_owner';
                         if (!empty($aItem->$module_field)) {
                             $list_field['owner_id'] = $aItem->$owner_field;
                             $list_field['owner_module'] = $aItem->$module_field;
@@ -396,7 +397,7 @@ class ListView
                         if (isset($list_field['alias'])) {
                             $list_field['name'] = $list_field['alias'];
                         } else {
-                            $list_field['name']=$field_name;
+                            $list_field['name'] = $field_name;
                         }
                         $list_field['fields'] = $fields;
                         $list_field['module'] = $aItem->module_dir;
@@ -411,7 +412,7 @@ class ListView
                             // backwards compatibility and will be removed in a future release
                             $vardef = $aItem->field_defs[strtolower($list_field['name'])];
                             if (isset($vardef['type'])) {
-                                $fieldType = isset($vardef['custom_type'])?$vardef['custom_type']:$vardef['type'];
+                                $fieldType = isset($vardef['custom_type']) ? $vardef['custom_type'] : $vardef['type'];
                                 $tmpField = SugarFieldHandler::getSugarField($fieldType, true);
                             } else {
                                 $tmpField = null;
@@ -429,12 +430,12 @@ class ListView
                                 // We need to call into the old SugarWidgets for the time being, so it can generate a proper link with all the various corner-cases handled
                                 // So we'll populate the field data with the pre-rendered display for the field
                                 $list_field['fields'][$field_name] = $widget_contents;
-                                if ('full_name' == $field_name) {//bug #32465
+                                if ('full_name' == $field_name) { //bug #32465
                                     $list_field['fields'][strtoupper($field_name)] = $widget_contents;
                                 }
 
                                 //vardef source is non db, assign the field name to varname for processing of column.
-                                if (!empty($vardef['source']) && $vardef['source']=='non-db') {
+                                if (!empty($vardef['source']) && $vardef['source'] == 'non-db') {
                                     $list_field['varname'] = $field_name;
                                 }
                                 $widget_contents = $layout_manager->widgetDisplay($list_field);
@@ -451,7 +452,7 @@ class ListView
                                 $widget_contents = '&nbsp;';
                             }
                             $this->xTemplate->assign('CELL', $widget_contents);
-                            $this->xTemplate->parse($xtemplateSection.".row.cell");
+                            $this->xTemplate->parse($xtemplateSection . ".row.cell");
                         } else {
                             // This handles the edit and remove buttons and icon widget
                             if (isset($list_field['widget_class']) && $list_field['widget_class'] == "SubPanelIcon") {
@@ -463,7 +464,7 @@ class ListView
                                     $widget_contents = '&nbsp;';
                                 }
                                 $this->xTemplate->assign('CELL', $widget_contents);
-                                $this->xTemplate->parse($xtemplateSection.".row.cell");
+                                $this->xTemplate->parse($xtemplateSection . ".row.cell");
                             } elseif (preg_match("/button/i", $list_field['name'])) {
                                 if ((($list_field['name'] === 'edit_button' && $field_acl['EditView']) || ($list_field['name'] === 'close_button' && $field_acl['EditView']) || ($list_field['name'] === 'remove_button' && $field_acl['Delete'])) && '' != ($_content = $layout_manager->widgetDisplay($list_field))) {
                                     $button_contents[] = $_content;
@@ -480,7 +481,7 @@ class ListView
                                     $widget_contents = '&nbsp;';
                                 }
                                 $this->xTemplate->assign('CELL', $widget_contents);
-                                $this->xTemplate->parse($xtemplateSection.".row.cell");
+                                $this->xTemplate->parse($xtemplateSection . ".row.cell");
                             }
                         }
                     }
@@ -499,11 +500,11 @@ class ListView
                     $tempid = create_guid();
                     array_unshift($button_contents, "<div style='display: inline' id='$tempid'>" . array_shift($button_contents) . "</div>");
                     $action_button = smarty_function_sugar_action_menu(array(
-                    'id' => $tempid,
-                    'buttons' => $button_contents,
-                    'class' => 'clickMenu subpanel records fancymenu button',
-                    'flat' => false //assign flat value as false to display dropdown menu at any other preferences.
-                ), $this->xTemplate);
+                        'id' => $tempid,
+                        'buttons' => $button_contents,
+                        'class' => 'clickMenu subpanel records fancymenu button',
+                        'flat' => false //assign flat value as false to display dropdown menu at any other preferences.
+                    ), $this->xTemplate);
                 } else {
                     $action_button = '';
                 }
@@ -520,7 +521,7 @@ class ListView
 
             $count++;
 
-            $this->xTemplate->parse($xtemplateSection.".row");
+            $this->xTemplate->parse($xtemplateSection . ".row");
         }
 
         $this->xTemplate->parse($xtemplateSection);
@@ -530,7 +531,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function setDisplayHeaderAndFooter($bool)
     {
         $this->display_header_and_footer = $bool;
@@ -540,7 +541,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function __construct()
     {
         if (!$this->initialized) {
@@ -549,7 +550,7 @@ class ListView
             $this->initialized = true;
             global $app_strings, $currentModule;
             $this->local_theme = (string)SugarThemeRegistry::current();
-            $this->local_app_strings =$app_strings;
+            $this->local_app_strings = $app_strings;
             $this->local_image_path = SugarThemeRegistry::current()->getImagePath();
             $this->local_current_module = $currentModule;
         }
@@ -559,7 +560,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function setRecordsPerPage($count)
     {
         $this->records_per_page = $count;
@@ -573,7 +574,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function setHeaderText($value)
     {
         $this->header_text = $value;
@@ -582,17 +583,17 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function setXTemplatePath($value)
     {
-        $this->xTemplatePath= $value;
+        $this->xTemplatePath = $value;
     }
 
     /**this is a helper function for allowing ListView to create a new XTemplate it groups parameters that should be set into a single function
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function initNewXTemplate($XTemplatePath, $modString, $imagePath = null)
     {
         $this->setXTemplatePath($XTemplatePath);
@@ -605,9 +606,9 @@ class ListView
     }
 
 
-    public function getOrderBy($varName, $defaultOrderBy='', $force_sortorder='')
+    public function getOrderBy($varName, $defaultOrderBy = '', $force_sortorder = '')
     {
-        $sortBy = $this->getSessionVariable($varName, "ORDER_BY") ;
+        $sortBy = $this->getSessionVariable($varName, "ORDER_BY");
 
         $orderByDirection = $this->getSessionVariableName($varName, "order_by_direction");
         $orderByColumn = $this->getSessionVariableName($varName, "ORDER_BY");
@@ -621,7 +622,7 @@ class ListView
             $this->setUserVariable($varName, "ORDER_BY", $sortBy);
         }
 
-        $desc = $this->getSessionVariable($varName, $sortBy."S");
+        $desc = $this->getSessionVariable($varName, $sortBy . "S");
 
         if (empty($desc)) {
             $desc = $defaultOrder;
@@ -682,8 +683,8 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
-    public function setQuery($where, $limit, $orderBy, $varName, $allowOrderByOveride=true)
+     */
+    public function setQuery($where, $limit, $orderBy, $varName, $allowOrderByOveride = true)
     {
         $this->query_where = $where;
         if ($this->getSessionVariable("query", "where") != $where) {
@@ -704,15 +705,13 @@ class ListView
         $this->setLocalSessionVariable($varName, "ORDER_BY_DETAIL", $this->query_orderby);
     }
 
-    public function displayArrow()
-    {
-    }
+    public function displayArrow() {}
 
     /**sets the theme used only use if it is different from the global
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function setTheme($theme)
     {
         $this->local_theme = $theme;
@@ -725,7 +724,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function setAppStrings($app_strings)
     {
         unset($this->local_app_strings);
@@ -739,7 +738,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function setModStrings($mod_strings)
     {
         unset($this->local_module_strings);
@@ -753,7 +752,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function setImagePath($image_path)
     {
         $this->local_image_path = $image_path;
@@ -769,7 +768,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function setCurrentModule($currentModule)
     {
         unset($this->local_current_module);
@@ -783,7 +782,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function createXTemplate()
     {
         if (!isset($this->xTemplate)) {
@@ -806,7 +805,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function setXTemplate($newXTemplate)
     {
         $this->xTemplate = $newXTemplate;
@@ -816,7 +815,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function getXTemplate()
     {
         return $this->xTemplate;
@@ -826,7 +825,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function xTemplateAssign($name, $value)
     {
         if (!isset($this->xTemplate)) {
@@ -858,7 +857,7 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function setOffset($localVarName, $value)
     {
         $this->setSessionVariable($localVarName, "offset", $value);
@@ -868,10 +867,10 @@ class ListView
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function setSessionVariable($localVarName, $varName, $value)
     {
-        $_SESSION[$this->local_current_module."_".$localVarName."_".$varName] = $value;
+        $_SESSION[$this->local_current_module . "_" . $localVarName . "_" . $varName] = $value;
     }
 
     public function setUserVariable($localVarName, $varName, $value)
@@ -880,14 +879,14 @@ class ListView
             return;
         }
         global $current_user;
-        $current_user->setPreference($this->local_current_module."_".$localVarName."_".$varName, $value);
+        $current_user->setPreference($this->local_current_module . "_" . $localVarName . "_" . $varName, $value);
     }
 
     /**INTERNAL FUNCTION returns a session variable first checking the query for it then checking the session
      * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
      * All Rights Reserved.
      * Contributor(s): ______________________________________.
-    */
+     */
     public function getSessionVariable($localVarName, $varName)
     {
         //Set any variables pass in through request first
@@ -926,10 +925,10 @@ class ListView
     public function calculateSortOrder($sortOrderList)
     {
         $priority_map = array(
-          'request',
-          'session',
-          'subpaneldefs',
-          'default',
+            'request',
+            'session',
+            'subpaneldefs',
+            'default',
         );
 
         foreach ($priority_map as $p) {
@@ -946,33 +945,33 @@ class ListView
 
     /**
 
-    * @return void
-    * @param unknown $localVarName
-    * @param unknown $varName
-    * @desc INTERNAL FUNCTION returns the session/query variable name
-    * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
-    * All Rights Reserved.
-    * Contributor(s): ______________________________________..
-    */
+     * @return void
+     * @param unknown $localVarName
+     * @param unknown $varName
+     * @desc INTERNAL FUNCTION returns the session/query variable name
+     * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
+     * All Rights Reserved.
+     * Contributor(s): ______________________________________..
+     */
     public function getSessionVariableName($localVarName, $varName)
     {
-        return $this->local_current_module."_".$localVarName."_".$varName;
+        return $this->local_current_module . "_" . $localVarName . "_" . $varName;
     }
 
     /**
 
-    * @return void
-    * @param unknown $seed
-    * @param unknown $xTemplateSection
-    * @param unknown $html_varName
-    * @desc INTERNAL FUNCTION Handles List Views using seeds that extend SugarBean
+     * @return void
+     * @param unknown $seed
+     * @param unknown $xTemplateSection
+     * @param unknown $html_varName
+     * @desc INTERNAL FUNCTION Handles List Views using seeds that extend SugarBean
         $XTemplateSection is the section in the XTemplate file that should be parsed usually main
         $html_VarName is the variable name used in the XTemplateFile e.g. TASK
         $seed is a seed that extends SugarBean
-        * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc..
-        * All Rights Reserved..
-        * Contributor(s): ______________________________________..
-    */
+     * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc..
+     * All Rights Reserved..
+     * Contributor(s): ______________________________________..
+     */
     public function processSugarBean($xtemplateSection, $html_varName, $seed)
     {
         global $list_view_row_count;
@@ -984,7 +983,7 @@ class ListView
         SugarVCR::erase($seed->module_dir);
         $params = array();
         //$filter = array('id', 'full_name');
-        $filter=array();
+        $filter = array();
         $ret_array = $seed->create_new_list_query($this->query_orderby, $this->query_where, $filter, $params, 0, '', true, $seed, true);
         if (!is_array($params)) {
             $params = array();
@@ -1090,17 +1089,18 @@ class ListView
 
         $this->getOrderBy($html_var, $this->query_orderby, $this->sort_order);
 
-        $_SESSION['last_sub' .$this->subpanel_module. '_order'] = $this->sort_order;
-        $_SESSION['last_sub' .$this->subpanel_module. '_url'] = $this->getBaseURL($html_var);
+        $_SESSION['last_sub' . $this->subpanel_module . '_order'] = $this->sort_order;
+        $_SESSION['last_sub' . $this->subpanel_module . '_url'] = $this->getBaseURL($html_var);
 
         // Bug 8139 - Correct Subpanel sorting on 'name', when subpanel sorting default is 'last_name, first_name'
         if (($this->sortby == 'name' || $this->sortby == 'last_name') &&
-            str_replace(' ', '', trim($subpanel_def->_instance_properties['sort_by'])) == 'last_name,first_name') {
-            $this->sortby = 'last_name '.$this->sort_order.', first_name ';
+            str_replace(' ', '', trim($subpanel_def->_instance_properties['sort_by'])) == 'last_name,first_name'
+        ) {
+            $this->sortby = 'last_name ' . $this->sort_order . ', first_name ';
         }
         try {
             if (!empty($this->response)) {
-                $response =& $this->response;
+                $response = &$this->response;
                 echo 'cached';
             } else {
                 $response = SugarBean::get_union_related_list(
@@ -1114,7 +1114,7 @@ class ListView
                     $this->query_limit,
                     $subpanel_def
                 );
-                $this->response =& $response;
+                $this->response = &$response;
             }
         } catch (Exception $ex) {
             LoggerManager::getLogger()->fatal('[' . __METHOD__ . "] . {$ex->getMessage()}");
@@ -1122,7 +1122,7 @@ class ListView
             return ['list' => [], 'parent_data' => [], 'query' => ''];
         }
         $list = $response['list'];
-        
+
         if (!$countOnly) {
             $row_count = $response['row_count'];
             $next_offset = $response['next_offset'];
@@ -1134,7 +1134,7 @@ class ListView
             $list_view_row_count = $row_count;
             $this->processListNavigation('dyn_list_view', $html_var, $current_offset, $next_offset, $previous_offset, $row_count, $sugarbean, $subpanel_def);
         }
-        
+
         return $response;
     }
 
@@ -1145,7 +1145,7 @@ class ListView
         if (!empty($cache[$html_varName])) {
             return $cache[$html_varName];
         }
-        $blockVariables = array('mass', 'uid', 'massupdate', 'delete', 'merge', 'selectCount','current_query_by_page');
+        $blockVariables = array('mass', 'uid', 'massupdate', 'delete', 'merge', 'selectCount', 'current_query_by_page');
         if (!empty($this->base_URL)) {
             return $this->base_URL;
         }
@@ -1156,28 +1156,30 @@ class ListView
         }
 
         /*fixes an issue with deletes when doing a search*/
-        foreach (array_merge($_GET, $_POST) as $name=>$value) {
+        foreach (array_merge($_GET, $_POST) as $name => $value) {
             //echo ("$name = $value <br/>");
-                if (!empty($value) && $name != 'sort_order' //&& $name != ListView::getSessionVariableName($html_varName,"ORDER_BY")
-                        && $name != ListView::getSessionVariableName($html_varName, "offset")
-                        /*&& substr_count($name, "ORDER_BY")==0*/ && !in_array($name, $blockVariables)) {
-                    if (is_array($value)) {
-                        foreach ($value as $valuename=>$valuevalue) {
-                            if (substr_count($baseurl, '?') > 0) {
-                                $baseurl	.= "&{$name}[]=".$valuevalue;
-                            } else {
-                                $baseurl	.= "?{$name}[]=".$valuevalue;
-                            }
-                        }
-                    } else {
-                        $value = urlencode($value);
+            if (
+                !empty($value) && $name != 'sort_order' //&& $name != ListView::getSessionVariableName($html_varName,"ORDER_BY")
+                && $name != ListView::getSessionVariableName($html_varName, "offset")
+                /*&& substr_count($name, "ORDER_BY")==0*/ && !in_array($name, $blockVariables)
+            ) {
+                if (is_array($value)) {
+                    foreach ($value as $valuename => $valuevalue) {
                         if (substr_count($baseurl, '?') > 0) {
-                            $baseurl	.= "&$name=$value";
+                            $baseurl    .= "&{$name}[]=" . $valuevalue;
                         } else {
-                            $baseurl	.= "?$name=$value";
+                            $baseurl    .= "?{$name}[]=" . $valuevalue;
                         }
                     }
+                } else {
+                    $value = urlencode($value);
+                    if (substr_count($baseurl, '?') > 0) {
+                        $baseurl    .= "&$name=$value";
+                    } else {
+                        $baseurl    .= "?$name=$value";
+                    }
                 }
+            }
         }
 
 
@@ -1187,31 +1189,31 @@ class ListView
                 $baseurl .= '?';
             }
             if (isset($_REQUEST['action'])) {
-                $baseurl.= '&action='.$_REQUEST['action'];
+                $baseurl .= '&action=' . $_REQUEST['action'];
             }
             if (isset($_REQUEST['record'])) {
-                $baseurl .= '&record='.$_REQUEST['record'];
+                $baseurl .= '&record=' . $_REQUEST['record'];
             }
             if (isset($_REQUEST['module'])) {
-                $baseurl .= '&module='.$_REQUEST['module'];
+                $baseurl .= '&module=' . $_REQUEST['module'];
             }
         }
 
-        $baseurl .= "&".ListView::getSessionVariableName($html_varName, "offset")."=";
+        $baseurl .= "&" . ListView::getSessionVariableName($html_varName, "offset") . "=";
         $cache[$html_varName] = $baseurl;
         return $baseurl;
     }
     /**
-    * @return void
-    * @param unknown $data
-    * @param unknown $xTemplateSection
-    * @param unknown $html_varName
-    * @desc INTERNAL FUNCTION process the List Navigation
-    * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
-    * All Rights Reserved.
-    * Contributor(s): ______________________________________..
-    */
-    public function processListNavigation($xtemplateSection, $html_varName, $current_offset, $next_offset, $previous_offset, $row_count, $sugarbean=null, $subpanel_def=null, $col_count = 20)
+     * @return void
+     * @param unknown $data
+     * @param unknown $xTemplateSection
+     * @param unknown $html_varName
+     * @desc INTERNAL FUNCTION process the List Navigation
+     * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
+     * All Rights Reserved.
+     * Contributor(s): ______________________________________..
+     */
+    public function processListNavigation($xtemplateSection, $html_varName, $current_offset, $next_offset, $previous_offset, $row_count, $sugarbean = null, $subpanel_def = null, $col_count = 20)
     {
         global $export_module;
         global $sugar_config;
@@ -1231,8 +1233,8 @@ class ListView
 
         $end_record = $start_record + $this->records_per_page;
         // back up the last page.
-        if ($end_record > $row_count+1) {
-            $end_record = $row_count+1;
+        if ($end_record > $row_count + 1) {
+            $end_record = $row_count + 1;
         }
         // Determine the start location of the last page
         if ($row_count == 0) {
@@ -1248,21 +1250,21 @@ class ListView
             $dynamic_url = '';
 
             if ($this->is_dynamic) {
-                $dynamic_url .='&'. $this->getSessionVariableName($html_varName, 'ORDER_BY') . '='. $this->getSessionVariable($html_varName, 'ORDER_BY').'&sort_order='.$this->sort_order.'&to_pdf=true&action=SubPanelViewer&subpanel=' . $this->subpanel_module;
+                $dynamic_url .= '&' . $this->getSessionVariableName($html_varName, 'ORDER_BY') . '=' . $this->getSessionVariable($html_varName, 'ORDER_BY') . '&sort_order=' . $this->sort_order . '&to_pdf=true&action=SubPanelViewer&subpanel=' . $this->subpanel_module;
             }
 
-            $current_URL = htmlentities($this->base_URL.$current_offset.$dynamic_url);
-            $start_URL = htmlentities($this->base_URL."0".$dynamic_url);
-            $previous_URL  = htmlentities($this->base_URL.$previous_offset.$dynamic_url);
-            $next_URL  = htmlentities($this->base_URL.$next_offset.$dynamic_url);
-            $end_URL  = htmlentities($this->base_URL.'end'.$dynamic_url);
+            $current_URL = htmlentities($this->base_URL . $current_offset . $dynamic_url);
+            $start_URL = htmlentities($this->base_URL . "0" . $dynamic_url);
+            $previous_URL  = htmlentities($this->base_URL . $previous_offset . $dynamic_url);
+            $next_URL  = htmlentities($this->base_URL . $next_offset . $dynamic_url);
+            $end_URL  = htmlentities($this->base_URL . 'end' . $dynamic_url);
 
             if (!empty($this->start_link_wrapper)) {
-                $current_URL = $this->start_link_wrapper.$current_URL.$this->end_link_wrapper;
-                $start_URL = $this->start_link_wrapper.$start_URL.$this->end_link_wrapper;
-                $previous_URL = $this->start_link_wrapper.$previous_URL.$this->end_link_wrapper;
-                $next_URL = $this->start_link_wrapper.$next_URL.$this->end_link_wrapper;
-                $end_URL = $this->start_link_wrapper.$end_URL.$this->end_link_wrapper;
+                $current_URL = $this->start_link_wrapper . $current_URL . $this->end_link_wrapper;
+                $start_URL = $this->start_link_wrapper . $start_URL . $this->end_link_wrapper;
+                $previous_URL = $this->start_link_wrapper . $previous_URL . $this->end_link_wrapper;
+                $next_URL = $this->start_link_wrapper . $next_URL . $this->end_link_wrapper;
+                $end_URL = $this->start_link_wrapper . $end_URL . $this->end_link_wrapper;
             }
 
             $moduleString = htmlspecialchars("{$currentModule}_{$html_varName}_offset");
@@ -1276,8 +1278,8 @@ class ListView
                 $select_entire_list = ($massUpdateRun) ? 0 : (isset($_POST['select_entire_list']) ? $_POST['select_entire_list'] : (isset($_REQUEST['select_entire_list']) ? htmlspecialchars($_REQUEST['select_entire_list']) : 0));
 
                 echo "<textarea style='display: none' name='uid'>{$uids}</textarea>\n" .
-                    "<input type='hidden' name='select_entire_list' value='{$select_entire_list}'>\n".
-                    "<input type='hidden' name='{$moduleString}' value='0'>\n".
+                    "<input type='hidden' name='select_entire_list' value='{$select_entire_list}'>\n" .
+                    "<input type='hidden' name='{$moduleString}' value='0'>\n" .
                     "<input type='hidden' name='{$moduleStringOrder}' value='0'>\n";
             }
 
@@ -1285,23 +1287,23 @@ class ListView
             $GLOBALS['log']->debug("Offsets: (start, previous, next, last)(0, $previous_offset, $next_offset, $last_offset)");
 
             if (0 == $current_offset) {
-                $start_link = "<button type='button' name='listViewStartButton' title='{$this->local_app_strings['LNK_LIST_START']}' class='button' disabled>".SugarThemeRegistry::current()->getImage("start_off", "aborder='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_START'])."</button>";
-                $previous_link = "<button type='button' name='listViewPrevButton' title='{$this->local_app_strings['LNK_LIST_PREVIOUS']}' class='button' disabled>".SugarThemeRegistry::current()->getImage("previous_off", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_PREVIOUS'])."</button>";
+                $start_link = "<button type='button' name='listViewStartButton' title='{$this->local_app_strings['LNK_LIST_START']}' class='button' disabled>" . SugarThemeRegistry::current()->getImage("start_off", "aborder='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_START']) . "</button>";
+                $previous_link = "<button type='button' name='listViewPrevButton' title='{$this->local_app_strings['LNK_LIST_PREVIOUS']}' class='button' disabled>" . SugarThemeRegistry::current()->getImage("previous_off", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_PREVIOUS']) . "</button>";
             } else {
-                if ($this->multi_select_popup) {// nav links for multiselect popup, submit form to save checks.
-                    $start_link = "<button type='button' class='button' name='listViewStartButton' title='{$this->local_app_strings['LNK_LIST_START']}' onClick='javascript:save_checks(0, \"{$moduleString}\");'>".SugarThemeRegistry::current()->getImage("start", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_START'])."</button>";
-                    $previous_link = "<button type='button' class='button' name='listViewPrevButton' title='{$this->local_app_strings['LNK_LIST_PREVIOUS']}' onClick='javascript:save_checks($previous_offset, \"{$moduleString}\");'>".SugarThemeRegistry::current()->getImage("previous", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_PREVIOUS'])."</button>";
+                if ($this->multi_select_popup) { // nav links for multiselect popup, submit form to save checks.
+                    $start_link = "<button type='button' class='button' name='listViewStartButton' title='{$this->local_app_strings['LNK_LIST_START']}' onClick='javascript:save_checks(0, \"{$moduleString}\");'>" . SugarThemeRegistry::current()->getImage("start", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_START']) . "</button>";
+                    $previous_link = "<button type='button' class='button' name='listViewPrevButton' title='{$this->local_app_strings['LNK_LIST_PREVIOUS']}' onClick='javascript:save_checks($previous_offset, \"{$moduleString}\");'>" . SugarThemeRegistry::current()->getImage("previous", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_PREVIOUS']) . "</button>";
                 } elseif ($this->shouldProcess) {
-                    $start_link = "<button type='button' class='button' name='listViewStartButton' title='{$this->local_app_strings['LNK_LIST_START']}' onClick='location.href=\"$start_URL\"; sListView.save_checks(0, \"{$moduleString}\");'>".SugarThemeRegistry::current()->getImage("start", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_START'])."</button>";
-                    $previous_link = "<button type='button' class='button' name='listViewPrevButton' title='{$this->local_app_strings['LNK_LIST_PREVIOUS']}' onClick='location.href=\"$previous_URL\"; sListView.save_checks($previous_offset, \"{$moduleString}\");'>".SugarThemeRegistry::current()->getImage("previous", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_PREVIOUS'])."</button>";
+                    $start_link = "<button type='button' class='button' name='listViewStartButton' title='{$this->local_app_strings['LNK_LIST_START']}' onClick='location.href=\"$start_URL\"; sListView.save_checks(0, \"{$moduleString}\");'>" . SugarThemeRegistry::current()->getImage("start", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_START']) . "</button>";
+                    $previous_link = "<button type='button' class='button' name='listViewPrevButton' title='{$this->local_app_strings['LNK_LIST_PREVIOUS']}' onClick='location.href=\"$previous_URL\"; sListView.save_checks($previous_offset, \"{$moduleString}\");'>" . SugarThemeRegistry::current()->getImage("previous", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_PREVIOUS']) . "</button>";
                 } else {
                     $onClick = '';
                     if (0 != preg_match('/javascript.*/', $start_URL)) {
                         $onClick = "\"$start_URL;\"";
                     } else {
-                        $onClick ="'location.href=\"$start_URL\";'";
+                        $onClick = "'location.href=\"$start_URL\";'";
                     }
-                    $start_link = "<button type='button' class='button' name='listViewStartButton' title='{$this->local_app_strings['LNK_LIST_START']}' onClick=".$onClick.">".SugarThemeRegistry::current()->getImage("start", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_START'])."</button>";
+                    $start_link = "<button type='button' class='button' name='listViewStartButton' title='{$this->local_app_strings['LNK_LIST_START']}' onClick=" . $onClick . ">" . SugarThemeRegistry::current()->getImage("start", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_START']) . "</button>";
 
                     $onClick = '';
                     if (0 != preg_match('/javascript.*/', $previous_URL)) {
@@ -1309,31 +1311,31 @@ class ListView
                     } else {
                         $onClick = "'location.href=\"$previous_URL\";'";
                     }
-                    $previous_link = "<button type='button' class='button' name='listViewPrevButton' title='{$this->local_app_strings['LNK_LIST_PREVIOUS']}' onClick=".$onClick.">".SugarThemeRegistry::current()->getImage("previous", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_PREVIOUS'])."</button>";
+                    $previous_link = "<button type='button' class='button' name='listViewPrevButton' title='{$this->local_app_strings['LNK_LIST_PREVIOUS']}' onClick=" . $onClick . ">" . SugarThemeRegistry::current()->getImage("previous", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_PREVIOUS']) . "</button>";
                 }
             }
 
             if ($last_offset <= $current_offset) {
-                $end_link = "<button type='button' name='listViewEndButton' title='{$this->local_app_strings['LNK_LIST_END']}' class='button' disabled>".SugarThemeRegistry::current()->getImage("end_off", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_END'])."</button>";
-                $next_link = "<button type='button' name='listViewNextButton' title='{$this->local_app_strings['LNK_LIST_NEXT']}' class='button' disabled>".SugarThemeRegistry::current()->getImage("next_off", "aborder='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_NEXT'])."</button>";
+                $end_link = "<button type='button' name='listViewEndButton' title='{$this->local_app_strings['LNK_LIST_END']}' class='button' disabled>" . SugarThemeRegistry::current()->getImage("end_off", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_END']) . "</button>";
+                $next_link = "<button type='button' name='listViewNextButton' title='{$this->local_app_strings['LNK_LIST_NEXT']}' class='button' disabled>" . SugarThemeRegistry::current()->getImage("next_off", "aborder='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_NEXT']) . "</button>";
             } else {
                 if ($this->multi_select_popup) { // nav links for multiselect popup, submit form to save checks.
-                    $end_link = "<button type='button' name='listViewEndButton' class='button' title='{$this->local_app_strings['LNK_LIST_END']}' onClick='javascript:save_checks($last_offset, \"{$moduleString}\");'>".SugarThemeRegistry::current()->getImage("end", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_END'])."</button>";
+                    $end_link = "<button type='button' name='listViewEndButton' class='button' title='{$this->local_app_strings['LNK_LIST_END']}' onClick='javascript:save_checks($last_offset, \"{$moduleString}\");'>" . SugarThemeRegistry::current()->getImage("end", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_END']) . "</button>";
                     if (!empty($sugar_config['disable_count_query'])) {
                         $end_link = '';
                     }
-                    $next_link = "<button type='button' name='listViewNextButton' title='{$this->local_app_strings['LNK_LIST_NEXT']}' class='button' onClick='javascript:save_checks($next_offset, \"{$moduleString}\");'>".SugarThemeRegistry::current()->getImage("next", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_NEXT'])."</button>";
+                    $next_link = "<button type='button' name='listViewNextButton' title='{$this->local_app_strings['LNK_LIST_NEXT']}' class='button' onClick='javascript:save_checks($next_offset, \"{$moduleString}\");'>" . SugarThemeRegistry::current()->getImage("next", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_NEXT']) . "</button>";
                 } elseif ($this->shouldProcess) {
-                    $end_link = "<button type='button' name='listViewEndButton' class='button' title='{$this->local_app_strings['LNK_LIST_END']}' onClick='location.href=\"$end_URL\"; sListView.save_checks(\"end\", \"{$moduleString}\");'>".SugarThemeRegistry::current()->getImage("end", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_END'])."</button>";
-                    $next_link = "<button type='button' name='listViewNextButton' class='button' title='{$this->local_app_strings['LNK_LIST_NEXT']}' onClick='location.href=\"$next_URL\"; sListView.save_checks($next_offset, \"{$moduleString}\");'>".SugarThemeRegistry::current()->getImage("next", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_NEXT'])."</button>";
+                    $end_link = "<button type='button' name='listViewEndButton' class='button' title='{$this->local_app_strings['LNK_LIST_END']}' onClick='location.href=\"$end_URL\"; sListView.save_checks(\"end\", \"{$moduleString}\");'>" . SugarThemeRegistry::current()->getImage("end", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_END']) . "</button>";
+                    $next_link = "<button type='button' name='listViewNextButton' class='button' title='{$this->local_app_strings['LNK_LIST_NEXT']}' onClick='location.href=\"$next_URL\"; sListView.save_checks($next_offset, \"{$moduleString}\");'>" . SugarThemeRegistry::current()->getImage("next", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_NEXT']) . "</button>";
                 } else {
                     $onClick = '';
                     if (0 != preg_match('/javascript.*/', $next_URL)) {
                         $onClick = "\"$next_URL;\"";
                     } else {
-                        $onClick ="'location.href=\"$next_URL\";'";
+                        $onClick = "'location.href=\"$next_URL\";'";
                     }
-                    $next_link = "<button type='button' name='listViewNextButton' class='button' title='{$this->local_app_strings['LNK_LIST_NEXT']}' onClick=".$onClick.">".SugarThemeRegistry::current()->getImage("next", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_NEXT'])."</button>";
+                    $next_link = "<button type='button' name='listViewNextButton' class='button' title='{$this->local_app_strings['LNK_LIST_NEXT']}' onClick=" . $onClick . ">" . SugarThemeRegistry::current()->getImage("next", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_NEXT']) . "</button>";
 
                     $onClick = '';
                     if (0 != preg_match('/javascript.*/', $end_URL)) {
@@ -1341,18 +1343,18 @@ class ListView
                     } else {
                         $onClick = "'location.href=\"$end_URL\";'";
                     }
-                    $end_link = "<button type='button' name='listViewEndButton' class='button' title='{$this->local_app_strings['LNK_LIST_END']}' onClick=".$onClick.">".SugarThemeRegistry::current()->getImage("end", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_END'])."</button>";
+                    $end_link = "<button type='button' name='listViewEndButton' class='button' title='{$this->local_app_strings['LNK_LIST_END']}' onClick=" . $onClick . ">" . SugarThemeRegistry::current()->getImage("end", "border='0' align='absmiddle'", null, null, '.gif', $this->local_app_strings['LNK_LIST_END']) . "</button>";
                 }
             }
 
             $GLOBALS['log']->info("Offset (next, current, prev)($next_offset, $current_offset, $previous_offset)");
             $GLOBALS['log']->info("Start/end records ($start_record, $end_record)");
 
-            $end_record = $end_record-1;
+            $end_record = $end_record - 1;
 
             $script_href = "<a  name=\"thispage\" class=\'menuItem\' onmouseover=\'hiliteItem(this,\"yes\");\' onmouseout=\'unhiliteItem(this);\' onclick=\'if (document.MassUpdate.select_entire_list.value==1){document.MassUpdate.select_entire_list.value=0;sListView.check_all(document.MassUpdate, \"mass[]\", true, $this->records_per_page)}else {sListView.check_all(document.MassUpdate, \"mass[]\", true)};\' href=\'#\'>{$this->local_app_strings['LBL_LISTVIEW_OPTION_CURRENT']}&nbsp;&#x28;{$this->records_per_page}&#x29;&#x200E;</a>"
- . "<a  name=\"selectall\" class=\'menuItem\' onmouseover=\'hiliteItem(this,\"yes\");\' onmouseout=\'unhiliteItem(this);\' onclick=\'sListView.check_entire_list(document.MassUpdate, \"mass[]\",true,{$row_count});\' href=\'#\'>{$this->local_app_strings['LBL_LISTVIEW_OPTION_ENTIRE']}&nbsp;&#x28;{$row_count}&#x29;&#x200E;</a>"
- . "<a  name=\"deselect\" class=\'menuItem\' onmouseover=\'hiliteItem(this,\"yes\");\' onmouseout=\'unhiliteItem(this);\' onclick=\'sListView.clear_all(document.MassUpdate, \"mass[]\", false);\' href=\'#\'>{$this->local_app_strings['LBL_LISTVIEW_NONE']}</a>";
+                . "<a  name=\"selectall\" class=\'menuItem\' onmouseover=\'hiliteItem(this,\"yes\");\' onmouseout=\'unhiliteItem(this);\' onclick=\'sListView.check_entire_list(document.MassUpdate, \"mass[]\",true,{$row_count});\' href=\'#\'>{$this->local_app_strings['LBL_LISTVIEW_OPTION_ENTIRE']}&nbsp;&#x28;{$row_count}&#x29;&#x200E;</a>"
+                . "<a  name=\"deselect\" class=\'menuItem\' onmouseover=\'hiliteItem(this,\"yes\");\' onmouseout=\'unhiliteItem(this);\' onclick=\'sListView.clear_all(document.MassUpdate, \"mass[]\", false);\' href=\'#\'>{$this->local_app_strings['LBL_LISTVIEW_NONE']}</a>";
 
             $close_inline_img = SugarThemeRegistry::current()->getImage('close_inline', 'border=0', null, null, ".gif", $app_strings['LBL_CLOSEINLINE']);
 
@@ -1378,7 +1380,7 @@ class ListView
                 if (!empty($GLOBALS['sugar_config']['disable_count_query']) && $GLOBALS['sugar_config']['disable_count_query'] === true && $total > $pageTotal) {
                     $this->show_plus = true;
                     $total =  $pageTotal;
-                    $total_label = $total.'+';
+                    $total_label = $total . '+';
                 } else {
                     $this->show_plus = false;
                     $total_label = $total;
@@ -1388,7 +1390,7 @@ class ListView
                 //Bug#52931: Replace with actionMenu
                 //$select_link = "<a id='select_link' onclick='return select_dialog();' href=\"javascript:void(0)\">".$this->local_app_strings['LBL_LINK_SELECT']."&nbsp;".SugarThemeRegistry::current()->getImage('MoreDetail', 'border=0', 11, 7, '.png', $app_strings['LBL_MOREDETAIL'])."</a>";
                 $menuItems = array(
-                    "<label class=\"hidden glyphicon bootstrap-checkbox glyphicon-unchecked\"><span class='suitepicon suitepicon-action-caret'></span></label><input title=\"".$app_strings['LBL_SELECT_ALL_TITLE']."\" type='checkbox' class='bootstrap-checkbox-hidden checkbox massall' name='massall' id='massall' value='' onclick='sListView.check_all(document.MassUpdate, \"mass[]\", this.checked);' /><a href='javascript: void(0);'></a>",
+                    "<label class=\"hidden glyphicon bootstrap-checkbox glyphicon-unchecked\"><span class='suitepicon suitepicon-action-caret'></span></label><input title=\"" . $app_strings['LBL_SELECT_ALL_TITLE'] . "\" type='checkbox' class='bootstrap-checkbox-hidden checkbox massall' name='massall' id='massall' value='' onclick='sListView.check_all(document.MassUpdate, \"mass[]\", this.checked);' /><a href='javascript: void(0);'></a>",
                     "<a  name='thispage' id='button_select_this_page' class='menuItem' onmouseover='hiliteItem(this,\"yes\");' onmouseout='unhiliteItem(this);' onclick='if (document.MassUpdate.select_entire_list.value==1){document.MassUpdate.select_entire_list.value=0;sListView.check_all(document.MassUpdate, \"mass[]\", true, $pageTotal)}else {sListView.check_all(document.MassUpdate, \"mass[]\", true)};' href='#'>{$app_strings['LBL_LISTVIEW_OPTION_CURRENT']}&nbsp;&#x28;{$pageTotal}&#x29;&#x200E;</a>",
                     "<a  name='selectall' id='button_select_all' class='menuItem' onmouseover='hiliteItem(this,\"yes\");' onmouseout='unhiliteItem(this);' onclick='sListView.check_entire_list(document.MassUpdate, \"mass[]\",true,{$total});' href='#'>{$app_strings['LBL_LISTVIEW_OPTION_ENTIRE']}&nbsp;&#x28;{$total_label}&#x29;&#x200E;</a>",
                     "<a name='deselect' id='button_deselect' class='menuItem' onmouseover='hiliteItem(this,\"yes\");' onmouseout='unhiliteItem(this);' onclick='sListView.clear_all(document.MassUpdate, \"mass[]\", false);' href='#'>{$app_strings['LBL_LISTVIEW_NONE']}</a>",
@@ -1404,11 +1406,11 @@ class ListView
                 $select_link = "&nbsp;";
             }
 
-            $export_link = '<input class="button" type="button" value="'.$this->local_app_strings['LBL_EXPORT'].'" ' .
-                    'onclick="return sListView.send_form(true, \''.$_REQUEST['module'].'\', \'index.php?entryPoint=export\',\''.$this->local_app_strings['LBL_LISTVIEW_NO_SELECTED'].'\')">';
+            $export_link = '<input class="button" type="button" value="' . $this->local_app_strings['LBL_EXPORT'] . '" ' .
+                'onclick="return sListView.send_form(true, \'' . $_REQUEST['module'] . '\', \'index.php?entryPoint=export\',\'' . $this->local_app_strings['LBL_LISTVIEW_NO_SELECTED'] . '\')">';
 
             if ($this->show_delete_button) {
-                $delete_link = '<input class="btn btn-danger" type="button" id="delete_button" name="Delete" value="'.$this->local_app_strings['LBL_DELETE_BUTTON_LABEL'].'" onclick="return sListView.send_mass_update(\'selected\',\''.$this->local_app_strings['LBL_LISTVIEW_NO_SELECTED'].'\', 1)">';
+                $delete_link = '<input class="btn btn-danger" type="button" id="delete_button" name="Delete" value="' . $this->local_app_strings['LBL_DELETE_BUTTON_LABEL'] . '" onclick="return sListView.send_mass_update(\'selected\',\'' . $this->local_app_strings['LBL_LISTVIEW_NO_SELECTED'] . '\', 1)">';
             } else {
                 $delete_link = '&nbsp;';
             }
@@ -1422,11 +1424,11 @@ class ListView
                 function mailmerge_dialog(el) {
                    	var \$dialog = \$('<div></div>')
 					.html('<a  class=\'menuItem\' onmouseover=\'hiliteItem(this,\"yes\");\' onmouseout=\'unhiliteItem(this);\' onclick=\'return sListView.send_form(true, \"MailMerge\", \"index.php\", \"{$this->local_app_strings['LBL_LISTVIEW_NO_SELECTED']}\")\' href=\'javascript:void(0)\'>{$this->local_app_strings['LBL_LISTVIEW_OPTION_SELECTED']}</a>"
-                        . "<a  class=\'menuItem\' onmouseover=\'hiliteItem(this,\"yes\");\' onmouseout=\'unhiliteItem(this);\' href=\'index.php?action=index&module=MailMerge\'>{$this->local_app_strings['LBL_LISTVIEW_OPTION_CURRENT']}</a>"
-                        . "<a  class=\'menuItem\' onmouseover=\'hiliteItem(this,\"yes\");\' onmouseout=\'unhiliteItem(this);\' href=\'index.php?action=index&module=MailMerge&entire=true\'>{$this->local_app_strings['LBL_LISTVIEW_OPTION_ENTIRE']}</a>')
+                    . "<a  class=\'menuItem\' onmouseover=\'hiliteItem(this,\"yes\");\' onmouseout=\'unhiliteItem(this);\' href=\'index.php?action=index&module=MailMerge\'>{$this->local_app_strings['LBL_LISTVIEW_OPTION_CURRENT']}</a>"
+                    . "<a  class=\'menuItem\' onmouseover=\'hiliteItem(this,\"yes\");\' onmouseout=\'unhiliteItem(this);\' href=\'index.php?action=index&module=MailMerge&entire=true\'>{$this->local_app_strings['LBL_LISTVIEW_OPTION_ENTIRE']}</a>')
 					.dialog({
 						autoOpen: false,
-						title: '". $this->local_app_strings['LBL_MAILMERGE']."',
+						title: '" . $this->local_app_strings['LBL_MAILMERGE'] . "',
 						width: 150,
 						position: {
 						    my: myPos,
@@ -1437,24 +1439,26 @@ class ListView
 
                 }
             </script>";
-                $merge_link = "&nbsp;|&nbsp;<a id='mailmerge_link' onclick='return mailmerge_dialog(this)'; href=\"javascript:void(0)\">".$this->local_app_strings['LBL_MAILMERGE']."</a>";
+                $merge_link = "&nbsp;|&nbsp;<a id='mailmerge_link' onclick='return mailmerge_dialog(this)'; href=\"javascript:void(0)\">" . $this->local_app_strings['LBL_MAILMERGE'] . "</a>";
             } else {
                 $merge_link = "&nbsp;";
             }
 
-            $selected_objects_span = "&nbsp;|&nbsp;{$this->local_app_strings['LBL_LISTVIEW_SELECTED_OBJECTS']}<input  style='border: 0px; background: transparent; font-size: inherit; color: inherit' type='text' readonly name='selectCount[]' value='" . ((isset($_POST['mass'])) ? count($_POST['mass']): 0) . "' />";
+            $selected_objects_span = "&nbsp;|&nbsp;{$this->local_app_strings['LBL_LISTVIEW_SELECTED_OBJECTS']}<input  style='border: 0px; background: transparent; font-size: inherit; color: inherit' type='text' readonly name='selectCount[]' value='" . ((isset($_POST['mass'])) ? count($_POST['mass']) : 0) . "' />";
 
-            if ($_REQUEST['module'] == 'Home' || $this->local_current_module == 'Import'
+            if (
+                $_REQUEST['module'] == 'Home' || $this->local_current_module == 'Import'
                 || $this->show_export_button == false
                 || (!empty($sugar_config['disable_export']))
                 || (!empty($sugar_config['admin_export_only'])
-                && !(
-                    is_admin($current_user)
+                    && !(
+                        is_admin($current_user)
                         || (ACLController::moduleSupportsACL($_REQUEST['module'])
                             && ACLAction::getUserAccessLevel($current_user->id, $_REQUEST['module'], 'access') == ACL_ALLOW_ENABLED
                             && (ACLAction::getUserAccessLevel($current_user->id, $_REQUEST['module'], 'admin') == ACL_ALLOW_ADMIN ||
                                 ACLAction::getUserAccessLevel($current_user->id, $_REQUEST['module'], 'admin') == ACL_ALLOW_ADMIN_DEV))
-                ))) {
+                    ))
+            ) {
                 if ($_REQUEST['module'] != 'InboundEmail' && $_REQUEST['module'] != 'EmailMan' && $_REQUEST['module'] != 'iFrames') {
                     $selected_objects_span = '';
                 }
@@ -1474,8 +1478,6 @@ class ListView
                 $html_text = '';
                 $html_text .= "<tr class='pagination' role='presentation'>\n";
                 $html_text .= "<td COLSPAN=\"$col_count\" align=\"right\">\n";
-                //$html_text .= "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"  >$export_link$merge_link$selected_objects_span</td>\n";
-                //$html_text .= "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"  >";
                 if ($subpanel_def != null) {
                     include_once('include/SubPanel/SubPanelTiles.php');
                     $subpanelTiles = new SubPanelTiles($sugarbean);
@@ -1483,7 +1485,7 @@ class ListView
 
                     //attempt to get the query to recreate this subpanel
                     if (!empty($this->response)) {
-                        $response =& $this->response;
+                        $response = &$this->response;
                     } else {
                         $response = SugarBean::get_union_related_list($sugarbean, $this->sortby, $this->sort_order, $this->query_where, $current_offset, -1, $this->records_per_page, $this->query_limit, $subpanel_def);
                         $this->response = $response;
@@ -1497,7 +1499,7 @@ class ListView
                 } else {
                     $html_text .= "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"  nowrap>$select_link&nbsp;$export_link&nbsp;$delete_link&nbsp;$selected_objects_span";
                 }
-                $html_text .= "</td>\n<td nowrap align=\"right\">".$start_link."&nbsp;&nbsp;".$previous_link."&nbsp;&nbsp;<span class='pageNumbers'>(".$start_record." - ".$end_record." ".$this->local_app_strings['LBL_LIST_OF']." ".$row_count.")</span>&nbsp;&nbsp;".$next_link."&nbsp;&nbsp;".$end_link."</td></tr></table>\n";
+                $html_text .= "</td>\n<td nowrap align=\"right\">" . $start_link . "&nbsp;&nbsp;" . $previous_link . "&nbsp;&nbsp;<span class='pageNumbers'>(" . $start_record . " - " . $end_record . " " . $this->local_app_strings['LBL_LIST_OF'] . " " . $row_count . ")</span>&nbsp;&nbsp;" . $next_link . "&nbsp;&nbsp;" . $end_link . "</td></tr></table>\n";
                 $html_text .= "</td>\n";
                 $html_text .= "</tr>\n";
                 $this->xTemplate->assign("PAGINATION", $html_text);
@@ -1507,7 +1509,7 @@ class ListView
             if (empty($_REQUEST['action']) || $_REQUEST['action'] != 'Popup') {
                 $_SESSION['export_where'] = $this->query_where;
             }
-            $this->xTemplate->parse($xtemplateSection.".list_nav_row");
+            $this->xTemplate->parse($xtemplateSection . ".list_nav_row");
         }
     } // end processListNavigation
 
@@ -1517,26 +1519,26 @@ class ListView
             $this->base_URL = $_SERVER['PHP_SELF'];
 
             if (isset($_SERVER['QUERY_STRING'])) {
-                $this->base_URL = preg_replace("/\&".$this->getSessionVariableName($html_varName, "ORDER_BY")."=[0-9a-zA-Z\_\.]*/", "", $this->base_URL .'?'.$_SERVER['QUERY_STRING']);
-                $this->base_URL = preg_replace("/\&".$this->getSessionVariableName($html_varName, "offset")."=[0-9]*/", "", $this->base_URL);
+                $this->base_URL = preg_replace("/\&" . $this->getSessionVariableName($html_varName, "ORDER_BY") . "=[0-9a-zA-Z\_\.]*/", "", $this->base_URL . '?' . $_SERVER['QUERY_STRING']);
+                $this->base_URL = preg_replace("/\&" . $this->getSessionVariableName($html_varName, "offset") . "=[0-9]*/", "", $this->base_URL);
             }
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $this->base_URL .= '?';
                 if (isset($_REQUEST['action'])) {
-                    $this->base_URL .= '&action='.$_REQUEST['action'];
+                    $this->base_URL .= '&action=' . $_REQUEST['action'];
                 }
                 if (isset($_REQUEST['record'])) {
-                    $this->base_URL .= '&record='.$_REQUEST['record'];
+                    $this->base_URL .= '&record=' . $_REQUEST['record'];
                 }
                 if (isset($_REQUEST['module'])) {
-                    $this->base_URL .= '&module='.$_REQUEST['module'];
+                    $this->base_URL .= '&module=' . $_REQUEST['module'];
                 }
             }
-            $this->base_URL .= "&".$this->getSessionVariableName($html_varName, "offset")."=";
+            $this->base_URL .= "&" . $this->getSessionVariableName($html_varName, "offset") . "=";
         }
 
         if ($this->is_dynamic) {
-            $this->base_URL.='&to_pdf=true&action=SubPanelViewer&subpanel=' . $this->source_module;
+            $this->base_URL .= '&to_pdf=true&action=SubPanelViewer&subpanel=' . $this->source_module;
         }
 
         //bug43465 start
@@ -1561,7 +1563,7 @@ class ListView
         }
         //bug43465 end
 
-        $sort_URL_base = $this->base_URL. "&".$this->getSessionVariableName($html_varName, "ORDER_BY")."=";
+        $sort_URL_base = $this->base_URL . "&" . $this->getSessionVariableName($html_varName, "ORDER_BY") . "=";
 
         if ($sort_URL_base !== "") {
             $this->xTemplate->assign("ORDER_BY", $sort_URL_base);
@@ -1572,21 +1574,19 @@ class ListView
     }
 
 
-    public function getAdditionalHeader()
-    {
-    }
+    public function getAdditionalHeader() {}
 
 
     /**
-    * @return void
-    * @param unknown $data
-    * @param unknown $xTemplateSection
-    * @param unknown $html_varName
-    * @desc INTERNAL FUNCTION handles the rows
-    * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
-    * All Rights Reserved.
-    * Contributor(s): ______________________________________..
-    */
+     * @return void
+     * @param unknown $data
+     * @param unknown $xTemplateSection
+     * @param unknown $html_varName
+     * @desc INTERNAL FUNCTION handles the rows
+     * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
+     * All Rights Reserved.
+     * Contributor(s): ______________________________________..
+     */
     public function processListRows($data, $xtemplateSection, $html_varName)
     {
         global $odd_bg;
@@ -1605,7 +1605,7 @@ class ListView
         //GETTING OFFSET
         $offset = (int)$this->getOffset($html_varName);
         $timeStamp = $this->unique_id();
-        $_SESSION[$html_varName."_FROM_LIST_VIEW"] = $timeStamp;
+        $_SESSION[$html_varName . "_FROM_LIST_VIEW"] = $timeStamp;
 
         $associated_row_data = array();
 
@@ -1636,15 +1636,15 @@ class ListView
             if ($this->shouldProcess) {
                 $prerow = '';
                 if (!isset($this->data_array)) {
-                    $prerow .= "<input onclick='sListView.check_item(this, document.MassUpdate)' type='checkbox' class='checkbox' name='mass[]' value='". $fields['ID']. "'>";
+                    $prerow .= "<input onclick='sListView.check_item(this, document.MassUpdate)' type='checkbox' class='checkbox' name='mass[]' value='" . $fields['ID'] . "'>";
                 }
                 $this->xTemplate->assign('PREROW', $prerow);
 
-                $this->xTemplate->assign('CHECKALL', "<label class=\"hidden glyphicon bootstrap-checkbox glyphicon-unchecked\"></label><span class='suitepicon suitepicon-action-caret'></span><input type='checkbox' class='bootstrap-checkbox-hidden checkbox'  title='".$GLOBALS['app_strings']['LBL_SELECT_ALL_TITLE']."'  name='massall' id='massall' value='' onclick='sListView.check_all(document.MassUpdate, \"mass[]\", this.checked)'>");
+                $this->xTemplate->assign('CHECKALL', "<label class=\"hidden glyphicon bootstrap-checkbox glyphicon-unchecked\"></label><span class='suitepicon suitepicon-action-caret'></span><input type='checkbox' class='bootstrap-checkbox-hidden checkbox'  title='" . $GLOBALS['app_strings']['LBL_SELECT_ALL_TITLE'] . "'  name='massall' id='massall' value='' onclick='sListView.check_all(document.MassUpdate, \"mass[]\", this.checked)'>");
             }
             if (!isset($this->data_array)) {
                 $tag = $aItem->listviewACLHelper();
-                $this->xTemplate->assign('TAG', $tag) ;
+                $this->xTemplate->assign('TAG', $tag);
             }
 
             if ($oddRow) {
@@ -1680,14 +1680,14 @@ class ListView
                     if (trim($results['string']) == '') {
                         $results['string'] = $app_strings['LBL_NONE'];
                     }
-                    $fields[$results['fieldToAddTo']] = $fields[$results['fieldToAddTo']].'</a>';
+                    $fields[$results['fieldToAddTo']] = $fields[$results['fieldToAddTo']] . '</a>';
                 }
 
                 if ($aItem->ACLAccess('Delete')) {
-                    $delete = '<a class="listViewTdToolsS1" onclick="return confirm(\''.$this->local_app_strings['NTC_DELETE_CONFIRMATION'].'\')" href="'.'index.php?action=Delete&module='.$aItem->module_dir.'&record='.$fields['ID'].'&return_module='.$aItem->module_dir.'&return_action=index&return_id=">'.$this->local_app_strings['LBL_DELETE_INLINE'].'</a>';
+                    $delete = '<a class="listViewTdToolsS1" onclick="return confirm(\'' . $this->local_app_strings['NTC_DELETE_CONFIRMATION'] . '\')" href="' . 'index.php?action=Delete&module=' . $aItem->module_dir . '&record=' . $fields['ID'] . '&return_module=' . $aItem->module_dir . '&return_action=index&return_id=">' . $this->local_app_strings['LBL_DELETE_INLINE'] . '</a>';
                     require_once('include/Smarty/plugins/function.sugar_action_menu.php');
                     $fields['DELETE_BUTTON'] = smarty_function_sugar_action_menu(array(
-                        'id' => $aItem->module_dir.'_'.$fields['ID'].'_create_button',
+                        'id' => $aItem->module_dir . '_' . $fields['ID'] . '_create_button',
                         'buttons' => array($delete),
                     ), $this);
                 }
@@ -1705,8 +1705,8 @@ class ListView
             if (!isset($this->data_array)) {
                 $aItem->list_view_parse_additional_sections($this->xTemplate, $xtemplateSection);
 
-                if ($this->xTemplate->exists($xtemplateSection.'.row.pro')) {
-                    $this->xTemplate->parse($xtemplateSection.'.row.pro');
+                if ($this->xTemplate->exists($xtemplateSection . '.row.pro')) {
+                    $this->xTemplate->parse($xtemplateSection . '.row.pro');
                 }
             }
             $this->xTemplate->parse($xtemplateSection . '.row');
@@ -1767,11 +1767,11 @@ class ListView
         list($orderBy, $desc) = $this->getOrderByInfo($html_var);
 
         if ($orderBy == 'amount*1') {
-            $orderBy=  'amount';
+            $orderBy =  'amount';
         }
         $buttons = false;
         $col_count = 0;
-        foreach ($subpanel_def->get_list_fields() as $column_name=>$widget_args) {
+        foreach ($subpanel_def->get_list_fields() as $column_name => $widget_args) {
             $usage = empty($widget_args['usage']) ? '' : $widget_args['usage'];
             if ($usage != 'query_only' || !empty($widget_args['force_query_only_display'])) {
                 $imgArrow = '';
@@ -1784,7 +1784,7 @@ class ListView
                 }
 
                 if (!preg_match("/_button/i", $column_name)) {
-                    $widget_args['name']=$column_name;
+                    $widget_args['name'] = $column_name;
                     $widget_args['sort'] = $imgArrow;
                     $widget_args['start_link_wrapper'] = $this->start_link_wrapper;
                     $widget_args['end_link_wrapper'] = $this->end_link_wrapper;
@@ -1832,19 +1832,19 @@ class ListView
 
 
     /**
-    * @return void
-    * @param unknown $seed
-    * @param unknown $xTemplateSection
-    * @param unknown $html_varName
-    * @desc PUBLIC FUNCTION Handles List Views using seeds that extend SugarBean
+     * @return void
+     * @param unknown $seed
+     * @param unknown $xTemplateSection
+     * @param unknown $html_varName
+     * @desc PUBLIC FUNCTION Handles List Views using seeds that extend SugarBean
         $XTemplateSection is the section in the XTemplate file that should be parsed usually main
         $html_VarName is the variable name used in the XTemplateFile e.g. TASK
         $seed is a seed there are two types of seeds one is a subclass of SugarBean, the other is a list usually created from a sugar bean using get_list
         if no XTemplate is set it will create  a new XTemplate
-        * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc..
-        * All Rights Reserved..
-        * Contributor(s): ______________________________________..
-    */
+     * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc..
+     * All Rights Reserved..
+     * Contributor(s): ______________________________________..
+     */
 
     public function processListViewTwo($seed, $xTemplateSection, $html_varName)
     {
@@ -1863,11 +1863,11 @@ class ListView
         }
 
         if (is_object($seed) && isset($seed->object_name) && $seed->object_name == 'WorkFlow') {
-            $tab=array();
+            $tab = array();
             $access = get_workflow_admin_modules_for_user($current_user);
             for ($i = 0; $i < count($list); $i++) {
                 if (!empty($access[$list[$i]->base_module])) {
-                    $tab[]=$list[$i];
+                    $tab[] = $list[$i];
                 }
             }
             $list = $tab;
@@ -1956,10 +1956,9 @@ class ListView
 
     public function getArrowImageSize()
     {
-        // jbasicChartDashletsExpColust get the non-sort image's size.. the up and down have be the same.
         $image = SugarThemeRegistry::current()->getImageURL("arrow.gif", false);
 
-        $cache_key = 'arrow_size.'.$image;
+        $cache_key = 'arrow_size.' . $image;
 
         // Check the cache
         $result = sugar_cache_retrieve($cache_key);
@@ -1978,7 +1977,7 @@ class ListView
         // just get the non-sort image's size.. the up and down have be the same.
         $image = SugarThemeRegistry::current()->getImageURL("arrow{$upDown}.gif", false);
 
-        $cache_key = 'arrowupdown_size.'.$image;
+        $cache_key = 'arrowupdown_size.' . $image;
 
         // Check the cache
         $result = sugar_cache_retrieve($cache_key);
@@ -1995,9 +1994,9 @@ class ListView
     public function getOrderByInfo($html_varName)
     {
         $orderBy = $this->getSessionVariable($html_varName, "OBL");
-        $desc = $this->getSessionVariable($html_varName, $orderBy.'S');
+        $desc = $this->getSessionVariable($html_varName, $orderBy . 'S');
         $orderBy = str_replace('.', '_', $orderBy);
-        return array($orderBy,$desc);
+        return array($orderBy, $desc);
     }
 
     public function processSortArrows($html_varName)
@@ -2019,7 +2018,7 @@ class ListView
             if ($orderBy == 'amount_usdollar') {
                 $this->xTemplateAssign('amount_usdollar_arrow', $imgArrow);
             } else {
-                $this->xTemplateAssign($orderBy.'_arrow', $imgArrow);
+                $this->xTemplateAssign($orderBy . '_arrow', $imgArrow);
             }
         }
 
@@ -2031,7 +2030,7 @@ class ListView
     {
         $this->list_field_defs = $subpanel_fields;
 
-        for ($i=0;$i < count($this->list_field_defs);$i++) {
+        for ($i = 0; $i < count($this->list_field_defs); $i++) {
             $list_field = $this->list_field_defs[$i];
             $field_def = null;
             $key = '';
@@ -2047,7 +2046,7 @@ class ListView
                 $list_field['label'] = translate($key, $child_focus->module_dir);
                 $this->list_field_defs[$i]['label'] = preg_replace('/:$/', '', $list_field['label']);
             } else {
-                $this->list_field_defs[$i]['label'] ='&nbsp;';
+                $this->list_field_defs[$i]['label'] = '&nbsp;';
             }
         }
     }
@@ -2059,25 +2058,25 @@ class ListView
 
     /**INTERNAL FUNCTION sets a session variable keeping it local to the listview
     not the current_module
-    * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
-    * All Rights Reserved.
-    * Contributor(s): ______________________________________.
-    */
+     * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
+     * All Rights Reserved.
+     * Contributor(s): ______________________________________.
+     */
     public function setLocalSessionVariable($localVarName, $varName, $value)
     {
-        $_SESSION[$localVarName."_".$varName] = $value;
+        $_SESSION[$localVarName . "_" . $varName] = $value;
     }
 
     /**INTERNAL FUNCTION returns a session variable that is local to the listview,
     not the current_module
-    * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
-    * All Rights Reserved.
-    * Contributor(s): ______________________________________.
-    */
+     * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
+     * All Rights Reserved.
+     * Contributor(s): ______________________________________.
+     */
     public function getLocalSessionVariable($localVarName, $varName)
     {
-        if (isset($_SESSION[$localVarName."_".$varName])) {
-            return $_SESSION[$localVarName."_".$varName];
+        if (isset($_SESSION[$localVarName . "_" . $varName])) {
+            return $_SESSION[$localVarName . "_" . $varName];
         } else {
             return "";
         }

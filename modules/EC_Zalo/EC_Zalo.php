@@ -1,4 +1,6 @@
 <?php
+require_once "custom/include/helpers/api/APIZaloOA.php";
+
 class EC_Zalo extends Basic {
     public $new_schema = true;
     public $module_dir = 'EC_Zalo';
@@ -22,15 +24,28 @@ class EC_Zalo extends Basic {
     public $assigned_user_name;
     public $assigned_user_link;
     public $SecurityGroups;
+
+    public $oa_alias;
+    public $oa_type;
+    public $cate_name;
+    public $is_verified;
+    public $num_follower;
+    public $avatar;
+    public $cover;
+    public $package_name;
+    public $package_valid_through_date;
+    public $package_auto_renew_date;
+    public $linked_zca;
+    public $api_oauth_info;
+    public $quota_info;
+    public $secret_key;
 	
-    public function bean_implements($interface)
-    {
+    public function bean_implements($interface) {
         switch($interface)
         {
             case 'ACL':
                 return true;
         }
-
         return false;
     }
 }

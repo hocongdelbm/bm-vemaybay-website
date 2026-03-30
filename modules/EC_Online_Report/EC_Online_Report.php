@@ -29,6 +29,15 @@ class EC_Online_Report extends Basic
 
 	public $start_online;
 	public $status;
+	public $booking_id;
+	public $last_online;
+	public $start_assign;
+	public $round;
+	public $total_qty;
+	public $ranking;
+	public $title;
+	public $kpi;
+
 
 	public function bean_implements($interface)
 	{
@@ -54,7 +63,6 @@ class EC_Online_Report extends Basic
 			'e4a1676e-536d-b5d2-75c2-6502656a118b', //cuongnv
 		);
 		$time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
-
 
 		// kt số người online
 		$sql_onl_cnt = '

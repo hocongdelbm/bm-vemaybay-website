@@ -20,14 +20,9 @@
                });
 
                $('#checkall').change(function () {
-                    let is_check_all = $(this).is(':checked');
-                    if (is_check_all) {
-                         $('input:checkbox[name="sochungtu_id[]"]').attr('checked', true);
-                    } else {
-                         $('input:checkbox[name="sochungtu_id[]"]').attr('checked', false);
-                    }
+                    $('input:checkbox[name="sochungtu_id[]"]').prop('checked', this.checked);
                });
-
+               
                $('#btnView').on('click', function () {
                     let from_date   = $('#from_date').val();
                     let to_date     = $('#to_date').val();
@@ -86,7 +81,7 @@
 {php}
     } else {
 {/php}
-<h1 class="report_title title">Danh sách hóa đơn ghi sổ</h1>
+<h1 class="report_title title">Danh sách hóa đơn ghi sổ / Đã ký</h1>
 
 <div class="box-section">
      <div id="signed_invoice">
@@ -140,11 +135,11 @@
                     <thead>
                          <th width="3%"><input type="checkbox" id="checkall" value="0"/></th>
                          <th width="8%">Ngày hóa đơn</th>
-                         <!-- <th width="8%">Ngày ký</th>  -->
-                         <th width="10%">Số chứng từ</th>
+                         <th width="8%">Số chứng từ</th>
+                         <th width="8%">Tình trạng</th> 
                          <th width="8%">Số hóa đơn</th> 
                          <th width="20%">Tên khách hàng / Cty</th>
-                         <th width="25%">Địa chỉ</th>
+                         <th width="20%">Địa chỉ</th>
                          <th width="10%">Mã số thuế</th>
                          <th width="10%">Thành tiền</th>
                          <th>Đơn vị</th>

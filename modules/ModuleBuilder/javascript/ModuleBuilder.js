@@ -983,11 +983,6 @@ if (typeof('console') == 'undefined') {
           function () {
           }
         );
-        ModuleBuilder.asyncRequest(
-          'module=Administration&action=RebuildDashlets&silent=true',
-          function () {
-          }
-        );
 
         ModuleBuilder.failed = function () {
         };

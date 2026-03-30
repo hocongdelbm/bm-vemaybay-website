@@ -1,42 +1,5 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 /**
  * ResourceManager.php
@@ -58,9 +21,7 @@ class ResourceManager
     /**
      * The constructor; declared as private
      */
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     /**
      * getInstance
@@ -79,8 +40,6 @@ class ResourceManager
     /**
      * setup
      * Handles determining the appropriate setup based on client type.
-     * It will create a SoapResourceObserver instance if the $module parameter is set to
-     * 'Soap'; otherwise, it will try to create a WebResourceObserver instance.
      * @param string $module The module value used to create the corresponding observer
      * @return boolean value indicating whether or not an observer was successfully setup
      */
@@ -91,10 +50,7 @@ class ResourceManager
             return false;
         }
 
-        if ($module == 'Soap') {
-            require_once('include/resource/Observers/SoapResourceObserver.php');
-            $observer = new SoapResourceObserver('Soap');
-        } elseif (defined('SUITE_PHPUNIT_RUNNER')) {
+        if (defined('SUITE_PHPUNIT_RUNNER')) {
             return;
         } else {
             require_once('include/resource/Observers/WebResourceObserver.php');
@@ -107,7 +63,8 @@ class ResourceManager
 
             if (isset($GLOBALS['sugar_config']['resource_management'])) {
                 $res = $GLOBALS['sugar_config']['resource_management'];
-                if (!empty($res['special_query_modules']) &&
+                if (
+                    !empty($res['special_query_modules']) &&
                     in_array($observer->module, $res['special_query_modules']) &&
                     !empty($res['special_query_limit']) &&
                     is_int($res['special_query_limit']) &&

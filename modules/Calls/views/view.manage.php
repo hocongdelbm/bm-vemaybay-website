@@ -2,194 +2,6 @@
 require_once("include/Sugar_Smarty.php");
 
 class Viewmanage extends SugarView {
-     private $list_phone = [
-          'HOTLINE' => [
-               '1900636060' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '1900636063' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-          ],
-          'VIETTEL' => [
-               '0968304455' => [
-                    'action' => 'inbound-only',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0973834501' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0973891401' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0974015001' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0974091002' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0983171970' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0983103703' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0983129202' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '02866509900' => [
-                    'action' => 'inbound-only',
-                    'label'   => 'Sữa tươi Úc',
-                    'brandname'   => 'Travelpass',
-               ],
-
-               // 01/07/2024
-               '0962768782' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0963323407' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0963498793' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0963678130' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0963986905' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0963987527' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0964031020' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0964359785' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-
-          ],
-          'MOBIFONE' => [
-               '0933296508' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0933297608' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0933026416' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0933625233' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0933799860' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0933611306' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0937523198' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0937451098' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-          ],
-          'VINAPHONE' => [
-               '0913030802' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0914491010' => [
-                    'action' => 'inbound-only',
-                    'label'   => 'Sữa tươi Úc',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0918038348' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0919018102' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-          ],
-          'VNPT' => [
-               '02839977788' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '02839977799' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-          ],
-          'FPT' => [
-               '02873001886' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ]
-          ]
-     ];
-
      function display() {
           $smartyCont = new Sugar_Smarty();
           $this->populateContent($smartyCont);
@@ -199,40 +11,39 @@ class Viewmanage extends SugarView {
 
      function populateContent($smartyobj) {
           $tr = '';
-          foreach($this->list_phone as $carrier => $list) {
-               $i = 1;
-               $row = '';
-               foreach($list as $number => $value) {
-                    if($value['action'] == 'inbound-only') $text_number = '<b>'.formatPhoneNumber($number) . '</b> <i style="margin-left:15px">(Không gọi ra)</i>';
-                    elseif($carrier == 'HOTLINE') $text_number = '<b>'.$number.'</b>';
-                    else $text_number = '<b>'.formatPhoneNumber($number) . '</b>';
+          $pbx = BeanFactory::getBean('Calls');
+          $list_phone = $pbx->get_list_phone_pbx();
 
-                    if($value['label'] == 'Sữa tươi Úc') $text_label = '<span  class="fw-semibold text-primary">Sữa tươi Úc</span>';
-                    else $text_label = $value['label'];
-
-                    if($value['label'] == 'Sữa tươi Úc') $website = 'suatuoiuc.vn';
-                    else $website = getCallSource($number);
-
-                    $row .= '<tr>
-                         <td>'.$text_number.'</td>
-                         <td class="text-center fw-semibold '.($value['brandname'] == 'Travelpass' ? 'text-primary' : 'text-success').'">'.$value['brandname'].'</td>
-                         <td class="text-center">'.$text_label.'</td>
-                         <td class="text-center"><a href="https://'.$website.'" target="_blank">'.$website.'</a></td>
-                    </tr>';
-                    $i++;
+          if(is_array($list_phone) && count($list_phone) > 0){
+               foreach($list_phone as $carrier => $list) {
+                    $i = 1;
+                    $row = '';
+                    foreach($list as $value) {
+                         if($value['format_phone']){
+                              $text_number = '<b>'.$value['format_phone']. '</b>';
+                         } else $text_number = '<b>'.formatPhoneNumber($value['name']) . '</b>';
+     
+                         $row .= '<tr>
+                              <td><a href="index.php?module=EC_Outbound_Phone&action=DetailView&record='.$value['id'].'" target="_blank">'.$text_number.'</a></td>
+                              <td class="text-center fw-semibold '.($value['brand_name'] == 'Travelpass' ? 'text-primary' : 'text-success').'">'.$value['brand_name'].'</td>
+                              <td class="text-center">'.$value['label'].'</td>
+                              <td class="text-center"><a href="https://'.$value['website'].'" target="_blank">'.$value['website'].'</a></td>
+                         </tr>';
+                         $i++;
+                    }
+     
+                    if(strtoupper($carrier) === 'HOTLINE') $carrier = '<b style="color:red">'.$carrier.'</b>';
+                    elseif(strtoupper($carrier) === 'VIETTEL') $carrier = '<b style="color:#ea3a59; text-transform:lowercase;">'.$carrier.'</b>';
+                    elseif(strtoupper($carrier) === 'MOBIPHONE') $carrier = '<b style="color:#006db7">mobi</b><b style="color:#ec1d24">fone</b>';
+                    elseif(strtoupper($carrier) === 'VINAPHONE') $carrier = '<b style="color:#00aeed; text-transform:lowercase;">'.$carrier.'</b>';
+                    elseif(strtoupper($carrier) === 'VNPT') $carrier = '<b style="color:#0066ba; letter-spacing:3px;">'.$carrier.'</b>';
+                    elseif(strtoupper($carrier) === 'FPT') $carrier = '<b style="color:#054da2">F</b><b style="color:#f37021">P</b><b style="color:#52b848">T</b>';
+     
+                    $tr .= '<tr>
+                              <td rowspan="'.$i.'" class="text-center"><b>'.$carrier.'</b></td>
+                              '.$row.'
+                         </tr>';
                }
-
-               if($carrier == 'HOTLINE') $carrier = '<b style="color:red">'.$carrier.'</b>';
-               elseif($carrier == 'VIETTEL') $carrier = '<b style="color:#ea3a59; text-transform:lowercase;">'.$carrier.'</b>';
-               elseif($carrier == 'MOBIFONE') $carrier = '<b style="color:#006db7">mobi</b><b style="color:#ec1d24">fone</b>';
-               elseif($carrier == 'VINAPHONE') $carrier = '<b style="color:#00aeed; text-transform:lowercase;">'.$carrier.'</b>';
-               elseif($carrier == 'VNPT') $carrier = '<b style="color:#0066ba; letter-spacing:3px;">'.$carrier.'</b>';
-               elseif($carrier == 'FPT') $carrier = '<b style="color:#054da2">F</b><b style="color:#f37021">P</b><b style="color:#52b848">T</b>';
-
-               $tr .= '<tr>
-                         <td rowspan="'.$i.'" class="text-center"><b>'.$carrier.'</b></td>
-                         '.$row.'
-                    </tr>';
           }
 
         	$smartyobj->assign('TBODY', $tr);

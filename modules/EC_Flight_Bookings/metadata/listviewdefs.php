@@ -16,6 +16,16 @@ $listViewDefs[$module_name] = array(
         'width' => '12%',
         'default' => true,
     ),
+    'IS_REFERENCE' => array(
+        'label' => 'LBL_IS_REFERENCE',
+        'width' => '12%',
+        'default' => false,
+    ),
+    'IS_PRIOR' => array(
+        'label' => 'LBL_IS_PRIOR',
+        'width' => '12%',
+        'default' => true,
+    ),
     'PHONE' => array(
         'label' => 'LBL_PHONE',
         'width' => '10%',
@@ -25,6 +35,7 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_TOTAL_QTY',
         'width' => '10%',
         'default' => true,
+        'align' => 'center'
     ),
     'EMAIL' => array(
         'label' => 'LBL_EMAIL',
@@ -40,19 +51,19 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_TOTAL_AMOUNT',
         'width' => '10%',
         'default' => true,
+        'align' => 'right'
     ),
     'BOOKING_STATUS' => array(
         'default' => true,
-        'studio' => 'visible',
         'label' => 'LBL_BOOKING_STATUS',
         'width' => '8%',
     ),
-    'RECALL_C' => 
-	array (
-		'width' => '10%',
-		'label' => 'LBL_RECALL_C',
-		'default' => true,
-	),
+    'RECALL_C' => array(
+        'width' => '10%',
+        'label' => 'LBL_RECALL_C',
+        'default' => true,
+        'align' => 'center'
+    ),
     'ASSIGNED_USER_NAME' => array(
         'width' => '9%',
         'label' => 'LBL_ASSIGNED_TO_NAME',
@@ -67,5 +78,5 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_DATE_ENTERED',
         'width' => '15%',
         'default' => true,
-    )
+    ),
 );

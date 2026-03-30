@@ -48,9 +48,6 @@ $viewdefs[$module_name]['EditView'] = array(
 
             array(
                 array(
-                    'name' => 'account',
-                    'label' => 'LBL_ACCOUNT',
-                    'customCode' => '{$TAIKHOAN}',
                 ),
                 array(
                     'name' => 'sort',
@@ -96,7 +93,10 @@ $viewdefs[$module_name]['EditView'] = array(
                     'name' => 'is_sms',
                     'label' => 'LBL_IS_SMS',
                 ),
-                array()
+                array(
+                    'name' => 'is_roll',
+                    'label' => 'LBL_IS_ROLL',
+                ),
             ),
         ),
     ),

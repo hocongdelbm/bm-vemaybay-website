@@ -1,43 +1,4 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2019 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
@@ -46,23 +7,23 @@ $mod_strings = array(
     //module
     'LBL_MODULE_NAME' => 'Tài liệu',
     'LBL_MODULE_TITLE' => 'Tài liệu: Home',
-    'LNK_NEW_DOCUMENT' => 'Tạo Tài liệu',
-    'LNK_DOCUMENT_LIST' => 'Xem Tài liệu',
+    'LNK_NEW_DOCUMENT' => 'Tải lên tài liệu',
+    'LNK_DOCUMENT_LIST' => 'D/s Tài liệu',
     'LBL_DOC_REV_HEADER' => 'Bản sửa Tài liệu',
     'LBL_SEARCH_FORM_TITLE' => 'Tìm kiếm Tài liệu',
     //vardef labels
     'LBL_NAME' => 'Tên Tài liệu',
     'LBL_DESCRIPTION' => 'Mô tả',
-    'LBL_CATEGORY' => 'Chủng loại',
-    'LBL_SUBCATEGORY' => 'Chủng loại phụ',
+    'LBL_CATEGORY' => 'Danh mục',
+    'LBL_SUBCATEGORY' => 'Danh mục phụ',
     'LBL_STATUS' => 'Tình trạng',
-    'LBL_CREATED_BY' => 'Được tạo bởi',
+    'LBL_CREATED_BY' => 'Tạo bởi',
     'LBL_DATE_ENTERED' => 'Ngày tạo',
     'LBL_DATE_MODIFIED' => 'Ngày sửa',
     'LBL_DELETED' => 'Đã xóa',
     'LBL_MODIFIED' => 'Chỉnh sửa bởi Id',
-    'LBL_MODIFIED_USER' => 'Được sửa bởi',
-    'LBL_CREATED' => 'Được tạo bởi',
+    'LBL_MODIFIED_USER' => 'Sửa bởi',
+    'LBL_CREATED' => 'Được ạo bởi',
     'LBL_REVISIONS' => 'Bản sửa',
     'LBL_RELATED_DOCUMENT_ID' => 'ID Tài liệu liên quan',
     'LBL_RELATED_DOCUMENT_REVISION_ID' => 'ID Bản sửa Tài liệu liên quan',
@@ -85,14 +46,14 @@ $mod_strings = array(
     'LBL_NEW_FORM_TITLE' => 'Tài liệu mới',
     //document edit and detail view
     'LBL_DOC_NAME' => 'Tên Tài liệu:',
-    'LBL_FILENAME' => 'Tên tập tin:',
+    'LBL_FILENAME' => 'Tệp đính kèm:',
     'LBL_LIST_FILENAME' => 'Tập tin:',
     'LBL_DOC_VERSION' => 'Phiên bản:',
     'LBL_FILE_UPLOAD' => 'Tập tin:',
 
-    'LBL_CATEGORY_VALUE' => 'Chủng loại:',
-    'LBL_LIST_CATEGORY' => 'Chủng loại',
-    'LBL_SUBCATEGORY_VALUE' => 'Chủng loại phụ:',
+    'LBL_CATEGORY_VALUE' => 'Danh mục:',
+    'LBL_LIST_CATEGORY' => 'Danh mục',
+    'LBL_SUBCATEGORY_VALUE' => 'Danh mục phụ:',
     'LBL_DOC_STATUS' => 'Tình trạng:',
     'LBL_LAST_REV_CREATOR' => 'Bản sửa tạo bởi:',
     'LBL_LASTEST_REVISION_NAME' => 'Tên Bản sửa cuối:',
@@ -110,7 +71,7 @@ $mod_strings = array(
     //document list view.
     'LBL_LIST_FORM_TITLE' => 'Danh sách Tài liệu',
     'LBL_LIST_DOCUMENT' => 'Tài liệu',
-    'LBL_LIST_SUBCATEGORY' => 'Chủng loại phụ',
+    'LBL_LIST_SUBCATEGORY' => 'Danh mục phụ',
     'LBL_LIST_REVISION' => 'Bản sửa',
     'LBL_LIST_LAST_REV_CREATOR' => 'phát hành bởi',
     'LBL_LIST_LAST_REV_DATE' => 'Ngày Bản sửa',
@@ -125,15 +86,15 @@ $mod_strings = array(
     'LBL_FILE_URL' => 'Tập tin url',
 
     //document search form.
-    'LBL_SF_CATEGORY' => 'Chủng loại:',
-    'LBL_SF_SUBCATEGORY' => 'Chủng loại phụ:',
+    'LBL_SF_CATEGORY' => 'Danh mục:',
+    'LBL_SF_SUBCATEGORY' => 'Danh mục phụ:',
 
     'DEF_CREATE_LOG' => 'Tài liệu đã được tạo',
 
     //error messages
     'ERR_DOC_NAME' => 'Tên Tài liệu',
     'ERR_DOC_ACTIVE_DATE' => 'Ngày phát hành',
-    'ERR_FILENAME' => 'Tên tập tin',
+    'ERR_FILENAME' => 'Tệp đính kèm',
     'ERR_DOC_VERSION' => 'Phiên bản Tài liệu',
     'ERR_DELETE_CONFIRM' => 'Bản có muốn xóa Tài liệu này?',
     'ERR_DELETE_LATEST_VERSION' => 'Bạn không thể xóa được Tài liệu này.',
@@ -152,9 +113,9 @@ $mod_strings = array(
     'LBL_DOC_TYPE' => 'Nguồn',
     'LBL_DOC_TYPE_POPUP' => 'Chọn một nguồn mà tài liệu này sẽ là tải lên <br>và từ đó nó sẽ có sẵn.',
     'LBL_DOC_URL' => 'Nguồn Tài liệu URL',
-    'LBL_SEARCH_EXTERNAL_DOCUMENT' => 'Tên tập tin',
+    'LBL_SEARCH_EXTERNAL_DOCUMENT' => 'Tệp đính kèm',
     'LBL_EXTERNAL_DOCUMENT_NOTE' => '20 lần đầu tiên đặt mới sửa đổi các tập tin được hiển thị theo thứ tự trong danh sách dưới đây giảm. Sử dụng tìm kiếm để tìm các tập tin khác.',
-    'LBL_LIST_EXT_DOCUMENT_NAME' => 'Tên tập tin',
+    'LBL_LIST_EXT_DOCUMENT_NAME' => 'Tệp đính kèm',
     'ERR_INVALID_EXTERNAL_API_ACCESS' => 'Người dùng cố gắng truy cập một không hợp lệ ngoài API ({0})',
     'ERR_INVALID_EXTERNAL_API_LOGIN' => 'Kiểm tra đăng nhập thất bại cho bên ngoài API ({0})',
 
@@ -166,4 +127,10 @@ $mod_strings = array(
     'LBL_BUGS_SUBPANEL_TITLE' => 'Lỗi',
 
     'LBL_AOS_CONTRACTS' => 'Hợp đồng',
+
+
+    'LBL_BOOKING_NAME' => 'Booking',
+    'LBL_PREVIEW_PHOTO' => 'Xem trước',
+
+
 );

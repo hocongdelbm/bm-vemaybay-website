@@ -793,42 +793,6 @@ $dictionary['User'] = array(
             'source' => 'non-db',
             'side' => 'left',
         ),
-        'project_resource' =>
-        array(
-            'name' => 'project_resource',
-            'type' => 'link',
-            'relationship' => 'projects_users_resources',
-            'source' => 'non-db',
-            'vname' => 'LBL_PROJECTS',
-        ),
-        'project_users_1' =>
-        array(
-            'name' => 'project_users_1',
-            'type' => 'link',
-            'relationship' => 'project_users_1',
-            'source' => 'non-db',
-            'module' => 'Project',
-            'bean_name' => 'Project',
-            'vname' => 'LBL_PROJECT_USERS_1_FROM_PROJECT_TITLE',
-        ),
-        'am_projecttemplates_resources' =>
-        array(
-            'name' => 'am_projecttemplates_resources',
-            'type' => 'link',
-            'relationship' => 'am_projecttemplates_users_resources',
-            'source' => 'non-db',
-            'vname' => 'LBL_PROJECTS',
-        ),
-        'am_projecttemplates_users_1' =>
-        array(
-            'name' => 'am_projecttemplates_users_1',
-            'type' => 'link',
-            'relationship' => 'am_projecttemplates_users_1',
-            'source' => 'non-db',
-            'module' => 'AM_ProjectTemplates',
-            'bean_name' => 'AM_ProjectTemplates',
-            'vname' => 'LBL_PROJECT_USERS_1_FROM_PROJECT_TITLE',
-        ),
         'SecurityGroups' =>
         array(
             'name' => 'SecurityGroups',
@@ -1256,7 +1220,46 @@ $dictionary['User'] = array(
             'reportable' => 0,
             'len' => 26,
         ),
-
+        // CUSTOM TD
+        'agent_status' => array(
+            'required' => false,
+            'name' => 'agent_status',
+            'vname' => 'LBL_AGENT_STATUS',
+            'massupdate' => false,
+            'type' => 'varchar',
+            'len' => '50',
+            'help' => '',
+            'audited' => 0,
+            'reportable' => 0,
+            'comment' => 'Trạng thái của agent. Quyết định họ có thể tiếp nhận cuộc gọi hay không',
+        ),
+        'td_sip' => array(
+            'required' => false,
+            'name' => 'td_sip',
+            'vname' => 'LBL_TD_SIP',
+            'massupdate' => false,
+            'type' => 'varchar',
+            'len' => 6,
+            'comment' => 'Số SIP',
+        ),
+        'td_password' => array(
+            'required' => false,
+            'name' => 'td_password',
+            'vname' => 'LBL_TD_PASSWORD',
+            'massupdate' => false,
+            'type' => 'varchar',
+            'len' => '50',
+            'comment' => 'td Password',
+        ),
+        'zalo_id' => array(
+            'name'       => 'zalo_id',
+            'vname'      => 'LBL_ZALO_ID',
+            'type'       => 'varchar',
+            'len'        => 25,
+            'default'    => '',
+            'importable' => true,
+            'audited'    => true,
+        ),
     ),
     'indices' => array(
         array(
@@ -1278,6 +1281,7 @@ $dictionary['User'] = array(
                 'id'
             )
         ),
+        array('name' => 'idx_user_zaloid', 'type' => 'index', 'fields' => array('zalo_id')),
     ),
     'relationships' => array(
         'user_direct_reports' => array(

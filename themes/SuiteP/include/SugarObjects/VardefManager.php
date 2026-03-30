@@ -1,43 +1,4 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
 
 /**
  * Vardefs management
@@ -97,7 +58,7 @@ class VardefManager
         }
     }
 
-    public static function addTemplate($module, $object, $template, $object_name=false)
+    public static function addTemplate($module, $object, $template, $object_name = false)
     {
         if ($template == 'default') {
             $template = 'basic';
@@ -127,7 +88,7 @@ class VardefManager
                 }
             }
         }
-       
+
         if (!empty($templates[$template])) {
             if (empty($GLOBALS['dictionary'][$object]['fields'])) {
                 $GLOBALS['dictionary'][$object]['fields'] = array();
@@ -146,7 +107,7 @@ class VardefManager
                 $GLOBALS['dictionary'][$object]['indices'] = array_merge($templates[$template]['indices'], $GLOBALS['dictionary'][$object]['indices']);
             }
             // maintain a record of this objects inheritance from the SugarObject templates...
-            $GLOBALS['dictionary'][$object]['templates'][ $template ] = $template ;
+            $GLOBALS['dictionary'][$object]['templates'][$template] = $template;
         }
     }
 
@@ -175,7 +136,7 @@ class VardefManager
      * @param string $module the name of the module
      * @param string $object the name of the object
      */
-    public static function saveCache($module, $object, $additonal_objects= array())
+    public static function saveCache($module, $object, $additonal_objects = array())
     {
         if (empty($GLOBALS['dictionary'][$object])) {
             $object = BeanFactory::getObjectName($module);
@@ -186,7 +147,7 @@ class VardefManager
 
         $file = create_cache_directory('modules/' . $module . '/' . $object . 'vardefs.php');
 
-        $out="<?php \n \$GLOBALS[\"dictionary\"][\"". $object . "\"]=" . var_export($data, true) .";";
+        $out = "<?php \n \$GLOBALS[\"dictionary\"][\"" . $object . "\"]=" . var_export($data, true) . ";";
         sugar_file_put_contents_atomic($file, $out);
         if (is_file($file) && is_readable($file)) {
             include($file);
@@ -233,7 +194,7 @@ class VardefManager
                 $object_name = $newName != false ? $newName : $object_name;
             }
 
-            $file = sugar_cached('modules/').$module_dir.'/' . $object_name . 'vardefs.php';
+            $file = sugar_cached('modules/') . $module_dir . '/' . $object_name . 'vardefs.php';
 
             if (file_exists($file)) {
                 unlink($file);
@@ -256,10 +217,10 @@ class VardefManager
         // Some of the vardefs do not correctly define dictionary as global.  Declare it first.
         global $dictionary, $beanList;
         $vardef_paths = array(
-                    'modules/'.$module.'/vardefs.php',
-                    'custom/modules/'.$module.'/Ext/Vardefs/vardefs.ext.php',
-                    'custom/Extension/modules/'.$module.'/Ext/Vardefs/vardefs.php'
-                 );
+            'modules/' . $module . '/vardefs.php',
+            'custom/modules/' . $module . '/Ext/Vardefs/vardefs.ext.php',
+            'custom/Extension/modules/' . $module . '/Ext/Vardefs/vardefs.php'
+        );
 
         // Add in additional search paths if they were provided.
         if (!empty($additional_search_paths) && is_array($additional_search_paths)) {
@@ -293,7 +254,7 @@ class VardefManager
         //load custom fields into the vardef cache
         if ($cacheCustom) {
             require_once("modules/DynamicFields/DynamicField.php");
-            $df = new DynamicField($module) ;
+            $df = new DynamicField($module);
             $df->buildCache($module, false);
         }
 
@@ -378,7 +339,7 @@ class VardefManager
         }
 
         sugar_cache_put($cacheKey, $results);
-        return $results ;
+        return $results;
     }
 
 
@@ -396,11 +357,13 @@ class VardefManager
     public static function applyGlobalAccountRequirements($vardef)
     {
         if (isset($GLOBALS['sugar_config']['require_accounts'])) {
-            if (isset($vardef['fields'])
+            if (
+                isset($vardef['fields'])
                 && isset($vardef['fields']['account_name'])
                 && isset($vardef['fields']['account_name']['type'])
                 && $vardef['fields']['account_name']['type'] == 'relate'
-                && isset($vardef['fields']['account_name']['required'])) {
+                && isset($vardef['fields']['account_name']['required'])
+            ) {
                 $vardef['fields']['account_name']['required'] = $GLOBALS['sugar_config']['require_accounts'];
             }
         }
@@ -414,7 +377,7 @@ class VardefManager
      * @param string $object the given object we wish to load the vardefs for
      * @param bool   $refresh whether or not we wish to refresh the cache file.
      */
-    public static function loadVardef($module, $object, $refresh=false, $params = array())
+    public static function loadVardef($module, $object, $refresh = false, $params = array())
     {
         //here check if the cache file exists, if it does then load it, if it doesn't
         //then call refreshVardef
@@ -441,7 +404,7 @@ class VardefManager
             //if the consumer has demanded a refresh or the cache/modules... file
             //does not exist, then we should do out and try to reload things
 
-            $cachedfile = sugar_cached('modules/'). $module . '/' . $object . 'vardefs.php';
+            $cachedfile = sugar_cached('modules/') . $module . '/' . $object . 'vardefs.php';
             if ($refresh || !file_exists($cachedfile)) {
                 VardefManager::refreshVardefs($module, $object, null, true, $params);
             }

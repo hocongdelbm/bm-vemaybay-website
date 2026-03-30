@@ -2,22 +2,14 @@
 $app_list_strings['moduleList']['Home']                   = 'Trang chủ';
 $app_list_strings['moduleList']['Dashboard']              = 'Biểu đồ';
 $app_list_strings['moduleList']['Calendar']               = 'Lịch công tác';
-$app_list_strings['moduleList']['ResourceCalendar']       = 'Quản lý lịch';
 $app_list_strings['moduleList']['Contacts']               = 'Liên hệ';
 $app_list_strings['moduleList']['Emails']                 = 'Email';
 $app_list_strings['moduleList']['EmailMarketing']         = 'Email tiếp thị';
 $app_list_strings['moduleList']['Calls']                  = 'Cuộc gọi';
 $app_list_strings['moduleList']['Calls_Reschedule']       = 'Lịch gọi';
 $app_list_strings['moduleList']['Alerts']                 = 'Thông báo';
-$app_list_strings['moduleList']['Leads']                  = 'Đầu mối';
 $app_list_strings['moduleList']['TemplateSectionLine']    = 'Bản mẫu phần dòng';
-$app_list_strings['moduleList']['Surveys']                = 'Khảo sát';
 $app_list_strings['moduleList']['Schedulers']             = 'Lịch biểu';
-$app_list_strings['moduleList']['SurveyResponses']        = 'Phản hồi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestionResponses'] = 'Trả lời câu hỏi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestions']        = 'Câu hỏi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestionOptions']  = 'Tùy chọn câu hỏi khảo sát';
-
 $app_list_strings['moduleList']['OAuth2Clients']          = 'OAuth2Clients';
 $app_list_strings['moduleList']['OAuthKeys']              = 'OAuthKeys';
 $app_list_strings['moduleList']['Bugs']                   = 'Lỗi';
@@ -33,95 +25,60 @@ $app_list_strings['moduleList']['Newsletters']            = 'Bản tin';
 $app_list_strings['moduleList']['Library']                = 'Thư viện';
 $app_list_strings['moduleList']['TrackerPerfs']           = 'TrackerPerfs';
 $app_list_strings['moduleList']['Queues']                 = 'Hàng đợi';
-$app_list_strings['moduleList']['Prospects']              = 'Tiềm năng';
-$app_list_strings['moduleList']['ProspectLists']          = 'D/s Tiềm năng';
 $app_list_strings['moduleList']['Tasks']                  = 'Công việc';
 $app_list_strings['moduleList']['Meetings']               = 'Hội họp';
 $app_list_strings['moduleList']['Currencies']             = 'Tiền tệ';
-$app_list_strings['moduleList']['Project']                = 'Dự án';
-$app_list_strings['moduleList']['ProjectTask']            = 'Công việc Dự án';
-$app_list_strings['moduleList']['Campaigns']              = 'Chiến dịch';
-$app_list_strings['moduleList']['CampaignLog']            = 'Nhật ký Chiến dịch';
 $app_list_strings['moduleList']['Documents']              = 'Tài liệu';
 $app_list_strings['moduleList']['Activities']             = 'Hoạt động';
 $app_list_strings['moduleList']['Cases']                  = 'Tình huống';
 $app_list_strings['moduleList']['SecurityGroups']         = 'Security Groups';
-
-$app_strings['LBL_LOGIN_AS'] = "Login as ";
-$app_strings['LBL_LOGOUT_AS'] = "Logout as ";
-
 $app_list_strings['moduleList']['OutboundEmailAccounts']  = 'Tài khoản email gửi đi';
 $app_list_strings['moduleList']['InboundEmail']           = 'Hộp thư đến';
 $app_list_strings['moduleList']['EC_Receipt_Voucher']     = 'Phiếu thu';
 $app_list_strings['moduleList']['Notes']                  = 'Ghi chú';
-
-$app_list_strings['receipt_type_list']['cash']            = 'Tiền mặt';
-$app_list_strings['receipt_type_list']['credit_transfer'] = 'Chuyển khoản';
-$app_list_strings['amount_type_list']['vnd']              = 'VNĐ';
-
 $app_list_strings['moduleList']['EC_Payment_Voucher']     = 'Phiếu chi';
 $app_list_strings['moduleList']['EC_Payment_Types']       = 'Loại chi';
-$app_list_strings['moduleList']['EC_Request_Flight']      = 'Yêu cầu';
 $app_list_strings['moduleList']['EC_Debts']               = 'Công nợ';
-$app_list_strings['moduleList']['EC_SMS_Logs']            = 'Tin nhắn';
+$app_list_strings['moduleList']['EC_SMS_Logs']            = 'Tin nhắn (cũ)';
+$app_list_strings['moduleList']['EC_Messages']            = 'Tin nhắn';
 $app_list_strings['moduleList']['Accounts']               = 'Tài khoản';
-$app_list_strings['moduleList']['EC_TaiKhoan']            = 'Tài khoản kế toán';
-$app_list_strings['moduleList']['EC_NhomTaiKhoan']        = 'Nhóm tài khoản';
-$app_list_strings['moduleList']['EC_HoaDonMua']           = 'Hóa đơn mua';
 $app_list_strings['moduleList']['EC_ChiTietTaiKhoan']     = 'Nhập số dư ban đầu';
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
-$app_list_strings['moduleList']['EC_Customer']            = 'Khách hàng';
-
 $app_list_strings['moduleList']['EC_HoanVe']              = 'Hoàn vé';
 $app_list_strings['moduleList']['EC_ChiTietHoanVe']       = 'Chi tiết Hoàn vé';
-
 $app_list_strings['moduleList']['EC_Flight_Bookings']     = 'Booking';
-$app_list_strings['moduleList']['EC_Completed_Bookings']  = 'Completed_Bookings';
 $app_list_strings['moduleList']['EC_Booking_Details']     = 'Booking_Details';
 $app_list_strings['moduleList']['EC_Booking_Itineraries'] = 'Booking_Itineraries';
 $app_list_strings['moduleList']['EC_Booking_Passengers']  = 'Booking_Passengers';
-
 $app_list_strings['moduleList']['EC_Employee_Salary']     = 'Bảng lương';
 $app_list_strings['moduleList']['EC_Commission']          = 'Thưởng doanh số';
-
 $app_list_strings['moduleList']['EC_WorkingOverTimes']    = 'Ngoài giờ';
-$app_list_strings['overtime_status_list']['0']            = 'Mới tạo';
-$app_list_strings['overtime_status_list']['1']            = 'Chờ duyệt';
-$app_list_strings['overtime_status_list']['2']            = 'Đã duyệt';
-
 $app_list_strings['moduleList']['EC_ChuyenTienNoiBo']     = 'Chuyển tiền NB';
 $app_list_strings['moduleList']['EC_Banks']               = 'Ngân hàng';
 $app_list_strings['moduleList']['EC_Bank_Account']        = 'Tài khoản NH';
 $app_list_strings['moduleList']['LZ_Redirect_Login']      = 'Điều hướng';
-
 $app_list_strings['moduleList']['Administration']         = 'Quản trị viên'; // Fix Notice: Undefined index
 $app_list_strings['moduleList']['Employees']              = 'Nhân viên';
 $app_list_strings['moduleList']['Users']                  = 'Người dùng';
 $app_list_strings['moduleList']['ACLRoles']               = 'Quyền người dùng';
-
 $app_list_strings['moduleList']['EC_Vouchers']            = 'Vouchers';
+$app_list_strings['moduleList']['EC_Zalo']                = 'Zalo OA';
+$app_list_strings['moduleList']['EC_TongHop']             = 'Tổng hợp';
+$app_list_strings['moduleList']['EC_LeaveAbsenceTypes']   = 'Loại nghỉ phép';
+$app_list_strings['moduleList']['EC_LeaveAbsences']       = 'Nghỉ phép';
+$app_list_strings['moduleList']['EC_LyDoThangThua']       = 'Lý do thắng thua';
+$app_list_strings['moduleList']['EC_Location']            = 'Địa điểm';
+$app_list_strings['moduleList']['EC_LoginAudit']          = 'Login Audit';
+$app_list_strings['moduleList']['EC_Contact_Points_Log']  = 'Quá trình tích điểm';
+$app_list_strings['moduleList']['EC_Zalo_Contacts']       = 'Liên hệ Zalo';
 
-$app_strings['LBL_TABGROUP_MARKETING']    = 'Kế toán';
-$app_strings['LBL_GROUPTAB6_1384221712']  = 'QLDA';
-$app_strings['LBL_GROUPTAB6_1384221746']  = 'QLDA';
-$app_strings['LBL_GROUPTAB2_1529488412']  = 'Kế toán';
-$app_strings['LBL_GROUPTAB3_1607995668']  = 'HCNS';
-
-//aor
-$app_list_strings['moduleList']['AOR_Reports'] = 'Báo cáo';
-$app_list_strings['moduleList']['AOR_Conditions'] = 'Báo cáo điều kiện';
-$app_list_strings['moduleList']['AOR_Charts'] = 'Biểu đồ báo cáo';
-$app_list_strings['moduleList']['AOR_Fields'] = 'Báo cáo lĩnh vực';
-$app_list_strings['moduleList']['AOR_Scheduled_Reports'] = 'Theo lịch trình báo cáo';
-
-//aow PR 5775
+// AOW PR 5775
 $app_list_strings['moduleList']['AOW_WorkFlow'] = 'Quy trình công việc';
 $app_list_strings['moduleList']['AOW_Conditions'] = 'Quy trình làm việc điều kiện';
 $app_list_strings['moduleList']['AOW_Processed'] = 'Quá trình kiểm toán';
 $app_list_strings['moduleList']['AOW_Actions'] = 'Quy trình làm việc hành động';
-
-//aos
+// AOS
 $app_list_strings['moduleList']['AOS_Contracts'] = 'Hợp đồng';
 $app_list_strings['moduleList']['AOS_Invoices'] = 'QL Hóa đơn';
 $app_list_strings['moduleList']['AOS_PDF_Templates'] = 'Các mẫu PDF';
@@ -130,87 +87,77 @@ $app_list_strings['moduleList']['AOS_Products'] = 'Sản phẩm';
 $app_list_strings['moduleList']['AOS_Products_Quotes'] = 'Các hàng mục';
 $app_list_strings['moduleList']['AOS_Line_Item_Groups'] = 'Line Item Groups';
 $app_list_strings['moduleList']['AOS_Quotes'] = 'Báo giá';
-
-// externalOauth
-$app_list_strings['moduleList']['ExternalOAuthProvider'] = 'External OAuth Provider';
-$app_list_strings['moduleList']['ExternalOAuthConnection'] = 'External OAuth Connection';
-$app_list_strings['moduleList']['EAPM'] = 'External Account Password Management';
-
-//aod
+// AOD
 $app_list_strings['moduleList']['AOD_IndexEvent'] = 'Chỉ số sự kiện';
 $app_list_strings['moduleList']['AOD_Index'] = 'Chỉ số';
 $app_list_strings['moduleList']['AOP_Case_Events'] = 'Trường hợp các sự kiện';
 $app_list_strings['moduleList']['AOP_Case_Updates'] = 'Cập nhật trường hợp';
 
 // knowledge base
-$app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Kiến thức cơ bản'; // Shows in the ALL menu entries
-$app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'KB - thể loại'; // Shows in the ALL menu entries
-$app_list_strings['moduleList']['FP_events'] = 'Sự kiện';
-$app_list_strings['moduleList']['FP_Event_Locations'] = 'Vị trí';
+$app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Trung tâm hỗ trợ'; // Shows in the ALL menu entries
+$app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'Danh mục hỗ trợ'; // Shows in the ALL menu entries
 
-//gmaps
-$app_strings['LBL_MAP']                               = 'Bản đồ';
-$app_strings['LBL_JJWG_MAPS_LNG']                     = 'Kinh độ';
-$app_strings['LBL_JJWG_MAPS_LAT']                     = 'Vĩ độ';
-$app_strings['LBL_JJWG_MAPS_GEOCODE_STATUS']          = 'Trạng thái Mã địa lý';
-$app_strings['LBL_JJWG_MAPS_ADDRESS']                 = 'Địa chỉ';
-$app_list_strings['moduleList']['jjwg_Maps']          = 'Các bản đồ';
-$app_list_strings['moduleList']['jjwg_Markers']       = 'Bản đồ - đánh dấu';
-$app_list_strings['moduleList']['jjwg_Areas']         = 'Bản đồ - khu vực';
-$app_list_strings['moduleList']['jjwg_Address_Cache'] = 'Bản đồ - địa chỉ bộ nhớ Cache';
-$app_list_strings['moduleList']['jjwp_Partners']      = 'Đối tác JJWP';
-$app_list_strings['map_unit_type_list']['mi']         = 'Dặm';
-$app_list_strings['map_unit_type_list']['km']         = 'Cây số';
+// ExternalOauth
+$app_list_strings['moduleList']['ExternalOAuthProvider'] = 'External OAuth Provider';
+$app_list_strings['moduleList']['ExternalOAuthConnection'] = 'External OAuth Connection';
+$app_list_strings['moduleList']['EAPM'] = 'External Account Password Management';
+
+$app_strings['LBL_LOGIN_AS'] = "Login as ";
+$app_strings['LBL_LOGOUT_AS'] = "Logout as ";
+
+$app_list_strings['receipt_type_list']['cash']            = 'Tiền mặt';
+$app_list_strings['receipt_type_list']['credit_transfer'] = 'Chuyển khoản';
+$app_list_strings['amount_type_list']['vnd']              = 'VNĐ';
+
+$app_list_strings['overtime_status_list']['0']            = 'Mới tạo';
+$app_list_strings['overtime_status_list']['1']            = 'Chờ duyệt';
+$app_list_strings['overtime_status_list']['2']            = 'Đã duyệt';
+
+$app_strings['LBL_TABGROUP_MARKETING']    = 'Kế toán';
+$app_strings['LBL_GROUPTAB6_1384221712']  = 'QLDA';
+$app_strings['LBL_GROUPTAB6_1384221746']  = 'QLDA';
+$app_strings['LBL_GROUPTAB2_1529488412']  = 'Kế toán';
+$app_strings['LBL_GROUPTAB3_1607995668']  = 'HCNS';
+
 
 //gant
-$app_list_strings['moduleList']['AM_ProjectTemplates']  = 'Dự án - mẫu';
-$app_list_strings['moduleList']['AM_TaskTemplates']     = 'Dự án công việc mẫu';
 $app_list_strings['relationship_type_list']['FS']       = 'Kết thúc để bắt đầu';
 $app_list_strings['relationship_type_list']['SS']       = 'Bắt đầu để bắt đầu';
 $app_list_strings['duration_unit_dom']['Days']          = 'Ngày';
 $app_list_strings['duration_unit_dom']['Hours']         = 'Giờ';
 $app_strings['LBL_GANTT_BUTTON_LABEL']                  = 'Xem biểu đồ Gantt';
 $app_strings['LBL_DETAIL_BUTTON_LABEL']                 = 'Xem chi tiết';
-$app_strings['LBL_CREATE_PROJECT']                      = 'Tạo dự án';
 
-$GLOBALS['app_list_strings']['world_region_list'] = array(
-  0 => 'Đông Nam Á',
-  1 => 'Đông Bắc Á',
-  2 => 'Châu Âu',
-  3 => 'Châu Mỹ',
-  4 => 'Châu Úc',
-  5 => 'Châu Phi',
+$GLOBALS['app_list_strings']['lead_source_dom'] = array(
+  '' => '',
+  'Cold Call' => 'Cuộc gọi hoàn hảo',
+  'Zalo OA' => 'Zalo OA',
+  'Web Site' => 'Trang web',
+  'Direct Mail' => 'Gửi mail trực tiếp',
+  'Email' => 'Email',
+  'Self Generated' => 'Tự tạo',
+  'Existing Customer' => 'Khách hàng có sẵn',
+  'Employee' => 'Nhân viên',
+  'Partner' => 'Đối tác',
+  'Public Relations' => 'Quan hệ cộng đồng',
+  'Word of mouth' => 'Truyền miệng',
+  'Conference' => 'Hội nghị',
+  'Trade Show' => 'Hội chợ triển lãm',
+  'Other' => 'Khác',
 );
 
-//TRONG MODULE EC_CUSTOMER
-$GLOBALS['app_list_strings']['customer_type_list'] = array(
-  'NEW' => 'Mới',
-  'VIP' => 'VIP',
-  'RETURN' => 'Trở lại',
-  'LOYAL' => 'Thân thiết',
-  'DANGER' => 'Lý thông gấu',
-  'WARNING' => 'Lý thông me',
-  'IGNORE' => 'Linh tinh',
+$GLOBALS['app_list_strings']['contact_type_list'] = array(
+  'NEW_CUSTOMER' => 'Mới',
+  'RETURN_CUSTOMER' => 'Trở lại',
+  'SILVER_MEMBER' => 'Bạc',
+  'GOLD_MEMBER' => 'Vàng',
+  'VIP_MEMBER' => 'VIP Member',
+  'OTHER' => 'Khác',
 );
+
 $GLOBALS['app_list_strings']['gender_list'] = array(
   0 => 'Nam',
   1 => 'Nữ',
-);
-$app_list_strings['c_booking_status_list'] = array(
-  0 => '',
-  1 => 'Mới tạo',
-  6 => 'Đã gọi',
-  2 => 'Chờ TT',
-  3 => 'Xác nhận',
-  7 => 'Xuất vé',
-  4 => 'Hủy',
-  8 => 'Hoàn tất',
-);
-
-$GLOBALS['app_list_strings']['vmb_gender_list'] = array(
-  'm' => 'Nam',
-  'f' => 'Nữ',
-  'u' => 'Không xác định',
 );
 
 $GLOBALS['app_list_strings']['passenger_type_list'] = array(
@@ -226,13 +173,6 @@ $GLOBALS['app_list_strings']['payment_method_list'] = array(
   3 => 'Hoàn trả',
   4 => 'Cà thẻ',
   5 => 'Trực tuyến'
-);
-
-$GLOBALS['app_list_strings']['payment_status_list'] = array(
-  0 => 'Invalid payment',
-  1 => 'Canceled payment',
-  2 => 'Approved',
-  3 => 'Pending',
 );
 
 $GLOBALS['app_list_strings']['bk_flight_type_list'] = array(
@@ -256,13 +196,6 @@ $GLOBALS['app_list_strings']['booking_ticket_type_list'] = array(
   1 => 'Nội địa',
   2 => 'Quốc tế',
   // 3 => 'Vé Tết',
-);
-
-$GLOBALS['app_list_strings']['debt_status_list'] = array(
-  'New' => 'Mới khởi tạo',
-  'Processing' => 'Đang chi / thu',
-  'Completed' => 'Hoàn tất',
-  'Timeout' => 'Quá hạn',
 );
 
 $GLOBALS['app_list_strings']['tinhchat_list'] = array(
@@ -339,13 +272,10 @@ $GLOBALS['app_list_strings']['airlines_color_list'] = array(
   'VNP' => '#202d66',
   'VN' => '#166987 ',
   'VNA' => '#166987 ',
+  '9G' => '#9C0512',
 );
 
 $GLOBALS['app_list_strings']['passenger_salutation_list'] = array(
-  0 => 'Nam',
-  1 => 'Nữ',
-);
-$GLOBALS['app_list_strings']['booking_salutation_list'] = array(
   0 => 'Nam',
   1 => 'Nữ',
 );
@@ -357,12 +287,13 @@ $GLOBALS['app_list_strings']['debt_type_list'] = array(
 );
 
 $GLOBALS['app_list_strings']['aircode_list'] = array(
-  ''    => 'Tất cả',
+  ''    => '',
   'VJA' => 'Vietjet Air (VJA)',
   'VNA' => 'Vietnam Airlines (VNA)',
   'VNP' => 'Pacific Airlines (VNP)',
   'BBA' => 'Bamboo Airways (BBA)',
   'VTA' => 'Vietravel Airlines (VTA)',
+  '9G' => 'Sun PhuQuoc Airways (9G)',
 );
 
 $GLOBALS['app_list_strings']['tinhtranghoanve_list'] = array(
@@ -377,11 +308,6 @@ $GLOBALS['app_list_strings']['tinhtranghoanvecolor_list'] = array(
   2 => '#000000',
 );
 
-$GLOBALS['app_list_strings']['compare_debt_excel_list'] = array(
-  'LLD' => 'B|C|D|E|F|G|L|5|950',
-  'HNH' => 'B|D||C|S|||13|20',
-);
-
 $GLOBALS['app_list_strings']['hinhthucthanhtoan_list'] = array(
   'TM/CK' => 'Tiền mặt / Chuyển khoản',
   'CK' => 'Chuyển khoản',
@@ -394,12 +320,6 @@ $GLOBALS['app_list_strings']['mauhoadon_list'] = array(
   '02GTTT3/001' => '02GTTT3/001',
 );
 
-// $GLOBALS['app_list_strings']['invoice_status_list'] = array(
-//   '-1' => '<span style="color:#dc3545">Hủy</span>',
-//   '0'  => 'Mới tạo',
-//   '1'  => '<span style="color:#0000ff">Ghi sổ</span>',
-//   '2'  => '<span style="color:#198754">Đã ký</span>',
-// );
 $GLOBALS['app_list_strings']['invoice_status_list'] = array(
   '-1' => 'Hủy',
   '0'  => 'Mới tạo',
@@ -423,7 +343,8 @@ $GLOBALS['app_list_strings']['invoice_mahang_list'] = array(
 
 $GLOBALS['app_list_strings']['invoice_percent_vat_list'] = array(
   '0'   => '0%',
-  '0.08'=> '8%',
+  '0.05' => '5%',
+  '0.08' => '8%',
   '0.1' => '10%',
   '-1'  => 'KCT',
   '-2'  => 'KKKNT',
@@ -447,17 +368,6 @@ $GLOBALS['app_list_strings']['discount_percent_list'] = array(
   10 => '10%',
 );
 
-$GLOBALS['app_list_strings']['sabre_config_list'] = array(
-  'LVQ.LVQ4AFD' => '004121',
-  'LVQ.LVQ4AF6' => '004115',
-  'FDI.FDI4A93' => '004895',
-  'FDI.FDI4A92' => '004894',
-  '004121' => 'LVQ.LVQ4AFD',
-  '004115' => 'LVQ.LVQ4AF6',
-  '004895' => 'FDI.FDI4A93',
-  '004894' => 'FDI.FDI4A92',
-);
-
 $GLOBALS['app_list_strings']['account_type_dom'] = array(
   'Supplier' => 'Nhà cung cấp',
   'Customer' => 'Khách hàng',
@@ -474,7 +384,8 @@ $GLOBALS['app_list_strings']['booking_recheck_status_list'] = array(
 
 $GLOBALS['app_list_strings']['company_info_list'] = array(
   'name' => 'CÔNG TY TNHH VMB NAM PHƯƠNG',
-  'address' => '65/28 Đường Giải Phóng, P.4, Q.Tân Bình, TP.HCM',
+  // 'address' => '65/28 Đường Giải Phóng, P.4, Q.Tân Bình, TP.HCM',
+  'address' => '252/12 Nguyễn Thượng Hiền, P.1, Q.Gò Vấp, TP.HCM',
   'taxcode' => '0312253052',
   'tel' => '(08) 6650 9900',
   'hotline' => '091 30 30 802',
@@ -494,136 +405,28 @@ $GLOBALS['app_list_strings']['system_config_list'] = array(
   'telegram_chat_id' => '-343974810',
 );
 
-/************  EC_SMS_Logs  ************/
-$GLOBALS['app_list_strings']['sms_logs_type_list'] = array(
-  'send_sms' => 'Gửi SMS',
-  'send_sms_list_static' => 'Gửi chiến dịch SMS',
-  'send_sms_list_dynamic' => 'Gửi chiến dịch SMS (Tùy biến)',
-  'send_zalo_zns' => 'Gửi ZNS',
-  'send_zalo_promotion' => 'Gửi khuyến mãi Zalo',
-  'send_zalo_broadcast' => 'Gửi quảng cáo Zalo',
-);
-$GLOBALS['app_list_strings']['sms_logs_type_message_list'] = array(
+
+/************  EC_Messages  ************/
+$GLOBALS['app_list_strings']['message_type_list'] = [
+  'sms' => 'Gửi SMS',
+  'sms_campaign_static' => 'Gửi chiến dịch SMS',
+  'sms_campaign_dynamic' => 'Gửi chiến dịch SMS (Tùy biến)',
+  'zalo_zns' => 'Gửi ZBS',
+  'zalo_promotion' => 'Gửi khuyến mãi Zalo',
+  'zalo_broadcast' => 'Gửi Broadcast Zalo',
+];
+$GLOBALS['app_list_strings']['message_category_list'] = [
   'customer_care'  => 'Chăm sóc khách hàng',
   'transaction'    => 'Giao dịch',
   'advertisement'  => 'Quảng cáo'
-);
-$GLOBALS['app_list_strings']['sms_logs_status'] = array(
+];
+$GLOBALS['app_list_strings']['message_status'] = [
   'new' => 'Mới tạo',
   'scheduled' => 'Đã lên lịch',
   'done' => 'Đã gửi',
   'fail' => 'Thất bại'
-);
-$GLOBALS['app_list_strings']['list_post_zalo_oa'] = array(
-  '' => '-- Chọn bài viết OA --',
-  'f20c9a251e60f73eae71' => '🔥🔥🔥 Vé máy bay giá rẻ Tháng 3',
-  'f480bbca3f8fd6d18f9e' => '✈️✈️✈️ Du xuân đầu năm, bay Sài Gòn - Nha Trang chỉ từ 49K/chiều',
-);
-$GLOBALS['app_list_strings']['sms_logs_filters'] = array(
-  'gender' => [
-    '0' => 'Tất cả',
-    '1' => 'Nam',
-    '2' => 'Nữ'
-  ],
-  'ages' => [
-    ''  => '--Không--',
-    '0' => 'Dưới 13',
-    '1' => 'Từ 13-17',
-    '2' => 'Từ 18-24',
-    '3' => 'Từ 25-34',
-    '4' => 'Từ 35-44',
-    '5' => 'Từ 45-54',
-    '6' => 'Từ 55-64',
-    '7' => 'Trên 65'
-  ],
-  'platform' => [
-    ''  => '--Không--',
-    '1' => 'IOS',
-    '2' => 'Android',
-    '3' => 'Window Phone'
-  ],
-  'locations' => [
-    ''  => '--Không--',
-    '0' => 'Miền Bắc',
-    '1' => 'Miền Trung',
-    '2' => 'Miền Nam'
-  ],
-  'cities' => [
-    ''  => '--Không--',
-    '0' => 'Đồng Tháp',
-    '1' => 'Bình Phước',
-    '2' => 'Ninh Bình',
-    '3' => 'Bạc Liêu',
-    '4' => 'Hồ Chí Minh',
-    '5' => 'Vĩnh Long',
-    '6' => 'Lâm Đồng',
-    '7' => 'Yên Bái',
-    '8' => 'Hà Nam',
-    '9' => 'Hà Nội',
-    '10' => 'Hải Dương',
-    '11' => 'Hậu Giang',
-    '12' => 'An Giang',
-    '13' => 'Trà Vinh',
-    '14' => 'Tiền Giang',
-    '15' => 'Tây Ninh',
-    '16' => 'Đồng Nai',
-    '17' => 'Đắk Lắk',
-    '18' => 'Bình Định',
-    '19' => 'Kon Tum',
-    '20' => 'Đà Nẵng',
-    '21' => 'Bắc Giang',
-    '22' => 'Bắc Kạn',
-    '23' => 'Điện Biên',
-    '24' => 'Hòa Bình',
-    '25' => 'Thái Bình',
-    '26' => 'Vĩnh Phúc',
-    '27' => 'Hà Giang',
-    '28' => 'Kiên Giang',
-    '29' => 'Bình Dương',
-    '30' => 'Bình Thuận',
-    '31' => 'Đắk Nông',
-    '32' => 'Khánh Hòa',
-    '33' => 'Gia Lai',
-    '34' => 'Quảng Nam',
-    '35' => 'Quảng Trị',
-    '36' => 'Hà Tĩnh',
-    '37' => 'Hưng Yên',
-    '38' => 'Quảng Ninh',
-    '39' => 'Thanh Hóa',
-    '40' => 'Phú Thọ',
-    '41' => 'Lai Châu',
-    '42' => 'Thái Nguyên',
-    '43' => 'Cao Bằng',
-    '44' => 'Cà Mau',
-    '45' => 'Cần Thơ',
-    '46' => 'Sóc Trăng',
-    '47' => 'Bến Tre',
-    '48' => 'Long An',
-    '49' => 'Bà Rịa Vũng Tàu',
-    '50' => 'Ninh Thuận',
-    '51' => 'Phú Yên',
-    '52' => 'Quảng Ngãi',
-    '53' => 'Thừa Thiên Huế',
-    '54' => 'Quảng Bình',
-    '55' => 'Nghệ An',
-    '56' => 'Nam Định',
-    '57' => 'Hải Phòng',
-    '58' => 'Lạng Sơn',
-    '59' => 'Lào Cai',
-    '60' => 'Sơn La',
-    '61' => 'Bắc Ninh',
-    '62' => 'Tuyên Quang',
-    '63' => 'Không Thuộc Việt Nam'
-  ],
-);
+];
 
-
-
-$GLOBALS['app_list_strings']['user_title_allow_full_report'] = array(
-  'admin' => 'Administrator',
-  'ketoan' => 'Accountant',
-  'quanly' => 'Manager',
-);
 
 $GLOBALS['app_list_strings']['location_list'] = array(
   '' => '',
@@ -632,13 +435,12 @@ $GLOBALS['app_list_strings']['location_list'] = array(
   '8d909428-07b1-db26-4588-56f4ed25ded7' => 'VP 79 Nguyễn Xí',
   'b18879aa-21e2-b1d2-5345-56f4ed756d8d' => 'VP BĐ',
   '1d279238-8d81-4b85-2ba9-5a4f0da2dc23' => 'VP 48 NCV',
-
 );
 
 $GLOBALS['app_list_strings']['booking_status_list'] = array(
   1 => 'Mới tạo',
   6 => 'Đã gọi',
-  2 => 'Chờ TT',
+  2 => 'Đã liên hệ',
   3 => 'Xác nhận',
   7 => 'Xuất vé',
   4 => 'Hủy',
@@ -707,12 +509,6 @@ $GLOBALS['app_list_strings']['vietnam_mobile_new_network_list'] = array(
   '058' => '0,2,4,5,6,7',
   '099' => '0,2,4,5,6,7',
   '059' => '0,2,4,5,6,7',
-);
-
-$GLOBALS['app_list_strings']['sms_template_list'] = array(
-  // 'Đơn hàng không nghe máy' => 'Chao Anh/Chi, ve may bay cua anh/chi da duoc xac nhan thanh cong. Vui long LH: ... de biet chi tiet va thanh toan truoc ... Xin cam on! (No reply)',
-  // 'Vé KM, Vé cận giờ bay (Ko nghe máy)' => 'Chao Anh/Chi, ve may bay cua anh/chi khong giu duoc cho. Vui long LH: ... Som de xac nhan thanh toan lay ve. Xin cam on! (No reply)',
-  'Không nghe máy, vé KM, cận' => 'Xin chao ban, so DT hien khong lien lac duoc. Truong hop ve KM hoac gan gio bay vui long goi cho chung toi 1900 63 6060 hoac Zalo/SMS ...',
 );
 
 $GLOBALS['app_list_strings']['bk_holding_status_list'] = array(
@@ -863,6 +659,7 @@ $GLOBALS['app_list_strings']['ma_hang'] = array(
   'VJA' => 'Vietjet Air',
   'JET' => 'Jetstar Pacific',
   'VNA' => 'Vietnam Airlines',
+  '9G' => 'Sun PhuQuoc Airways',
   'AMK' => 'Air Mekong',
   'BBA' => 'Bamboo Airways',
   '1T' => '1Time Airline',
@@ -1951,19 +1748,21 @@ $GLOBALS['app_list_strings']['booking_payment_type_list'] = array(
 );
 
 $GLOBALS['app_list_strings']['employee_kpi_type_list'] = array(
-  'called' => 'Called',
-  'completed' => 'Completed',
+  'called' => 'Cuộc gọi',
+  'completed' => 'Booking hoàn tất',
   'paid' => 'Đã thanh toán / Đã thu',
   'recheck' => 'Recheck',
-  'invoice_issued' => 'Xuất hóa đơn đầu ra',
-  'ticket_delivery' => 'Giao vé',
   'recall' => 'Recall',
+  'invoice_issued' => 'Xuất hóa đơn đầu ra',
+  'invoice_input_issued' => 'Xuất hóa đơn đầu vào',
+  'ticket_delivery' => 'Giao vé',
+  'checkin_journey' => 'Checkin',
   'check_debt' => 'Đối chiếu công nợ',
   'create_repaid' => 'Tạo hoàn vé',
-  'process_repaid' => 'Xử lý hoàn vé',
   'create_payment' => 'Lập phiếu chi',
+  'create_receipt' => 'Lập phiếu thu',
   'create_transfer' => 'Lập điều chuyển tiền',
-  'invoice_input_issued' => 'Xuất hóa đơn đầu vào',
+  'support' => 'Hỗ trợ khác',
 );
 
 $GLOBALS['app_list_strings']['bba_ticket_class_list'] = array(
@@ -2005,11 +1804,12 @@ $GLOBALS['app_list_strings']['reserve_fund_type_list'] = array(
   2 => 'Giảm trừ khác',
 );
 
-$GLOBALS['app_list_strings']['loai_thu_list'] = array(
+$GLOBALS['app_list_strings']['loai_thu_list'] = [
   1 => 'Thu tiền vé',
   2 => 'Thu công nợ',
-  5 => 'Thu phí hành lý',
   4 => 'Đổi giờ bay, hành trình, tên khách',
+  5 => 'Thu phí hành lý',
+  27 => 'API - Banner quảng cáo',
   6 => 'Thu khác',
   7 => 'Thu ký quỹ',
   8 => 'Thu đại lý',
@@ -2022,14 +1822,27 @@ $GLOBALS['app_list_strings']['loai_thu_list'] = array(
   15 => 'Panda Po',
   16 => 'Perspirex',
   17 => 'Vay ngân hàng',
-  18 => 'Thu tiền cafe Trống Đồng',
-  19 => 'Thu tiền bánh trung thu',
+  // 18 => 'Thu tiền cafe Trống Đồng',
+  // 19 => 'Thu tiền bánh trung thu',
   20 => 'Bất động sản',
   21 => 'Thực phẩm',
   22 => 'Quỹ dự phòng',
   23 => 'Tiền phòng Bình Thới',
   24 => 'Tiền phòng NVC',
-);
+  25 => 'Tiền chung cư',
+  26 => 'Thu phí ghế',
+];
+
+// Input invoice
+$GLOBALS['app_list_strings']['ticket_type_list'] = [
+  'flight'        => 'Vé máy bay',
+  'baggage'       => 'Vé hành lý',
+  'seat'          => 'Vé ghế',
+  'insurance'     => 'Vé bảo hiểm',
+  'exchange_fee'  => 'Phí đổi',
+  'ticketing_fee' => 'Phí xuất vé',
+  'other'         => 'Khác',
+];
 
 $GLOBALS['app_list_strings']['work_history_status_list'] = array(
   'Active' => 'Đang làm việc',
@@ -2040,10 +1853,14 @@ $GLOBALS['app_list_strings']['work_history_status_list'] = array(
 
 $GLOBALS['app_list_strings']['voucher_status_list'] = array(
   'new' => 'Mới tạo',
-  'active' => 'Đã kích hoạt',
+  'pending' => 'Chờ sử dụng',
+  'done' => 'Đã sử dụng',
   'expired' => 'Hết hạn',
   'cancel' => 'Hủy',
-  'done' => 'Đã sử dụng',
+);
+$GLOBALS['app_list_strings']['voucher_type_list'] = array(
+  'single' => 'Đơn',
+  'group' => 'Nhóm',
 );
 
 $GLOBALS['app_list_strings']['overtime_type_list'] = array(
@@ -2058,7 +1875,7 @@ $GLOBALS['app_list_strings']['request_status_list'] = array(
   3 => 'Huỷ',
 );
 
-$GLOBALS['app_list_strings']['domestic_airport_list'] = array(
+$GLOBALS['app_list_strings']['domestic_airport_list'] = [
   'HAN' => 'Hà Nội',
   'HPH' => 'Hải Phòng',
   'DIN' => 'Điện Biên',
@@ -2082,7 +1899,7 @@ $GLOBALS['app_list_strings']['domestic_airport_list'] = array(
   'CAH' => 'Cà Mau',
   'THD' => 'Thanh Hóa',
   'VDO' => 'Vân Đồn',
-);
+];
 
 $GLOBALS['app_list_strings']['receipt_voucher_status_list'] = array(
   0 => 'Đang thu',
@@ -2104,21 +1921,21 @@ $GLOBALS['app_list_strings']['iv_payment_method_list'] = array(
 
 $GLOBALS['app_list_strings']['supplier_invoice_list'] = array(
   '' => '',
-  'EMPTY' => 'Trống',
-  'VJA' => 'VietjetAir',
-  'BBA' => 'Bamboo',
-  'VNA' => 'VietnamAirlines',
-  'HNH' => 'Hồng Ngọc Hà',
-  'TH' => 'Thành Hoàng',
   'PNA' => 'Phương Nam',
+  'HNH' => 'Hồng Ngọc Hà',
+  'VJA' => 'VietjetAir',
+  'VNA' => 'VietnamAirlines',
   'VTA' => 'Vietravel',
+  'BBA' => 'Bamboo',
+  'TH' => 'Thành Hoàng',
+  'EMPTY' => 'Trống',
 );
 
 $GLOBALS['app_list_strings']['company_unit_invoice_list'] = array(
   '' => '',
-  'EMPTY' => 'Trống',
-  'TRAVELPASS' => 'Travelpass',
   'MHV' => 'Minh Hồng Võ',
+  'TRAVELPASS' => 'Travelpass',
+  // 'EMPTY' => 'Trống',
 );
 
 $GLOBALS['app_list_strings']['loaihoadon_list'] = array(
@@ -2126,17 +1943,11 @@ $GLOBALS['app_list_strings']['loaihoadon_list'] = array(
   1 => 'Hoá đơn dịch vụ',
 );
 
-$GLOBALS['app_list_strings']['completed_bk_type_list'] = array(
-  'EXP_BK' => 'Booking dùng tính điểm kinh nghiệm',
-  'EFFORT_BK' => 'Booking dùng để tính nỗ lực',
-);
-
 $GLOBALS['app_list_strings']['online_stt_list'] = array(
   0 => 'Offline',
   1 => 'Online',
   2 => 'Busy',
 );
-
 
 /*==================== MODULE CALLS ====================*/
 $GLOBALS['app_list_strings']['calls_direction_list'] = array(
@@ -2151,6 +1962,23 @@ $GLOBALS['app_list_strings']['calls_direction_list'] = array(
 $GLOBALS['app_list_strings']['call_type_list'] = array(
   'phone' => 'Di động',
   'zalo' => 'Zalo',
+);
+
+$GLOBALS['app_list_strings']['call_reason_list'] = array(
+  'in_price' => 'Hỏi giá vé máy bay (Gọi đến)',
+  'in_consultant' => 'Cần tư vấn thông tin (Gọi đến)',
+  'in_mistake' => 'Nhầm đại lý khác (Gọi đến)',
+  'in_telesale_recall' => 'Telephone sale gọi lại (Gọi đến)',
+  'in_complaint_delay' => 'Khách phàn nàn, khó chịu (Gọi đến)',
+  'in_other' => 'Trường hợp khác (Gọi đến)',
+  'horizontal' => '---------------------------------------',
+  'out_price' => 'Hỏi giá vé máy bay (Gọi đi)',
+  'out_telesale_call' => 'Telephone sale khách hàng (Gọi đi)',
+  'out_confirm_consult' => 'Xác nhận thông tin, tư vấn (Gọi đi)',
+  'out_customer_care' => 'CSKH nhắc ngày giờ bay (Gọi đi)',
+  'out_no_subscriber_unreachable' => 'Số thuê bao, không liên lạc (Gọi đi)',
+  'out_no_response' => 'Không nghe máy, chưa nghe (Gọi đi)',
+  'out_other' => 'Trường hợp khác (Gọi đi)',
 );
 
 
@@ -2171,79 +1999,77 @@ $GLOBALS['app_list_strings']['vietjet_index_price_list'] = array(
 
 $GLOBALS['app_list_strings']['vietjet_luggage_price_list'] = array(
   0 => 'Không có hành lý ',
-  180000 => 'Thêm 15kg hành lý (180.000 VND/Khách)',
-  210000 => 'Thêm 20kg hành lý (210.000 VND/Khách)',
-  270000 => 'Thêm 25kg hành lý (270.000 VND/Khách)',
-  380000 => 'Thêm 30kg hành lý (380.000 VND/Khách)',
-  450000 => 'Thêm 35kg hành lý (450.000 VND/Khách)',
-  500000 => 'Thêm 40kg hành lý (500.000 VND/Khách)',
+  180000 => '15kg hành lý (180.000 VND/Khách)',
+  210000 => '20kg hành lý (210.000 VND/Khách)',
+  270000 => '25kg hành lý (270.000 VND/Khách)',
+  380000 => '30kg hành lý (380.000 VND/Khách)',
+  450000 => '35kg hành lý (450.000 VND/Khách)',
+  500000 => '40kg hành lý (500.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['vietjet_index_price_list2'] = array(
-  // ''  => '',
   0   => '',
   1   => '',
-  2   => '220000',
+  2   => '250000',
   3   => '',
-  4   => '320000',
+  4   => '360000',
   5   => '',
-  6   => '420000',
-  7   => '450000',
-  // 8   => '600000',
-  8   => '550000',
-  9   => '520000',
-  10  => '620000',
-  11  => '720000',
+  6   => '460000',
+  7   => '520000',
+  8   => '630000',
+  9   => '630000',
+  10  => '740000',
+  11  => '840000',
   12  => '5650000',
   13  => '6350000',
   14  => '7050000',
 );
 
 $GLOBALS['app_list_strings']['vietjet_luggage_price_list2'] = array(
-  0   => 'Không mang hành lý ký gửi ',
-  1   => 'Thêm 20kg ký gửi (0 VND/Khách)',
-  3   => 'Thêm 40kg ký gửi (0 VND/Khách)',
-  2   => 'Thêm 20kg ký gửi (220.000 VND/Khách)',
-  4   => 'Thêm 30kg ký gửi (320.000 VND/Khách)',
-  6   => 'Thêm 40kg ký gửi (420.000 VND/Khách)',
-  7   => 'Thêm 20kg ký gửi QK (450.000 VND/Khách)',
-  // 8   => 'Thêm 30kg ký gửi QK (600.000 VND/Khách)',
-  8   => 'Thêm 30kg ký gửi QK (550.000 VND/Khách)',
-  9   => 'Thêm 50kg ký gửi (520.000 VND/Khách)',
-  10  => 'Thêm 60kg ký gửi (620.000 VND/Khách)',
-  11  => 'Thêm 70kg ký gửi (720.000 VND/Khách)',
-  12  => 'Thêm 80kg ký gửi (5.650.000 VND/Khách)',
-  13  => 'Thêm 90kg ký gửi (6.350.000 VND/Khách)',
-  14  => 'Thêm 100kg ký gửi (7.050.000 VND/Khách)',
+  0   => 'Không mang hành lý ',
+  1   => '20kg (0 VND/Khách)',
+  5   => '30kg (0 VND/Khách) - V_SBoss/SkyBoss',
+  3   => '40kg (0 VND/Khách)',
+  2   => '20kg (250.000 VND/Khách)',
+  4   => '30kg (360.000 VND/Khách)',
+  6   => '40kg (460.000 VND/Khách)',
+  7   => '20kg QK (520.000 VND/Khách)',
+  8   => '30kg QK (630.000 VND/Khách)',
+  9   => '50kg (630.000 VND/Khách)',
+  10  => '60kg (740.000 VND/Khách)',
+  11  => '70kg (840.000 VND/Khách)',
+  12  => '80kg (5.650.000 VND/Khách)',
+  13  => '90kg (6.350.000 VND/Khách)',
+  14  => '100kg (7.050.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['new_vietjet_luggage_price_list'] = array(
-  0 => 'Không ',
-  1 => 'Thêm 15kg hành lý (180.000 VND/Khách)',
-  2 => 'Thêm 20kg hành lý (210.000 VND/Khách)',
-  3 => 'Thêm 25kg hành lý (270.000 VND/Khách)',
-  4 => 'Thêm 30kg hành lý (380.000 VND/Khách)',
-  5 => 'Thêm 35kg hành lý (450.000 VND/Khách)',
-  6 => 'Thêm 40kg hành lý (500.000 VND/Khách)',
-  7 => 'Thêm 20kg hành lý QK (450.000 VND/Khách)',
-  8 => 'Thêm 30kg hành lý QK (600.000 VND/Khách)',
+  0 => '',
+  1 => '15kg (180.000 VND/Khách)',
+  2 => '20kg (210.000 VND/Khách)',
+  3 => '25kg (270.000 VND/Khách)',
+  4 => '30kg (380.000 VND/Khách)',
+  5 => '35kg (450.000 VND/Khách)',
+  6 => '40kg (500.000 VND/Khách)',
+  7 => '20kg QK (450.000 VND/Khách)',
+  8 => '30kg QK (600.000 VND/Khách)',
 );
 
 
 // Vietnam Airlines
 $GLOBALS['app_list_strings']['vietnamair_luggage_price_list'] = array(
-  0 => 'Thêm 23kg hành lý (0 VND/Khách)',
-  1 => 'Không mang hành lý ký gửi ',
-  350000  => 'Thêm 1 kiện 23kg hành lý (350.000 VND/Khách)',
-  700000  => 'Thêm 2 kiện 23kg hành lý (700.000 VND/Khách)',
-  1050000 => 'Thêm 3 kiện 23kg hành lý (1.050.000 VND/Khách)',
-  1400000 => 'Thêm 4 kiện 23kg hành lý (1.400.000 VND/Khách)',
-  1750000 => 'Thêm 5 kiện 23kg hành lý (1.750.000 VND/Khách)',
-  190000  => 'Thêm 1 kiện 10kg hành lý (190.000 VND/Khách)',
-  380000  => 'Thêm 2 kiện 10kg hành lý (380.000 VND/Khách)',
-  570000  => 'Thêm 3 kiện 10kg hành lý (570.000 VND/Khách)',
-  760000  => 'Thêm 4 kiện 10kg hành lý (760.000 VND/Khách)',
-  950000  => 'Thêm 5 kiện 10kg hành lý (950.000 VND/Khách)',
+  0 => '23kg (0 VND/Khách)',
+  1 => 'Không mang hành lý ký gửi',
+  350000  => '1 kiện 23kg (350.000 VND/Khách)',
+  700000  => '2 kiện 23kg (700.000 VND/Khách)',
+  1050000 => '3 kiện 23kg (1.050.000 VND/Khách)',
+  1400000 => '4 kiện 23kg (1.400.000 VND/Khách)',
+  1750000 => '5 kiện 23kg (1.750.000 VND/Khách)',
+  190000  => '1 kiện 10kg (190.000 VND/Khách)',
+  380000  => '2 kiện 10kg (380.000 VND/Khách)',
+  570000  => '3 kiện 10kg (570.000 VND/Khách)',
+  760000  => '4 kiện 10kg (760.000 VND/Khách)',
+  950000  => '5 kiện 10kg (950.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['vietnamair_luggage_price_list2'] = array(
@@ -2257,225 +2083,274 @@ $GLOBALS['app_list_strings']['vietnamair_luggage_price_list2'] = array(
   660000  => '3 kiện 10kg (660.000 VND/Khách)',
   760000  => '4 kiện 10kg (760.000 VND/Khách)',
   950000  => '5 kiện 10kg (950.000 VND/Khách)',
-  350000  => '2 kiện 23kg (có 1 kiện miễn phí) (350.000 VND/Khách)',
-  700000  => '3 kiện 23kg (có 1 kiện miễn phí) (700.000 VND/Khách)',
-  1050000 => '4 kiện 23kg (có 1 kiện miễn phí) (1.050.000 VND/Khách)',
-  1400000 => '5 kiện 23kg (có 1 kiện miễn phí) (1.400.000 VND/Khách)',
-  1750000 => '6 kiện 23kg (có 1 kiện miễn phí) (1.750.000 VND/Khách)',
+  350001  => '1 kiện 23kg (350.000 VND/Khách)',
+  350000  => '2 kiện 23kg (1 kiện Free) (350.000 VND/Khách)',
+  700000  => '3 kiện 23kg (1 kiện Free) (700.000 VND/Khách)',
+  1050000 => '4 kiện 23kg (1 kiện Free) (1.050.000 VND/Khách)',
+  1400000 => '5 kiện 23kg (1 kiện Free) (1.400.000 VND/Khách)',
+  1750000 => '6 kiện 23kg (1 kiện Free) (1.750.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['vietnamair_business_luggage_price_list'] = array(
   0 => 'Mỗi người tối đa 32kg (0 VND/Khách)',
-  2 => 'Thêm 32kg hành lý (0 VND/Khách)',
+  2 => '32kg (0 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['vietnamair_infant_luggage_price_list'] = array(
-  0 => 'Thêm 10kg hành lý (0 VND/Khách)',
+  0 => '10kg (0 VND/Khách)',
   1 => 'Không mang hành lý ký gửi ',
 );
 
 
 // Pacific Airlines
 $GLOBALS['app_list_strings']['pacificair_luggage_price_list'] = array(
-  0 => 'Thêm 23kg hành lý (0 VND/Khách)',
-  1 => 'Không mang hành lý ký gửi ',
-  3 => 'Thêm 10kg hành lý (0 VND/Khách)',
+  0 => '23kg (0 VND/Khách)',
+  1 => 'Không mang hành lý',
+  2 => '1 kiện 32kg (0 VND/Khách)',
+  3 => '10kg (0 VND/Khách)',
   4 => 'Đợi kiểm tra',
-  350000  => '1 kiện 23kg hành lý (350.000 VND/Khách)',
-  700000  => '2 kiện 23kg hành lý (700.000 VND/Khách)',
-  1050000 => '3 kiện 23kg hành lý (1.050.000 VND/Khách)',
-  1400000 => '4 kiện 23kg hành lý (1.400.000 VND/Khách)',
-  1750000 => '5 kiện 23kg hành lý (1.750.000 VND/Khách)',
-  190000  => '1 kiện 10kg hành lý (190.000 VND/Khách)',
-  380000  => '2 kiện 10kg hành lý (380.000 VND/Khách)',
-  570000  => '3 kiện 10kg hành lý (570.000 VND/Khách)',
-  760000  => '4 kiện 10kg hành lý (760.000 VND/Khách)',
-  950000  => '5 kiện 10kg hành lý (950.000 VND/Khách)',
+  350000  => '1 kiện 23kg (350.000 VND/Khách)',
+  700000  => '2 kiện 23kg (700.000 VND/Khách)',
+  1050000 => '3 kiện 23kg (1.050.000 VND/Khách)',
+  1400000 => '4 kiện 23kg (1.400.000 VND/Khách)',
+  1750000 => '5 kiện 23kg (1.750.000 VND/Khách)',
+  190000  => '1 kiện 10kg (190.000 VND/Khách)',
+  380000  => '2 kiện 10kg (380.000 VND/Khách)',
+  570000  => '3 kiện 10kg (570.000 VND/Khách)',
+  760000  => '4 kiện 10kg (760.000 VND/Khách)',
+  950000  => '5 kiện 10kg (950.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['pacificair_infant_luggage_price_list'] = array(
-  0 => 'Thêm 10kg hành lý (0 VND/Khách)',
+  0 => '10kg (0 VND/Khách)',
   1 => 'Không mang hành lý ký gửi ',
 );
 
 // Bamboo Airways
 $GLOBALS['app_list_strings']['bambooair_eco_luggage_price_list'] = array(
-  0 => 'Thêm 0kg hành lý (0 VND/Khách)-Eco ',
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Eco',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Eco',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Eco',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Eco',
+  0 => 'Không có hành lý - Eco ',
+  200000    => '10kg (200.000 VND/Khách) - Eco',
+  350000    => '20kg (350.000 VND/Khách) - Eco',
+  500000    => '30kg (500.000 VND/Khách) - Eco',
+  650000    => '40kg (650.000 VND/Khách) - Eco',
 
-  2000    => 'Thêm 15kg hành lý (2.000 VND/Khách) - Eco',
-  210000  => 'Thêm 20kg hành lý (210.000 VND/Khách)-Eco',
-  250000  => 'Thêm 25kg hành lý (250.000 VND/Khách)-Eco',
-  300000  => 'Thêm 30kg hành lý (300.000 VND/Khách)-Eco',
-  330000  => 'Thêm 35kg hành lý (330.000 VND/Khách)-Eco',
-  370000  => 'Thêm 40kg hành lý (370.000 VND/Khách)-Eco',
+  2000    => '15kg (2.000 VND/Khách) - Eco',
+  210000  => '20kg (210.000 VND/Khách)-Eco',
+  250000  => '25kg (250.000 VND/Khách)-Eco',
+  300000  => '30kg (300.000 VND/Khách)-Eco',
+  330000  => '35kg (330.000 VND/Khách)-Eco',
+  370000  => '40kg (370.000 VND/Khách)-Eco',
+  750000  => '50kg (750.000 VND/Khách)-Eco',
+  850000  => '60kg (850.000 VND/Khách)-Eco',
 );
 $GLOBALS['app_list_strings']['bambooair_eco_saver_luggage_price_list'] = array(
-  0 => '20 kg xách tay (0 VND/Khách)-Eco ',
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Eco',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Eco',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Eco',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Eco',
+  0 => '20 kg xách tay (0 VND/Khách) - Eco ',
+  200000    => '10kg (200.000 VND/Khách) - Eco',
+  350000    => '20kg (350.000 VND/Khách) - Eco',
+  500000    => '30kg (500.000 VND/Khách) - Eco',
+  650000    => '40kg (650.000 VND/Khách) - Eco',
 
-  2000    => 'Thêm 15kg hành lý (2.000 VND/Khách) - Eco',
-  210000  => 'Thêm 20kg hành lý (210.000 VND/Khách)-Eco',
-  250000  => 'Thêm 25kg hành lý (250.000 VND/Khách)-Eco',
-  300000  => 'Thêm 30kg hành lý (300.000 VND/Khách)-Eco',
-  330000  => 'Thêm 35kg hành lý (330.000 VND/Khách)-Eco',
-  370000  => 'Thêm 40kg hành lý (370.000 VND/Khách)-Eco',
+  2000    => '15kg (2.000 VND/Khách) - Eco',
+  210000  => '20kg (210.000 VND/Khách) - Eco',
+  250000  => '25kg (250.000 VND/Khách) - Eco',
+  300000  => '30kg (300.000 VND/Khách) - Eco',
+  330000  => '35kg (330.000 VND/Khách) - Eco',
+  370000  => '40kg (370.000 VND/Khách) - Eco',
+  750000  => '50kg (750.000 VND/Khách) - Eco',
+  850000  => '60kg (850.000 VND/Khách) - Eco',
 );
 $GLOBALS['app_list_strings']['bambooair_business_luggage_price_list'] = array(
-  0 => 'Thêm 30kg hành lý (0 VND/Khách)-Business',
-  2000    => 'Thêm 15kg hành lý (2.000 VND/Khách)-Business',
-  110000  => 'Thêm 35kg hành lý (110.000 VND/Khách)-Business',
-  140000  => 'Thêm 40kg hành lý (140.000 VND/Khách)-Business',
+  0 => '30kg (0 VND/Khách)-Business',
+  2000    => '15kg (2.000 VND/Khách)-Business',
+  110000  => '35kg (110.000 VND/Khách)-Business',
+  140000  => '40kg (140.000 VND/Khách)-Business',
+  750000  => '50kg (750.000 VND/Khách)-Business',
+  850000  => '60kg (850.000 VND/Khách)-Business',
 );
 $GLOBALS['app_list_strings']['bambooair_ecosaver_luggage_price_list'] = array(
   // 0 => '20 kg ký gửi (0 VND/Khách)-Eco Saver',
-  0 => 'Không có hành lý ký gửi-Eco Saver',
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Eco Saver',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Eco Saver',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Eco Saver',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Eco Saver',
+  0 => 'Không mang hành lý - Eco Saver',
+  200000    => '10kg (200.000 VND/Khách) - Eco Saver',
+  350000    => '20kg (350.000 VND/Khách) - Eco Saver',
+  500000    => '30kg (500.000 VND/Khách) - Eco Saver',
+  650000    => '40kg (650.000 VND/Khách) - Eco Saver',
+  750000    => '50kg (750.000 VND/Khách) - Eco Saver',
+  850000    => '60kg (850.000 VND/Khách) - Eco Saver',
 );
 $GLOBALS['app_list_strings']['bambooair_ecosavermax_luggage_price_list'] = array(
-  0 => '7kg xách tay (0 VND/Khách)-Eco Saver Max',
+  0 => '7kg xách tay (0 VND/Khách) - Eco Saver Max',
+
+  // new
+  2 => 'Không có hành lý',
+  200000    => '10kg (200.000 VND/Khách) - Eco Saver Max',
+  350000    => '20kg (350.000 VND/Khách) - Eco Saver Max',
+  500000    => '30kg (500.000 VND/Khách) - Eco Saver Max',
+  650000    => '40kg (650.000 VND/Khách) - Eco Saver Max',
+  750000    => '50kg (750.000 VND/Khách) - Eco Saver Max',
+  850000    => '60kg (850.000 VND/Khách) - Eco Saver Max',
 );
 $GLOBALS['app_list_strings']['bambooair_ecoflex_luggage_price_list'] = array(
-  0 => '20 kg ký gửi (0 VND/Khách)-Eco Flex',
-  
+  // 0 => '20 kg ký gửi (0 VND/Khách) - Eco Flex',
+
   // new
   1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách)-Eco Flex',
-  20 => 'Mỗi hành khách tối đa 20Kg (0 VND/Khách)-Eco Flex',
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Eco Flex',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Eco Flex',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Eco Flex',
-  650000    => 'Thêm 40kg hành lý (600.000 VND/Khách) - Eco Flex',
+  20 => 'Mỗi hành khách tối đa 20Kg (0 VND/Khách) - Eco Flex',
+  200000    => '10kg (200.000 VND/Khách) - Eco Flex',
+  350000    => '20kg (350.000 VND/Khách) - Eco Flex',
+  500000    => '30kg (500.000 VND/Khách) - Eco Flex',
+  650000    => '40kg (600.000 VND/Khách) - Eco Flex',
+  750000    => '50kg (750.000 VND/Khách) - Eco Flex',
+  850000    => '60kg (850.000 VND/Khách) - Eco Flex',
 );
 $GLOBALS['app_list_strings']['bambooair_ecosmart_luggage_price_list'] = array(
   // 0 => '20kg ký gửi (0 VND/Khách)-Eco Smart',
-  0 => 'Không có hành lý ký gửi-Eco Smart',
+  0 => 'Không có hành lý ký gửi - Eco Smart',
 
   // new
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Eco Smart',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Eco Smart',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Eco Smart',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Eco Smart',
+  200000    => '10kg (200.000 VND/Khách) - Eco Smart',
+  350000    => '20kg (350.000 VND/Khách) - Eco Smart',
+  500000    => '30kg (500.000 VND/Khách) - Eco Smart',
+  650000    => '40kg (650.000 VND/Khách) - Eco Smart',
+  750000    => '50kg (750.000 VND/Khách) - Eco Smart',
+  850000    => '60kg (850.000 VND/Khách) - Eco Smart',
 );
 $GLOBALS['app_list_strings']['bambooair_preflex_luggage_price_list'] = array(
-  0 => '30kg ký gửi (0 VND/Khách)-Premium Flex',
-  
+  0 => '30kg ký gửi (0 VND/Khách) - Premium Flex',
+
   // new
   1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách) - Premium Flex',
   30 => 'Mỗi hành khách tối đa 30Kg (0 VND/Khách) - Premium Flex',
-  200000 => 'Thêm 10kg hành lý (200.000 VND/Khách) - Premium Flex',
-  350000 => 'Thêm 20kg hành lý (350.000 VND/Khách) - Premium Flex',
-  500000 => 'Thêm 30kg hành lý (500.000 VND/Khách) - Premium Flex',
-  650000 => 'Thêm 40kg hành lý (650.000 VND/Khách) - Premium Flex',
+  200000 => '10kg (200.000 VND/Khách) - Premium Flex',
+  350000 => '20kg (350.000 VND/Khách) - Premium Flex',
+  500000 => '30kg (500.000 VND/Khách) - Premium Flex',
+  650000 => '40kg (650.000 VND/Khách) - Premium Flex',
+  750000 => '50kg (750.000 VND/Khách) - Premium Flex',
+  850000 => '60kg (850.000 VND/Khách) - Premium Flex',
 );
 $GLOBALS['app_list_strings']['bambooair_buzsmart_luggage_price_list'] = array(
-  0 => '40kg ký gửi (0 VND/Khách)-Business Smart',
+  0 => '40kg ký gửi (0 VND/Khách) - Business Smart',
 
   1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách) - Business Smart',
   40 => 'Mỗi hành khách tối đa 40Kg (0 VND/Khách) - Business Smart',
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Business Smart',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Business Smart',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Business Smart',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Business Smart',
+  200000    => '10kg (200.000 VND/Khách) - Business Smart',
+  350000    => '20kg (350.000 VND/Khách) - Business Smart',
+  500000    => '30kg (500.000 VND/Khách) - Business Smart',
+  650000    => '40kg (650.000 VND/Khách) - Business Smart',
+  750000    => '50kg (750.000 VND/Khách) - Business Smart',
+  850000    => '60kg (850.000 VND/Khách) - Business Smart',
 );
 $GLOBALS['app_list_strings']['bambooair_buzflex_luggage_price_list'] = array(
-  0 => '40kg ký gửi (0 VND/Khách)-Business Flex',
+  0 => '40kg ký gửi (0 VND/Khách) - Business Flex',
 
   // new
-  1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách) - Business Smart',
-  40 => 'Mỗi hành khách tối đa 40Kg (0 VND/Khách) - Business Smart',
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Business Smart',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Business Smart',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Business Smart',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Business Smart',
+  1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách) - Business Flex',
+  40 => 'Mỗi hành khách tối đa 40Kg (0 VND/Khách) - Business Flex',
+  200000    => '10kg (200.000 VND/Khách) - Business Flex',
+  350000    => '20kg (350.000 VND/Khách) - Business Flex',
+  500000    => '30kg (500.000 VND/Khách) - Business Flex',
+  650000    => '40kg (650.000 VND/Khách) - Business Flex',
+  750000    => '50kg (750.000 VND/Khách) - Business Flex',
+  850000    => '60kg (850.000 VND/Khách) - Business Flex',
 );
 $GLOBALS['app_list_strings']['bambooair_advanced_luggage_price_list'] = array(
+  0 => 'Không mang hành lý ',
   1 => '15kg hành lý ký gửi ',
-  100000 => 'Thêm 5kg hành lý trả trước (100.000 VND/Khách)-HLTT',
-  150000 => 'Thêm 10kg hành lý trả trước (150.000 VND/Khách)-HLTT',
-  220000 => 'Thêm 20kg hành lý trả trước (220.000 VND/Khách)-HLTT',
-  280000 => 'Thêm 25kg hành lý trả trước (280.000 VND/Khách)-HLTT',
-  380000 => 'Thêm 30kg hành lý trả trước (380.000 VND/Khách)-HLTT',
-  450000 => 'Thêm 35kg hành lý trả trước (450.000 VND/Khách)-HLTT',
-  550000 => 'Thêm 40kg hành lý trả trước (550.000 VND/Khách)-HLTT',
+  // 100000 => '5kg trả trước (100.000 VND/Khách)-HLTT',
+  // 150000 => '10kg trả trước (150.000 VND/Khách)-HLTT',
+  // 220000 => '20kg trả trước (220.000 VND/Khách)-HLTT',
+  // 280000 => '25kg trả trước (280.000 VND/Khách)-HLTT',
+  // 380000 => '30kg trả trước (380.000 VND/Khách)-HLTT',
+  // 450000 => '35kg trả trước (450.000 VND/Khách)-HLTT',
+  // 550000 => '40kg trả trước (550.000 VND/Khách)-HLTT',
 );
 $GLOBALS['app_list_strings']['bambooair_plus_luggage_price_list'] = array(
-  0 => 'Thêm 20kg hành lý (0 VND/Khách)-Plus ',
-  2000    => 'Thêm 15kg hành lý (2.000 VND/Khách)-Plus',
-  100000  => 'Thêm 25kg hành lý (100.000 VND/Khách)-Plus',
-  130000  => 'Thêm 30kg hành lý (130.000 VND/Khách)-Plus',
-  170000  => 'Thêm 35kg hành lý (170.000 VND/Khách)-Plus',
-  190000  => 'Thêm 40kg hành lý (190.000 VND/Khách)-Plus',
+  0 => '20kg (0 VND/Khách) - Plus ',
+  // 2000    => '15kg (2.000 VND/Khách)-Plus',
+  // 100000  => '25kg (100.000 VND/Khách)-Plus',
+  // 130000  => '30kg (130.000 VND/Khách)-Plus',
+  // 170000  => '35kg (170.000 VND/Khách)-Plus',
+  // 190000  => '40kg (190.000 VND/Khách)-Plus',
+
+  // new
+  200000    => '10kg (200.000 VND/Khách) - Plus',
+  350000    => '20kg (350.000 VND/Khách) - Plus',
+  500000    => '30kg (500.000 VND/Khách) - Plus',
+  650000    => '40kg (650.000 VND/Khách) - Plus',
+  750000    => '50kg (750.000 VND/Khách) - Plus',
+  850000    => '60kg (850.000 VND/Khách) - Plus',
 );
 $GLOBALS['app_list_strings']['bambooair_infant_luggage_price_list'] = array(
   0 => 'Không mang hành lý ký gửi ',
 );
 
+
+
+
+
+
+
+
 // Vietravel Airlines
 $GLOBALS['app_list_strings']['vietravel_luggage_price_list'] = array(
   0 => 'Không mang hành lý ký gửi ',
-  150000 => 'Thêm 15kg hành lý (150.000 VND/Khách)',
-  190000 => 'Thêm 20kg hành lý (190.000 VND/Khách)',
-  240000 => 'Thêm 25kg hành lý (240.000 VND/Khách)',
-  280000 => 'Thêm 30kg hành lý (280.000 VND/Khách)',
-  320000 => 'Thêm 35kg hành lý (320.000 VND/Khách)',
-  370000 => 'Thêm 40kg hành lý (370.000 VND/Khách)',
+  150000 => '15kg (150.000 VND/Khách)',
+  190000 => '20kg (190.000 VND/Khách)',
+  240000 => '25kg (240.000 VND/Khách)',
+  280000 => '30kg (280.000 VND/Khách)',
+  320000 => '35kg (320.000 VND/Khách)',
+  370000 => '40kg (370.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['vietravel_luggage_price_list2'] = array(
   0 => 'Không mang hành lý ký gửi ',
-  200000 => 'Thêm 15kg hành lý (200.000 VND/Khách)',
-  220000 => 'Thêm 20kg hành lý (220.000 VND/Khách)',
-  270000 => 'Thêm 25kg hành lý (270.000 VND/Khách)',
-  320000 => 'Thêm 30kg hành lý (320.000 VND/Khách)',
-  380000 => 'Thêm 35kg hành lý (380.000 VND/Khách)',
-  420000 => 'Thêm 40kg hành lý (420.000 VND/Khách)',
+  200000 => '15kg (200.000 VND/Khách)',
+  220000 => '20kg (220.000 VND/Khách)',
+  270000 => '25kg (270.000 VND/Khách)',
+  320000 => '30kg (320.000 VND/Khách)',
+  380000 => '35kg (380.000 VND/Khách)',
+  420000 => '40kg (420.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['new_vietravel_luggage_price_list1'] = array(
   0 => 'Không mang hành lý ký gửi ',
-  180000 => 'Thêm 15kg hành lý (180.000 VND/Khách)',
-  210000 => 'Thêm 20kg hành lý (210.000 VND/Khách)',
-  270000 => 'Thêm 25kg hành lý (270.000 VND/Khách)',
-  380000 => 'Thêm 30kg hành lý (380.000 VND/Khách)',
-  450000 => 'Thêm 35kg hành lý (450.000 VND/Khách)',
-  500000 => 'Thêm 40kg hành lý (500.000 VND/Khách)',
+  180000 => '15kg (180.000 VND/Khách)',
+  210000 => '20kg (210.000 VND/Khách)',
+  270000 => '25kg (270.000 VND/Khách)',
+  380000 => '30kg (380.000 VND/Khách)',
+  450000 => '35kg (450.000 VND/Khách)',
+  500000 => '40kg (500.000 VND/Khách)',
 );
 
 // Từ ngày 06-01-2023
 $GLOBALS['app_list_strings']['new_vietravel_luggage_price_list2'] = array(
   0 => 'Không mang hành lý ký gửi ',
-  200000 => 'Thêm 15kg hành lý (200.000 VND/Khách)',
-  // 220000 => 'Thêm 20kg hành lý (220.000 VND/Khách)',
-  // 270000 => 'Thêm 25kg hành lý (270.000 VND/Khách)',
-  // 320000 => 'Thêm 30kg hành lý (320.000 VND/Khách)',
-  // 380000 => 'Thêm 35kg hành lý (380.000 VND/Khách)',
-  // 420000 => 'Thêm 40kg hành lý (420.000 VND/Khách)',
+  // 200000 => '15kg (200.000 VND/Khách)',
+  // 220000 => '20kg (220.000 VND/Khách)',
+  // 270000 => '25kg (270.000 VND/Khách)',
+  // 320000 => '30kg (320.000 VND/Khách)',
+  // 380000 => '35kg (380.000 VND/Khách)',
+  // 420000 => '40kg (420.000 VND/Khách)',
 
-  250000 => 'Thêm 20kg hành lý (250.000 VND/Khách)',
-  300000 => 'Thêm 25kg hành lý (300.000 VND/Khách)',
-  350000 => 'Thêm 30kg hành lý (350.000 VND/Khách)',
-  400000 => 'Thêm 35kg hành lý (400.000 VND/Khách)',
-  460000 => 'Thêm 40kg hành lý (460.000 VND/Khách)',
+  // 250000 => '20kg (250.000 VND/Khách)',
+  // 300000 => '25kg (300.000 VND/Khách)',
+  // 350000 => '30kg (350.000 VND/Khách)',
+  // 400000 => '35kg (400.000 VND/Khách)',
+  // 460000 => '40kg (460.000 VND/Khách)',
 
+  // Từ ngày 15-08-2024
+  230000 => '1 kiện 15kg (230.000 VND/Khách)',
+  310000 => '1 kiện 23kg (310.000 VND/Khách)',
+  480000 => '1 kiện 32kg (480.000 VND/Khách)',
 );
 
 // HÀNH LÝ QUỐC TẾ
 $GLOBALS['app_list_strings']['inter_luggage_price_list'] = array(
-    '0' => 'Không mang hành lý ký gửi ',
-    '20' => 'Thêm 20kg hành lý ',
-    '23' => '1 kiện 23kg hành lý ',
-    '223' => '2 kiện 23kg hành lý ',
-    '25' => 'Thêm 25kg hành lý ',
-    '30' => 'Thêm 30kg hành lý ',
+  '0' => 'Không mang hành lý ký gửi ',
+  '20' => '20kg ',
+  '23' => '1 kiện 23kg ',
+  '223' => '2 kiện 23kg ',
+  '25' => '25kg ',
+  '30' => '30kg ',
 );
 // =================== END ==========================
 // ==================================================
@@ -2546,9 +2421,142 @@ $GLOBALS['app_list_strings']['roles_users'] = array(
 );
 
 
-$app_strings['LBL_GROUPTAB4_1701142222'] = 'Nhóm mới';
-
 $app_strings['LBL_GROUPTAB4_1701142454'] = 'Activity';
 
 $app_strings['LBL_GROUPTAB5_1717468343'] = 'Email';
-?>
+
+$app_list_strings['alert_priority_list'] = array(
+  'urgent' => 'Khẩn cấp',
+  'high' => 'Cao',
+  'medium' => 'Trung bình',
+  'low' => 'Thấp',
+);
+
+$app_list_strings['alert_type_list'] = array(
+  'readonly' => 'Chỉ xem',
+  'remind' => 'Nhắc nhở',
+);
+
+$app_list_strings['network_provider_list'] = array(
+  'hotline' => 'Hotline',
+  'viettel' => 'Viettel',
+  'mobiphone' => 'Mobiphone',
+  'vinaphone' => 'Vinaphone',
+  'vnpt' => 'VNPT',
+  'fpt' => 'FPT',
+  'other' => 'Khác',
+);
+
+$app_list_strings['outbound_phone_status_list'] = array(
+  'active' => 'Đang hoạt động',
+  'inactive' => 'Không hoạt động',
+);
+
+$app_list_strings['document_category_dom'] = array(
+  '' => '',
+  'Contracts' => 'Hợp đồng',
+  'Internal Documents' => 'Tài liệu nội bộ',
+  'Reports' => 'Báo cáo',
+  'Plans & Strategies' => 'Kế hoạch & Chiến lược',
+  'Training Materials' => 'Tài liệu đào tạo',
+  'Accounting Documents' => 'Chứng từ kế toán',
+  'Legal Documents' => 'Tài liệu pháp lý',
+  'HR Files' => 'Hồ sơ nhân sự',
+  'Marketing' => 'Marketing',
+  'Knowledge Base' => 'Trung tâm hỗ trợ',
+  'Sales' => 'Bán hàng',
+  'Technical Documents' => 'Tài liệu kỹ thuật',
+  'Other' => 'Khác',
+);
+
+$app_list_strings['document_subcategory_dom'] = array(
+  '' => '',
+  'Marketing Collateral' => 'Tư liệu tiếp thị',
+  'Product Brochures' => 'Tài liệu giới thiệu sản phẩm',
+  'FAQ' => 'Câu hỏi thường gặp',
+  'Contracts - NDA' => 'Hợp đồng - NDA',
+  'Contracts - Service' => 'Hợp đồng - Dịch vụ',
+  'Contracts - Sales' => 'Hợp đồng - Bán hàng',
+  'Training - Guidelines' => 'Đào tạo - Hướng dẫn',
+  'Training - Onboarding' => 'Đào tạo - Nhập môn',
+  'Reports - Financial' => 'Báo cáo - Tài chính',
+  'Reports - Sales' => 'Báo cáo - Bán hàng',
+  'HR - Policies' => 'Nhân sự - Chính sách',
+  'HR - Employee Records' => 'Nhân sự - Hồ sơ nhân viên',
+  'Legal - Compliance' => 'Pháp lý - Tuân thủ',
+  'Legal - Agreements' => 'Pháp lý - Thỏa thuận',
+  'Technical - Manuals' => 'Kỹ thuật - Hướng dẫn sử dụng',
+  'Technical - Specifications' => 'Kỹ thuật - Thông số kỹ thuật',
+  'Other' => 'Khác',
+);
+
+$app_list_strings['document_template_type_dom'] = array(
+  '' => '',
+  'license' => 'Thỏa thuận cấp phép',
+  'contract' => 'Hợp đồng',
+  'proposal' => 'Đề xuất',
+  'invoice' => 'Hóa đơn',
+  'report' => 'Báo cáo',
+  'policy' => 'Chính sách',
+  'manual' => 'Hướng dẫn sử dụng',
+  'training' => 'Tài liệu đào tạo',
+  'guideline' => 'Hướng dẫn quy trình',
+  'compliance' => 'Tài liệu tuân thủ',
+  'marketing' => 'Tài liệu tiếp thị',
+  'brochure' => 'Tài liệu giới thiệu',
+  'other' => 'Khác',
+);
+
+
+$app_list_strings['absence_status_list'] = array(
+  0 => 'Mới tạo',
+  1 => 'Chờ duyệt',
+  2 => 'Đã duyệt',
+);
+
+$app_list_strings['booking_customer_source_list'] = [
+  'system_ads' => 'Hệ thống QC',
+  'system_old' => 'Hệ thống KC',
+  'new'    => 'Mới',
+  'agent'  => 'Đại lý CTV',
+  'care'   => 'Chăm sóc KH',
+];
+
+$app_list_strings['booking_checkin_status_list'] = [
+  0    => '',
+  1  => 'Cần checkin',
+  2  => 'Đã checkin',
+];
+
+// Danh sách TK Công nợ
+$app_list_strings['debit_account_list'] = [
+  '131'  => '131 - Phải thu của khách hàng',
+  '1361' => '1361 - Vốn kinh doanh ở đơn vị trực thuộc',
+  '1368' => '1368 - Phải thu nội bộ khác',
+  '1388' => '1388 - Phải thu khác',
+  '3361' => '3361 - Phải trả nội bộ về vốn kinh doanh',
+  '3368' => '3368 - Phải trả nội bộ khác',
+  '3388' => '3388 - Phải trả, phải nộp khác',
+  '6421' => '6421 - Chi phí bán hàng',
+];
+
+// Danh sách TK doanh thu - TK có
+$app_list_strings['credit_account_list'] = [
+  '1388' => '1388 - Phải thu khác',
+  '3339' => '3339 - Phí, lệ phí và các khoản phải nộp khác',
+  '3387' => '3387 - Doanh thu chưa thực hiện',
+  '5111' => '5111 - Doanh thu bán hàng hóa',
+  '5112' => '5112 - Doanh thu bán thành phẩm',
+  '5113' => '5113 - Doanh thu cung cấp dịch vụ',
+  '5118' => '5118 - Doanh thu khác',
+  '711'  => '711 - Thu nhập khác',
+];
+
+$app_list_strings['product_code_list'] = [
+  'VMB_QN' => 'VMB_QN',
+  'VMB_QT' => 'VMB_QT',
+  'PD' => 'PD',
+  'PHL' => 'PHL',
+  'PMG' => 'PMG',
+  'PK' => 'PK',
+];

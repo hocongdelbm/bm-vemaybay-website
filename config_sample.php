@@ -119,14 +119,6 @@ $sugar_config = array(
       1 => 'root',
     ),
   ),
-  'dashlet_auto_refresh_min' => '-1',
-  'dashlet_display_row_options' =>
-  array(
-    0 => '1',
-    1 => '3',
-    2 => '5',
-    3 => '10',
-  ),
   'date_formats' =>
   array(
     'Y-m-d' => '2010-12-23',
@@ -311,7 +303,6 @@ $sugar_config = array(
       'suffix' => '%m_%d_%y',
     ),
   ),
-  'max_dashlets_homepage' => '15',
   'name_formats' =>
   array(
     's l f' => 's l f',
@@ -350,7 +341,6 @@ $sugar_config = array(
     'special_query_limit' => 50000,
     'special_query_modules' =>
     array(
-      0 => 'AOR_Reports',
       1 => 'Export',
       2 => 'Import',
       3 => 'Administration',
@@ -459,7 +449,6 @@ $sugar_config = array(
   'use_common_ml_dir' => false,
   'use_php_code_json' => true,
   'use_real_names' => false,
-  'vcal_time' => '0',
   'verify_client_ip' => false,
   'valid_image_ext' =>
   array(
@@ -476,47 +465,6 @@ $sugar_config = array(
     1 => '143',
     2 => '993',
     3 => '995',
-  ),
-  'enable_legacy_search' =>
-  array(
-    0 => 'Accounts',
-    1 => 'EC_Flight_Bookings',
-    2 => 'EC_Receipt_Voucher',
-    3 => 'EC_Payment_Voucher',
-    4 => 'EC_ChuyenTienNoiBo',
-    5 => 'Users',
-    6 => 'EC_LoaiChungTu',
-    7 => 'EC_Bank_Account',
-    8 => 'EC_Banks',
-    9 => 'EC_LeaveAbsenceTypes',
-    10 => 'EC_LeaveAbsences',
-    11 => 'EC_WorkingOverTimes',
-    12 => 'EC_Targets',
-    13 => 'SecurityGroups',
-    14 => 'EC_LyDoThangThua',
-    15 => 'EC_Location',
-    16 => 'EC_HoanVe',
-    17 => 'EC_Vouchers',
-    18 => 'EC_Request_Flight',
-    19 => 'EC_Payment_Types',
-    20 => 'EC_Customer',
-    21 => 'Employees',
-    22 => 'EC_ChiTietHoaDon',
-    23 => 'EC_HoaDonBan',
-    24 => 'EC_LoginAudit',
-    25 => 'OAuth2Clients',
-    26 => 'EC_ChiTietTaiKhoan',
-    27 => 'Calls',
-    28 => 'Contacts',
-    29 => 'Campaigns',
-    30 => 'EC_WorkHistory',
-    31 => 'Schedulers',
-    32 => 'EC_SMS_Logs',
-    33 => 'ACLRoles',
-    34 => 'InboundEmail',
-    35 => 'OutboundEmailAccounts',
-    36 => 'ExternalOAuthConnection',
-    37 => 'Emails',
   ),
   'import_dir' => 'cache/import/',
   'disable_count_query' => true,

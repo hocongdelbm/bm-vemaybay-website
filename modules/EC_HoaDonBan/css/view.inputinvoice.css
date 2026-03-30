@@ -1,0 +1,75 @@
+table.table-import tr td label.label {
+    width: 55%;
+    display: inline-block;
+}
+
+.table-edit-invoice tr td {vertical-align: baseline;}
+.table-edit-invoice tr td:last-child input.box-input {width: 100%;}
+
+#preview_frm>.top_area {
+    text-align: center;
+    position: sticky;
+    top: -1px;
+    background-color: #fff;
+    padding: 5px;
+}
+#preview_frm .warning_text {
+    color: var(--red-vj-color);
+    margin-bottom: 5px;
+}
+#preview_frm .other_fee {
+    background-color: #DDA0DD;
+}
+
+#data_tbl thead tr.line_1 th,
+#data_tbl thead tr.line_2 th {
+    position: sticky;
+    z-index: 10;
+}
+
+#data_tbl .available {
+    font-weight: bold;
+    color: green;
+}
+
+#data_tbl .outofstock {
+    font-weight: bold;
+    color: var(--red-vj-color);
+}
+
+#data_tbl .err_minus {
+    background-color: #F08080;
+}
+
+#data_tbl .sep_bk_col {
+    position: relative;
+}
+
+.red_cl {
+    color: var(--red-vj-color);
+}
+
+#page_number {
+    width: 50px;
+    text-align: center;
+}
+
+#pagination_tbl input {
+    width: 50px !important;
+}
+
+td.sep_order {
+    position: relative;
+}
+.icon-duplicate {
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    left: 1px;
+}
+.icon-remove {
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 1px;
+}

@@ -31,6 +31,7 @@ $mod_strings = array(
   'LNK_NEW_RECORD' => 'Tạo Booking',
   'LNK_LIST' => 'Danh sách Booking',
   'LNK_IMPORT_EC_FLIGHT_BOOKINGS' => 'Nhập Booking',
+  'LNK_UPDATE_FLIGHT' => 'Cập nhật chuyến bay',
   'LBL_SEARCH_FORM_TITLE' => 'Tìm kiếm Booking',
   'LBL_HISTORY_SUBPANEL_TITLE' => 'Xem lịch sử',
   'LBL_ACTIVITIES_SUBPANEL_TITLE' => 'Hoạt động',
@@ -51,6 +52,7 @@ $mod_strings = array(
   'LBL_PANEL16' => 'Thông tin booking',
 
   'LBL_PANEL_BANK' => 'Chuyển khoản',
+  'LBL_JOURNEY' => 'Hành trình',
 
   'LBL_BOOKING_CONTENT_OUTBOUND'  => 'Nội dung vé chiều đi',
   'LBL_BOOKING_CONTENT_INBOUND'   => 'Nội dung vé chiều về',
@@ -76,13 +78,15 @@ $mod_strings = array(
   // 'LBL_ORDER_DATE' => 'Ngày đặt',
 
   'LBL_PASSENGER_SEARCH'        => 'Tên hành khách',
-  'LBL_ITINERARY_SEARCH'        => 'Hành trình (SGN-HAN)',
+  'LBL_ITINERARY_SEARCH'        => 'Hành trình',
   'LBL_TICKET_CLASS_SEARCH'     => 'Hạng vé',
   'LBL_AIRLINE_CODE_SEARCH'     => 'Mã hãng',
   'LBL_ETICKET_OUTBOUND_SEARCH' => 'Số vé đi',
   'LBL_ETICKET_INBOUND_SEARCH'  => 'Số vé về',
   'LBL_PNR_OUTBOUND_SEARCH'     => 'PNR đi',
   'LBL_PNR_INBOUND_SEARCH'      => 'PNR về',
+  'LBL_ELUGGAGE_OUTBOUND_SEARCH' => 'Số vé HL đi',
+  'LBL_ELUGGAGE_INBOUND_SEARCH'  => 'Số vé HL về',
 
   'LBL_SENDMAIL_CONFIRM_DATE' => 'Ngày gửi mail xác nhận',
   'LBL_SENDMAIL_ETICKET_DATE' => 'Gửi vé qua mail',
@@ -93,7 +97,7 @@ $mod_strings = array(
   'LBL_CURRENCY_RATE' => 'Tỉ giá',
   'LBL_CURRENCY_NOTE' => 'Nguồn tỉ giá',
   'LBL_THUEPHI_QUOCTE' => 'Thuế phí QT',
-  
+
   'LBL_TOTAL_QTY' => 'SL',
   'LBL_TOTAL_BOUGHT_PRICE' => 'Tổng giá mua',
   'LBL_IS_MAIL_CONFIRM' => 'Đã gửi mail',
@@ -111,7 +115,6 @@ $mod_strings = array(
   'LBL_DATE_TICKET_INBOUND_ISSUE' => 'Ngày xuất vé lượt về',
   'LBL_LINE_PASSENGERS_LUGGAGE_EXTRA' => 'Hành lý',
   'LBL_LINE_PASSENGERS_NAME_EXTRA' => 'Đổi tên liên hệ',
-  'LBL_LINE_ITINERARY_EXTRA' => 'Đổi ngày bay',
   'LBL_DEPARTURE_DATE' => 'Ngày giờ bay',
 
   'LBL_ASSIGNED_TO_2ND_ID' => 'Người duyệt',
@@ -127,7 +130,7 @@ $mod_strings = array(
   'LBL_SALUTATION' => 'Danh xưng',
   'LBL_COUNTRY' => 'Nơi đặt vé',
   'LBL_EMAIL' => 'Email',
-  'LBL_CITY' => 'Thành phố',
+  'LBL_CITY' => 'Nơi đặt vé',
   'LBL_PHONE' => 'Điện thoại',
   'LBL_ADDRESS' => 'Địa chỉ',
   'LBL_DISCOUNT_INFO' => 'Nhận TT khuyến mãi',
@@ -172,6 +175,7 @@ $mod_strings = array(
   'LBL_ARRIVAL' => 'Nơi đến',
   'LBL_ARRIVAL_DATE' => 'Ngày giờ đến',
   'LBL_TOTAL_PRICE' => 'Tổng tiền',
+  'LBL_TOTAL_PROFIT' => 'Doanh số',
   'LBL_ADD_LINE' => 'Thêm',
   'LBL_REMOVE_LINE' => 'Xóa',
   'LBL_TRAVELLER_TYPE' => 'Loại hành khách',
@@ -242,7 +246,7 @@ $mod_strings = array(
   'LBL_IS_INVOICE_INPUT_EXPORT' => 'Hóa đơn đầu vào',
   'LBL_INVOICE' => 'Hóa đơn',
   'LBL_IS_TICKET_EXPORTED_OUTBOUND' => 'Đã xuất vé lượt về',
-  
+
   'LBL_VOUCHER' => 'Voucher',
   'LBL_HAS_VOUCHER' => 'Có Voucher',
   'LBL_INFO_PAYMENT' => 'Thông tin thanh toán',
@@ -255,6 +259,7 @@ $mod_strings = array(
 
   'LBL_IV_ACCOUNT_NAME' => 'Họ tên KH',
   'LBL_IV_EMAIL' => 'Email',
+  'LBL_IV_IDENTITY_NUMBER' => 'CCCD/Hộ chiếu',
   'LBL_IV_BANK_ACCOUNT' => 'Số tài khoản',
   'LBL_IV_PAYMENT_METHOD' => 'Phương thức TT',
   'LBL_IV_NAME_BANKS' => 'Tên ngân hàng',
@@ -267,13 +272,23 @@ $mod_strings = array(
   'LBL_ITINERARY_PANEL'   => 'Hành trình',
   'LBL_PANEL_ITINERARY'   => 'Hành trình',
   'LBL_PANEL_PASSENGER'   => 'Hành khách',
-  
+  'LBL_BOOKINGS_PANEL' => 'Thông tin booking',
+  'LBL_RELATE_PANEL' => 'Chứng từ liên quan',
+
   // IN VÉ
   'LBL_PRINT_AS_PDF'   => 'In vé',
   'LBL_PASSENGER_LT_FILTER'   => 'Lý thông',
 
+  'LBL_CHECKIN_STATUS'   => 'Trạng thái checkin',
   'LBL_RECALL_C'   => 'Recall',
-
   'LBL_EMAIL_RESERVATION'   => 'Email đặt chỗ',
-  
+  'LBL_IS_TELESALE'   => 'Là Telesale',
+  'LBL_IS_CTV'   => 'CTV',
+  'LBL_IS_REFERENCE'   => 'BK tham khảo',
+  'LBL_IS_PRIOR'   => 'Vé cận',
+  'LBL_CUSTOMER_SOURCE' => 'Nguồn KH',
+  'LBL_BOOKMARK' => 'Đánh dấu',
+  'LBL_BOOKMARK_SYSTEM' => 'Hệ thống đánh dấu',
+  'LBL_TRANSACTION_HISTORY' => 'Lịch sử giao dịch',
+  'LBL_PAYMENT' => 'Thanh toán',
 );

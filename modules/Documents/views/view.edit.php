@@ -65,32 +65,39 @@ class DocumentsViewEdit extends ViewEdit
     {
         global $app_list_strings, $mod_strings;
 
-        $load_signed=false;
+        $load_signed = false;
         if ((isset($_REQUEST['load_signed_id']) && !empty($_REQUEST['load_signed_id']))) {
-            $load_signed=true;
+            $load_signed = true;
             if (isset($_REQUEST['record'])) {
-                $this->bean->related_doc_id=$_REQUEST['record'];
+                $this->bean->related_doc_id = $_REQUEST['record'];
             }
             if (isset($_REQUEST['selected_revision_id'])) {
-                $this->bean->related_doc_rev_id=$_REQUEST['selected_revision_id'];
+                $this->bean->related_doc_rev_id = $_REQUEST['selected_revision_id'];
             }
 
-            $this->bean->id=null;
-            $this->bean->document_name=null;
-            $this->bean->filename=null;
-            $this->bean->is_template=0;
+            $this->bean->id = null;
+            $this->bean->document_name = null;
+            $this->bean->filename = null;
+            $this->bean->is_template = 0;
         } //if
 
-        if (!empty($this->bean->id) ||
-            (empty($this->bean->id) && !empty($_REQUEST['record']) && !empty($_REQUEST['action']) && strtolower($_REQUEST['action'])=='quickedit')
+        // Khi edit: hiển thị preview và disable upload
+        // Khi tạo mới: cho phép upload
+        if (
+            !empty($this->bean->id) ||
+            (empty($this->bean->id) && !empty($_REQUEST['record']) && !empty($_REQUEST['action']) && strtolower($_REQUEST['action']) == 'quickedit')
         ) {
+            // EDIT mode: disable upload field
             $this->ss->assign("FILE_OR_HIDDEN", "hidden");
+            $this->ss->assign("UPLOAD_DISABLED", "disabled");
             if (!$this->ev->isDuplicate) {
                 $this->ss->assign("DISABLED", "disabled");
             }
         } else {
+            // CREATE mode: enable upload field
             $this->bean->revision = 1;
             $this->ss->assign("FILE_OR_HIDDEN", "file");
+            $this->ss->assign("UPLOAD_DISABLED", "");
         }
 
         $popup_request_data = array(
@@ -99,12 +106,10 @@ class DocumentsViewEdit extends ViewEdit
             'field_to_name_array' => array(
                 'id' => 'related_doc_id',
                 'document_name' => 'related_document_name',
-                ),
-            );
+            ),
+        );
         $json = getJSONobj();
         $this->ss->assign('encoded_document_popup_request_data', $json->encode($popup_request_data));
-
-
         //get related document name.
         if (!empty($this->bean->related_doc_id)) {
             $this->ss->assign("RELATED_DOCUMENT_NAME", Document::get_document_name($this->bean->related_doc_id));
@@ -118,6 +123,39 @@ class DocumentsViewEdit extends ViewEdit
             $this->ss->assign("RELATED_DOCUMENT_REVISION_DISABLED", "disabled");
         }
 
+        $booking_popup_data = array(
+            'call_back_function' => 'booking_set_return',
+            'form_name' => 'EditView',
+            'field_to_name_array' => array(
+                'id' => 'booking_id',
+                'name' => 'booking_name',
+            ),
+        );
+        $json = getJSONobj();
+        $this->ss->assign('encoded_booking_popup_data', $json->encode($booking_popup_data));
+        //get booking name.
+        // Check nếu có booking_id từ URL (khi redirect từ booking detail)
+        if (!empty($_REQUEST['booking_id']) && empty($this->bean->id)) {
+            $this->bean->booking_id = $_REQUEST['booking_id'];
+            if (!empty($_REQUEST['booking_name'])) {
+                $this->ss->assign("BOOKING_NAME", $_REQUEST['booking_name']);
+            }
+        } elseif (!empty($this->bean->booking_id)) {
+            require_once('modules/EC_Flight_Bookings/EC_Flight_Bookings.php');
+            $booking = new EC_Flight_Bookings();
+            $booking->retrieve($this->bean->booking_id);
+            $this->ss->assign("BOOKING_NAME", $booking->name);
+        } else {
+            $this->ss->assign("BOOKING_NAME", "");
+        }
+        // Set booking button availability
+        if ($load_signed) {
+            $this->ss->assign("BOOKING_BUTTON_AVAILABILITY", "hidden");
+        } else {
+            $this->ss->assign("BOOKING_BUTTON_AVAILABILITY", "button");
+        }
+
+
 
         //set parent information in the form.
         if (isset($_REQUEST['parent_id'])) {
@@ -129,13 +167,7 @@ class DocumentsViewEdit extends ViewEdit
 
             if (!empty($_REQUEST['parent_type'])) {
                 switch (strtolower($_REQUEST['parent_type'])) {
-
                     case "contracts":
-                        $this->ss->assign("LBL_PARENT_NAME", $mod_strings['LBL_CONTRACT_NAME']);
-                        break;
-
-                    //todo remove leads case.
-                    case "leads":
                         $this->ss->assign("LBL_PARENT_NAME", $mod_strings['LBL_CONTRACT_NAME']);
                         break;
                 } //switch
@@ -154,7 +186,40 @@ class DocumentsViewEdit extends ViewEdit
             $this->ss->assign("RELATED_DOCUMENT_BUTTON_AVAILABILITY", "button");
         } //if-else
 
+        // Assign preview URL for EditView - check if file is an image
+        if (!empty($this->bean->id) && !empty($this->bean->document_revision_id)) {
+            $revision = BeanFactory::getBean('DocumentRevisions', $this->bean->document_revision_id);
+
+            // Only show preview if the file is an image
+            if (!empty($revision->id) && !empty($revision->file_mime_type) && strpos($revision->file_mime_type, 'image/') === 0) {
+                // Use direct public share download URL from doc_url (already has /download)
+                $preview_url = !empty($revision->doc_url) ? $revision->doc_url . '/preview' : (!empty($this->bean->doc_url) ? $this->bean->doc_url . '/preview' : "");
+
+                if (!empty($preview_url)) {
+                    $this->ss->assign("PREVIEW_IMAGE_URL", $preview_url);
+                    $this->ss->assign("PREVIEW_FILENAME", $revision->filename);
+                    $this->ss->assign("HAS_PREVIEW_IMAGE", true);
+                } else {
+                    $this->ss->assign("PREVIEW_IMAGE_URL", "");
+                    $this->ss->assign("PREVIEW_FILENAME", "");
+                    $this->ss->assign("HAS_PREVIEW_IMAGE", false);
+                }
+            } else {
+                $this->ss->assign("PREVIEW_IMAGE_URL", "");
+                $this->ss->assign("PREVIEW_FILENAME", "");
+                $this->ss->assign("HAS_PREVIEW_IMAGE", false);
+            }
+        } else {
+            $this->ss->assign("PREVIEW_IMAGE_URL", "");
+            $this->ss->assign("PREVIEW_FILENAME", "");
+            $this->ss->assign("HAS_PREVIEW_IMAGE", false);
+        }
+
+        // Assign multiple file upload HTML
+        $this->ss->assign("MULTIPLE_FILE_UPLOAD_HTML", $this->renderMultipleFileUploadHtml());
+
         parent::display();
+        $this->getScripts();
     }
 
     /**
@@ -165,12 +230,59 @@ class DocumentsViewEdit extends ViewEdit
         $params = array();
         $params[] = $this->_getModuleTitleListParam($browserTitle);
         if (!empty($this->bean->id)) {
-            $params[] = "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>".$this->bean->document_name."</a>";
+            $params[] = "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>" . $this->bean->document_name . "</a>";
             $params[] = $GLOBALS['app_strings']['LBL_EDIT_BUTTON_LABEL'];
         } else {
             $params[] = $GLOBALS['app_strings']['LBL_CREATE_BUTTON_LABEL'];
         }
 
         return $params;
+    }
+
+    /**
+     * Render HTML for multiple file upload field
+     * @return string
+     */
+    protected function renderMultipleFileUploadHtml()
+    {
+        global $app_strings;
+        $disabled = $this->ss->get_template_vars('UPLOAD_DISABLED');
+        $hasPreviewImage = $this->ss->get_template_vars('HAS_PREVIEW_IMAGE');
+        $previewImageUrl = $this->ss->get_template_vars('PREVIEW_IMAGE_URL');
+        $previewFilename = $this->ss->get_template_vars('PREVIEW_FILENAME');
+
+        $disabledAttr = $disabled ? 'disabled="disabled"' : '';
+
+        $html = '<div>';
+        $html .= '  <div id="single-upload-container">';
+        $html .= "    <input type=\"file\" name=\"filename_file\" id=\"filename_file\" multiple onchange=\"handleSingleFileSelect(this)\" {$disabledAttr}>";
+        if ($disabled) {
+            $html .= '<div style="color: #999; font-size: 12px; margin-top: 5px;">(Không thể thay đổi file khi edit)</div>';
+        }
+        $html .= '  </div>';
+        $html .= '  <div id="multiple-upload-container" style="display:none;">';
+        $html .= "    <input type=\"file\" name=\"uploadfiles[]\" id=\"uploadfiles\" multiple onchange=\"handleMultipleFileSelect(this)\" {$disabledAttr}>";
+        $html .= '    <div id="file-list" style="margin-top: 5px; font-size: 12px; color: #666;"></div>';
+        $html .= '  </div>';
+        $html .= '</div>';
+
+        // Add different style for disabled/edit mode
+        $cursorStyle = $disabled ? 'not-allowed' : 'default';
+        $bgColor = $disabled ? '#f5f5f5' : '#ffffff';
+        $html .= '<div id="file-preview-container" style="margin-top:10px; padding:10px; border:1px solid #ddd; display:flex; gap:10px; overflow-x:auto; align-items:center; min-height:100px; cursor:' . $cursorStyle . '; background-color:' . $bgColor . ';">';
+        $html .= '  <div id="file-preview-images" style="display:flex; gap:10px;">';
+        if (!empty($hasPreviewImage)) {
+            $html .= '    <div style="display:flex; flex-direction:column; align-items:center; gap:5px;">';
+            $html .= '      <img src="' . $previewImageUrl . '" style="max-width:200px; max-height:200px; object-fit:contain; border:1px solid #ccc; border-radius:4px;"/>';
+            $html .= '      <div style="font-size:12px; color:#666; max-width:200px; text-align:center; word-break:break-word; padding:2px 5px;">' . $previewFilename . '</div>';
+            $html .= '    </div>';
+        }
+        $html .= '  </div>';
+        $displayStyle = (!empty($hasPreviewImage)) ? 'display:none;' : '';
+        $previewText = $disabled ? 'Preview file hiện tại (không thể kéo thả hoặc paste file mới)' : 'Chưa chọn file';
+        $html .= '  <div id="file-preview-text" style="color: #999; ' . $displayStyle . '">' . $previewText . '</div>';
+
+        $html .= '</div>';
+        return $html;
     }
 }

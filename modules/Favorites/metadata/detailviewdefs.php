@@ -74,9 +74,7 @@ array(
         0 =>
         array(
           0 => 'name',
-          1 =>
           array(
-            'name' => 'fp_event_locations_fp_events_1_name',
           ),
         ),
         1 =>

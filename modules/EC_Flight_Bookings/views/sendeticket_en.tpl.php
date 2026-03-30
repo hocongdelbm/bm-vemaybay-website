@@ -4,82 +4,6 @@ function generateSendmailHtml($booking_infos)
 {
 
 	$html = '';
-	// $html .= '
-	// 	<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-	// 	<html xmlns="http://www.w3.org/1999/xhtml">
-	// 	<head>
-	// 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	// 		<title>' . $booking_infos['email_subject'] . '</title>
-	// 	</head>
-	// 	<body>
-
-	// 	<div class="wrapper" style="width:100%; font-size:14px; margin: 0 auto; font-family:Arial, Helvetica, sans-serif; background-color: #ebeff8; line-height:16px; color:#202020; padding: 10px 0;">
-	// 		<table border="0" cellpadding="0" cellspacing="0" class="nl-container" role="presentation" style="mso-table-lspace: 0pt;mso-table-rspace: 0pt; margin: 0 auto; max-width: 680px">
-	// 			<tbody>
-	// 				<tr>
-	// 					<td>
-	// 					<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-3" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
-	// 						<tbody>
-	// 							<tr>
-	// 								<td>
-	// 									<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #a9e0ff; color: #000000;border-top-left-radius: 18px;border-top-right-radius: 18px;width: 100%;">
-	// 										<tbody>
-	// 											<tr>
-	// 												<td class="column column-1" style="mso-table-lspace: 0pt;mso-table-rspace: 0pt;font-weight: 400;text-align: left; vertical-align: middle;" width="13%">
-	// 													<table border="0" cellpadding="0" cellspacing="0" class="image_block block-1" role="presentation" style="mso-table-lspace: 0pt;mso-table-rspace: 0pt;" width="100%">
-	// 														<tr>
-	// 															<td class="pad" style="padding: 5px 0 5px 40px;width: 100%;">
-	// 																<div align="left" class="alignment" style="line-height: 10px">
-	// 																	<img alt="tcb" src="https://drive.google.com/uc?export=view&id=141C4go6xNZDmuxWjuZIBCmsijktcdLmB" style="display: block;height: auto; border: 0; width: 55px; max-width: 100%;" title="tcb" width="55" />
-	// 																</div>
-	// 															</td>
-	// 														</tr>
-	// 													</table>
-	// 												</td>
-	// 												<td class="column column-1" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: middle;" width="40%">
-	// 													<table border="0" cellpadding="0" cellspacing="0" class="text_block block-1" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word; " width="100%">
-	// 														<tr>
-	// 															<td class="pad" style=" padding: 10px 5px;">
-	// 																<div style="font-family: sans-serif">
-	// 																	<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #3a67a2; line-height: 1.5; font-weight: 600;">
-	// 																		<p style=" margin: 0; font-size: 14px; text-align: left; mso-line-height-alt: 16.8px; ">
-	// 																			<span style="display: block; font-weight:bold;">Find flights your way</span>
-	// 																		</p>
-	// 																		<p style=" margin: 0; font-size: 14px; text-align: left; mso-line-height-alt: 16.8px; ">
-	// 																			<span style="display: block; font-weight:bold;">'.$booking_infos['com_website'].'</span>
-	// 																		</p>
-	// 																	</div>
-	// 																</div>
-	// 															</td>
-	// 														</tr>
-	// 													</table>
-	// 												</td>
-	// 												<td class="column column-2" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: middle;" width="30%">
-	// 													<table border="0" cellpadding="10" cellspacing="0" class="text_block block-1" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word; " width="100%">
-	// 														<tr>
-	// 															<td class="pad" style="padding-bottom: 5px;">
-	// 																<div style="font-family: sans-serif">
-	// 																	<div class="" style="font-size: 13px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; line-height: 1.5; ">
-	// 																		<p style="margin: 0; text-align: right; mso-line-height-alt: 14.399999999999999px; ">
-	// 																			<span><strong>' . $booking_infos['com_name'] . '</strong></span>
-	// 																		</p>
-	// 																		<p style="margin: 0; text-align: right; mso-line-height-alt: 14.399999999999999px; ">
-	// 																			<span><strong>Hotline: ' . $booking_infos['com_phone_support'] . '</strong></span>
-	// 																		</p>
-	// 																	</div>
-	// 																</div>
-	// 															</td>
-	// 														</tr>
-	// 													</table>
-	// 												</td>
-	// 											</tr>
-	// 										</tbody>
-	// 									</table>
-	// 								</td>
-	// 							</tr>
-	// 						</tbody>
-	// 					</table>';
-	
 	$html .= '
 		<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 		<html xmlns="http://www.w3.org/1999/xhtml">
@@ -362,7 +286,7 @@ function generateSendmailHtml($booking_infos)
 													<td class="pad" style="padding: 25px 0 15px; width: 100%;">
 														<div align="center" class="alignment" style="line-height: 10px">
 															<p style=" margin: 0; font-size: 12px; line-height: 20px; mso-line-height-alt: 21px;  ">
-																Address: 65/28 Giai Phong, Ward 4, Tan Binh District, TPHCM
+																Address: ' . $booking_infos['com_address'] . '
 															</p>
 															<p style=" margin: 0; font-size: 12px; line-height: 20px; mso-line-height-alt: 21px;  ">
 																Tel: ' . $booking_infos['com_phone_support'] . '&nbsp;&nbsp;|&nbsp;&nbsp;Email: ' . $booking_infos['com_email'] . '

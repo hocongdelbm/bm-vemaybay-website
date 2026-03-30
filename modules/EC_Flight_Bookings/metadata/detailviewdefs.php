@@ -7,7 +7,7 @@ $viewdefs[$module_name]['DetailView'] = array(
             'buttons' => array(
                 'EDIT',
                 'DELETE',
-                // 'DUPLICATE',
+                'DUPLICATE',
                 array(
                     'customCode' => '{$CALLS_BUTTON}',
                 ),
@@ -24,6 +24,9 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CREATE_RV}',
                 ),
                 array(
+                    'customCode' => '{$MARK_AS_REFERENCE}',
+                ),
+                array(
                     'customCode' => '{$TICKET_RETURN}',
                 ),
                 array(
@@ -32,9 +35,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'customCode' => '{$CREATE_INVOICE}',
                 ),
-                // array(
-                //     'customCode' => '{$SYNC_PNR}',
-                // ),
                 // Thay đổi code vé / PNR / nhà cung cấp
                 array(
                     'customCode' => '{$EDIT_BKG_DETAIL}',
@@ -44,12 +44,8 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CHANGE_FLIGHT_TIME}',
                 ),
                 array(
-                    'customCode' => '{$RESERVATION_VJA}',
+                    'customCode' => '{$BUTTON_AUTO_BOOK}',
                 ),
-                // Chia doanh số
-                // array(
-                //     'customCode' => '{$SHARE_PROFIT}',
-                // ),
                 array(
                     'customCode' => '{$BUTTON_LINE_NOTES}',
                 ),
@@ -57,8 +53,20 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CHANGE_STATUS}',
                 ),
                 array(
+                    'customCode' => '{$UPDATE_REVENUE}',
+                ),
+                array(
                     'customCode' => '{$VIEWED_BOOKING}',
                 ),
+                array(
+                    'customCode' => '{$PRINT_TICKET_NEW}',
+                ),
+                // array(
+                //     'customCode' => '{$PRINT_TICKET}',
+                // ),
+                // array(
+                //     'customCode' => '{$SEND_TICKET}',
+                // ),
             )
         ),
         'maxColumns' => '2',
@@ -79,11 +87,14 @@ $viewdefs[$module_name]['DetailView'] = array(
             array(
                 'file' => 'themes/SuiteP/js/reset.js',
             ),
+            array(
+                'file' => 'modules/EC_Flight_Bookings/js/print_ticket_new.js',
+            ),
         ),
     ),
 
     'panels' => array(
-        'default' => array(
+        'LBL_BOOKINGS_PANEL' => array(
             array(
                 array(
                     'name' => 'name',
@@ -91,18 +102,28 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CUSTOM_NAME}',
                 ),
                 array(
-                    'name' => 'is_hold',
-                    'label' => 'LBL_IS_HOLD',
-                    'customCode' => '{$CUSTOM_IS_HOLD}',
+                    'name' => 'CUSTOMER_SOURCE',
+                    'label' => 'LBL_CUSTOMER_SOURCE',
+                    'customCode' => '{$CUSTOM_CUSTOMER_SOURCE}',
                 ),
             ),
-
             array(
                 array(
                     'name' => 'ticket_type',
-                    'studio' => 'visible',
                     'label' => 'LBL_TICKET_TYPE',
                     'customCode' => '{$CUSTOM_TICKET_TYPE}',
+                ),
+                array(
+                    'name' => 'bookmark',
+                    'label' => 'LBL_BOOKMARK',
+                    'customCode' => '{$CUSTOM_BOOKMARK}'
+                ),
+            ),
+            array(
+                array(
+                    'name' => 'bookmark_system',
+                    'label' => 'LBL_BOOKMARK_SYSTEM',
+                    'customCode' => '{$CUSTOM_BOOKMARK_SYSTEM}'
                 ),
                 array(
                     'name' => 'is_paid',
@@ -110,11 +131,9 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$IS_PAID}',
                 ),
             ),
-
             array(
                 array(
                     'name' => 'holding_status',
-                    'studio' => 'visible',
                     'label' => 'LBL_HOLDING_STATUS',
                 ),
                 array(
@@ -123,21 +142,17 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CUSTOM_IS_EXPORTED}',
                 ),
             ),
-
             array(
                 array(
                     'name' => 'payment_type',
-                    'studio' => 'visible',
                     'label' => 'LBL_PAYMENT_TYPE',
                 ),
-
                 array(
                     'name' => 'date_ticket_issue',
                     'label' => 'LBL_DATE_TICKET_ISSUE',
                     'customCode' => '{$CUSTOM_DATE_TICKET_ISSUE}',
                 ),
             ),
-
             array(
                 array(
                     'name' => 'airline',
@@ -150,7 +165,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$IS_INVOICE_EXPORT}',
                 ),
             ),
-           
             array(
                 array(
                     'name' => 'description',
@@ -159,34 +173,39 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
                 array(
                     'name' => 'recheck_status',
-                    'studio' => 'visible',
                     'label' => 'Thao tác',
                     'customCode' => '{$RECHECK_STATUS}',
                 ),
             ),
-           
             array(
                 array(
                     'name' => 'lydothangthua',
-                    'studio' => 'visible',
                     'label' => 'LBL_LYDOTHANGTHUA',
                 ),
                 array(
-                    'name' => 'ghichuthangthua',
-                    'studio' => 'visible',
-                    'label' => 'LBL_GHICHUTHANGTHUA',
+                    'name' => 'payment',
+                    'label' => 'LBL_PAYMENT',
+                    'customCode' => '{$CUSTOM_NGANLUONG_CODE}',
                 ),
             ),
-
             array(
                 array(
-                    'name' => 'is_mail_confirm',
-                    'label' => 'LBL_IS_MAIL_CONFIRM',
+                    'name' => 'ghichuthangthua',
+                    'label' => 'LBL_GHICHUTHANGTHUA',
                 ),
                 array(
-                    'name' => 'nganluong_code',
-                    'label' => 'LBL_NGANLUONG_CODE',
-                    'customCode' => '{$CUSTOM_NGANLUONG_CODE}',
+                    'name' => 'transaction_history',
+                    'label' => 'LBL_TRANSACTION_HISTORY',
+                    'customCode' => '{$CUSTOM_TRANSACTION_HISTORY}',
+                ),
+            ),
+            array(
+                array(
+                ),
+                array(
+                    'name' => 'documents',
+                    'label' => 'LBL_DOCUMENTS',
+                    'customCode' => '{$DOC_BUTTON} {$DOC_LIST_BUTTON}',
                 ),
             ),
 
@@ -198,10 +217,8 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'name' => 'assigned_user_name',
                     'label' => 'LBL_ASSIGNED_TO_NAME',
-                    'customCode' => '{$CUSTOM_ASSIGNED_TO_NAME}',
                 ),
             ),
-
             array(
                 array(
                     'name' => 'date_entered',
@@ -244,19 +261,12 @@ $viewdefs[$module_name]['DetailView'] = array(
             array(
                 array(
                     'name' => 'city',
-                    'studio' => 'visible',
                     'label' => 'LBL_CITY',
                 ),
                 array(
                     'name' => 'address',
                     'label' => 'LBL_ADDRESS',
                 ),
-                // array(
-                //     'name' => 'country',
-                //     'studio' => 'visible',
-                //     'label' => 'LBL_COUNTRY',
-                // ),
-             
             ),
         ),
 
@@ -264,7 +274,6 @@ $viewdefs[$module_name]['DetailView'] = array(
             array(
                 array(
                     'name' => 'line_itineraries',
-                    // 'label' => 'LBL_LINE_ITINERARIES',
                     'label' => false,
                     'customCode' => '{$LINE_ITINERARIES}',
                 ),
@@ -275,8 +284,6 @@ $viewdefs[$module_name]['DetailView'] = array(
             array(
                 array(
                     'name' => 'line_details',
-                    'studio' => 'visible',
-                    // 'label' => 'LBL_LINE_DETAILS',
                     'label' => false,
                     'customCode' => '{$LINE_DETAILS}',
                 ),
@@ -287,10 +294,18 @@ $viewdefs[$module_name]['DetailView'] = array(
             array(
                 array(
                     'name' => 'line_passengers',
-                    'studio' => 'visible',
-                    // 'label' => 'LBL_LINE_PASSENGERS',
                     'label' => false,
                     'customCode' => '{$LINE_PASSENGERS}',
+                ),
+            ),
+        ),
+
+        'LBL_RELATE_PANEL' => array(
+            array(
+                array(
+                    'name' => 'line_relate_voucher',
+                    'label' => false,
+                    'customCode' => '{$LINE_RELATE_VOUCHER}',
                 ),
             ),
         ),
@@ -303,20 +318,8 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
                 array(
                     'name' => 'iv_account_name',
-                    'studio' => 'visible',
                     'label' => 'LBL_IV_ACCOUNT_NAME',
                     'customCode' => '{$CUS_IV_ACCOUNT_NAME}',
-                ),
-            ),
-
-            array(
-                array(
-                    'name' => 'thuephi_quocte',
-                    'label' => 'LBL_THUEPHI_QUOCTE',
-                ),
-                array(
-                    'name' => 'company_name',
-                    'label' => 'LBL_COMPANY_NAME',
                 ),
             ),
 
@@ -326,8 +329,8 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'label' => 'LBL_OTHER_FEE',
                 ),
                 array(
-                    'name' => 'tax_code',
-                    'label' => 'LBL_TAX_CODE',
+                    'name' => 'company_name',
+                    'label' => 'LBL_COMPANY_NAME',
                 ),
             ),
 
@@ -338,9 +341,8 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CUS_DISCOUNT_AMOUNT}',
                 ),
                 array(
-                    'name' => 'iv_email',
-                    'label' => 'LBL_IV_EMAIL',
-                    'customCode' => '{$CUS_IV_EMAIL}',
+                    'name' => 'tax_code',
+                    'label' => 'LBL_TAX_CODE',
                 ),
             ),
 
@@ -350,27 +352,22 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'label' => 'LBL_TOTAL_AMOUNT',
                 ),
                 array(
-                    'name' => 'iv_payment_method',
-                    'label' => 'LBL_IV_PAYMENT_METHOD',
-                    'customCode' => '{$CUS_IV_PAYMENT_METHOD}',
+                    'name' => 'iv_email',
+                    'label' => 'LBL_IV_EMAIL',
+                    'customCode' => '{$CUS_IV_EMAIL}',
                 ),
             ),
 
             array(
-                array(),
                 array(
-                    'name' => 'iv_name_banks',
-                    'label' => 'LBL_IV_NAME_BANKS',
-                    'customCode' => '{$CUS_IV_NAME_BANK}',
+                    'name' => 'total_profit',
+                    'label' => 'LBL_TOTAL_PROFIT',
+                    'customCode' => '{$TOTAL_PROFIT}',
                 ),
-            ),
-
-            array(
-                array(),
                 array(
-                    'name' => 'iv_bank_account',
-                    'label' => 'LBL_IV_BANK_ACCOUNT',
-                    'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
+                    'name' => 'iv_identity_number',
+                    'label' => 'LBL_IV_IDENTITY_NUMBER',
+                    'customCode' => '{$CUS_IV_IDENTITY_NUMBER}',
                 ),
             ),
 
@@ -384,6 +381,15 @@ $viewdefs[$module_name]['DetailView'] = array(
                         'cols' => 32,
                         'rows' => 3,
                     ),
+                ),
+            ),
+
+            array(
+                array(),
+                array(
+                    'name' => 'iv_payment_method',
+                    'label' => 'LBL_IV_PAYMENT_METHOD',
+                    'customCode' => '{$CUS_IV_PAYMENT_METHOD}',
                 ),
             ),
         ),

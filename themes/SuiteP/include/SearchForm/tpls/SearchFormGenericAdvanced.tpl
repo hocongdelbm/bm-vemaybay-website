@@ -19,7 +19,7 @@
 
 <ul class="nav nav-tabs-advanced admin_tabs-list" id="myTab" role="tablist">
     {if !$searchFormInPopup}
-    <li class="admin_tabs-item" role="presentation">
+    <li class="admin_tabs-item d-none" role="presentation">
         <a id="basic_search_link" href="javascript:void(0)" accesskey="{$APP.LBL_ADV_SEARCH_LNK_KEY}">{$APP.LNK_BASIC_FILTER}</a>
     </li>
     {/if}
@@ -112,7 +112,7 @@
                     <!-- <input tabindex='2' title='{$APP.LBL_CLEAR_BUTTON_TITLE}' onclick='SUGAR.searchForm.clear_form(this.form); if(document.getElementById("saved_search_select")){ldelim}document.getElementById("saved_search_select").options[0].selected=true;{rdelim} return false;' class='btn btn-danger' type='button' name='clear' id='search_form_clear_advanced' value='{$APP.LBL_CLEAR_BUTTON_LABEL}'/> -->
                     <input tabindex='2' title='{$APP.LBL_CLEAR_BUTTON_TITLE}' onclick="SUGAR.searchForm.clear_form(this.form); SUGAR.ajaxUI.submitForm(this.form); return false;" class='btn btn-secondary' type='button' name='clear' id='search_form_clear_advanced' value='{$APP.LBL_CLEAR_BUTTON_LABEL}'/>
                     {if $DOCUMENTS_MODULE}
-                        <input title="{$APP.LBL_BROWSE_DOCUMENTS_BUTTON_TITLE}" type="button" class="btn btn-primary" value="{$APP.LBL_BROWSE_DOCUMENTS_BUTTON_LABEL}" onclick='open_popup("Documents", 600, 400, "&caller=Documents", true, false, "");'/>
+                        <!-- <input title="{$APP.LBL_BROWSE_DOCUMENTS_BUTTON_TITLE}" type="button" class="btn btn-primary" value="{$APP.LBL_BROWSE_DOCUMENTS_BUTTON_LABEL}" onclick='open_popup("Documents", 600, 400, "&caller=Documents", true, false, "");'/> -->
                     {/if}
                 </div>
     
@@ -129,11 +129,6 @@
                     </span>
                     {if $searchFormInPopup}
                 </div>
-                {/if}
-            </div>
-            <div class="help d-none">
-                {if $DISPLAY_SEARCH_HELP}
-                    <img border='0' src='{sugar_getimagepath file="help-dashlet.gif"}' class="help-search">
                 {/if}
             </div>
         </div>
@@ -160,6 +155,8 @@
             //alert( "This will be displayed only once." );
             SUGAR.searchForm.searchFormSelect('{/literal}{$module}{literal}|basic_search', '{/literal}{$module}{literal}|advanced_search');
         });
+
+        $('#search_form select').select2();
     });
     {/literal}
 </script>

@@ -168,11 +168,11 @@ $viewdefs['Employees'] =
             array(
               'name' => 'start_working_date',
               'label' => 'LBL_START_WORKING_DATE',
-              'customCode' => '{if $IS_MANAGER}
-                              {$CUS_START_WORKING_DATE}
-                            {else} 
-                              {$fields.start_working_date.value}
-                            {/if}',
+              // 'customCode' => '{if $IS_MANAGER}
+              //                 {$CUS_START_WORKING_DATE}
+              //               {else} 
+              //                 {$fields.start_working_date.value}
+              //               {/if}',
             ),
             array(
               'name' => 'tele_allowance',

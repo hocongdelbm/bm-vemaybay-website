@@ -40,8 +40,6 @@ $mod_strings = array(
     'LBL_ALLOW_DEFAULT_SELECTION' => 'Allow users to use this account for outgoing email:',
     'LBL_ALLOW_DEFAULT_SELECTION_HELP' => 'When this option is selected, all users will be able to send emails using the same outgoing mail account used to send system notifications and alerts. If the option is not selected, users can still use the outgoing mail server after providing their own account information.',
     'LBL_MAILMERGE' => 'Mail Merge',
-    'LBL_MIN_AUTO_REFRESH_INTERVAL' => 'Minimum Dashlet Auto-Refresh Interval',
-    'LBL_MIN_AUTO_REFRESH_INTERVAL_HELP' => 'This is the minimum value one can choose to have dashlets auto-refresh. Setting to \'Never\' disables auto-refreshing of dashlets entirely.',
     'LBL_MODULE_FAVICON' => 'Display module icon as favicon',
     'LBL_MODULE_FAVICON_HELP' => 'If you are in a module with an icon, use the module\'s icon as the favicon, instead of the theme\'s favicon, in the browser tab.',
     'LBL_MODULE_NAME' => 'System Settings',
@@ -86,7 +84,6 @@ $mod_strings = array(
     'VERIFY_CLIENT_IP' => 'Validate user IP address',
     'LOCK_HOMEPAGE' => 'Prevent user customizable Homepage layout',
     'LOCK_SUBPANELS' => 'Prevent user customizable subpanel layout',
-    'MAX_DASHLETS' => 'Maximum number of SuiteCRM Dashlets on Homepage',
     'SYSTEM_NAME' => 'System Name:',
     'SYSTEM_NAME_WIZARD' => 'Name:',
     'SYSTEM_NAME_HELP' => 'This is the name that displays in the title bar of your browser.',
@@ -159,12 +156,10 @@ $mod_strings = array(
     'LBL_CONFIG_AJAX_DESC' => 'Enable or disable the use of the AJAX UI for specific modules.',
     'LBL_LOGGER_MAX_LOGS' => 'Maximum number of logs (before rolling)',
     'LBL_LOGGER_FILENAME_SUFFIX' => 'Append after filename',
-    'LBL_VCAL_PERIOD' => 'vCal Updates Time Period:',
     'LBL_IMPORT_MAX_RECORDS' => 'Import - Maximum Number of Rows:',
     'LBL_IMPORT_MAX_RECORDS_HELP' => 'Specify how many rows are allowed within import files.<br>If the number of rows in an import file exceeds this number, the user will be alerted.<br>If no number is entered, an unlimited number of rows are allowed.',
-    'vCAL_HELP' => 'Use this setting to determine the number of months in advance of the current date that Free/Busy information for calls and meetings is published.<BR>To turn Free/Busy publishing off, enter "0". The minimum is 1 month; the maximum is 12 months.',
 
-// Wizard
+    // Wizard
     //Wizard Scenarios
     'LBL_WIZARD_SCENARIOS' => 'Your Scenarios',
     'LBL_WIZARD_SCENARIOS_EMPTY_LIST' => 'No scenarios have been configured',

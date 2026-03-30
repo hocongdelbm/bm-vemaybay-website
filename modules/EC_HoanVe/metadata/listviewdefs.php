@@ -23,7 +23,6 @@ $listViewDefs[$module_name] = array(
     'TINHTRANG' =>
     array(
         'type' => 'enum',
-        'studio' => 'visible',
         'label' => 'LBL_TINHTRANG',
         'width' => '8%',
         'default' => true,
@@ -31,7 +30,6 @@ $listViewDefs[$module_name] = array(
     'BOOKING' =>
     array(
         'type' => 'relate',
-        'studio' => 'visible',
         'label' => 'LBL_BOOKING',
         'width' => '8%',
         'default' => true,
@@ -43,6 +41,13 @@ $listViewDefs[$module_name] = array(
         'width' => '25%',
         'default' => true,
     ),
+    'TICKET_VALIDITY' =>
+    array(
+        'type' => 'date',
+        'label' => 'LBL_TICKET_VALIDITY',
+        'width' => '8%',
+        'default' => true,
+    ),
     'TONGTIENHANG' =>
     array(
         'type' => 'currency',
@@ -50,7 +55,7 @@ $listViewDefs[$module_name] = array(
         'currency_format' => true,
         'width' => '10%',
         'default' => true,
-        'align' => 'right',
+        'align' => 'center',
     ),
     'TONGTIENKHACH' =>
     array(
@@ -59,7 +64,7 @@ $listViewDefs[$module_name] = array(
         'currency_format' => true,
         'width' => '10%',
         'default' => true,
-        'align' => 'right',
+        'align' => 'center',
     ),
     'TONGTIENDV' =>
     array(
@@ -68,7 +73,7 @@ $listViewDefs[$module_name] = array(
         'currency_format' => true,
         'width' => '10%',
         'default' => true,
-        'align' => 'right',
+        'align' => 'center',
     ),
     'THONGBAO' =>
     array(
@@ -77,7 +82,7 @@ $listViewDefs[$module_name] = array(
         'width' => '10%',
         'default' => true,
         'sortable' => false,
-        'align' => 'right',
+        'align' => 'center',
     ),
     'ASSIGNED_USER_NAME' =>
     array(

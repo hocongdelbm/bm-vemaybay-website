@@ -65,7 +65,6 @@ class Opportunity extends SugarBean
     public $next_step;
     public $sales_stage;
     public $probability;
-    public $campaign_id;
 
     // These are related
     public $account_name;
@@ -221,12 +220,7 @@ class Opportunity extends SugarBean
                 $this->currency_id = $currency->id;
             }
         }
-        //get campaign name
-        if (!empty($this->campaign_id)) {
-            $camp = BeanFactory::newBean('Campaigns');
-            $camp->retrieve($this->campaign_id);
-            $this->campaign_name = $camp->name;
-        }
+    
         $this->account_name = '';
         $this->account_id = '';
         if (!empty($this->id)) {

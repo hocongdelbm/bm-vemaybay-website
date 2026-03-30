@@ -707,26 +707,11 @@ class Scheduler extends SugarBean
     public function displayCronInstructions()
     {
         global $mod_strings;
-        global $sugar_config;
+
         $error = '';
         if (!isset($_SERVER['Path'])) {
             $_SERVER['Path'] = getenv('Path');
         }
-        if (is_windows()) {
-            if (isset($_SERVER['Path']) && !empty($_SERVER['Path'])) { // IIS IUSR_xxx may not have access to Path or it is not set
-                if (!strpos($_SERVER['Path'], 'php')) {
-                    // $error = '<em>'.$mod_strings['LBL_NO_PHP_CLI'].'</em>';
-                }
-            }
-        } else {
-            if (isset($_SERVER['Path']) && !empty($_SERVER['Path'])) { // some Linux servers do not make this available
-                if (!strpos($_SERVER['PATH'], 'php')) {
-                    // $error = '<em>'.$mod_strings['LBL_NO_PHP_CLI'].'</em>';
-                }
-            }
-        }
-
-
 
         if (is_windows()) {
             echo '<div class="box-section">';
@@ -745,7 +730,6 @@ class Scheduler extends SugarBean
                 </tr>
             </table>';
             echo '</div';
-
         } else {
             require_once 'install/install_utils.php';
             $webServerUser = getRunningUser();
@@ -770,7 +754,6 @@ class Scheduler extends SugarBean
                 </tr>
             </table>';
             echo '</div';
-
         }
     }
 
@@ -928,18 +911,6 @@ class Scheduler extends SugarBean
         $sched14->catch_up          = '0';
         $sched14->save();
 
-        $sched15 = BeanFactory::newBean('Schedulers');
-        $sched15->name               = $mod_strings['LBL_OOTB_SUITEFEEDS'];
-        $sched15->job                = 'function::trimSugarFeeds';
-        $sched15->date_time_start    = create_date(2015, 1, 1) . ' ' . create_time(0, 0, 1);
-        $sched15->date_time_end      = null;
-        $sched15->job_interval       = '0::2::1::*::*';
-        $sched15->status             = 'Active';
-        $sched15->created_by         = '1';
-        $sched15->modified_user_id   = '1';
-        $sched15->catch_up           = '1';
-        $sched15->save();
-
         $sched16 = new Scheduler();
         $sched16->name = $mod_strings['LBL_OOTB_GOOGLE_CAL_SYNC'];
         $sched16->job = 'function::syncGoogleCalendar';
@@ -978,8 +949,7 @@ class Scheduler extends SugarBean
     /**
      * function overrides the one in SugarBean.php
      */
-    public function fill_in_additional_detail_fields()
-    { }
+    public function fill_in_additional_detail_fields() {}
 
     /**
      * function overrides the one in SugarBean.php
@@ -1007,8 +977,7 @@ class Scheduler extends SugarBean
     {
         return $this->name;
     }
-    ////	END STANDARD SUGARBEAN OVERRIDES
-    ///////////////////////////////////////////////////////////////////////////
+
     public static function getJobsList()
     {
         if (empty(self::$job_strings)) {

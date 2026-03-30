@@ -1,5 +1,5 @@
 <?php
-// created: 2023-12-01 02:28:17
+// created: 2026-03-14 10:59:51
 $unified_search_modules_display = array (
   'Accounts' => 
   array (
@@ -18,10 +18,6 @@ $unified_search_modules_display = array (
     'visible' => true,
   ),
   'Documents' => 
-  array (
-    'visible' => true,
-  ),
-  'Leads' => 
   array (
     'visible' => true,
   ),
@@ -53,10 +49,6 @@ $unified_search_modules_display = array (
   array (
     'visible' => false,
   ),
-  'AOBH_BusinessHours' => 
-  array (
-    'visible' => false,
-  ),
   'AOD_Index' => 
   array (
     'visible' => false,
@@ -74,14 +66,6 @@ $unified_search_modules_display = array (
     'visible' => false,
   ),
   'AOP_Case_Updates' => 
-  array (
-    'visible' => false,
-  ),
-  'AOR_Reports' => 
-  array (
-    'visible' => false,
-  ),
-  'AOR_Scheduled_Reports' => 
   array (
     'visible' => false,
   ),
@@ -125,71 +109,7 @@ $unified_search_modules_display = array (
   array (
     'visible' => false,
   ),
-  'Campaigns' => 
-  array (
-    'visible' => false,
-  ),
-  'FP_Event_Locations' => 
-  array (
-    'visible' => false,
-  ),
-  'FP_events' => 
-  array (
-    'visible' => false,
-  ),
-  'Project' => 
-  array (
-    'visible' => false,
-  ),
-  'ProjectTask' => 
-  array (
-    'visible' => false,
-  ),
-  'ProspectLists' => 
-  array (
-    'visible' => false,
-  ),
-  'Prospects' => 
-  array (
-    'visible' => false,
-  ),
-  'SurveyQuestionOptions' => 
-  array (
-    'visible' => false,
-  ),
-  'SurveyQuestionResponses' => 
-  array (
-    'visible' => false,
-  ),
-  'SurveyQuestions' => 
-  array (
-    'visible' => false,
-  ),
-  'SurveyResponses' => 
-  array (
-    'visible' => false,
-  ),
-  'Surveys' => 
-  array (
-    'visible' => false,
-  ),
   'Tasks' => 
-  array (
-    'visible' => false,
-  ),
-  'jjwg_Address_Cache' => 
-  array (
-    'visible' => false,
-  ),
-  'jjwg_Areas' => 
-  array (
-    'visible' => false,
-  ),
-  'jjwg_Maps' => 
-  array (
-    'visible' => false,
-  ),
-  'jjwg_Markers' => 
   array (
     'visible' => false,
   ),

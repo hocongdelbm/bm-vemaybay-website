@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
@@ -63,46 +64,46 @@ function clearCacheSU($thedir, $extension)
         }
     }
 }
- //Bug 24890, 24892. default_permissions not written to config.php. Following function checks and if
- //no found then adds default_permissions to the config file.
- function checkConfigForPermissions()
- {
-     if (file_exists(getcwd().'/config.php')) {
-         require(getcwd().'/config.php');
-     }
-     global $sugar_config;
-     if (!isset($sugar_config['default_permissions'])) {
-         $sugar_config['default_permissions'] = array(
-                     'dir_mode' => 02770,
-                     'file_mode' => 0660,
-                     'user' => '',
-                     'group' => '',
-             );
-         ksort($sugar_config);
-         if (is_writable('config.php') && write_array_to_file("sugar_config", $sugar_config, 'config.php')) {
-             //writing to the file
-         }
-     }
- }
+//Bug 24890, 24892. default_permissions not written to config.php. Following function checks and if
+//no found then adds default_permissions to the config file.
+function checkConfigForPermissions()
+{
+    if (file_exists(getcwd() . '/config.php')) {
+        require(getcwd() . '/config.php');
+    }
+    global $sugar_config;
+    if (!isset($sugar_config['default_permissions'])) {
+        $sugar_config['default_permissions'] = array(
+            'dir_mode' => 02770,
+            'file_mode' => 0660,
+            'user' => '',
+            'group' => '',
+        );
+        ksort($sugar_config);
+        if (is_writable('config.php') && write_array_to_file("sugar_config", $sugar_config, 'config.php')) {
+            //writing to the file
+        }
+    }
+}
 function checkLoggerSettings()
 {
-    if (file_exists(getcwd().'/config.php')) {
-        require(getcwd().'/config.php');
+    if (file_exists(getcwd() . '/config.php')) {
+        require(getcwd() . '/config.php');
     }
     global $sugar_config;
     if (!isset($sugar_config['logger'])) {
-        $sugar_config['logger'] =array(
-            'level'=>'fatal',
+        $sugar_config['logger'] = array(
+            'level' => 'fatal',
             'file' =>
-             array(
-              'ext' => '.log',
-              'name' => 'sugarcrm',
-              'dateFormat' => '%c',
-              'maxSize' => '10MB',
-              'maxLogs' => 10,
-              'suffix' => '', // bug51583, change default suffix to blank for backwards comptability
+            array(
+                'ext' => '.log',
+                'name' => 'sugarcrm',
+                'dateFormat' => '%c',
+                'maxSize' => '10MB',
+                'maxLogs' => 10,
+                'suffix' => '', // bug51583, change default suffix to blank for backwards comptability
             ),
-          );
+        );
         ksort($sugar_config);
         if (is_writable('config.php') && write_array_to_file("sugar_config", $sugar_config, 'config.php')) {
             //writing to the file
@@ -112,24 +113,23 @@ function checkLoggerSettings()
 
 function checkResourceSettings()
 {
-    if (file_exists(getcwd().'/config.php')) {
-        require(getcwd().'/config.php');
+    if (file_exists(getcwd() . '/config.php')) {
+        require(getcwd() . '/config.php');
     }
     global $sugar_config;
     if (!isset($sugar_config['resource_management'])) {
         $sugar_config['resource_management'] =
-          array(
-            'special_query_limit' => 50000,
-            'special_query_modules' =>
             array(
-              0 => 'AOR_Reports',
-              1 => 'Export',
-              2 => 'Import',
-              3 => 'Administration',
-              4 => 'Sync',
-            ),
-            'default_limit' => 1000,
-          );
+                'special_query_limit' => 50000,
+                'special_query_modules' =>
+                array(
+                    1 => 'Export',
+                    2 => 'Import',
+                    3 => 'Administration',
+                    4 => 'Sync',
+                ),
+                'default_limit' => 1000,
+            );
         ksort($sugar_config);
         if (is_writable('config.php') && write_array_to_file("sugar_config", $sugar_config, 'config.php')) {
             //writing to the file
@@ -139,12 +139,12 @@ function checkResourceSettings()
 
 function createMissingRels()
 {
-    $relForObjects = array('leads'=>'Leads','campaigns'=>'Campaigns','prospects'=>'Prospects');
-    foreach ($relForObjects as $relObjName=>$relModName) {
+    $relForObjects = array('leads' => 'Leads', 'campaigns' => 'Campaigns', 'prospects' => 'Prospects');
+    foreach ($relForObjects as $relObjName => $relModName) {
         //assigned_user
         $guid = create_guid();
         $query = "SELECT id FROM relationships WHERE relationship_name = '{$relObjName}_assigned_user'";
-        $result= DBManagerFactory::getInstance()->query($query, true);
+        $result = DBManagerFactory::getInstance()->query($query, true);
         $a = null;
         $a = DBManagerFactory::getInstance()->fetchByAssoc($result);
         if (!isset($a['id']) && empty($a['id'])) {
@@ -155,7 +155,7 @@ function createMissingRels()
         //modified_user
         $guid = create_guid();
         $query = "SELECT id FROM relationships WHERE relationship_name = '{$relObjName}_modified_user'";
-        $result= DBManagerFactory::getInstance()->query($query, true);
+        $result = DBManagerFactory::getInstance()->query($query, true);
         $a = null;
         $a = DBManagerFactory::getInstance()->fetchByAssoc($result);
         if (!isset($a['id']) && empty($a['id'])) {
@@ -166,7 +166,7 @@ function createMissingRels()
         //created_by
         $guid = create_guid();
         $query = "SELECT id FROM relationships WHERE relationship_name = '{$relObjName}_created_by'";
-        $result= DBManagerFactory::getInstance()->query($query, true);
+        $result = DBManagerFactory::getInstance()->query($query, true);
         $a = null;
         $a = DBManagerFactory::getInstance()->fetchByAssoc($result);
         if (!isset($a['id']) && empty($a['id'])) {
@@ -188,20 +188,20 @@ function createMissingRels()
 function merge_passwordsetting($sugar_config, $sugar_version)
 {
     $passwordsetting_defaults = array(
-    'passwordsetting' => array(
-        'SystemGeneratedPasswordON' => '',
-        'generatepasswordtmpl' => '',
-        'lostpasswordtmpl' => '',
-        'forgotpasswordON' => false,
-        'linkexpiration' => '1',
-        'linkexpirationtime' => '30',
-        'linkexpirationtype' => '1',
-        'systexpiration' => '0',
-        'systexpirationtime' => '',
-        'systexpirationtype' => '0',
-        'systexpirationlogin' => '',
-        'factoremailtmpl' => '',
-        ) ,
+        'passwordsetting' => array(
+            'SystemGeneratedPasswordON' => '',
+            'generatepasswordtmpl' => '',
+            'lostpasswordtmpl' => '',
+            'forgotpasswordON' => false,
+            'linkexpiration' => '1',
+            'linkexpirationtime' => '30',
+            'linkexpirationtype' => '1',
+            'systexpiration' => '0',
+            'systexpirationtime' => '',
+            'systexpirationtype' => '0',
+            'systexpirationlogin' => '',
+            'factoremailtmpl' => '',
+        ),
     );
 
 
@@ -221,17 +221,17 @@ function merge_passwordsetting($sugar_config, $sugar_version)
 
 function addDefaultModuleRoles($defaultRoles = array())
 {
-    foreach ($defaultRoles as $roleName=>$role) {
-        foreach ($role as $category=>$actions) {
-            foreach ($actions as $name=>$access_override) {
+    foreach ($defaultRoles as $roleName => $role) {
+        foreach ($role as $category => $actions) {
+            foreach ($actions as $name => $access_override) {
                 $query = "SELECT * FROM acl_actions WHERE name='$name' AND category = '$category' AND acltype='$roleName' AND deleted=0 ";
                 $result = DBManagerFactory::getInstance()->query($query);
                 //only add if an action with that name and category don't exist
-                $row=DBManagerFactory::getInstance()->fetchByAssoc($result);
+                $row = DBManagerFactory::getInstance()->fetchByAssoc($result);
                 if ($row == null) {
                     $guid = create_guid();
                     $currdate = gmdate('Y-m-d H:i:s');
-                    $query= "INSERT INTO acl_actions (id,date_entered,date_modified,modified_user_id,name,category,acltype,aclaccess,deleted ) VALUES ('$guid','$currdate','$currdate','1','$name','$category','$roleName','$access_override','0')";
+                    $query = "INSERT INTO acl_actions (id,date_entered,date_modified,modified_user_id,name,category,acltype,aclaccess,deleted ) VALUES ('$guid','$currdate','$currdate','1','$name','$category','$roleName','$access_override','0')";
                     DBManagerFactory::getInstance()->query($query);
                 }
             }
@@ -262,7 +262,7 @@ function verifyArguments($argv, $usage_dce, $usage_regular)
         // 7 arguments
         if (count($argv) < 7) {
             echo "*******************************************************************************\n";
-            echo "*** ERROR: Missing required parameters.  Received ".count($argv)." argument(s), require 7.\n";
+            echo "*** ERROR: Missing required parameters.  Received " . count($argv) . " argument(s), require 7.\n";
             echo $usage_dce;
             echo "FAILURE\n";
             exit(1);
@@ -280,16 +280,16 @@ function verifyArguments($argv, $usage_dce, $usage_regular)
             //this should be a regular sugar install
             $upgradeType = constant('SUGARCRM_INSTALL');
             //check if this is a valid zip file
-        if (!is_file($argv[1])) { // valid zip?
-            echo "*******************************************************************************\n";
-            echo "*** ERROR: First argument must be a full path to the patch file. Got [ {$argv[1]} ].\n";
-            echo $usage_regular;
-            echo "FAILURE\n";
-            exit(1);
-        }
+            if (!is_file($argv[1])) { // valid zip?
+                echo "*******************************************************************************\n";
+                echo "*** ERROR: First argument must be a full path to the patch file. Got [ {$argv[1]} ].\n";
+                echo $usage_regular;
+                echo "FAILURE\n";
+                exit(1);
+            }
             if (count($argv) < 5) {
                 echo "*******************************************************************************\n";
-                echo "*** ERROR: Missing required parameters.  Received ".count($argv)." argument(s), require 5.\n";
+                echo "*** ERROR: Missing required parameters.  Received " . count($argv) . " argument(s), require 5.\n";
                 echo $usage_regular;
                 echo "FAILURE\n";
                 exit(1);
@@ -302,8 +302,8 @@ function verifyArguments($argv, $usage_dce, $usage_regular)
         }
     }
 
-    if (isset($argv[7]) && file_exists($argv[7].'SugarTemplateUtilties.php')) {
-        require_once($argv[7].'SugarTemplateUtilties.php');
+    if (isset($argv[7]) && file_exists($argv[7] . 'SugarTemplateUtilties.php')) {
+        require_once($argv[7] . 'SugarTemplateUtilties.php');
     }
 
     return $upgradeType;
@@ -312,7 +312,7 @@ function verifyArguments($argv, $usage_dce, $usage_regular)
 function upgradeDCEFiles($argv, $instanceUpgradePath)
 {
     //copy and update following files from upgrade package
-    $upgradeTheseFiles = array('cron.php','download.php','index.php','install.php','soap.php','sugar_version.php','vcal_server.php');
+    $upgradeTheseFiles = array('cron.php', 'download.php', 'index.php', 'sugar_version.php', 'vcal_server.php');
     foreach ($upgradeTheseFiles as $file) {
         $srcFile = clean_path("{$instanceUpgradePath}/$file");
         $destFile = clean_path("{$argv[3]}/$file");
@@ -324,7 +324,7 @@ function upgradeDCEFiles($argv, $instanceUpgradePath)
             $_GET['TEMPLATE_PATH'] = $destFile;
             $_GET['CONVERT_FILE_ONLY'] = true;
             if (!class_exists('TemplateConverter')) {
-                include($argv[7].'templateConverter.php');
+                include($argv[7] . 'templateConverter.php');
             } else {
                 TemplateConverter::convertFile($_GET['TEMPLATE_PATH']);
             }
@@ -359,7 +359,7 @@ $_SERVER['PHP_SELF'] = 'silentUpgrade.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 ////	USAGE
-$usage_dce =<<<eoq1
+$usage_dce = <<<eoq1
 Usage: php.exe -f silentUpgrade.php [upgradeZipFile] [logFile] [pathToSuiteCRMInstance]
 
 On Command Prompt Change directory to where silentUpgrade.php resides. Then type path to
@@ -380,7 +380,7 @@ Arguments:
 
 eoq1;
 
-$usage_regular =<<<eoq2
+$usage_regular = <<<eoq2
 Usage: php.exe -f silentUpgrade.php [upgradeZipFile] [logFile] [pathToSuiteCRMInstance] [admin-user]
 
 On Command Prompt Change directory to where silentUpgrade.php resides. Then type path to
@@ -431,14 +431,14 @@ $upgradeType = verifyArguments($argv, $usage_dce, $usage_regular);
 //$GLOBALS['log']	= LoggerManager::getLogger();
 //require_once('/var/www/html/eddy/sugarnode/SugarTemplateUtilities.php');
 
-$path			= $argv[2]; // custom log file, if blank will use ./upgradeWizard.log
+$path            = $argv[2]; // custom log file, if blank will use ./upgradeWizard.log
 //$db				= &DBManagerFactory::getInstance();  //<---------
 
 
 //$UWstrings		= return_module_language('en_us', 'UpgradeWizard');
 //$adminStrings	= return_module_language('en_us', 'Administration');
 //$mod_strings	= array_merge($adminStrings, $UWstrings);
-$subdirs		= array('full', 'langpack', 'module', 'patch', 'theme', 'temp');
+$subdirs        = array('full', 'langpack', 'module', 'patch', 'theme', 'temp');
 
 //$_REQUEST['zip_from_dir'] = $zip_from_dir;
 
@@ -501,13 +501,13 @@ if ($upgradeType == constant('DCE_INSTANCE')) {
     //This is DCE instance
     global $sugar_config;
     global $sugar_version;
-//    require_once("{$cwd}/sugar_version.php"); //provides instance version, flavor etc..
+    //    require_once("{$cwd}/sugar_version.php"); //provides instance version, flavor etc..
     //provides instance version, flavor etc..
     $isDCEInstance = true;
     $configOptions = $sugar_config['dbconfig'];
 
-    $GLOBALS['log']	= LoggerManager::getLogger();
-    $db				= &DBManagerFactory::getInstance();
+    $GLOBALS['log']    = LoggerManager::getLogger();
+    $db                = &DBManagerFactory::getInstance();
     ///////////////////////////////////////////////////////////////////////////////
     ////	MAKE SURE PATCH IS COMPATIBLE
 
@@ -559,7 +559,7 @@ if ($upgradeType == constant('DCE_INSTANCE')) {
         //upgrade the db
         ///////////////////////////////////////////////////////////////////////////////
         ////	HANDLE PREINSTALL SCRIPTS
-        $file = "{$argv[1]}/".constant('SUGARCRM_PRE_INSTALL_FILE');
+        $file = "{$argv[1]}/" . constant('SUGARCRM_PRE_INSTALL_FILE');
         if (is_file($file)) {
             include($file);
             logThis('Running pre_install()...', $path);
@@ -569,16 +569,16 @@ if ($upgradeType == constant('DCE_INSTANCE')) {
 
 
         //run the 3-way merge
-        if (file_exists($newtemplate_path.'/modules/UpgradeWizard/SugarMerge/SugarMerge.php')) {
+        if (file_exists($newtemplate_path . '/modules/UpgradeWizard/SugarMerge/SugarMerge.php')) {
             logThis('Running 3 way merge()...', $path);
-            require_once($newtemplate_path.'/modules/UpgradeWizard/SugarMerge/SugarMerge.php');
-            $merger = new SugarMerge($instanceUpgradePath, $argv[4].'/', $argv[3].'/custom');
+            require_once($newtemplate_path . '/modules/UpgradeWizard/SugarMerge/SugarMerge.php');
+            $merger = new SugarMerge($instanceUpgradePath, $argv[4] . '/', $argv[3] . '/custom');
             $merger->mergeAll();
             logThis('Finished 3 way merge()...', $path);
         }
 
         logThis('Starting post_install()...', $path);
-        $file = "{$argv[1]}/".constant('SUGARCRM_POST_INSTALL_FILE');
+        $file = "{$argv[1]}/" . constant('SUGARCRM_POST_INSTALL_FILE');
         if (is_file($file)) {
             include($file);
             post_install();
@@ -612,20 +612,20 @@ if ($upgradeType == constant('DCE_INSTANCE')) {
         logThis('check to see if new modules exist', $path);
         $oldModuleList = array();
         $newModuleList = array();
-        include($argv[4].'/include/modules.php');
+        include($argv[4] . '/include/modules.php');
         $oldModuleList = $moduleList;
-        include($newtemplate_path.'/include/modules.php');
+        include($newtemplate_path . '/include/modules.php');
         $newModuleList = $moduleList;
 
         ///    RELOAD NEW DEFINITIONS
         global $ACLActions, $beanList, $beanFiles;
-        include($newtemplate_path.'/modules/ACLActions/actiondefs.php');
+        include($newtemplate_path . '/modules/ACLActions/actiondefs.php');
 
         //First repair the databse to ensure it is up to date with the new vardefs/tabledefs
         logThis('About to repair the database.', $path);
         //Use Repair and rebuild to update the database.
         global $dictionary;
-        require_once($newtemplate_path.'/modules/Administration/QuickRepairAndRebuild.php');
+        require_once($newtemplate_path . '/modules/Administration/QuickRepairAndRebuild.php');
         $rac = new RepairAndClear();
         $rac->clearVardefs();
         $rac->rebuildExtensions();
@@ -656,7 +656,7 @@ if ($upgradeType == constant('DCE_INSTANCE')) {
         }
 
         unset($dictionary);
-        include($newtemplate_path.'/modules/TableDictionary.php');
+        include($newtemplate_path . '/modules/TableDictionary.php');
         foreach ($dictionary as $meta) {
             $tablename = $meta['table'];
 
@@ -675,7 +675,7 @@ if ($upgradeType == constant('DCE_INSTANCE')) {
         logThis('database repaired', $path);
 
         //include tab controller
-        require_once($newtemplate_path.'/modules/MySettings/TabController.php');
+        require_once($newtemplate_path . '/modules/MySettings/TabController.php');
         $newTB = new TabController();
 
         //make sure new modules list has a key we can reference directly
@@ -689,7 +689,7 @@ if ($upgradeType == constant('DCE_INSTANCE')) {
             }
         }
         //new modules list now has left over modules which are new to this install, so lets add them to the system tabs
-        logThis('new modules to add are '.var_export($newModuleList, true), $path);
+        logThis('new modules to add are ' . var_export($newModuleList, true), $path);
 
         //grab the existing system tabs
         $tabs = $newTB->get_system_tabs();
@@ -709,9 +709,9 @@ if ($upgradeType == constant('DCE_INSTANCE')) {
             //add the global team if it does not exist
             $globalteam = new Team();
             $globalteam->retrieve('1');
-            include($newtemplate_path.'/modules/Administration/language/en_us.lang.php');
+            include($newtemplate_path . '/modules/Administration/language/en_us.lang.php');
             if (isset($globalteam->name)) {
-                echo 'Global '.$mod_strings['LBL_UPGRADE_TEAM_EXISTS'].'<br>';
+                echo 'Global ' . $mod_strings['LBL_UPGRADE_TEAM_EXISTS'] . '<br>';
                 logThis(" Finish Building private teams", $path);
             } else {
                 $globalteam->create_team("Global", $mod_strings['LBL_GLOBAL_TEAM_DESC'], $globalteam->global_team);
@@ -728,9 +728,9 @@ if ($upgradeType == constant('DCE_INSTANCE')) {
             logThis(" Finish Building the team_set and team_sets_teams", $path);
 
             //upgrade teams
-            if (file_exists($newtemplate_path.'/modules/Administration/upgradeTeams.php')) {
+            if (file_exists($newtemplate_path . '/modules/Administration/upgradeTeams.php')) {
                 logThis(" Start {$newtemplate_path}/modules/Administration/upgradeTeams.php", $path);
-                include($newtemplate_path.'/modules/Administration/upgradeTeams.php');
+                include($newtemplate_path . '/modules/Administration/upgradeTeams.php');
                 logThis(" Finish {$newtemplate_path}/modules/Administration/upgradeTeams.php", $path);
 
                 //update the users records to have default team
@@ -787,14 +787,14 @@ if (isset($_SESSION['current_db_version']) && isset($_SESSION['target_db_version
         ob_start();
         include('include/Smarty/internals/core.write_file.php');
         ob_end_clean();
-        $db =& DBManagerFactory::getInstance();
+        $db = &DBManagerFactory::getInstance();
         if ($ce_to_pro_ent) {
             //Also set license information
             $admin = BeanFactory::newBean('Administration');
             $category = 'license';
             $value = 0;
             $admin->saveSetting($category, 'users', $value);
-            $key = array('num_lic_oc','key','expire_date');
+            $key = array('num_lic_oc', 'key', 'expire_date');
             $value = '';
             foreach ($key as $k) {
                 $admin->saveSetting($category, $k, $value);

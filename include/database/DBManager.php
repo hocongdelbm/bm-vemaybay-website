@@ -499,7 +499,7 @@ abstract class DBManager
             foreach ((array)$field_defs as $field => $fieldDef) {
                 if (isset($fieldDef['source']) && $fieldDef['source'] != 'db') {
                     continue;
-                }//custom fields handle there save seperatley
+                } //custom fields handle there save seperatley
                 if (!empty($field_map) && !empty($field_map[$field]['custom_type'])) {
                     continue;
                 }
@@ -734,13 +734,15 @@ abstract class DBManager
      */
     protected function isNullable($vardef)
     {
-        if (isset($vardef['isnull']) && (strtolower($vardef['isnull']) == 'false' || $vardef['isnull'] === false)
+        if (
+            isset($vardef['isnull']) && (strtolower($vardef['isnull']) == 'false' || $vardef['isnull'] === false)
             && !empty($vardef['required'])
         ) {
             /* required + is_null=false => not null */
             return false;
         }
-        if (empty($vardef['auto_increment']) && (empty($vardef['type']) || $vardef['type'] != 'id')
+        if (
+            empty($vardef['auto_increment']) && (empty($vardef['type']) || $vardef['type'] != 'id')
             && (empty($vardef['dbType']) || $vardef['dbType'] != 'id')
             && (empty($vardef['name']) || ($vardef['name'] != 'id' && $vardef['name'] != 'deleted'))
         ) {
@@ -852,7 +854,8 @@ abstract class DBManager
 
                 //jc: oracle will complain if you try to execute a statement that sets a column to (not) null
                 //when it is already (not) null
-                if (isset($value['isnull']) && isset($compareFieldDefs[$name]['isnull']) &&
+                if (
+                    isset($value['isnull']) && isset($compareFieldDefs[$name]['isnull']) &&
                     $value['isnull'] === $compareFieldDefs[$name]['isnull']
                 ) {
                     unset($value['required']);
@@ -1501,7 +1504,8 @@ abstract class DBManager
      */
     public function countQuery()
     {
-        if (self::$queryLimit != 0 && ++self::$queryCount > self::$queryLimit
+        if (
+            self::$queryLimit != 0 && ++self::$queryCount > self::$queryLimit
             && (empty($GLOBALS['current_user']) || !is_admin($GLOBALS['current_user']))
         ) {
             require_once('include/resource/ResourceManager.php');
@@ -1878,8 +1882,8 @@ abstract class DBManager
                     default:
                         $query .= $val;
                         break;
-                }//switch
-            }//foreach
+                } //switch
+            } //foreach
             return $this->query($query);
         }
         return false;
@@ -1926,8 +1930,8 @@ abstract class DBManager
                     default:
                         $query .= $val;
                         break;
-                }//switch
-            }//foreach
+                } //switch
+            } //foreach
             return $query;
         }
         return false;
@@ -2009,7 +2013,7 @@ abstract class DBManager
             foreach ((array)$fields as $field => $fieldDef) {
                 if (isset($fieldDef['source']) && $fieldDef['source'] != 'db') {
                     continue;
-                }// Do not write out the id field on the update statement.
+                } // Do not write out the id field on the update statement.
                 // We are not allowed to change ids.
                 if (empty($fieldDef['name']) || $fieldDef['name'] == $primaryField['name']) {
                     continue;
@@ -2059,11 +2063,11 @@ abstract class DBManager
 
                 $columnName = $this->quoteIdentifier($fieldDef['name']);
                 if (!is_null($val) || !empty($fieldDef['required'])) {
-                    $columns[] = "{$columnName}=".$this->massageValue($val, $fieldDef);
+                    $columns[] = "{$columnName}=" . $this->massageValue($val, $fieldDef);
                 } elseif ($this->isNullable($fieldDef)) {
                     $columns[] = "{$columnName}=NULL";
                 } else {
-                    $columns[] = "{$columnName}=".$this->emptyValue($fieldDef['type']);
+                    $columns[] = "{$columnName}=" . $this->emptyValue($fieldDef['type']);
                 }
             }
         }
@@ -2416,10 +2420,8 @@ abstract class DBManager
             foreach ($indices as $index) {
                 if ($index['type'] == 'foreign') {
                     $relationship[$table][] = array(
-                        'foreignTable' => $index['foreignTable']
-                    ,
-                        'foreignColumn' => $index['foreignField']
-                    ,
+                        'foreignTable' => $index['foreignTable'],
+                        'foreignColumn' => $index['foreignField'],
                         'localColumn' => $index['fields']
                     );
                 }
@@ -2633,7 +2635,8 @@ abstract class DBManager
         }
         // If the field is marked both required & isnull=>false - alwqys make it not null
         // Use this to ensure primary key fields never defined as null
-        if (isset($fieldDef['isnull']) && (strtolower($fieldDef['isnull']) == 'false' || $fieldDef['isnull'] === false)
+        if (
+            isset($fieldDef['isnull']) && (strtolower($fieldDef['isnull']) == 'false' || $fieldDef['isnull'] === false)
             && !empty($fieldDef['required'])
         ) {
             $required = "NOT NULL";
@@ -2664,7 +2667,7 @@ abstract class DBManager
      * @param  string $tablename      Optional, table name
      * @return string SQL column definitions
      */
-    protected function columnSQLRep($fieldDefs, $ignoreRequired, $tablename= null)
+    protected function columnSQLRep($fieldDefs, $ignoreRequired, $tablename = null)
     {
         // set $ignoreRequired = false by default
         if (!is_bool($ignoreRequired)) {
@@ -3035,8 +3038,7 @@ abstract class DBManager
                 if (!($this->_emptyValue($before_value, $field_type) && $this->_emptyValue(
                     $after_value,
                     $field_type
-                ))
-                ) {
+                ))) {
                     $change = false;
                     if (trim($before_value) !== trim($after_value)) {
                         // decode value for field type of 'text' or 'varchar' to check before audit if the value contain trip tags or special character
@@ -3603,11 +3605,9 @@ abstract class DBManager
 
     /**
      * Get DB driver name used for install/upgrade scripts
-     * @return string
      */
     public function getScriptName()
     {
-        // Usually the same name as dbType
         return $this->dbType;
     }
 
@@ -3702,35 +3702,27 @@ abstract class DBManager
      * @abstract
      * Code run on new database before installing
      */
-    public function preInstall()
-    {
-    }
+    public function preInstall() {}
 
     /**
      * @abstract
      * Code run on new database after installing
      */
-    public function postInstall()
-    {
-    }
+    public function postInstall() {}
 
     /**
      * Disable keys on the table
      * @abstract
      * @param string $tableName
      */
-    public function disableKeys($tableName)
-    {
-    }
+    public function disableKeys($tableName) {}
 
     /**
      * Re-enable keys on the table
      * @abstract
      * @param string $tableName
      */
-    public function enableKeys($tableName)
-    {
-    }
+    public function enableKeys($tableName) {}
 
     /**
      * Quote string in DB-specific manner
@@ -4100,8 +4092,9 @@ abstract class DBManager
      * @param object 
      * @return int
      */
-    public function countRows($response) {
-        if(is_null($response) || $response === false || !is_object($response)) return 0;
+    public function countRows($response)
+    {
+        if (is_null($response) || $response === false || !is_object($response)) return 0;
         return isset($response->num_rows) ? $response->num_rows : 0;
     }
 }

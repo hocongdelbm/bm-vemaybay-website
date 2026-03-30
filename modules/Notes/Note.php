@@ -44,6 +44,8 @@ class Note extends File
     public $object_name = "Note";
     public $importable = true;
 
+    public $working_process_id;
+
     // This is used to retrieve related fields from form posts.
     public $additional_column_fields = array(
         'contact_name',
@@ -353,5 +355,17 @@ class Note extends File
         }
 
         return false;
+    }
+    
+    /**
+     * Check text has money
+     * 
+     * @param string $text
+     * @return bool
+     * @author DucPham
+     */
+    public function hasMoney(string $text): bool {
+        $moneyRegex = '/\b(\d{1,3}([.,]\d{3})+|\d{6,})(\s?(₫|VND|USD|\$))?\b/u';
+        return preg_match($moneyRegex, $text);
     }
 }

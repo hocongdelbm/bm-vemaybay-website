@@ -1,0 +1,25 @@
+.header-navbar {
+    box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px;
+}
+
+.header-navbar__top {
+    height: var(--height-header);
+    gap: 4rem;
+}
+
+.header-navbar__bottom {
+    height: var(--height-header-bottom);
+}
+
+@media screen and (max-width: 575px),
+(orientation: landscape) and (max-width: 950px) {
+    .header-navbar__bottom {
+        display: none !important;
+        all: unset;
+    }
+
+    .header-navbar__top {
+        justify-content: space-between;
+        gap: 1rem;
+    }
+}

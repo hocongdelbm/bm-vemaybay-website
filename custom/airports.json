@@ -5,6 +5,11 @@
           "value": "Al Ain, AE (AAN)"
      },
      {
+          "label1": "Belgrade Nikola Tesla, RS (BEG)",
+          "label2": "",
+          "value": "Belgrade Nikola Tesla, RS (BEG)"
+     },
+     {
           "label1": "Abu Dhabi Intl, AE (AUH)",
           "label2": "",
           "value": "Abu Dhabi Intl, AE (AUH)"
@@ -5113,6 +5118,11 @@
           "label1": "Beijing, CN (PEK)",
           "label2": "",
           "value": "Beijing, CN (PEK)"
+     },
+     {
+          "label1": "Chengdu, CN (TFU)",
+          "label2": "",
+          "value": "Chengdu, CN (TFU)"
      },
      {
           "label1": "Lin Zhi, CN (LZY)",
@@ -25720,9 +25730,9 @@
           "value": "Vinh City, VN (VII)"
      },
      {
-          "label1": "Hanoi, VN (HAN)",
+          "label1": "Ha Noi, VN (HAN)",
           "label2": "",
-          "value": "Hanoi, VN (HAN)"
+          "value": "Ha Noi, VN (HAN)"
      },
      {
           "label1": "Hue, VN (HUI)",
@@ -25750,9 +25760,9 @@
           "value": "Dien Bien Phu, VN (DIN)"
      },
      {
-          "label1": "Ban Me Thuot, VN (BMV)",
+          "label1": "Buon Ma Thuot, VN (BMV)",
           "label2": "",
-          "value": "Ban Me Thuot, VN (BMV)"
+          "value": "Buon Ma Thuot, VN (BMV)"
      },
      {
           "label1": "Nha Trang, VN (NHA)",

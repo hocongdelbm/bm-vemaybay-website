@@ -288,6 +288,7 @@ class ListViewData
             $params['custom_order_by'] = '';
         }
         $main_query = $ret_array['select'] . $params['custom_select'] . $ret_array['from'] . $params['custom_from'] . $ret_array['inner_join']. $ret_array['where'] . $params['custom_where'] . $ret_array['order_by'] . $params['custom_order_by'];
+       
         //C.L. - Fix for 23461
         if (empty($_REQUEST['action']) || $_REQUEST['action'] != 'Popup') {
             $_SESSION['export_where'] = $ret_array['where'];
@@ -451,9 +452,7 @@ class ListViewData
             $totalCount  = $this->getTotalCount($main_query);
         }
         SugarVCR::recordIDs($this->seed->module_dir, array_keys($idIndex), $offset, $totalCount);
-        $module_names = array(
-            'Prospects' => 'Targets'
-        );
+        $module_names = array();
         $endOffset = (floor(($totalCount - 1) / $limit)) * $limit;
         $pageData['ordering'] = $order;
         $pageData['ordering']['sortOrder'] = $this->getReverseSortOrder($pageData['ordering']['sortOrder']);
@@ -501,6 +500,11 @@ class ListViewData
                 }
             }
         }
+
+        // if($current_user->user_name == 'hungnh'){
+        //     pr($limit);
+        //     pr($main_query);
+        // }
 
         return array('data'=>$data , 'pageData'=>$pageData, 'query' => $queryString);
     }

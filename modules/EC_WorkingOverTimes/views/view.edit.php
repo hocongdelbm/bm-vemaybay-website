@@ -161,7 +161,7 @@ class EC_WorkingOverTimesViewEdit extends ViewEdit {
 	function getEmployeeList() {
 		// Lấy danh sách nhân viên
 		$sql = 'SELECT id, CONCAT(last_name, " ", IFNULL(first_name, "")) AS full_name 
-				FROM users WHERE deleted = 0 AND status = "Active" AND title NOT IN ("Admin", "bot (khong xoa)")';
+				FROM users WHERE deleted = 0 AND status = "Active" AND title NOT IN ("Admin", "Bot", "Administrator")';
 
 		$res = $this->bean->db->query($sql);
 

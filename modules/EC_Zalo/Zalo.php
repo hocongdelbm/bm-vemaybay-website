@@ -1,6 +1,8 @@
 <?php
-global $sugar_config;
-define("SUGAR_CONFIG", $sugar_config);
+if(!defined('SUGAR_CONFIG')) {
+    global $sugar_config;
+    define("SUGAR_CONFIG", $sugar_config);
+}
 
 class Zalo {
     private $token_path;
@@ -8,8 +10,8 @@ class Zalo {
     private $domain;
 
     public function __construct() {
-        $this->token_path = "modules/EC_Zalo/json/token.json";
-        $this->template_path = "modules/EC_Zalo/json/templates.json";
+        $this->token_path = "custom/json_files/zalo_oa/token.json";
+        $this->template_path = "custom/json_files/zalo_oa/templates.json";
         $this->domain = $_SERVER['SERVER_NAME'];
     }
 
@@ -28,6 +30,7 @@ class Zalo {
     public function get_code_challenge() {
         return SUGAR_CONFIG['zalo_config']['code_challenge'] ? SUGAR_CONFIG['zalo_config']['code_challenge'] : '';
     }
+
 
 
     /***************  AUTH  ***************/
@@ -59,7 +62,7 @@ class Zalo {
     }
     
     /** 
-     * Get access token by authorization cod
+     * Get access token by authorization code
      * 
      * @param string $code
      * @return string json
@@ -82,7 +85,8 @@ class Zalo {
                 CURLOPT_URL            => "https://oauth.zaloapp.com/v4/oa/access_token",
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 90,
                 CURLOPT_CUSTOMREQUEST  => "POST",
                 CURLOPT_POSTFIELDS     => http_build_query($data),
                 CURLOPT_HTTPHEADER     => [
@@ -138,7 +142,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 90,
                 CURLOPT_CUSTOMREQUEST  => "POST",
                 CURLOPT_POSTFIELDS     => http_build_query($data),
                 CURLOPT_HTTPHEADER     => [
@@ -248,7 +253,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 60,
                 CURLOPT_HTTPHEADER     => ["access_token: ". $this->get_token()]
             ]);
             $json = curl_exec($curl);
@@ -295,7 +301,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 60,
                 CURLOPT_CUSTOMREQUEST  => 'POST',
                 CURLOPT_POSTFIELDS     => json_encode($data),
                 CURLOPT_HTTPHEADER     => [
@@ -319,6 +326,7 @@ class Zalo {
             if (is_resource($curl)) curl_close($curl);
         }
     }
+
 
 
     /***************  USER  ***************/
@@ -354,7 +362,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 60,
                 CURLOPT_HTTPHEADER     => ["access_token: ". $this->get_token()]
             ]);
             $json = curl_exec($curl);
@@ -393,9 +402,10 @@ class Zalo {
                 CURLOPT_URL            => "https://openapi.zalo.me/v3.0/oa/user/detail?data=$data",
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
-                CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_SSL_VERIFYHOST => 0,
+                CURLOPT_SSL_VERIFYPEER => 0,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 60,
                 CURLOPT_HTTPHEADER     => ["access_token: ". $this->get_token()]
             ]);
             $json = curl_exec($curl);
@@ -438,7 +448,8 @@ class Zalo {
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
                 CURLOPT_CUSTOMREQUEST  => "POST",
                 CURLOPT_POSTFIELDS     => $data,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 60,
                 CURLOPT_HTTPHEADER     => [
                     "Content-Type: application/json",
                     "access_token: ". $this->get_token()
@@ -479,8 +490,162 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 60,
                 CURLOPT_HTTPHEADER     => ["access_token: ". $this->get_token()]
+            ]);
+            $json = curl_exec($curl);
+
+            if ($json === false) {
+                $m = trim(curl_error($curl).' ('.curl_errno($curl).')');
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => $m]);
+            }
+
+            return $json;
+        }
+        catch(Exception $e) {
+            return json_encode(['error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /** 
+     * Update user info
+     * 
+     * @param string $zalo_id
+     * @param string $user_alias
+     * @param array $shared_info
+     * @return string json
+     */
+    public function update_user($zalo_id, $user_alias = '', $shared_info = []) {
+        $data = ["user_id" => $zalo_id];
+        if(!empty($user_alias)) $data['user_alias'] = $user_alias;
+        if(!empty($shared_info) && count($shared_info) > 4) $data['shared_info'] = $shared_info;
+
+        try {
+            $curl = curl_init();
+            if ($curl === false) {
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => 'cURL Failed to initialize']);
+            }
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL            => "https://openapi.zalo.me/v3.0/oa/user/update",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+                CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 60,
+                CURLOPT_CUSTOMREQUEST  => 'POST',
+                CURLOPT_POSTFIELDS     => json_encode($data),
+                CURLOPT_HTTPHEADER     => [
+                    "access_token: ". $this->get_token(),
+                    "Content-Type: application/json"
+                ]
+            ]);
+            $json = curl_exec($curl);
+
+            if ($json === false) {
+                $m = trim(curl_error($curl).' ('.curl_errno($curl).')');
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => $m]);
+            }
+
+            return $json;
+        }
+        catch(Exception $e) {
+            return json_encode(['error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /** 
+     * Add tag to user (Each user can only have 1 tag)
+     * 
+     * @param string $zalo_id
+     * @param string $tag_name
+     * @return string json
+     */
+    public function add_tag_user($zalo_id, $tag_name) {
+        $data = [
+            "user_id" => $zalo_id,
+            "tag_name" => $tag_name
+        ];
+
+        try {
+            $curl = curl_init();
+            if ($curl === false) {
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => 'cURL Failed to initialize']);
+            }
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL            => "https://openapi.zalo.me/v2.0/oa/tag/tagfollower",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+                CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 60,
+                CURLOPT_CUSTOMREQUEST  => 'POST',
+                CURLOPT_POSTFIELDS     => json_encode($data),
+                CURLOPT_HTTPHEADER     => [
+                    "access_token: ". $this->get_token(),
+                    "Content-Type: application/json"
+                ]
+            ]);
+            $json = curl_exec($curl);
+
+            if ($json === false) {
+                $m = trim(curl_error($curl).' ('.curl_errno($curl).')');
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => $m]);
+            }
+
+            return $json;
+        }
+        catch(Exception $e) {
+            return json_encode(['error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /** 
+     * Remove tag from user
+     * 
+     * @param string $zalo_id
+     * @param string $tag_name
+     * @return string json
+     */
+    public function remove_tag_user($zalo_id, $tag_name) {
+        $data = [
+            "user_id" => $zalo_id,
+            "tag_name" => $tag_name
+        ];
+
+        try {
+            $curl = curl_init();
+            if ($curl === false) {
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => 'cURL Failed to initialize']);
+            }
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL            => "https://openapi.zalo.me/v2.0/oa/tag/rmfollowerfromtag",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+                CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 60,
+                CURLOPT_CUSTOMREQUEST  => 'POST',
+                CURLOPT_POSTFIELDS     => json_encode($data),
+                CURLOPT_HTTPHEADER     => [
+                    "access_token: ". $this->get_token(),
+                    "Content-Type: application/json"
+                ]
             ]);
             $json = curl_exec($curl);
 
@@ -529,7 +694,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 24,
+                CURLOPT_TIMEOUT        => 80,
                 CURLOPT_HTTPHEADER     => [
                     "Content-Type: application/json",
                     "access_token: ". $this->get_token()
@@ -577,7 +743,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 24,
+                CURLOPT_TIMEOUT        => 80,
                 CURLOPT_HTTPHEADER     => [
                     "access_token: ". $this->get_token()
                 ]
@@ -704,9 +871,114 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 24,
+                CURLOPT_TIMEOUT        => 80,
                 CURLOPT_CUSTOMREQUEST  => "POST",
                 CURLOPT_POSTFIELDS     => $body_request,
+                CURLOPT_HTTPHEADER     => [
+                    "Content-Type: application/json",
+                    "access_token: ". $this->get_token()
+                ]
+            ]);
+            $json = curl_exec($curl);
+
+            if ($json === false) {
+                $m = trim(curl_error($curl).' ('.curl_errno($curl).')');
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => $m]);
+            }
+
+            return $json;
+        }
+        catch(Exception $e) {
+            return json_encode(['error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
+    
+    /** 
+     * Send transaction messages
+     * 
+     * @param string $zalo_id
+     * @param string $type transaction_reward, transaction_order, transaction_billing,...
+     * @param array $data
+     * @return string json
+     */
+    public function send_transaction($zalo_id, $type, $header, $text, $table = array(), $text2 = array(), $buttons = array()) {
+        if(empty($zalo_id)) return json_encode(['error' => 1, 'httpcode' => 403, 'message' => 'Invalid parameters', 'data' => null]);
+
+        $banner_link = '';
+        switch ($type) {
+            case 'transaction_reward':
+                $banner_link = "https://$this->domain/modules/EC_Zalo/images/banner_points.jpg";
+                break;
+            default:
+                $banner_link = '';
+                break;
+        } 
+
+        $body_request = [
+            "recipient" => [
+                "user_id" => $zalo_id
+            ],
+            "message" => [
+                "attachment" => [
+                    "type" => "template",
+                    "payload" => [
+                        "template_type" => $type, // Type
+                        "language" => "VI",
+                        "elements" => [
+                            [
+                                "type" => "banner",
+                                "image_url" => $banner_link
+                            ],
+                            [
+                                "type" => "header",
+                                "content" => $header,
+                                "align" => ""
+                            ],
+                            [
+                                "type" => "text",
+                                "content" => $text,
+                                "align" => ""
+                            ],
+                        ],
+                    ]
+                ]
+            ]
+        ];
+        if(!empty($table)) {
+            $body_request["message"]["attachment"]["payload"]["elements"][] = [
+                "type" => "table",
+                "content" => $table
+            ];
+        }
+        if(!empty($text2)) {
+            $body_request["message"]["attachment"]["payload"]["elements"][] = [
+                "type" => "text",
+                "align" => "center",
+                "content" => $text2
+            ];
+        }
+        if(!empty($buttons)) $body_request["message"]["attachment"]["payload"]["buttons"] = $buttons;
+
+        try {
+            $curl = curl_init();
+            if ($curl === false) {
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => 'cURL Failed to initialize']);
+            }
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL            => "https://openapi.zalo.me/v3.0/oa/message/transaction",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+                CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+                CURLOPT_CONNECTTIMEOUT => 24,
+                CURLOPT_TIMEOUT        => 80,
+                CURLOPT_CUSTOMREQUEST  => "POST",
+                CURLOPT_POSTFIELDS     => json_encode($body_request),
                 CURLOPT_HTTPHEADER     => [
                     "Content-Type: application/json",
                     "access_token: ". $this->get_token()
@@ -737,16 +1009,24 @@ class Zalo {
      * 
      * @param string $phone
      * @param string $template_id
-     * @param string $template_data json
+     * @param string|array $template_data json|array
      * @return string json
      */
     public function send_zns($phone, $template_id, $template_data) {
-        $body_request = [
+        return json_encode([
+            "error" => 1,
+            "httpCode" => 501,
+            "message" => "Unsupported feature",
+            "data" => null,
+            "description" => "Replaced by sendMessage() in class APIOMNI"
+        ]);
+        
+        $body_request = json_encode([
             'phone'         => $this->format_phone_number($phone, 'zalo'),
             'template_id'   => $template_id,
-            'template_data' => $template_data,
+            'template_data' => is_array($template_data) ? $template_data : json_decode($template_data, true),
             'tracking_id'   => $phone . time()
-        ];
+        ]);
 
         try {
             $curl = curl_init();
@@ -762,7 +1042,8 @@ class Zalo {
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
                 CURLOPT_CUSTOMREQUEST  => "POST",
                 CURLOPT_POSTFIELDS     => $body_request,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 60,
                 CURLOPT_HTTPHEADER     => [
                     "Content-Type: application/json",
                     "access_token: ". $this->get_token()
@@ -819,6 +1100,12 @@ class Zalo {
             case 'remind-flight':
                 return "346651"; // Nhắc nhở giờ bay
                 break;
+            case 'points':
+                return "411270"; // Thông báo tích điểm
+                break;
+            case 'share-phone':
+                return "433046"; // Gửi thông tin chương trình chia sẻ SĐT
+                break;
             default:
                 return "";
         }
@@ -827,13 +1114,13 @@ class Zalo {
     /** 
      * Send template name
      * 
-     * @param string $id
+     * @param string $template_id
      * @return string
      */
-    public function get_template_name_zns($id = null) {
-        if(is_null($id) || empty($id)) return "";
+    public function get_template_name_zns($template_id = null) {
+        if(is_null($template_id) || empty($template_id)) return "";
     
-        switch ($id) {
+        switch ($template_id) {
             case '347078':
             case '347088':
                 return "Thông tin hành trình";
@@ -854,8 +1141,57 @@ class Zalo {
             case '346699':
                 return "Chăm sóc khách hàng (Call sale)";
                 break;
+            case '411270':
+                return "Thông báo tích điểm";
+                break;
+            case '433046':
+                return "Gửi thông tin chương trình chia sẻ SĐT";
+                break;
             default:
                 return "";
+        }
+    }
+
+    /** 
+     * Get error description when sending ZNS fail
+     * 
+     * @param int $error_code
+     * @return string
+     */
+    public function get_error_description_zns($error_code) {
+        switch($error_code) {
+            case -108:
+                return "Số điện thoại không hợp lệ.";
+            case -110:
+                return "Phiên bản Zalo app của người dùng quá cũ nên không được hỗ trợ";
+            case -111:
+                return "Mẫu ZNS không có dữ liệu";
+            case -114:
+            case -119:
+            case -139:
+            case -141:
+                return "Số điện thoại này không thể nhận tin. Người dùng không nhận được ZNS vì các lý do: Người dùng từ chối nhận ZNS từ OA, Trạng thái tài khoản, Tùy chọn nhận ZNS, Sử dụng Zalo phiên bản cũ, hoặc các lỗi nội bộ khác...";
+            case -115:
+            case -126:
+                return "Tài khoản ZNS không đủ số dư";
+            case -116:
+            case -121:
+            case -130:
+            case -131:
+                return "Nội dung tin không hợp lệ";
+            case -118:
+                return "Số điện thoại không có Zalo";
+            case -133:
+                return "Không được phép gửi tin vào ban đêm (từ 22h-6h)";
+            case -137:
+                return "Thanh toán ZCA thất bại (ví không đủ số dư, ...)";
+            case -144:
+            case -147:
+                return "OA đã vượt giới hạn gửi ZNS trong ngày";
+            case -146:
+                return "Mẫu tin này đã bị vô hiệu hóa do chất lượng gửi thấp";
+            default:
+                return "Gửi tin nhắn thất bại";
         }
     }
 
@@ -863,13 +1199,14 @@ class Zalo {
 
     /***************  UPLOAD  ***************/
     /** 
-     * Upload to zalo
+     * Get file extension is supported
+     * 
      * @param string $type
      * @return array
      */
     public function get_file_extension($type) {
         if($type == 'image') return ['png', 'jpg', 'gif'];
-        elseif($type == 'file') return ['pdf', 'doc', 'docx', 'csv', 'txt'];
+        elseif($type == 'file') return ['pdf', 'doc', 'docx', 'csv'];
     }
 
     /** 
@@ -900,7 +1237,8 @@ class Zalo {
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
                 CURLOPT_POST           => true,
                 CURLOPT_POSTFIELDS     => ['file' => new CURLFile($path, null, $name)],
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 20,
+                CURLOPT_TIMEOUT        => 60,
                 CURLOPT_HTTPHEADER     => [
                     "access_token: ". $this->get_token()
                 ]
@@ -994,5 +1332,30 @@ class Zalo {
         }
         return $randomString;
     }
+
+    public function unformat_zalo_phone($zalo_phone) {
+        if(!$zalo_phone || empty($zalo_phone)) return '';
+        if(substr($zalo_phone, 0, 2) == 84) return trim('0' . substr($zalo_phone, 2));
+        elseif(substr($zalo_phone, 0, 3) == "+84") return trim('0' . substr($zalo_phone, 3));
+        return trim($zalo_phone);
+    }
+
+    public function send_to_telegram($content, $parseMode = 'HTML', $timeout = 15) {
+        return false;
+        $token  = '6940954517:AAFINEfJWBOcuoThjXNycvNRRZjT3ZgLey8'; // TimChuyenBayOA_bot
+        $chatId = '-1002134640739'; // Tìm Chuyến Bay OA Zalo ZNS
+    
+        $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chatId;
+        $url = $url . "&parse_mode=".$parseMode."&text=" . urlencode($content);
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
+        $result = curl_exec($curl);
+        curl_close($curl);
+        return $result;
+    }
 }
-?>

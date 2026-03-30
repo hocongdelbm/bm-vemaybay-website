@@ -53,9 +53,8 @@
 				</td>
 			</tr>
 			<tr>
-				<td  scope="row" nowrap>{$MOD.MAX_DASHLETS}: </td>
+				<td  scope="row" nowrap></td>
 				<td>
-					<input type='text' class="box-input" size='4' name='max_dashlets_homepage' value='{$config.max_dashlets_homepage}'>
 				</td>
 				<td  scope="row" nowrap>{$MOD.LBL_USE_REAL_NAMES}: &nbsp;{sugar_help text=$MOD.LBL_USE_REAL_NAMES_DESC}</td>
 				{if !empty($config.use_real_names)}
@@ -301,9 +300,8 @@
 			<td ><input type='hidden' name='developerMode' value='false'><input name='developerMode'  type="checkbox" value='true' {$developerModeChecked}></td>
 		</tr>
 		<tr>
-			<td scope="row">{$MOD.LBL_VCAL_PERIOD} {sugar_help text=$MOD.vCAL_HELP}</td>
+			<td scope="row"></td>
 			<td >
-				<input type='text' class="box-input" size='4' name='vcal_time' value='{$config.vcal_time}'>
 			</td>
 		   <td scope="row">{$MOD.LBL_IMPORT_MAX_RECORDS} {sugar_help text=$MOD.LBL_IMPORT_MAX_RECORDS_HELP}</td>
 			<td >
@@ -311,18 +309,15 @@
 			</td>
 	
 		</tr>
-	
-	
-	
 	</table>
 	</div>
 	
 	<div class="box-section">
 	<table  width="100%" border="0" cellspacing="1" cellpadding="0" class="table-config table-edit">
 	{if $logger_visible}
-	<tr>
-	<th align="left" scope="row" colspan="6"><h4>{$MOD.LBL_LOGGER}</h4></th>
-	</tr>
+		<tr>
+			<th align="left" scope="row" colspan="6"><h4>{$MOD.LBL_LOGGER}</h4></th>
+		</tr>
 		<tr>
 			<td scope="row" valign='middle'>{$MOD.LBL_LOGGER_FILENAME}</td>
 			<td valign='middle'>
@@ -339,6 +334,16 @@
 			<td> <input class="box-input" name="logger_file_maxSize" size="4" value="{$config.logger.file.maxSize}"></td>
 			<td scope="row">{$MOD.LBL_LOGGER_DEFAULT_DATE_FORMAT}</td>
 			<td><input class="box-input" name ="logger_file_dateFormat" type="text" value="{$config.logger.file.dateFormat}"></td>
+			<td scope="row">{$MOD.LBL_LOGGER_CALLCENTER}</td>
+			<td><input type='hidden' name='logger_call_center' value='false'><input name='logger_call_center' type="checkbox" value='true' {if !empty($config.logger_call_center)}checked{/if}></td>
+		</tr>
+		<tr>
+			<td scope="row"></td>
+			<td></td>
+			<td scope="row"></td>
+			<td></td>
+			<td scope="row">{$MOD.LBL_STUN_SERVER}</td>
+			<td><input type='hidden' name='apply_stun_server' value='false'><input name='apply_stun_server' type="checkbox" value='true' {if !empty($config.apply_stun_server)}checked{/if}></td>
 		</tr>
 		<tr>
 			<td scope="row">{$MOD.LBL_LOGGER_LOG_LEVEL} </td>

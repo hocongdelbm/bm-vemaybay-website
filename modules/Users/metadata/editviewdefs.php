@@ -40,9 +40,30 @@ $viewdefs['Users']['EditView'] = array(
                 )
             ),
             array(
+                array(
+                    'name' => 'td_sip',
+                    'label' => 'LBL_TD_SIP',
+                ),
+                array(
+                    'name' => 'td_password',
+                    'label' => 'LBL_TD_PASSWORD',
+                )
+            ),
+            array(
+                array(
+                    'name' => 'agent_status',
+                    'label' => 'LBL_AGENT_STATUS',
+
+                ),
+                array(
+                    'name' => '',
+                    'label' => '',
+                )
+            ),
+            array(
                 'photo',
                 array(
-                    'name' => 'factor_auth', 
+                    'name' => 'factor_auth',
                     'label' => 'LBL_FACTOR_AUTH'
                 )
             ),

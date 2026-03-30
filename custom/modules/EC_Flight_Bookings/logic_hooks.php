@@ -45,22 +45,22 @@ $hook_array["after_save"][] = array(
 );
 $hook_array["after_save"][] = array(
     2,
+    "updateFields",
+    "custom/modules/EC_Flight_Bookings/EC_Flight_BookingsLogicHook.php",
+    "EC_Flight_BookingsLogicHook",
+    "updateFields"
+);
+$hook_array["after_save"][] = array(
+    3,
     "updateKPI",
     "custom/modules/EC_Flight_Bookings/EC_Flight_BookingsLogicHook.php",
     "EC_Flight_BookingsLogicHook",
     "updateKPI"
 );
 $hook_array["after_save"][] = array(
-    3,
-    "updateVoucher",
-    "custom/modules/EC_Flight_Bookings/EC_Flight_BookingsLogicHook.php",
-    "EC_Flight_BookingsLogicHook",
-    "updateVoucher"
-);
-$hook_array["after_save"][] = array(
     4,
-    "getVoucher",
+    "Lưu thông tin doanh số BK",
     "custom/modules/EC_Flight_Bookings/EC_Flight_BookingsLogicHook.php",
     "EC_Flight_BookingsLogicHook",
-    "getVoucher"
+    "saveRevenueBookingHook"
 );

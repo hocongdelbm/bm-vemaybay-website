@@ -3,7 +3,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
 
-global $mod_strings, $app_strings;
+global $current_user, $mod_strings, $app_strings;
 // if (ACLController::checkAccess('Calls', 'edit', true)) {
 //     $module_menu[]=array("index.php?module=Calls&action=EditView&return_module=Calls&return_action=DetailView", $mod_strings['LNK_NEW_CALL'],"Schedule_Call");
 // }
@@ -20,4 +20,7 @@ if (ACLController::checkAccess('Calls', 'list', true))
     $module_menu[] = array("index.php?module=Calls&action=statistics&return_module=Calls&return_action=statistics", "Thống kê", "statistics", 'Calls');
 
 if (ACLController::checkAccess('Calls', 'edit', true))
-    $module_menu[] = array("index.php?module=Calls&action=manage&return_module=Calls&return_action=manage", "Quản lý", "magnage");
+    $module_menu[] = array("index.php?module=Calls&action=manage&return_module=Calls&return_action=manage", "Quản lý SĐT", "magnage", 'Calls');
+
+if (ACLController::checkAccess('Calls', 'edit', true))
+    $module_menu[] = array("index.php?module=Calls&action=summary&return_module=Calls&return_action=summary", "Báo cáo tháng", "summary", 'Calls');

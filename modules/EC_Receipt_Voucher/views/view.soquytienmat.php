@@ -29,52 +29,61 @@ class Viewsoquytienmat extends SugarView
 		// Location
 		if (isset($_POST['location_id']) && !empty($_POST['location_id'])) {
 			$location_id = $_POST['location_id'];
-			$location_name = $_POST['location_name'];
 		} else {
 			$location_id = '';
-			$location_name = '';
 		}
 		$department_id = $current_user->department_id;
 		$department_info = myGetDepartmentInfo($department_id);
 		$smartyobj->assign('POST_FDATE', $post_fdate);
 		$smartyobj->assign('POST_TDATE', $post_tdate);
-		$smartyobj->assign('LOCATION_NAME', $location_name);
+
 		if ($current_user->id == '7c20e013-b0d6-e1f3-b113-53deed58f0a2') {
 			$smartyobj->assign('LOCATION_ID', get_select_options_with_id(array('bfd02e6d-ba30-d724-9937-56f4ed008b4b' => 'VP Giải Phóng')));
 		} else {
 			$smartyobj->assign('LOCATION_ID', myGetLocationListByDepID($department_id, $location_id));
 		}
+		$location_name = '';
+		if (isset($_POST['location_id']) && !empty($_POST['location_id'])) {
+			$location_name = $_POST['location_name'];
+		}
 
 		if (isset($_POST['btnViewDetail'])) {
 			$accounting_code = '1111';
 			$opening_year = date('Y', strtotime($post_fdate));
-
-			$data = $this->getVoucherList($opening_year, $accounting_code, $post_fdate, $post_tdate, $location_id);
-
-			$smartyobj->assign('COM_NAME', $department_info['com_name']);
-			$smartyobj->assign('COM_ADDRESS', $department_info['com_address']);
-			$smartyobj->assign('COM_TAX_CODE', $department_info['com_taxcode']);
-			$smartyobj->assign('CURR_DAY', date('d'));
-			$smartyobj->assign('CURR_MON', date('m'));
-			$smartyobj->assign('CURR_YEAR', date('Y'));
+			$data = $this->getVoucherList($department_info, $opening_year, $accounting_code, $post_fdate, $post_tdate, $location_id);
 			$smartyobj->assign('VOUCHER_LIST', $data['html']);
-			$smartyobj->assign('TOTAL_RECEIPT', format_number($data['total_receipt']));
-			$smartyobj->assign('TOTAL_PAYMENT', format_number($data['total_payment']));
-			$smartyobj->assign('TOTAL_REMAIN', format_number($data['total_remain']));
+
+			$smartyobj->assign('POST_FROM_DATE', $post_fdate);
+			$smartyobj->assign('POST_TO_DATE', $post_tdate);
+			$smartyobj->assign('LOCATION_ID', $location_id);
+			$smartyobj->assign('LOCATION_NAME', $location_name);
+
+			if (isset($_POST['exportexcel'])) {
+				ob_clean();
+				header("Pragma: cache");
+				require_once('modules/EC_Receipt_Voucher/views/soquytienmat.xls.php');
+				$xls = generateXLSTemplate($data['html']);
+				$xls = chr(255) . chr(254) . mb_convert_encoding($xls, "UTF-16LE", "UTF-8");
+				header("Content-type: application/x-msdownload");
+				header("Content-disposition: xls; filename=soquytienmat_" . time() . ".xls; size=" . strlen($xls));
+				echo $xls;
+				exit();
+			}
+			return;
 		}
 	}
 
-	function getVoucherList($opening_year, $accounting_code, $post_fdate, $post_tdate, $location_id = '')
+	function getVoucherList($department_info, $opening_year, $accounting_code, $post_fdate, $post_tdate, $location_id = '')
 	{
 		global $db, $app_list_strings;
 
 		// For opening amount
-		$sql_search = " AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-						AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) < '" . date('Y-m-d', strtotime($post_fdate)) . "' ";
+		$sql_search = " AND DATE(p.ngayhachtoan) >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+						AND DATE(p.ngayhachtoan) < '" . date('Y-m-d', strtotime($post_fdate)) . "' ";
 
 		// For voucher list
-		$sql_search2 = " AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-							AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($post_tdate)) . "' ";
+		$sql_search2 = " AND DATE(p.ngayhachtoan) >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
+							AND DATE(p.ngayhachtoan) <= '" . date('Y-m-d', strtotime($post_tdate)) . "' ";
 
 		$sql_search3 = '';
 		if (isset($location_id) && !empty($location_id)) {
@@ -165,7 +174,7 @@ class Viewsoquytienmat extends SugarView
 
 			-- RECEIPT VOUCHER
 			SELECT p.date_entered,
-				DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS posted_date,
+				p.ngayhachtoan AS posted_date,
 				p.ngaychungtu AS voucher_date,
 				p.name AS voucher_name,
 				p.description,
@@ -183,7 +192,7 @@ class Viewsoquytienmat extends SugarView
 
 			-- PAYMENT VOUCHER
 			SELECT p.date_entered,
-				DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS posted_date,
+				p.ngayhachtoan AS posted_date,
 				p.ngaychungtu AS voucher_date,
 				p.name AS voucher_name,
 				p.description,
@@ -201,7 +210,7 @@ class Viewsoquytienmat extends SugarView
 
 			-- FROM TRANSFER VOUCHER
 			SELECT p.date_entered,
-				DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS posted_date,
+				p.ngayhachtoan AS posted_date,
 				p.ngaychungtu AS voucher_date,
 				p.name AS voucher_name,
 				p.description,
@@ -219,7 +228,7 @@ class Viewsoquytienmat extends SugarView
 
 			-- TO TRANSFER VOUCHER
 			SELECT p.date_entered,
-				DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS posted_date,
+				p.ngayhachtoan AS posted_date,
 				p.ngaychungtu AS voucher_date,
 				p.name AS voucher_name,
 				p.description,
@@ -234,11 +243,83 @@ class Viewsoquytienmat extends SugarView
 				AND p.dentienmat = 1 " . str_replace('p.com_location_id', 'p.dendiadiem_id', $sql_search2) . "
 			ORDER BY posted_date";
 
+		// if($GLOBALS['current_user']->user_name == 'hungnh'){
+		// 	pr($sql);
+		// }
+
 		$res = $db->query($sql);
 		$html = '';
 		$total_receipt = 0;
 		$total_payment = 0;
 		$total_remain = 0;
+
+		$location_name = '';
+		if (isset($_POST['location_id']) && !empty($_POST['location_id'])) {
+			$location_name = $_POST['location_name'];
+		}
+
+		// HEADER
+		$html .= '<table id="table-wrapper" class="table-soquytienmat" cellpadding="0" cellspacing="0" border="0" width="100%">
+    	<tr>
+        	<td valign="top">
+            	<p>
+                ' . $department_info['com_name'] . '
+				<br />
+				' . $department_info['com_address'] . '<br />
+				Mã số thuế: ' . $department_info['com_taxcode'] . '
+				</p>
+			</td>
+            <td valign="top" align="center">
+            	<p>
+                <label class="fw-bold">Mẫu số S07-DN</label><br />
+                <label class="fst-italic">(Ban hành theo QĐ số: 15/2006/QĐ-BTC ngày<br /> 20/03/2006 của Bộ trưởng BTC)</label>
+                </p>
+            </td>
+        </tr>
+        <tr>
+        	<td colspan="2" align="center">
+				<br />
+					<label style="font-weight:bold; font-size:16pt">SỔ QUỸ TIỀN MẶT</label><br />';
+		if ($location_name != '') {
+			$html .= '<label style="font-weight:bold; font-style:italic; font-size:12pt">Địa điểm: ' . $location_name . '</label><br />';
+		}
+		$html .=  '<label class="fw-bold fst-italic">Từ ngày ' . $post_fdate . ' đến ngày ' . $post_tdate . '</label>
+				<br />
+				<br />
+            </td>
+        </tr>
+        <tr>
+        	<td colspan="2" align="left">
+				<input type="submit" name="btnViewDetail" class="btn btn-success mb-3" value="Xuất excel">
+            </td>
+        </tr>
+        <tr>
+        	<td colspan="2">
+           	  <table id="table-details" width="100%" border="0" cellspacing="0" cellpadding="0">
+            	  <tr>
+            	    <td rowspan="2"><div align="center"><strong>Ngày, tháng<br /> ghi sổ</strong></div></td>
+            	    <td rowspan="2"><div align="center"><strong>Ngày, tháng<br /> chứng từ</strong></div></td>
+            	    <td colspan="2"><div align="center"><strong>Số hiệu chứng từ</strong></div></td>
+            	    <td rowspan="2"><div align="center"><strong>Diễn giải</strong></div><div align="center"></div></td>
+            	    <td colspan="3"><div align="center"><strong>Số tiền</strong></div></td>
+           	    </tr>
+            	  <tr>
+            	    <td><div align="center"><strong>Thu</strong></div></td>
+            	    <td><div align="center"><strong>Chi</strong></div></td>
+            	    <td><div align="center"><strong>Thu</strong></div></td>
+            	    <td><div align="center"><strong>Chi</strong></div></td>
+            	    <td><div align="center"><strong>Tồn</strong></div></td>
+           	    </tr>
+            	  <tr>
+            	    <td width="11%"><div align="center"><strong>A</strong></div></td>
+            	    <td width="11%"><div align="center"><strong>B</strong></div></td>
+            	    <td width="12%"><div align="center"><strong>C</strong></div></td>
+            	    <td width="12%"><div align="center"><strong>D</strong></div></td>
+            	    <td width="24%"><div align="center"><strong>E</strong></div></td>
+            	    <td width="10%"><div align="center"><strong>1</strong></div></td>
+            	    <td width="10%"><div align="center"><strong>2</strong></div></td>
+            	    <td width="10%"><div align="center"><strong>3</strong></div></td>
+           	    </tr>';
 
 		while ($row = $db->fetchByAssoc($res)) {
 			if ($row['parent_type'] == 'OPN') {
@@ -270,6 +351,38 @@ class Viewsoquytienmat extends SugarView
 			}
 		}
 
-		return array('html' => $html, 'total_receipt' => $total_receipt, 'total_payment' => $total_payment, 'total_remain' => $total_remain);
+		$html .= '<tr>
+            	    <td colspan="5" ><label class="fw-bold">Tổng cộng:</label></td>
+            	    <td align="right" ><label class="fw-bold">' . format_number($total_receipt) . '</label></td>
+            	   	<td align="right" ><label class="fw-bold">' . format_number($total_payment) . '</label></td>
+                    <td align="right" ><label class="fw-bold">' . format_number($total_remain) . '</label></td>
+           	    </tr>
+       	    </table>
+            </td>
+        </tr>
+        <tr>
+        	<td colspan="2">
+            	<br />
+            	<table id="table-signed" width="100%" border="0" cellspacing="0" cellpadding="0">
+                	<tr>
+                    	<td width="30%" align="center">&nbsp;</td>
+                        <td width="30%" align="center">&nbsp;</td>
+                        <td width="40%" align="center"><label class="fst-italic">Ngày ' . date('d') . ' tháng ' . date('m') . ' năm ' . date('Y') . '</label></td>
+                    </tr>
+                	<tr>
+                    	<td width="30%" align="center"><label class="fw-bold">Thủ Quỹ</label><br />
+                    	<label class="fst-italic">(Ký, họ tên)</label></td>
+                        <td width="30%" align="center"><label class="fw-bold">Kế toán trưởng</label><br />
+                        <label class="fst-italic">(Ký, họ tên)</label></td>
+                        <td width="40%" align="center">
+                        <label class="fw-bold">Giám đốc</label><br />
+                        <label class="fst-italic">(Ký, họ tên, đóng dấu)</label></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>';
+
+		return array('html' => $html);
 	}
 }

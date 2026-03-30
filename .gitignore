@@ -6,7 +6,16 @@
 # the misuse of the repository as backup replacement.
 # For development the cache directory can be safely ignored and
 # therefore it is ignored.
-/cache/*
+cache/*
+# Ignore some files and directories from the custom directory.
+custom/history/
+custom/working/
+custom/modules/*/Ext/*
+custom/application/Ext/*
+!custom/application/Ext/Api
+custom/Extension/application/Ext/Language/*
+custom/configs/*
+!custom/configs/.gitkeep
 # Custom configuration should also be ignored.
 /config.php
 /config_override.php
@@ -17,8 +26,26 @@
 !/upload/index.html
 /upload_backup/
 
-modules/EC_Zalo/images/
-modules/EC_Zalo/json/
+# Zalo websocket logs
+modules/EC_Zalo/nohup.out
 
 secure_sessions/*
 !secure_sessions/logs
+
+# Images
+themes/SuiteP/images/zalo_messages/*
+!themes/SuiteP/images/zalo_messages/.gitkeep
+
+# JSON config
+custom/json_files/**/*.json
+custom/jssip_webrtc/blacklist.json
+
+custom/templates_export/*
+!custom/templates_export/.gitkeep
+
+# Ignore vendor
+vendor
+
+# Ignore local system
+.vscode
+.DS_Store

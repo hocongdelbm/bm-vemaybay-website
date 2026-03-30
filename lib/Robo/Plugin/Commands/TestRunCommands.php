@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
@@ -37,126 +38,128 @@
  * reasonably feasible for technical reasons, the Appropriate Legal Notices must
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
+
 namespace SuiteCRM\Robo\Plugin\Commands;
 
 use Symfony\Component\Console\Input\InputOption;
 
 class TestRunCommands extends \Robo\Tasks
 {
-    use \SuiteCRM\Robo\Traits\RoboTrait;
+  use \SuiteCRM\Robo\Traits\RoboTrait;
 
-    /**
-     * Run install test suite with the custom env.
-     * 
-     * @param string $fileOrDirectory Provide a path to a file or directory to
-     *   run a specific test/specific directory of tests.
-     * @param array $opts
-     * @option debug Whether to have the test suite output extra information.
-     * @option fail-fast Stop after first failure.
-     * @usage tests:install
-     * @usage tests:install ./tests/install/UserWizardCest.php
-     * @usage tests:install --debug ./tests/install/UserWizardCest.php
-     */
-    public function TestsInstall($fileOrDirectory = null, $opts = ['debug' => false, 'fail-fast' => false]) {
-      $this->say('Running Codeception Install Test Suite.');
+  /**
+   * Run install test suite with the custom env.
+   * 
+   * @param string $fileOrDirectory Provide a path to a file or directory to
+   *   run a specific test/specific directory of tests.
+   * @param array $opts
+   * @option debug Whether to have the test suite output extra information.
+   * @option fail-fast Stop after first failure.
+   */
+  public function TestsInstall($fileOrDirectory = null, $opts = ['debug' => false, 'fail-fast' => false])
+  {
+    $this->say('Running Codeception Install Test Suite.');
 
-      $command = "./vendor/bin/codecept run install --env custom {$fileOrDirectory}";
+    $command = "./vendor/bin/codecept run install --env custom {$fileOrDirectory}";
 
-      if ($opts['debug']) {
-        $command .= ' -vvv -d';
-      }
-      if ($opts['fail-fast']) {
-        $command .= ' -f';
-      }
-      
-      return $this->_exec($command);
+    if ($opts['debug']) {
+      $command .= ' -vvv -d';
+    }
+    if ($opts['fail-fast']) {
+      $command .= ' -f';
     }
 
-    /**
-     * Run API test suite.
-     * 
-     * @param string $fileOrDirectory Provide a path to a file or directory to
-     *   run a specific test/specific directory of tests.
-     * @param array $opts
-     * @option debug Whether to have the test suite output extra information.
-     * @option fail-fast Stop after first failure.
-     * @usage tests:api
-     * @usage tests:api ./tests/api/V8/GetFieldsMetaCest.php
-     * @usage tests:api ./tests/api/V8/
-     * @usage tests:api --debug ./tests/api/V8/GetFieldsMetaCest.php
-     */
-    public function TestsAPI($fileOrDirectory = null, $opts = ['debug' => false, 'fail-fast' => false]) {
-      $this->say('Running Codeception API Test Suite.');
+    return $this->_exec($command);
+  }
 
-      $command = "./vendor/bin/codecept run api {$fileOrDirectory}";
+  /**
+   * Run API test suite.
+   * 
+   * @param string $fileOrDirectory Provide a path to a file or directory to
+   *   run a specific test/specific directory of tests.
+   * @param array $opts
+   * @option debug Whether to have the test suite output extra information.
+   * @option fail-fast Stop after first failure.
+   * @usage tests:api
+   * @usage tests:api ./tests/api/V8/GetFieldsMetaCest.php
+   * @usage tests:api ./tests/api/V8/
+   * @usage tests:api --debug ./tests/api/V8/GetFieldsMetaCest.php
+   */
+  public function TestsAPI($fileOrDirectory = null, $opts = ['debug' => false, 'fail-fast' => false])
+  {
+    $this->say('Running Codeception API Test Suite.');
 
-      if ($opts['debug']) {
-        $command .= ' -vvv -d';
-      }
-      if ($opts['fail-fast']) {
-        $command .= ' -f';
-      }
-      
-      return $this->_exec($command);
+    $command = "./vendor/bin/codecept run api {$fileOrDirectory}";
+
+    if ($opts['debug']) {
+      $command .= ' -vvv -d';
+    }
+    if ($opts['fail-fast']) {
+      $command .= ' -f';
     }
 
-    /**
-     * Run acceptance test suite with the custom env.
-     * 
-     * @param string $fileOrDirectory Provide a path to a file or directory to
-     *   run a specific test/specific directory of tests.
-     * @param array $opts
-     * @option debug Whether to have the test suite output extra information.
-     * @option fail-fast Stop after first failure.
-     * @usage tests:acceptance
-     * @usage tests:acceptance ./tests/acceptance/modules/Calendar/CalendarCest.php
-     * @usage tests:acceptance ./tests/acceptance/modules/
-     * @usage tests:acceptance --debug ./tests/acceptance/modules/Calendar/CalendarCest.php
-     */
-    public function TestsAcceptance($fileOrDirectory = null, $opts = ['debug' => false, 'fail-fast' => false]) {
-      $this->say('Running Codeception Acceptance Test Suite.');
+    return $this->_exec($command);
+  }
 
-      $command = "./vendor/bin/codecept run acceptance --env custom {$fileOrDirectory}";
+  /**
+   * Run acceptance test suite with the custom env.
+   * 
+   * @param string $fileOrDirectory Provide a path to a file or directory to
+   *   run a specific test/specific directory of tests.
+   * @param array $opts
+   * @option debug Whether to have the test suite output extra information.
+   * @option fail-fast Stop after first failure.
+   * @usage tests:acceptance
+   * @usage tests:acceptance ./tests/acceptance/modules/Calendar/CalendarCest.php
+   * @usage tests:acceptance ./tests/acceptance/modules/
+   * @usage tests:acceptance --debug ./tests/acceptance/modules/Calendar/CalendarCest.php
+   */
+  public function TestsAcceptance($fileOrDirectory = null, $opts = ['debug' => false, 'fail-fast' => false])
+  {
+    $this->say('Running Codeception Acceptance Test Suite.');
 
-      if ($opts['debug']) {
-        $command .= ' -vvv -d';
-      }
-      if ($opts['fail-fast']) {
-        $command .= ' -f';
-      }
-      
-      return $this->_exec($command);
+    $command = "./vendor/bin/codecept run acceptance --env custom {$fileOrDirectory}";
+
+    if ($opts['debug']) {
+      $command .= ' -vvv -d';
+    }
+    if ($opts['fail-fast']) {
+      $command .= ' -f';
     }
 
-    /**
-     * Run PHPUnit unit test suite.
-     * 
-     * @param string $fileOrDirectory Provide a path to a file or directory to
-     *   run a specific test/specific directory of tests.
-     * @param array $opts
-     * @option debug Whether to have the test suite output extra information.
-     * @option fail-fast Stop after first failure.
-     * @usage tests:unit
-     * @usage tests:unit ./tests/unit/phpunit/modules/Favorites/FavoritesTest.php
-     * @usage tests:unit ./tests/unit/phpunit/modules/
-     * @usage tests:unit --filter testdeleteFavorite ./tests/unit/phpunit/modules/Favorites/FavoritesTest.php
-     * @usage tests:unit --debug ./tests/unit/phpunit/modules/Favorites/FavoritesTest.php
-     */
-    public function TestsUnit($fileOrDirectory = './tests/unit/phpunit', $opts = ['debug' => false, 'fail-fast' => false, 'filter' => InputOption::VALUE_REQUIRED]) {
-      $this->say('Running PHPUnit Unit Test Suite.');
+    return $this->_exec($command);
+  }
 
-      $command = "./vendor/bin/phpunit --colors --configuration ./tests/phpunit.xml.dist {$fileOrDirectory}";
-      
-      if ($opts['debug']) {
-        $command .= ' -v --debug';
-      }
-      if ($opts['fail-fast']) {
-        $command .= ' --stop-on-error --stop-on-failure';
-      }
-      if ($opts['filter']) {
-          $command .= ' --filter ' . $opts['filter'];
-      }
+  /**
+   * Run PHPUnit unit test suite.
+   * 
+   * @param string $fileOrDirectory Provide a path to a file or directory to
+   *   run a specific test/specific directory of tests.
+   * @param array $opts
+   * @option debug Whether to have the test suite output extra information.
+   * @option fail-fast Stop after first failure.
+   * @usage tests:unit
+   * @usage tests:unit ./tests/unit/phpunit/modules/Favorites/FavoritesTest.php
+   * @usage tests:unit ./tests/unit/phpunit/modules/
+   * @usage tests:unit --filter testdeleteFavorite ./tests/unit/phpunit/modules/Favorites/FavoritesTest.php
+   * @usage tests:unit --debug ./tests/unit/phpunit/modules/Favorites/FavoritesTest.php
+   */
+  public function TestsUnit($fileOrDirectory = './tests/unit/phpunit', $opts = ['debug' => false, 'fail-fast' => false, 'filter' => InputOption::VALUE_REQUIRED])
+  {
+    $this->say('Running PHPUnit Unit Test Suite.');
 
-      return $this->_exec($command);
+    $command = "./vendor/bin/phpunit --colors --configuration ./tests/phpunit.xml.dist {$fileOrDirectory}";
+
+    if ($opts['debug']) {
+      $command .= ' -v --debug';
     }
+    if ($opts['fail-fast']) {
+      $command .= ' --stop-on-error --stop-on-failure';
+    }
+    if ($opts['filter']) {
+      $command .= ' --filter ' . $opts['filter'];
+    }
+
+    return $this->_exec($command);
+  }
 }

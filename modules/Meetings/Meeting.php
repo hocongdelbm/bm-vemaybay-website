@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
@@ -97,7 +98,7 @@ class Meeting extends SugarBean
     public $meetings_arr;
     // when assoc w/ a user/contact:
     public $minutes_value_default = 15;
-    public $minutes_values = array('0'=>'00','15'=>'15','30'=>'30','45'=>'45');
+    public $minutes_values = array('0' => '00', '15' => '15', '30' => '30', '45' => '45');
     public $table_name = "meetings";
     public $rel_users_table = "meetings_users";
     public $rel_contacts_table = "meetings_contacts";
@@ -108,13 +109,20 @@ class Meeting extends SugarBean
     public $importable = true;
     // This is used to retrieve related fields from form posts.
     public $additional_column_fields = array('assigned_user_name', 'assigned_user_id', 'contact_id', 'user_id', 'contact_name', 'accept_status');
-    public $relationship_fields = array('account_id'=>'accounts','opportunity_id'=>'opportunity','case_id'=>'case',
-                                     'assigned_user_id'=>'users','contact_id'=>'contacts', 'user_id'=>'users', 'meeting_id'=>'meetings');
+    public $relationship_fields = array(
+        'account_id' => 'accounts',
+        'opportunity_id' => 'opportunity',
+        'case_id' => 'case',
+        'assigned_user_id' => 'users',
+        'contact_id' => 'contacts',
+        'user_id' => 'users',
+        'meeting_id' => 'meetings'
+    );
     // so you can run get_users() twice and run query only once
     public $cached_get_users = null;
     public $new_schema = true;
     public $date_changed = false;
-    
+
     protected static $remindersInSaving = false;
 
     /**
@@ -140,7 +148,7 @@ class Meeting extends SugarBean
      * @param $view string
      * @param $is_owner bool
      */
-    public function ACLAccess($view, $is_owner='not_set', $in_group='not_set')
+    public function ACLAccess($view, $is_owner = 'not_set', $in_group = 'not_set')
     {
         // don't check if meeting is being synced from Outlook
         if ($this->syncing == false) {
@@ -193,7 +201,7 @@ class Meeting extends SugarBean
             }
         }
 
-        $check_notify =(!empty($_REQUEST['send_invites']) && $_REQUEST['send_invites'] == '1') ? true : false;
+        $check_notify = (!empty($_REQUEST['send_invites']) && $_REQUEST['send_invites'] == '1') ? true : false;
         if (empty($_REQUEST['send_invites'])) {
             if (!empty($this->id)) {
                 $old_record = BeanFactory::newBean('Meetings');
@@ -317,14 +325,6 @@ class Meeting extends SugarBean
                             unset($reminderData[$r]['invitees'][$i]);
                         }
                         break;
-                    case "Leads":
-                        if (in_array($invitee['module_id'], $this->leads_arr) === false) {
-                            // add to uninvited
-                            $uninvited[] = $reminderData[$r]['invitees'][$i];
-                            // remove lead
-                            unset($reminderData[$r]['invitees'][$i]);
-                        }
-                        break;
                 }
             }
         }
@@ -351,7 +351,7 @@ class Meeting extends SugarBean
         return (string)$this->name;
     }
 
-    public function create_export_query($order_by, $where, $relate_link_join='')
+    public function create_export_query($order_by, $where, $relate_link_join = '')
     {
         $custom_join = $this->getCustomJoin(true, true, $where);
         $custom_join['join'] .= $relate_link_join;
@@ -373,9 +373,9 @@ class Meeting extends SugarBean
         $query .= $custom_join['join'];
 
         if ($where != "") {
-            $query .= " where $where AND ".$where_auto;
+            $query .= " where $where AND " . $where_auto;
         } else {
-            $query .= " where ".$where_auto;
+            $query .= " where " . $where_auto;
         }
 
         $order_by = $this->process_order_by($order_by);
@@ -453,10 +453,10 @@ class Meeting extends SugarBean
             $start_at = 0;
         } //if
 
-        for ($i = $start_at; $i < $num_of_hours; $i ++) {
-            $i = $i."";
+        for ($i = $start_at; $i < $num_of_hours; $i++) {
+            $i = $i . "";
             if (strlen($i) == 1) {
-                $i = "0".$i;
+                $i = "0" . $i;
             }
             $hours_arr[$i] = $i;
         } //for
@@ -493,7 +493,7 @@ class Meeting extends SugarBean
                 }
                 $this->date_end = $td->format($GLOBALS['timedate']->get_date_time_format());
             } else {
-                $GLOBALS['log']->fatal("Meeting::save: Bad date {$this->date_start} for format ".$GLOBALS['timedate']->get_date_time_format());
+                $GLOBALS['log']->fatal("Meeting::save: Bad date {$this->date_start} for format " . $GLOBALS['timedate']->get_date_time_format());
             }
         }
 
@@ -550,7 +550,7 @@ class Meeting extends SugarBean
             if (empty($action)) {
                 $action = "index";
             }
-            $setCompleteUrl = "<b><a id='{$this->id}' class='list-view-data-icon' title='".translate('LBL_CLOSEINLINE')."' onclick='SUGAR.util.closeActivityPanel.show(\"{$this->module_dir}\",\"{$this->id}\",\"Held\",\"listview\",\"1\");'>";
+            $setCompleteUrl = "<b><a id='{$this->id}' class='list-view-data-icon' title='" . translate('LBL_CLOSEINLINE') . "' onclick='SUGAR.util.closeActivityPanel.show(\"{$this->module_dir}\",\"{$this->id}\",\"Held\",\"listview\",\"1\");'>";
             if ($this->ACLAccess('edit')) {
                 $meeting_fields['SET_COMPLETE'] = $setCompleteUrl . "<span class='suitepicon suitepicon-action-clear'></span></a></b>";
             } else {
@@ -571,15 +571,15 @@ class Meeting extends SugarBean
         $mergeTime = $meetingFieldsDateStart; //$timedate->merge_date_time($meeting_fields['DATE_START'], $meeting_fields['TIME_START']);
         $date_db = $timedate->to_db($mergeTime);
         if ($date_db    < $today) {
-            if ($meeting_fields['STATUS']=='Held' || $meeting_fields['STATUS']=='Not Held') {
-                $meeting_fields['DATE_START']= "<font>".$meeting_fields['DATE_START']."</font>";
+            if ($meeting_fields['STATUS'] == 'Held' || $meeting_fields['STATUS'] == 'Not Held') {
+                $meeting_fields['DATE_START'] = "<font>" . $meeting_fields['DATE_START'] . "</font>";
             } else {
-                $meeting_fields['DATE_START']= "<font class='overdueTask'>".$meetingFieldsDateStart."</font>";
+                $meeting_fields['DATE_START'] = "<font class='overdueTask'>" . $meetingFieldsDateStart . "</font>";
             }
         } elseif ($date_db    < $nextday) {
-            $meeting_fields['DATE_START'] = "<font class='todaysTask'>".$meetingFieldsDateStart."</font>";
+            $meeting_fields['DATE_START'] = "<font class='todaysTask'>" . $meetingFieldsDateStart . "</font>";
         } else {
-            $meeting_fields['DATE_START'] = "<font class='futureTask'>".$meetingFieldsDateStart."</font>";
+            $meeting_fields['DATE_START'] = "<font class='futureTask'>" . $meetingFieldsDateStart . "</font>";
         }
         $this->fill_in_additional_detail_fields();
 
@@ -596,8 +596,8 @@ class Meeting extends SugarBean
         $meeting_fields['CONTACT_ID'] = $this->contact_id;
         $meeting_fields['CONTACT_NAME'] = $this->contact_name;
         $meeting_fields['PARENT_NAME'] = $this->parent_name;
-        $meeting_fields['REMINDER_CHECKED'] = $this->reminder_time==-1 ? false : true;
-        $meeting_fields['EMAIL_REMINDER_CHECKED'] = $this->email_reminder_time==-1 ? false : true;
+        $meeting_fields['REMINDER_CHECKED'] = $this->reminder_time == -1 ? false : true;
+        $meeting_fields['EMAIL_REMINDER_CHECKED'] = $this->email_reminder_time == -1 ? false : true;
 
 
         return $meeting_fields;
@@ -619,8 +619,8 @@ class Meeting extends SugarBean
 
         // cn: bug 9494 - passing a contact breaks this call
         $notifyUser = ($meetingCurrentNotifyUserObjectName == 'User') ?
-                        $meeting->current_notify_user :
-                        $current_user;
+            $meeting->current_notify_user :
+            $current_user;
 
         // cn: bug 8078 - fixed call to $timedate
 
@@ -643,20 +643,20 @@ class Meeting extends SugarBean
         }
 
         if (is_object($meeting->current_notify_user) && strtolower(get_class($meeting->current_notify_user)) == 'contact') {
-            $xtpl->assign("ACCEPT_URL", $sugar_config['site_url'].
-                            '/index.php?entryPoint=acceptDecline&module=Meetings&contact_id='.
-                                $meetingCurrentNotifyUserId.'&record='.
-                                $meetingId);
+            $xtpl->assign("ACCEPT_URL", $sugar_config['site_url'] .
+                '/index.php?entryPoint=acceptDecline&module=Meetings&contact_id=' .
+                $meetingCurrentNotifyUserId . '&record=' .
+                $meetingId);
         } elseif (is_object($meeting->current_notify_user) && strtolower(get_class($meeting->current_notify_user)) == 'lead') {
-            $xtpl->assign("ACCEPT_URL", $sugar_config['site_url'].
-                            '/index.php?entryPoint=acceptDecline&module=Meetings&lead_id='.
-                                $meetingCurrentNotifyUserId.'&record='.
-                                $meetingId);
+            $xtpl->assign("ACCEPT_URL", $sugar_config['site_url'] .
+                '/index.php?entryPoint=acceptDecline&module=Meetings&lead_id=' .
+                $meetingCurrentNotifyUserId . '&record=' .
+                $meetingId);
         } else {
-            $xtpl->assign("ACCEPT_URL", $sugar_config['site_url'].
-                            '/index.php?entryPoint=acceptDecline&module=Meetings&user_id='.
-                                $meetingCurrentNotifyUserId.'&record='.
-                                $meetingId);
+            $xtpl->assign("ACCEPT_URL", $sugar_config['site_url'] .
+                '/index.php?entryPoint=acceptDecline&module=Meetings&user_id=' .
+                $meetingCurrentNotifyUserId . '&record=' .
+                $meetingId);
         }
 
 
@@ -669,7 +669,7 @@ class Meeting extends SugarBean
 
         $xtpl->assign("MEETING_TO", $meetingCurrentNotifyUserNewAssingnedUserName);
         $xtpl->assign("MEETING_SUBJECT", trim($meeting->name));
-        $xtpl->assign("MEETING_STATUS", (isset($meeting->status)? $app_list_strings['meeting_status_dom'][$meeting->status]:""));
+        $xtpl->assign("MEETING_STATUS", (isset($meeting->status) ? $app_list_strings['meeting_status_dom'][$meeting->status] : ""));
         $typekey = strtolower($meeting->type);
         if (isset($meeting->type)) {
             if (!empty($app_list_strings['eapm_list'][$typekey])) {
@@ -678,11 +678,11 @@ class Meeting extends SugarBean
                 $typestring = $app_list_strings['meeting_type_dom'][$meeting->type];
             }
         }
-        $xtpl->assign("MEETING_TYPE", isset($meeting->type)? $typestring:"");
+        $xtpl->assign("MEETING_TYPE", isset($meeting->type) ? $typestring : "");
         $startdate = $timedate->fromDb($meeting->date_start);
-        $xtpl->assign("MEETING_STARTDATE", $timedate->asUser($startdate, $notifyUser)." ".TimeDate::userTimezoneSuffix($startdate, $notifyUser));
+        $xtpl->assign("MEETING_STARTDATE", $timedate->asUser($startdate, $notifyUser) . " " . TimeDate::userTimezoneSuffix($startdate, $notifyUser));
         $enddate = $timedate->fromDb($meeting->date_end);
-        $xtpl->assign("MEETING_ENDDATE", $timedate->asUser($enddate, $notifyUser)." ".TimeDate::userTimezoneSuffix($enddate, $notifyUser));
+        $xtpl->assign("MEETING_ENDDATE", $timedate->asUser($enddate, $notifyUser) . " " . TimeDate::userTimezoneSuffix($enddate, $notifyUser));
         $xtpl->assign("MEETING_HOURS", $meeting->duration_hours);
         $xtpl->assign("MEETING_MINUTES", $meeting->duration_minutes);
         $xtpl->assign("MEETING_DESCRIPTION", nl2br($meeting->description));
@@ -709,22 +709,16 @@ class Meeting extends SugarBean
 
         $path = SugarConfig::getInstance()->get('upload_dir', 'upload/') . $this->id;
 
-        require_once("modules/vCals/vCal.php");
-        $content = vCal::get_ical_event($this, $GLOBALS['current_user']);
-
         if (is_dir($path)) {
             LoggerManager::getLogger()->warn('file_put_contents(' . $path . '): failed to open stream: Is a directory ');
-        } else {
-            if (file_put_contents($path, $content)) {
-                $notify_mail->AddAttachment($path, 'meeting.ics', 'base64', 'text/calendar');
-            }
         }
+
         return $notify_mail;
     }
 
     /**
      * Redefine method to remove ics after email is sent
-         * @return boolean success/failed
+     * @return boolean success/failed
      */
     public function send_assignment_notifications($notify_user, $admin)
     {
@@ -745,7 +739,7 @@ class Meeting extends SugarBean
         $template = BeanFactory::newBean('Users');
         // First, get the list of IDs.
         $query = "SELECT meetings_users.required, meetings_users.accept_status, meetings_users.user_id from meetings_users where meetings_users.meeting_id='$this->id' AND meetings_users.deleted=0";
-        $GLOBALS['log']->debug("Finding linked records $this->object_name: ".$query);
+        $GLOBALS['log']->debug("Finding linked records $this->object_name: " . $query);
         $result = $this->db->query($query, true);
         $list = array();
 
@@ -790,8 +784,8 @@ class Meeting extends SugarBean
     public function set_accept_status(&$user, $status)
     {
         if ($user->object_name == 'User') {
-            $relate_values = array('user_id'=>$user->id,'meeting_id'=>$this->id);
-            $data_values = array('accept_status'=>$status);
+            $relate_values = array('user_id' => $user->id, 'meeting_id' => $this->id);
+            $data_values = array('accept_status' => $status);
             $this->set_relationship($this->rel_users_table, $relate_values, true, true, $data_values);
             global $current_user;
 
@@ -799,12 +793,12 @@ class Meeting extends SugarBean
                 vCal::cache_sugar_vcal($user);
             }
         } elseif ($user->object_name == 'Contact') {
-            $relate_values = array('contact_id'=>$user->id,'meeting_id'=>$this->id);
-            $data_values = array('accept_status'=>$status);
+            $relate_values = array('contact_id' => $user->id, 'meeting_id' => $this->id);
+            $data_values = array('accept_status' => $status);
             $this->set_relationship($this->rel_contacts_table, $relate_values, true, true, $data_values);
         } elseif ($user->object_name == 'Lead') {
-            $relate_values = array('lead_id'=>$user->id,'meeting_id'=>$this->id);
-            $data_values = array('accept_status'=>$status);
+            $relate_values = array('lead_id' => $user->id, 'meeting_id' => $this->id);
+            $data_values = array('accept_status' => $status);
             $this->set_relationship($this->rel_leads_table, $relate_values, true, true, $data_values);
         }
     }
@@ -867,7 +861,8 @@ class Meeting extends SugarBean
     public function bean_implements($interface)
     {
         switch ($interface) {
-            case 'ACL':return true;
+            case 'ACL':
+                return true;
         }
         return false;
     }
@@ -899,7 +894,7 @@ class Meeting extends SugarBean
         /* BEGIN - SECURITY GROUPS */
         /**
         if(!ACLController::moduleSupportsACL($this->parent_type) || ACLController::checkAccess($this->parent_type, 'view', $is_owner)) {
-        */
+         */
         if (!ACLController::moduleSupportsACL($this->parent_type) || ACLController::checkAccess($this->parent_type, 'view', $is_owner, 'module', $in_group)) {
             /* END - SECURITY GROUPS */
             $array_assign['PARENT'] = 'a';
@@ -914,10 +909,7 @@ class Meeting extends SugarBean
             if (!empty($this->contact_name_owner)) {
                 global $current_user;
                 $is_owner = $current_user->id == $this->contact_name_owner;
-            }
-            /* BEGIN - SECURITY GROUPS */
-            //contact_name_owner not being set for whatever reason so we need to figure this out
-            else {
+            } else {
                 global $current_user;
                 $parent_bean = BeanFactory::getBean('Contacts', $this->contact_id);
                 if ($parent_bean !== false) {
@@ -926,15 +918,9 @@ class Meeting extends SugarBean
             }
             require_once("modules/SecurityGroups/SecurityGroup.php");
             $in_group = SecurityGroup::groupHasAccess('Contacts', $this->contact_id, 'view');
-            /* END - SECURITY GROUPS */
         }
 
-        /* BEGIN - SECURITY GROUPS */
-        /**
-        if(ACLController::checkAccess('Contacts', 'view', $is_owner)) {
-        */
         if (ACLController::checkAccess('Contacts', 'view', $is_owner, 'module', $in_group)) {
-            /* END - SECURITY GROUPS */
             $array_assign['CONTACT'] = 'a';
         } else {
             $array_assign['CONTACT'] = 'span';
@@ -946,13 +932,11 @@ class Meeting extends SugarBean
     public function save_relationship_changes($is_update, $exclude = array())
     {
         if (empty($this->in_workflow)) {
-            if (empty($this->in_import)) {//if a meeting is being imported then contact_id  should not be excluded
-                //if the global soap_server_object variable is not empty (as in from a soap/OPI call), then process the assigned_user_id relationship, otherwise
-                //add assigned_user_id to exclude list and let the logic from MeetingFormBase determine whether assigned user id gets added to the relationship
+            if (empty($this->in_import)) {
                 if (!empty($GLOBALS['soap_server_object'])) {
                     $exclude = array('contact_id', 'user_id');
                 } else {
-                    $exclude = array('contact_id', 'user_id','assigned_user_id');
+                    $exclude = array('contact_id', 'user_id', 'assigned_user_id');
                 }
             } else {
                 $exclude = array('user_id');
@@ -1007,7 +991,7 @@ function getMeetingsExternalApiDropDown($focus = null, $name = null, $value = nu
         require_once('include/externalAPI/ExternalAPIFactory.php');
 
         $apiList = ExternalAPIFactory::getModuleDropDown('Meetings');
-        $apiList = array_merge(array('Sugar'=>$GLOBALS['app_list_strings']['eapm_list']['Sugar']), $apiList);
+        $apiList = array_merge(array('Sugar' => $GLOBALS['app_list_strings']['eapm_list']['Sugar']), $apiList);
         sugar_cache_put($cacheKeyName, $apiList);
     }
 

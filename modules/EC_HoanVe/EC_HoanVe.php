@@ -49,10 +49,14 @@ class EC_HoanVe extends Basic
 
 	function save($check_notify = FALSE)
 	{
+		global $current_user, $sugar_config;
+
 		if (isset($_POST['booking_id']) && !empty($_POST['booking_id']) && !$this->checkBooking($_POST['booking_id'])) {
 			header('Location: index.php?module=EC_HoanVe&action=Error&error_string=' . urlencode('Booking này chưa xuất vé hoặc chưa hoàn tất'));
 			exit();
+		
 		}
+		$is_tele = 0;
 		if (empty($this->id)) {
 			// HV-230916-0001
 			// $where = ' date_entered = "' . date('Y-m-d') . '" ';
@@ -60,10 +64,15 @@ class EC_HoanVe extends Basic
 			
 			$total_row = $this->db->getOne("SELECT COUNT(id) + 1 FROM ec_hoanve");
 			$this->name = 'HV-' . date('ymd') . '-' . $total_row;
-
+			$is_tele = 1;
 		}
 
 		parent::save($check_notify);
+
+		if ($is_tele == 1) {
+			// GHI NHẬN KPI CHO NGƯỜI TẠO
+			myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description, $current_user->id, 'create_repaid');
+		}
 
 		if (
 			isset($_POST['ct_hoten']) && !empty($_POST['ct_hoten'])
