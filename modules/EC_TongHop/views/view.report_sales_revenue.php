@@ -177,7 +177,7 @@ class Viewreport_sales_revenue extends SugarView
         $total_points_amount = 0;
 
         $data_revenue = calculateRevenueOfDate(date('Y-m-d', strtotime($post_fdate)), date('Y-m-d', strtotime($post_tdate)), $condition_arr);
-        pr($data_revenue);
+        // pr($data_revenue);
 
         $html = '';
         if (!empty($data_revenue) && $data_revenue['count'] > 0) {
