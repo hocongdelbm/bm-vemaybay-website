@@ -172,6 +172,50 @@ $(document).ready(function () {
             }
         });
 
+        // City Distribution progressive expand/collapse
+        $(document).on('click', '.uat-city-toggle-btn', function () {
+            const _SVG_DOWN = '<svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>';
+            const _SVG_UP = '<svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path></svg>';
+
+            const $btn = $(this);
+            const $table = $btn.prev('table');
+            const $tbody = $table.find('tbody');
+            const expanded = $btn.data('expanded') === 1 || $btn.data('expanded') === '1';
+            const LIMIT = 5;
+
+            if (expanded) {
+                // Collapse all but first 5
+                $tbody.find('.uat-simple-row').each(function () {
+                    if (parseInt($(this).data('idx')) >= LIMIT) {
+                        $(this).hide();
+                    }
+                });
+                const hidden = $tbody.find('.uat-simple-row:hidden').length;
+                const toShow = hidden > LIMIT ? LIMIT : hidden;
+                const remainText = hidden > toShow ? ` (còn ${hidden})` : '';
+                $btn.data('expanded', 0)
+                    .html(`${_SVG_DOWN} <span style="vertical-align:middle;">Xem thêm ${toShow} mục${remainText}</span>`)
+                    .css({ 'background': '#f8fafc', 'color': '#3b82f6' });
+            } else {
+                // Progressive expand by LIMIT
+                const $hiddenRows = $tbody.find('.uat-simple-row:hidden');
+                $hiddenRows.slice(0, LIMIT).show();
+
+                const remainingHidden = $tbody.find('.uat-simple-row:hidden').length;
+                if (remainingHidden <= 0) {
+                    $btn.data('expanded', 1)
+                        .html(`${_SVG_UP} <span style="vertical-align:middle;">Thu gọn</span>`)
+                        .css({ 'background': '#fef2f2', 'color': '#ef4444' });
+                } else {
+                    const toShow = remainingHidden > LIMIT ? LIMIT : remainingHidden;
+                    const remainText = remainingHidden > toShow ? ` (còn ${remainingHidden})` : '';
+                    $btn.data('expanded', 0)
+                        .html(`${_SVG_DOWN} <span style="vertical-align:middle;">Xem thêm ${toShow} mục${remainText}</span>`)
+                        .css({ 'background': '#f8fafc', 'color': '#3b82f6' });
+                }
+            }
+        });
+
         // Copy IP
         $(document).on('click', '.uat-copy-ip', function (e) {
             e.preventDefault();
@@ -278,17 +322,20 @@ $(document).ready(function () {
         const params = date ? { date: date } : {};
 
         // Fetch all data in parallel
-        // Live endpoint: không truyền date → API luôn lấy ngày hôm nay (current_time)
         $.when(
             apiGet('/dashboard', params),
             apiGet('/dashboard/bots', params),
             apiGet('/dashboard/areas', params),
             apiGet('/dashboard/hourly/live'),
-            apiGet('/dashboard/hourly/history', params)
-        ).then(function (dashRes, botsRes, areaRes, liveRes, histRes) {
+            apiGet('/dashboard/hourly/history', params),
+            apiGet('/dashboard/city', params),
+            apiGet('/dashboard/passenger-typing', params)
+        ).then(function (dashRes, botsRes, areaRes, liveRes, histRes, cityRes, typingRes) {
             const dash = dashRes[0] || dashRes;
             const bots = botsRes[0] || botsRes;
             const areas = areaRes[0] || areaRes;
+            const cities = cityRes ? (cityRes[0] || cityRes) : null;
+            const typingData = typingRes ? (typingRes[0] || typingRes) : null;
 
             renderOverview(dash.overview || {});
             renderFlights(dash.flights || {});
@@ -296,6 +343,8 @@ $(document).ready(function () {
             renderSuspicious(dash.suspicious || []);
             renderScraping(dash.scraping || []);
             renderAreaAnalytics(areas.data || {});
+            renderCityDistribution(cities || {});
+            if (typeof renderPassengerTyping === 'function') renderPassengerTyping(typingData || {});
             renderBots(bots.data || bots);
 
             // Live trả về {date, data}, history trả về array trực tiếp
@@ -576,6 +625,172 @@ $(document).ready(function () {
         }
     }
 
+    // ── Render: City / Province Distribution ────────────────────────
+    function renderCityDistribution(cityData) {
+        const dataArr = cityData.data || [];
+        const $tbody = $('#ec_area_city_tbody');
+        const $table = $tbody.closest('table');
+        const $btn = $table.next('.uat-city-toggle-btn');
+        $tbody.empty();
+
+        if (dataArr.length === 0) {
+            $tbody.html('<tr><td colspan="4" class="uat-empty-cell">Chưa có dữ liệu phân bổ theo tỉnh thành khu vực.</td></tr>');
+            $btn.hide();
+            return;
+        }
+
+        const LIMIT = 5;
+        dataArr.forEach(function (r, idx) {
+            const rankStyles = [
+                { bg: '#fef9c3', color: '#ca8a04' },
+                { bg: '#f1f5f9', color: '#64748b' },
+                { bg: '#fdf4ff', color: '#9333ea' }
+            ];
+            const rs = rankStyles[idx] || { bg: 'transparent', color: '#94a3b8' };
+            const isHidden = idx >= LIMIT ? 'display:none;' : '';
+
+            const cityColor = '#0ea5e9';
+            const barPct = Math.max(1, (r.pct || 0)).toFixed(1);
+            const pctText = (r.pct || 0).toFixed(1) + '%';
+
+            $tbody.append(`
+                <tr class="uat-simple-row" data-idx="${idx}" style="${isHidden}">
+                    <td>
+                        <div style="font-weight:600; color:#334155; margin-bottom:5px; font-size:13px;">${escH(r.city || 'Chưa xác định')}</div>
+                        <div style="height:4px; background:#f1f5f9; border-radius:4px; overflow:hidden;">
+                            <div style="height:100%; width:${barPct}%; background:${cityColor}; border-radius:4px;"></div>
+                        </div>
+                    </td>
+                    <td style="text-align:right; vertical-align:middle;"><strong style="color:${cityColor}">${fmt(r.sessions)}</strong></td>
+                    <td style="text-align:right; vertical-align:middle;"><span style="color:#64748b; font-size:12px; font-weight:600;">${pctText}</span></td>
+                    <td style="text-align:right; vertical-align:middle;"><span style="background:${rs.bg}; color:${rs.color}; padding:2px 7px; border-radius:10px; font-size:11px; font-weight:700;">#${idx + 1}</span></td>
+                </tr>
+            `);
+        });
+
+        if (dataArr.length <= LIMIT) {
+            $btn.hide();
+        } else {
+            const hidden = dataArr.length - LIMIT;
+            const toShow = hidden > LIMIT ? LIMIT : hidden;
+            const remainText = hidden > toShow ? ` (còn ${hidden})` : '';
+            $btn.show().data('expanded', 0)
+                .html(`<svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14" style="vertical-align:middle; margin-right:4px; margin-top:-2px;"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg> <span style="vertical-align:middle;">Xem thêm ${toShow} mục${remainText}</span>`);
+        }
+    }
+
+    // ── Render: Passenger Typing ────────────────────────────
+    let _typingDonutChart = null;
+    function renderPassengerTyping(data) {
+        const summary = data.summary || {};
+        const logs = data.typing_logs || [];
+
+        const totalViewers = summary.total_viewers || 0;
+        const typingSessions = summary.typing_sessions || 0;
+        const nonTypingSessions = summary.non_typing_sessions || 0;
+        const typingPct = summary.typing_pct || 0;
+        const nonTypingPct = summary.non_typing_pct || 0;
+
+        $('#ec_typing_total_viewers').text(fmt(totalViewers));
+        $('#ec_typing_sess_count').text(fmt(typingSessions));
+
+        // Donut Chart
+        if (_typingDonutChart) { _typingDonutChart.destroy(); _typingDonutChart = null; }
+        const donutCanvas = document.getElementById('ec_typing_donut');
+        if (donutCanvas) {
+            _typingDonutChart = new Chart(donutCanvas.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Có nhập liệu', 'Không nhập liệu'],
+                    datasets: [{
+                        data: [typingSessions, nonTypingSessions],
+                        backgroundColor: ['#f43f5e', '#f1f5f9'],
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    cutout: '75%',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ` ${ctx.label}: ${fmt(ctx.raw)} (${ctx.raw === typingSessions ? typingPct.toFixed(1) : nonTypingPct.toFixed(1)}%)`
+                            }
+                        }
+                    },
+                    animation: { duration: 700 }
+                },
+                plugins: [{
+                    id: 'centerText',
+                    afterDatasetsDraw: (chart) => {
+                        const { ctx, width, height } = chart;
+                        ctx.save();
+                        ctx.font = '800 24px Inter, system-ui, sans-serif';
+                        ctx.fillStyle = '#1e293b';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(typingPct.toFixed(1) + '%', width / 2, height / 2);
+                        ctx.restore();
+                    }
+                }]
+            });
+        }
+
+        // Table
+        const $tbody = $('#ec_typing_logs_tbody');
+        $tbody.empty();
+
+        if (logs.length === 0) {
+            $tbody.html('<tr><td colspan="3" class="uat-empty-cell">Chưa có dữ liệu nhập liệu trong khoảng thời gian này.</td></tr>');
+            return;
+        }
+
+        logs.forEach(function (log) {
+            const timeObj = new Date(log.time);
+            const timeStr = isNaN(timeObj.getTime()) ? log.time : timeObj.toLocaleTimeString('en-US', { hour12: false });
+
+            let fieldsHtml = '';
+            const fields = log.fields_typed || {};
+            if (typeof fields === 'object') {
+                for (const [key, val] of Object.entries(fields)) {
+                    // Cắt ngắn nếu giá trị quá dài
+                    let strVal = val;
+                    if (typeof strVal !== 'string') {
+                        strVal = JSON.stringify(val);
+                    }
+                    const displayVal = strVal.length > 50 ? strVal.substring(0, 50) + '...' : strVal;
+                    fieldsHtml += `<div style="margin-bottom: 4px; font-size: 12px;"><span style="color:#64748b; font-family: monospace; padding: 2px 4px; background: #f1f5f9; border-radius: 4px; margin-right: 6px;">${escH(key)}</span><span style="color:#334155; font-weight: 500;">${escH(displayVal)}</span></div>`;
+                }
+            } else {
+                fieldsHtml = `<span style="color:#94a3b8; font-style:italic;">Không xác định được trường dữ liệu</span>`;
+            }
+
+            if (!fieldsHtml) {
+                fieldsHtml = `<span style="color:#94a3b8; font-style:italic;">Không có trường tương tác</span>`;
+            }
+
+            $tbody.append(`
+                <tr>
+                    <td data-label="TIME & IP" style="vertical-align: top; padding: 12px;">
+                        <div style="font-weight: 600; color: #334155; font-size: 13px; margin-bottom: 4px;">${timeStr}</div>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <span style="font-family: monospace; color: #64748b; font-size: 12px; word-break: break-all;">${escH(log.ip || 'N/A')}</span>
+                            <a href="#" class="uat-copy-ip" data-ip="${escH(log.ip)}" style="color: #cbd5e1; flex-shrink: 0;" title="Copy IP"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg></a>
+                        </div>
+                    </td>
+                    <td data-label="LOCATION" style="vertical-align: top; padding: 12px;">
+                        <span style="color: #475569; font-size: 12px; line-height: 1.4; display: inline-block;">${escH(log.location || 'Unknown')}</span>
+                    </td>
+                    <td data-label="DỮ LIỆU ĐÃ NHẬP" style="vertical-align: top; padding: 12px;">
+                        ${fieldsHtml}
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
     // ── Date Selector ───────────────────────────────────────
     function populateDateSelector(dates) {
         const $sel = $('#ec_date_select');
@@ -677,7 +892,8 @@ $(document).ready(function () {
             fill: currentHourlyChartType === 'line',
             tension: 0.3,
             pointRadius: 3,
-            pointHoverRadius: 5
+            pointHoverRadius: 6,
+            hitRadius: 15 // Mở rộng vùng chạm (hitbox) trên mobile để người dùng cực kỳ dễ tap xem chi tiết
         }];
 
         // Dataset thứ 2: Hôm nay (compare mode)
@@ -695,7 +911,8 @@ $(document).ready(function () {
                 fill: false,
                 tension: 0.3,
                 pointRadius: 3,
-                pointHoverRadius: 5
+                pointHoverRadius: 6,
+                hitRadius: 15
             });
         }
 
@@ -922,12 +1139,6 @@ $(document).ready(function () {
         $('#ec_s2d_rate').text(((s2d.value || 0) * 100).toFixed(1) + '%');
         $('#ec_s2d_sess').text(fmt(s2d.session_count) + ' sess');
 
-        // Lưu full hourly map để chart 24h có đủ dữ liệu
-        const allHourlyArr = hourlyHistoryCache.length > 0 ? hourlyHistoryCache : (hourlyLiveCache || []);
-        window._ec_last_fl_hourly = {};
-        allHourlyArr.forEach(function (h) {
-            if (h.hour) window._ec_last_fl_hourly[h.hour] = h.sessions || 0;
-        });
 
         // Journey types
         const $jt = $('#ec_journey_types');
@@ -974,7 +1185,7 @@ $(document).ready(function () {
         renderProgressList('#ec_airlines', fl.airline_filters || [], 'bg-purple', 10);
 
         // ── NEW: Peak Hour Intelligence ──────────────────────────
-        renderPeakHours(fl.peak_hours || []);
+        renderPeakHours(fl.peak_hours || [], fl.peak_hours_full || [], fl.peak_hour_labels || []);
 
         // ── NEW: Popular vs Niche Routes ─────────────────────────
         renderRouteIntelList('#ec_popular_routes_list', fl.popular_routes || [], '#3b82f6');
@@ -984,8 +1195,11 @@ $(document).ready(function () {
         renderPeakIPs(fl.peak_ips || []);
     }
 
-    // ── Peak Hours: Chart.js bar chart với highlight top 3 ──────
-    function renderPeakHours(peakHours) {
+    // ── Peak Hours: Chart.js bar chart với highlight giờ cao điểm ──────
+    // peakHours: top 3 chips [{hour, sessions}]
+    // fullHours: mảng 24h [{hour, sessions}] đầy đủ từ API
+    // peakLabels: ['10:00','11:00','15:00'] — các giờ cần tô vàng
+    function renderPeakHours(peakHours, fullHours, peakLabels) {
         const $chips = $('#ec_peak_stat_chips');
         const canvas = document.getElementById('ec_peak_hours_chart');
         $chips.empty();
@@ -995,47 +1209,59 @@ $(document).ready(function () {
             return;
         }
 
-        // Chips thống kê top 3
-        const chipColors = [
-            { bg: '#fffbeb', border: '#f59e0b', text: '#92400e', label: 'Top 1' },
-            { bg: '#f1f5f9', border: '#94a3b8', text: '#334155', label: 'Top 2' },
-            { bg: '#fdf6ec', border: '#cd7c2f', text: '#7c3f0e', label: 'Top 3' },
+        // Chips thống kê — số lượng chip phụ thuộc vào dynamic threshold của API
+        const chipPalette = [
+            { bg: '#fffbeb', border: '#f59e0b', text: '#92400e' }, // Top 1 - vàng
+            { bg: '#f1f5f9', border: '#94a3b8', text: '#334155' }, // Top 2 - xám
+            { bg: '#fdf6ec', border: '#cd7c2f', text: '#7c3f0e' }, // Top 3 - cam
+            { bg: '#f0fdf4', border: '#4ade80', text: '#166534' }, // Top 4 - xanh lá
+            { bg: '#eff6ff', border: '#60a5fa', text: '#1e40af' }, // Top 5 - xanh lam
+            { bg: '#fdf4ff', border: '#c084fc', text: '#6b21a8' }, // Top 6 - tím
         ];
         peakHours.forEach(function (ph, i) {
-            const c = chipColors[i] || { bg: '#f8fafc', border: '#e2e8f0', text: '#475569', label: '#' + (i + 1) };
+            const c = chipPalette[i] || { bg: '#f8fafc', border: '#e2e8f0', text: '#475569' };
+            const rank = ph.rank || ('Top ' + (i + 1));
             $chips.append(`<span style="background:${c.bg}; border:1px solid ${c.border}; color:${c.text};
                 padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700;">
-                ${c.label} &nbsp;${escH(ph.hour)}&nbsp;
+                ${rank} &nbsp;${escH(ph.hour)}&nbsp;
                 <span style="font-weight:400; opacity:.75;">(${fmt(ph.sessions)} sess)</span>
             </span>`);
         });
 
-        // Tạo labels + data cho 24h (0-23)
-        const sessionsByHour = {};
-        // peak_hours chỉ có top 3; để chart đầy đủ 24h cần hourly data
-        // Dùng all_hourly nếu có, fallback về peak_hours
-        const allHourly = window._ec_last_fl_hourly || {};
-        const peakSet = new Set(peakHours.map(h => h.hour));
-        peakHours.forEach(ph => { sessionsByHour[ph.hour] = ph.sessions; });
-        Object.keys(allHourly).forEach(h => { if (!sessionsByHour[h]) sessionsByHour[h] = allHourly[h]; });
+        // Dùng peak_hours_full (24h từ API) — chính xác nhất
+        // Fallback: tự build 24h từ peak_hours nếu API cũ chưa có peak_hours_full
+        const peakSet = new Set(Array.isArray(peakLabels) && peakLabels.length > 0
+            ? peakLabels
+            : peakHours.map(h => h.hour));
+
+        let sourceArr = fullHours;
+        if (!sourceArr || sourceArr.length === 0) {
+            // Fallback: build từ peak_hours + fill 0 cho giờ còn lại
+            const byHour = {};
+            peakHours.forEach(ph => { byHour[ph.hour] = ph.sessions; });
+            sourceArr = [];
+            for (let i = 0; i < 24; i++) {
+                const lbl = String(i).padStart(2, '0') + ':00';
+                sourceArr.push({ hour: lbl, sessions: byHour[lbl] || 0 });
+            }
+        }
 
         const labels = [];
         const data = [];
         const bgArr = [];
         const borderArr = [];
 
-        for (let i = 0; i < 24; i++) {
-            const label = String(i).padStart(2, '0') + ':00';
-            labels.push(label);
-            data.push(sessionsByHour[label] || 0);
-            if (peakSet.has(label)) {
+        sourceArr.forEach(function (item) {
+            labels.push(item.hour);
+            data.push(item.sessions || 0);
+            if (peakSet.has(item.hour)) {
                 bgArr.push('rgba(245,158,11,0.85)');
                 borderArr.push('#d97706');
             } else {
                 bgArr.push('rgba(148,163,184,0.35)');
                 borderArr.push('rgba(148,163,184,0.6)');
             }
-        }
+        });
 
         if (peakHoursChartInstance) {
             peakHoursChartInstance.destroy();
@@ -1086,43 +1312,117 @@ $(document).ready(function () {
         }
 
         routes.forEach(function (r, idx) {
-            // departure_dates: {date: {total: N, hours: {hh:mm: count}}}
             const datesMap = r.departure_dates || {};
-            const dateEntries = Object.entries(datesMap).slice(0, 5);
-
+            // Hiển thị tất cả ngày được lưu (API giờ lưu tối đa 30 ngày)
+            const dateEntries = Object.entries(datesMap);
             const border = idx < routes.length - 1 ? 'border-bottom:1px solid #f1f5f9;' : '';
             const itemId = 'route_det_' + Math.random().toString(36).substr(2, 9);
 
-            // Build expandable detail HTML cho từng ngày
-            let detailHtml = '';
-            if (dateEntries.length === 0) {
-                detailHtml = '<p style="color:#cbd5e1; font-size:12px; font-style:italic;">Chưa có dữ liệu chi tiết.</p>';
-            } else {
-                dateEntries.forEach(([date, info]) => {
-                    const total = info.total || 0;
-                    const hours = Object.entries(info.hours || {});
+            // Tính sum từ chi tiết để cung cấp context
+            const sumSess = dateEntries.reduce((acc, [, inf]) => acc + (inf.sessions || 0), 0);
+            // Sessions lệch do cross-date uniqueness
+            const sessNote = sumSess > r.sessions
+                ? `<span style="font-size:10px; color:#f59e0b; margin-left:4px;"
+                      title="Tổng cộng per-ngày = ${sumSess} sess. Lệch vì 1 người search nhiều ngày KH khác nhau chỉ tính 1 unique sess.">(unique)</span>`
+                : '';
 
-                    // Lấy tối đa 5 giờ cao nhất
-                    const hourRows = hours.slice(0, 5).map(([h, cnt]) =>
-                        `<div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0;">
-                            <span style="font-family:monospace; font-size:12px; color:#475569;">${escH(h)}</span>
-                            <span style="font-size:12px; color:#0f172a; font-weight:600;">${cnt} <span style="color:#94a3b8; font-weight:400; font-size:10px;">sess</span></span>
-                        </div>`
-                    ).join('');
+            // ── Build expandable detail ──────────────────────────
+            let detailHtml = '';
+
+            // Dòng tổng kết toàn route
+            detailHtml += `
+                <div style="display:flex; gap:10px; align-items:center; padding:8px 10px; background:#f0f9ff;
+                     border-radius:8px; margin-bottom:12px; border:1px solid #bae6fd; flex-wrap:wrap;">
+                    <span style="font-size:12px; font-weight:700; color:#0369a1;">Tổng</span>
+                    <span style="font-size:12px; color:#0f172a; font-weight:600;">${fmt(r.sessions)}
+                        <span style="font-weight:400; color:#64748b; font-size:11px;"> sess</span>${sessNote}
+                    </span>
+                    <span style="color:#cbd5e1;">·</span>
+                    <span style="font-size:12px; color:#0f172a; font-weight:600;">${fmt(r.events)}
+                        <span style="font-weight:400; color:#64748b; font-size:11px;"> lượt tìm</span>
+                    </span>
+                    <span style="font-size:11px; color:#94a3b8; margin-left:auto;">${dateEntries.length} ngày KH</span>
+                </div>`;
+
+            if (dateEntries.length === 0) {
+                detailHtml += '<p style="color:#cbd5e1; font-size:12px; font-style:italic;">Chưa có dữ liệu chi tiết ngày.</p>';
+            } else {
+                const maxInitial = 5;
+                const moreClass = 'more_dates_' + itemId;
+                const btnId = 'btn_more_' + itemId;
+
+                dateEntries.forEach(([date, info], dIdx) => {
+                    // Backward compat: info.sessions (new) | info.total (old)
+                    const dmSess = info.sessions != null ? info.sessions : (info.total || 0);
+                    const dmEvents = info.events != null ? info.events : 0;
+                    const hoursObj = info.hours || {};
+                    const hourEntries = Object.entries(hoursObj);
+
+                    const hourRows = hourEntries.map(([h, hData]) => {
+                        // Backward compat: hData object (new) | number (old)
+                        const hSess = (typeof hData === 'object') ? (hData.sessions || 0) : hData;
+                        const hEvents = (typeof hData === 'object') ? (hData.events || 0) : 0;
+                        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px dotted #f1f5f9;">
+                            <span style="font-family:monospace; font-size:12px; color:#475569; background:#f8fafc; padding:1px 7px; border-radius:4px;">${escH(h)}</span>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div style="min-width:50px; text-align:right; font-size:12px;">
+                                    <strong style="color:#0f172a;">${hSess}</strong><span style="color:#94a3b8; font-size:10px; margin-left:2px;">sess</span>
+                                </div>
+                                ${hEvents > 0 ? `
+                                    <span style="color:#cbd5e1; font-size:10px;">·</span>
+                                    <div style="min-width:50px; text-align:right; font-size:12px;">
+                                        <strong style="color:#0f172a;">${hEvents}</strong><span style="color:#94a3b8; font-size:10px; margin-left:2px;">lượt</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>`;
+                    }).join('');
+
+                    const wrapperClass = dIdx >= maxInitial ? moreClass : '';
+                    const wrapperStyle = dIdx >= maxInitial ? 'display:none; margin-bottom:10px;' : 'margin-bottom:10px;';
 
                     detailHtml += `
-                        <div style="margin-bottom:10px;">
-                            <!-- Ngày khởi hành header -->
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border-radius:6px; padding:6px 10px; margin-bottom:4px;">
-                                <span style="font-size:13px; font-weight:700; color:#1e293b;">KH: ${escH(date)}</span>
-                                <span style="font-size:11px; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px; font-weight:600;">${total} sess</span>
+                        <div class="${wrapperClass}" style="${wrapperStyle}">
+                            <div style="display:flex; justify-content:space-between; align-items:center;
+                                 background:#f8fafc; border-radius:6px; padding:6px 10px; margin-bottom:4px;
+                                 border-left:3px solid ${accentColor};">
+                                <span style="font-size:13px; font-weight:700; color:#1e293b;">✈ KH: ${escH(date)}</span>
+                                <div style="display:flex; gap:8px; align-items:center;">
+                                    <span style="font-size:11px; background:#dbeafe; color:#1d4ed8;
+                                          padding:2px 8px; border-radius:10px; font-weight:600;"
+                                          title="Unique sessions (1 người search nhiều giờ vẫn tính 1)">${dmSess} sess</span>
+                                    ${dmEvents > 0 ? `<span style="font-size:11px; background:#f0fdf4; color:#166534;
+                                          padding:2px 8px; border-radius:10px; font-weight:600;"
+                                          title="Tổng lượt pageview tìm kiếm">${dmEvents} lượt</span>` : ''}
+                                </div>
                             </div>
-                            <!-- Các giờ tìm kiếm trong ngày đó -->
-                            <div style="padding:2px 10px 2px 12px; border-left:2px solid #e2e8f0;">
+                            <div style="padding:2px 10px 2px 14px; border-left:2px solid #e2e8f0;">
                                 ${hourRows || '<em style="font-size:11px; color:#cbd5e1;">Không rõ giờ</em>'}
                             </div>
                         </div>`;
                 });
+
+                if (dateEntries.length > maxInitial) {
+                    const hiddenCount = dateEntries.length - maxInitial;
+                    detailHtml += `
+                        <div id="${btnId}" style="text-align:center; padding-top:4px; margin-top:8px;">
+                            <button onclick="
+                                    const $h = $('.${moreClass}:hidden');
+                                    $h.slice(0, 5).slideDown(250);
+                                    if ($h.length <= 5) {
+                                        $('#${btnId}').slideUp(250);
+                                    } else {
+                                        $(this).text('Xem thêm ' + ($h.length - 5) + ' ngày KH ▼');
+                                    }
+                                "
+                                style="background:#f8fafc; border:1px solid #cbd5e1; color:#475569; font-size:11px; font-weight:600; 
+                                border-radius:16px; padding:6px 16px; cursor:pointer; transition:all 0.2s;"
+                                onmouseover="this.style.background='#e2e8f0'; this.style.color='#0f172a';" 
+                                onmouseout="this.style.background='#f8fafc'; this.style.color='#475569';">
+                                Xem thêm ${hiddenCount} ngày KH ▼
+                            </button>
+                        </div>`;
+                }
             }
 
             $wrap.append(`

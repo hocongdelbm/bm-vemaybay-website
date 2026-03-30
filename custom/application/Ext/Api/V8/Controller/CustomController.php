@@ -80,7 +80,7 @@ class CustomController extends BaseController
             ) {
                 // Tìm cuộc gọi inbound gần nhất
                 $sql_call = '
-                    SELECT id
+                    SELECT id, name, description, assigned_user_id
                     FROM calls
                     WHERE call_from = "' . $db->quote(trim($booking->phone)) . '"
                         AND direction = "inbound"
@@ -90,17 +90,40 @@ class CustomController extends BaseController
                     ORDER BY date_entered DESC
                     LIMIT 1
                 ';
-                $call_id_autolink = $db->getOne($sql_call);
+                $res_call = $db->query($sql_call);
+                $row_call = $db->fetchByAssoc($res_call);
 
-                if (!empty($call_id_autolink)) {
-                    $db->query('
-                        UPDATE calls
-                        SET booking_id = "' . $db->quote($booking_id) . '"
-                        WHERE id = "' . $db->quote($call_id_autolink) . '"
-                        AND deleted = 0
-                    ');
+                if (!empty($row_call['id'])) {
+                    try {
+                        $db->query('
+                            UPDATE calls
+                            SET booking_id = "' . $db->quote($booking_id) . '"
+                            WHERE id = "' . $db->quote($row_call['id']) . '"
+                            AND deleted = 0
+                        ');
 
-                    $GLOBALS['log']->fatal('DEBUG: Auto-link save_booking (case3) call ' . $call_id_autolink . ' → booking ' . $booking_id . ' (phone: ' . $booking->phone . ') and sql ' . $sql_call);
+                        $bean_note                      = new Note();
+                        $bean_note->id                  = '';
+                        $bean_note->name                = $booking->name;
+                        $bean_note->parent_type         = 'EC_Flight_Bookings';
+                        $bean_note->parent_id           = $booking_id;
+                        $bean_note->description         = trim($row_call['description']) . ' (automap_call_save_bk)';
+                        $bean_note->booking_status      = '8';
+                        $bean_note->assigned_user_id    = $row_call['assigned_user_id'] ?? '';
+                        $bean_note->save();
+
+                        $db->query('
+                            UPDATE ec_flight_bookings
+                            SET booking_status = "6"
+                            WHERE id = "' . $db->quote($booking_id) . '"
+                            AND deleted = 0
+                        ');
+
+                        $GLOBALS['log']->fatal('DEBUG: Auto-link save_booking (case3) call ' . $row_call['id'] . ' → booking ' . $booking_id . ' (phone: ' . $booking->phone . ') and sql ' . $sql_call);
+
+                    } catch (Throwable $th) {
+                        $GLOBALS['log']->fatal("Auto-link saveBK failed: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+                    }
                 }
             }
 
@@ -643,6 +666,51 @@ class CustomController extends BaseController
             ], 201);
         } catch (Throwable $e) {
             return $response->withJson(['error' => true, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function save_location_booking(Request $request, Response $response, array $args) {
+        global $db, $sugar_config;
+        try {
+            $request_ip = $request->getServerParam('REMOTE_ADDR');
+            if (!in_array($request_ip, $sugar_config['ip_whitelist'])) {
+                return $response->withJson(['error' => true, 'message' => "Access denied"], 403);
+            }
+
+            $params = (array) $request->getParsedBody();
+            $lat = substr((string) global_test_input($params['lat'] ?? ''), 0, 28);
+            $long = substr((string) global_test_input($params['long'] ?? ''), 0, 28);
+            $booking_id = global_test_input($params['booking_id'] ?? '');
+
+            if(empty($lat) || empty($long) || empty($booking_id)) {
+                return $response->withJson(['error' => true, 'message' => "Invalid parameters"], 400);
+            }
+
+            // Validate lat/long are actually numeric
+            if (!is_numeric($lat) || !is_numeric($long)) {
+                return $response->withJson(['error' => true, 'message' => "Invalid coordinates"], 400);
+            }
+
+            $sql = "UPDATE ec_flight_bookings
+                SET city = '$lat,$long'
+                WHERE id = '$booking_id'
+                    AND city IS NULL OR TRIM(city) = ''
+                    AND deleted = 0";
+            if($db->query($sql)) {
+                return $response->withJson(['error' => false, 'message' => 'Success'], 200);
+            }
+            else {
+                return $response->withJson(['error' => true, 'message' => 'Failed'], 500);
+            }
+        }
+        catch (Throwable $th) {
+            $logId = LoggerHelper::generateLogId();
+            $GLOBALS['log']->fatal("[{$logId}] {$th->getMessage()} ({$th->getCode()}) on line {$th->getLine()} in {$th->getFile()}");
+            return $response->withJson([
+                "error" => true,
+                "message" => "An error occurred",
+                "description" => $logId
+            ], 500);
         }
     }
 }

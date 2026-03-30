@@ -557,6 +557,22 @@
         width: 100%;
         left: 16px;
     }
+
+    /* Exceptions for Typing Logs */
+    .uat-table-stackable td[data-label="DỮ LIỆU ĐÃ NHẬP"],
+    .uat-table-stackable td[data-label="TIME & IP"] {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        padding-top: 40px !important;
+        text-align: left !important;
+    }
+
+    .uat-table-stackable td[data-label="DỮ LIỆU ĐÃ NHẬP"]::before,
+    .uat-table-stackable td[data-label="TIME & IP"]::before {
+        top: 14px;
+        width: 100%;
+        left: 16px;
+    }
 }
 
 /* ── 8. Progress Bars ───────────────────────────────────── */
@@ -893,9 +909,9 @@
 .uat-time-badge {
     background: #fff;
     border: 1px solid #e2e8f0;
-    padding: 4px 10px;
+    padding: 6px 12px;
     border-radius: 6px;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
     color: #475569;
     transition: all 0.2s;

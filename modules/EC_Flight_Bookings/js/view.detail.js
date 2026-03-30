@@ -284,9 +284,9 @@ $(document).ready(function () {
 				} else if (response == 2) {
 					showModalNotify(2, "Vui lòng cập nhật thông tin cuộc gọi trước khi liên kết");
 				} else if (response == 400) {
-					showModalNotify(2, "SĐT hoặc ID của Booking không xác định. Vui lòng kiểm tra lại hoặc liên hệ IT để được hỗ trợ!");
+					showModalNotify(2, "SĐT hoặc ID của Booking không xác định. Kiểm tra lại thông tin SĐT hoặc liên hệ IT để được hỗ trợ!");
 				} else {
-					let text_warning = 'LK thất bại. Không tìm thấy cuộc gọi để liên kết!';
+					let text_warning = 'LK thất bại. Không tìm thấy cuộc gọi phù hợp để liên kết.';
 					showModalNotify(0, text_warning);
 					$('.modal-overlay, .btn-modal-close').addClass('reload');
 				}
@@ -425,16 +425,6 @@ $(document).ready(function () {
 
 		let checkBoxPassengers = '';
 		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function (index, element) {
-			// if(ln > 0 && index + 1 < ln) {
-			// 	console.warn(ln, index);
-			// 	return true; // Skip
-			// }
-
-			// let timesChangePass = $(this).attr('data-times-change');
-			// if(timesChangeIti != timesChangePass) {
-			// 	return true; // Skip
-			// }
-
 			let passId = $(this).attr('data-id');
 			let passName = $(this).find('td.passenger_name .fullname').text();
 			checkBoxPassengers += `<div class="form-check">
@@ -1117,10 +1107,7 @@ $(document).ready(function () {
 	$(document).on('change', 'select[name="pass_luggage_ob[]"], select[name="pass_luggage_ib[]"]', function () {
 		let name = $(this).attr('name'); // name="pass_luggage_ob[]" or "...ib[]"
 		let index = $(`select[name="${name}"]`).index(this);
-		// let value = $(this).val(); // selected option value
 		let dataCost = $(this).find(':selected').data('cost'); // get data-cost
-		// let dataText  = $(this).find(':selected').data('text'); // get data-text
-		// let dataValue = $(this).find(':selected').data('value'); // get data-value
 
 		// Update luggage_price[] at same index
 		if (name == 'pass_luggage_ob[]') {
@@ -1193,6 +1180,7 @@ $(document).ready(function () {
 			$(".wrap-redo").show();
 		}
 	});
+
 	$(document).on("click", "#copyQRCodeImage", async function () {
 		let img = document.getElementById("img_qr_code");
 
@@ -1212,6 +1200,7 @@ $(document).ready(function () {
 			console.error("Lỗi copy ảnh:", error);
 		}
 	});
+
 	$(document).on("click", "#btnRenderQRCode", async function () {
 		let qrcode = $('#img_qr_code').attr("src");
 		let new_amount = parseInt($('#new_payment_amount').val().trim() ?? 0);
@@ -1267,11 +1256,10 @@ $(document).ready(function () {
 					showModalNotify(1, "Liên kết cuộc gọi thành công");
 					$('.modal-overlay, .btn-modal-close').addClass('reload');
 				} else if (response == 2) {
-					// warning
 					showModalNotify(2, "Vui lòng cập nhật thông tin cuộc gọi trước khi liên kết");
 				}
 				else {
-					showModalNotify(0, "Thao tác không thành công. Liên hệ IT để được hỗ trợ.");
+					showModalNotify(0, "Thao tác không thành công. Hãy đảm bảo cuộc gọi chưa Link với booking nào khác.");
 				}
 			}
 		});
