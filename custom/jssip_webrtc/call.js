@@ -919,6 +919,11 @@ $(document).ready(function () {
         $(this).val(numericValue);
     });
 
+    // Change số airline support
+    $('#select-phone-support').on('change', function () {
+        $('#call_voiceip_main_number').val($(this).val());
+    });
+
     // Mở popup cuộc gọi
     $(document).on('click', '.toast__main', function () {
         resetPopupVoiceip();

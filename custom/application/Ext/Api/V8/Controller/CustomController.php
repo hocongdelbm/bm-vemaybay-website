@@ -102,7 +102,7 @@ class CustomController extends BaseController
                             AND deleted = 0
                         ');
 
-                        $bean_note                      = new Note();
+                        $bean_note = BeanFactory::newBean("Note");
                         $bean_note->id                  = '';
                         $bean_note->name                = $booking->name;
                         $bean_note->parent_type         = 'EC_Flight_Bookings';

@@ -386,13 +386,6 @@ class SugarView
         $ss->assign("SUGAR_JS", ob_get_contents() . $themeObject->getJS());
         ob_end_clean();
 
-        // get favicon
-        if (isset($GLOBALS['sugar_config']['default_module_favicon'])) {
-            $module_favicon = $GLOBALS['sugar_config']['default_module_favicon'];
-        } else {
-            $module_favicon = false;
-        }
-
         $favicon = $this->getFavicon();
         $ss->assign('FAVICON_URL', $favicon['url']);
 
@@ -550,6 +543,9 @@ class SugarView
             // List phone choose for outbound call
             $list_phone_choose_outbound = $pbx->get_list_phone_pbx(0);
             $ss->assign("list_phone_choose_outbound", $list_phone_choose_outbound ?? []);
+
+            // D/s Danh bạ liên hệ hãng hỗ trợ
+            $ss->assign("list_phone_airline_support", $app_list_strings['list_phone_airline_support'] ?? []);
         }
 
         $bakModStrings = $mod_strings;
