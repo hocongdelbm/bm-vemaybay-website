@@ -679,7 +679,7 @@ $(document).ready(function () {
 			if ($(this).val().length == 0) $(MESSAGE_LIST_CHAT_ID).height(HEIGHT_MESSAGE_LIST_CHAT);
 		}
 	});
-	
+
 	$('#btn-open-mobile-menu').click(function () {
 		$('.message_list').scrollTop($('.message_list')[0].scrollHeight);
 	});
@@ -1402,8 +1402,8 @@ $(document).ready(function () {
 
 	// Get location from geocode in booking
 	const regexlatlong = /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/;
-	const latlong= $("#city").text().trim();
-	if(regexlatlong.test(latlong)) {
+	const latlong = $("#city").text().trim();
+	if (regexlatlong.test(latlong)) {
 		const latlongparts = latlong.split(',');
 		if (latlongparts.length != 2) return false;
 		const lat = latlongparts[0].trim();
@@ -1412,8 +1412,8 @@ $(document).ready(function () {
 		$.ajax({
 			url: "index.php?entryPoint=entryPointGeneral&class=entryBookingClass&method=getLocation",
 			type: "POST",
-			contentType: "application/json", 
-			dataType: "json",  
+			contentType: "application/json",
+			dataType: "json",
 			data: JSON.stringify({
 				params: {
 					lat: lat,
@@ -1426,8 +1426,8 @@ $(document).ready(function () {
 			},
 			success: function (res) {
 				$("#location-loading").remove();
-				if('status' in res && res.status === 1) {
-					if(res.data.length > 0) $("#city").text(res.data);
+				if ('status' in res && res.status === 1) {
+					if (res.data.length > 0) $("#city").text(res.data);
 				}
 				else {
 					let message = res.message || 'Có lỗi xảy ra khi lấy dữ liệu';
@@ -1436,6 +1436,31 @@ $(document).ready(function () {
 							<svg width="14px" height="14px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12ZM10.0586 6.05547C10.0268 5.48227 10.483 5 11.0571 5H12.9429C13.517 5 13.9732 5.48227 13.9414 6.05547L13.5525 13.0555C13.523 13.5854 13.0847 14 12.554 14H11.446C10.9153 14 10.477 13.5854 10.4475 13.0555L10.0586 6.05547ZM14 17C14 18.1046 13.1046 19 12 19C10.8954 19 10 18.1046 10 17C10 15.8954 10.8954 15 12 15C13.1046 15 14 15.8954 14 17Z" fill="#ff0000"></path></g></svg>
 						</span>
 					`);
+				}
+			},
+			error: function (XMLHttpRequest, textStatus, errorThrown) {
+				console.error("Status: " + textStatus);
+				console.error("Error: " + errorThrown);
+			},
+		});
+	} else if ($("#city").text().trim() === '') {
+		// Fallback - get location from IP
+		const ipAddress = $("#ip_address").text().trim();
+		if (!ipAddress) return false;
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointGeneral&class=entryBookingClass&method=getLocationByIp",
+			type: "POST",
+			contentType: "application/json",
+			dataType: "json",
+			data: JSON.stringify({ params: { ip: ipAddress, bookingId: bookingId } }),
+			beforeSend: function () {
+				$("#city").append(`<i id="location-loading" class="ms-2" style="color:#a7a7a7;">Đang định vị...</i>`);
+			},
+			success: function (res) {
+				$("#location-loading").remove();
+				if ('status' in res && res.status === 1) {
+					if (res.data.length > 0) $("#city").text(res.data);
 				}
 			},
 			error: function (XMLHttpRequest, textStatus, errorThrown) {

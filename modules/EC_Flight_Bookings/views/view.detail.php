@@ -45,7 +45,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	{
 		global $app_list_strings, $current_user;
 
-		$version = '1.0.6';
+		$version = '1.0.7';
 
 		// External file
 		$js = '
