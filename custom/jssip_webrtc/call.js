@@ -276,9 +276,7 @@ ua.on('newRTCSession', function (ev) {
                 activeSession = null;
                 stopTimer();
                 handleButtons('completed');
-                $('#popup-voiceip').removeClass('show');
-                $('#popup__voiceip--wrap').removeClass('show');
-                $('#call-overlay').removeClass('opened');
+                togglePopupCall(false);
             }
 
             if (Object.keys(sessions).length === 0) {
@@ -626,9 +624,7 @@ $(document).ready(function () {
                     $('.voiceip-header__title').html('Đang gọi...');
                     $('.voiceip-timer').hide();
                     if (activeSession) $('#popup-voiceip').attr('call_id', activeSession._request.call_id); // New call id
-                    $('#popup-voiceip').addClass('show');
-                    $('#popup__voiceip--wrap').addClass('show');
-                    $('#call-overlay').addClass('opened');
+                    togglePopupCall(true);
                     return true;
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -807,9 +803,8 @@ $(document).ready(function () {
 
                 if ('status' in response && response.status == 1) {
                     $(".voiceip-update").css("pointer-events", "");
-                    $('#popup-voiceip').removeClass('show');
-                    $('#popup__voiceip--wrap').removeClass('show');
-                    $('#call-overlay').removeClass('opened');
+                    togglePopupCall(false);
+
                     showModalNotify('success', 'Cập nhật thông tin thành công.');
                     if (booking_id.length > 0) $('.btn-modal-close').addClass('reload');
                 }
@@ -931,6 +926,11 @@ $(document).ready(function () {
         }
     });
 
+    // Nút đóng popup
+    $(document).on('click', '.voiceip-close', function (event) {
+        togglePopupCall(false);
+    });
+
     // Stop and unregister ua when reload
     $(window).on('beforeunload', function () {
         if (ua) { ua.stop(); ua.unregister({ all: true }); ua = null; }
@@ -1023,9 +1023,8 @@ $(document).ready(function () {
                     handleButtons('incomming');
                     $('#popup-voiceip .voiceip-header__title').html(switchboard);
                     $('#popup-voiceip').attr('call_id', call_id);
-                    $('#popup__voiceip--wrap').addClass('show');
-                    $('#popup-voiceip').addClass('show');
-                    $('#call-overlay').addClass('opened');
+
+                    togglePopupCall(true);
                 }
             });
 
@@ -1037,6 +1036,7 @@ $(document).ready(function () {
     $(document).on('click', '.voiceip-viewbooking', function () {
         $("#popup-inforbooking").toggle("slide");
     });
+
 });
 
 // CALL LOG ===============================
@@ -1227,9 +1227,8 @@ if ('serviceWorker' in navigator) {
 
                     handleButtons('processing');
                     $('#popup-voiceip').attr('call_id', call_id); // New call id
-                    $('#popup__voiceip--wrap').addClass('show');
-                    $('#popup-voiceip').addClass('show');
-                    $('#call-overlay').addClass('opened');
+                    togglePopupCall(true);
+
                     $("#" + event.data.id).remove();
                 }
             });
@@ -1447,10 +1446,17 @@ function handleButtons(type) {
         $('.voiceip-button').hide();
         $('.voiceip-update').show();
         $('.voiceip-dtmf').show();
+        $('.voiceip-close').show();
 
         $('.wrap-info-voiceip').hide();
         $('.wrap-form-voiceip').show();
     }
+}
+
+function togglePopupCall(isShow) {
+    $('#popup-voiceip').toggleClass('show', isShow);
+    $('#popup__voiceip--wrap').toggleClass('show', isShow);
+    $('#call-overlay').toggleClass('opened', isShow);
 }
 
 function display_avatar_zalo(avatar) {
