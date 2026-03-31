@@ -119,26 +119,15 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$res_kpi = $this->bean->db->query($sql_kpi);
 		while ($row_kpi = $this->bean->db->fetchByAssoc($res_kpi)) {
-			if ($row_kpi['called'] == 1 || $row_kpi['paid'] == 1 || $row_kpi['recheck'] > 0 || $row_kpi['recall'] > 0 || $row_kpi['remind'] > 0 || $row_kpi['check_debt'] > 0 || $row_kpi['support'] > 0) {
-				if ($row_kpi['called'] == 1)
-					$action_type = 'called';
-				elseif ($row_kpi['paid'] == 1)
-					$action_type = 'paid';
-				elseif ($row_kpi['recheck'] > 0)
-					$action_type = 'recheck';
-				elseif ($row_kpi['recall'] > 0)
-					$action_type = 'recall';
-				elseif ($row_kpi['remind'] > 0)
-					$action_type = 'remind';
-				elseif ($row_kpi['check_debt'] > 0)
-					$action_type = 'check_debt';
-				elseif ($row_kpi['support'] > 0)
-					$action_type = 'support';
-
-				$actions_kpi[$row_kpi['id']] = [
-					'type' => $action_type,
-					'description' => $row_kpi['description']
-				];
+			$action_type = null;
+			foreach (['called', 'paid', 'recheck', 'recall', 'remind', 'check_debt', 'support'] as $field) {
+				if (!empty($row_kpi[$field])) {
+					$action_type = $field;
+					break;
+				}
+			}
+			if ($action_type !== null) {
+				$actions_kpi[$row_kpi['id']] = ['type' => $action_type, 'description' => $row_kpi['description']];
 			}
 		}
 
@@ -306,7 +295,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUSTOM_CUSTOMER_SOURCE', $customer_source);
 
 		// Đánh dấu
-		$list_bookmark = '<div class="d-flex align-items-star flex-nowrap gap-3">';
+		$list_bookmark = '<div class="d-flex align-items-start flex-nowrap gap-3">';
 		// Telesale
 		if ($this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
 			$call_name = $this->bean->db->getOne("SELECT name FROM calls WHERE id = '{$this->bean->telesale_call_id}' AND deleted = 0");
@@ -472,7 +461,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				</button>
 				<dialog id="dialog-send-zalo" class="dialog-confirm-send-zalo">
 					<h2 class="title mb-1">Gửi tin nhắn theo mẫu Zalo OA</h2>
-					<h6 class="title-zalo-oa-name mb-2">Travelpass tìm chuyến bay<h6>
+					<h6 class="title-zalo-oa-name mb-2">Travelpass tìm chuyến bay</h6>
 					<form method="dialog">
 						<input type="hidden" name="zalo_flight_type" id="zalo_flight_type" value="' . $this->bean->flight_type . '" />
 						<input type="hidden" name="zalo_journeys" id="zalo_journeys" value="' . base64_encode(rawurlencode(json_encode($journeys_info, JSON_UNESCAPED_UNICODE))) . '" />
@@ -626,7 +615,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('RECHECK_STATUS', $recheck_status . $recall_status . $check_debt . $support);
 
 		// Is invoice export
-		$is_invoice_export_title = $this->bean->is_invoice_export ? 'Xuất thêm HĐ' : 'Đã xuất HĐ ra';
+		$is_invoice_export_title = !$this->bean->is_invoice_export ? 'Xuất thêm HĐ' : 'Đã xuất HĐ ra';
 		$is_invoice_export = '</form>
 		<form class="frmBookingStatus d-flex gap-1 align-items-center" action="index.php" method="post" name="frmCheckInvoiceExport" id="frmCheckInvoiceExport">
 		  <input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
@@ -637,7 +626,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		  <input type="hidden" name="is_invoice_export" value="1" />
 		  <span class="w-50">HĐ đầu ra: </span>
 		  <span class="d-flex align-items-center gap-2 flex-fill">
-		  	<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_export ? 'checked' : '') . ' />
+		  	<input type="checkbox" disabled ' . ($this->bean->is_invoice_export ? 'checked' : '') . ' />
 		  	' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->booking_status == '8') ? '<input type="submit" name="btnCheckInvoiceExport" id="btnCheckInvoiceExport" class="btn btn-primary-2 cursor-pointer" value="' . $is_invoice_export_title . '" title="' . $is_invoice_export_title . '" />' : '') . '
 		  </span>
 		</form>';
@@ -925,7 +914,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 													<span class="form-label fw-semibold" title="Khách sử dụng điểm tích lũy để giảm giá cho BK. Sau đó đổi ý không dùng nữa!">Tiền sử dụng điểm hoàn lại:</span>
 												</div>
 												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_pass_refunded'] ?? 0) . '</p>
+													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_points_refunded'] ?? 0) . '</p>
 												</div>
 											</div>
 											<div class="row">
@@ -1486,25 +1475,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
 
-			$airline_code = $airline_code_logo = $row['airline_code'];
-			$img_style = 'style="width:45px"';
-			if ($row['airline_code'] == 'VNA') {
-				$airline_code = $airline_code_logo = 'VN';
-			}
-			if ($row['airline_code'] == 'VJA') {
-				$airline_code = $airline_code_logo = 'VJ';
-			}
-			if ($row['airline_code'] == 'VNP') {
-				$airline_code = 'BL';
-				$airline_code_logo = 'VNP';
-			}
-			if ($row['airline_code'] == 'BBA')
-				$airline_code = $airline_code_logo = 'QH';
-			if ($row['airline_code'] == 'VTA') {
-				$airline_code = 'VU';
-				$airline_code_logo = 'VTA';
-				$img_style = 'style="width:55px"';
-			}
+			['code' => $airline_code, 'logo' => $airline_code_logo, 'img_style' => $img_style] = $this->normalizeAirlineCode($row['airline_code']);
 
 			$img_src = !$row['is_layover'] && !empty($airline_code_logo) ? '<img ' . $img_style . ' src="custom/themes/default/images/airline-icon-100x100/' . $airline_code_logo . '.png" alt="' . $airline_code . '" border="0" />' : '';
 
@@ -2175,13 +2146,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$directionLabel = $app_list_strings['bk_direction_list'][(int)$row['direction']] ?? '';
-			$airlineCode = $row['airline_code'] ?? '';
-			// Map internal codes to display codes
-			if ($airlineCode == 'VNA') $airlineCode = 'VN';
-			elseif ($airlineCode == 'VJA') $airlineCode = 'VJ';
-			elseif ($airlineCode == 'VNP') $airlineCode = 'BL';
-			elseif ($airlineCode == 'BBA') $airlineCode = 'QH';
-			elseif ($airlineCode == 'VTA') $airlineCode = 'VU';
+			$airlineCode = $this->normalizeAirlineCode($row['airline_code'] ?? '')['code'];
 
 			$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
 			$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
@@ -2742,38 +2707,24 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 			// Hành lý có sẵn
 			if (!empty($row['luggage_index_outbound'])) {
-				$bagText = Baggage::renderAvailableBaggage($row['luggage_index_outbound']);
-				preg_match_all('/\d+/', $bagText, $matches);
-				$pack   = (int)($matches[0][0] ?? 0); // 1
-				$weight = (int)($matches[0][1] ?? 0); // 20
-
+				[$pack, $weight] = $this->parseBaggageNumbers(Baggage::renderAvailableBaggage($row['luggage_index_outbound']));
 				$totalPackDep += $pack;
 				$totalWeightDep += $weight;
 			}
 			if (!empty($row['luggage_index_inbound'])) {
-				$bagText = Baggage::renderAvailableBaggage($row['luggage_index_inbound']);
-				preg_match_all('/\d+/', $bagText, $matches);
-				$pack   = (int)($matches[0][0] ?? 0); // 1
-				$weight = (int)($matches[0][1] ?? 0); // 20
-
+				[$pack, $weight] = $this->parseBaggageNumbers(Baggage::renderAvailableBaggage($row['luggage_index_inbound']));
 				$totalPackRet += $pack;
 				$totalWeightRet += $weight;
 			}
 
 			// Hành lý mua thêm
 			if (!empty($row['luggage_purchase_text'])) {
-				preg_match_all('/\d+/', $row['luggage_purchase_text'], $matches);
-				$pack   = (int)($matches[0][0] ?? 0); // 1
-				$weight = (int)($matches[0][1] ?? 0); // 20
-
+				[$pack, $weight] = $this->parseBaggageNumbers($row['luggage_purchase_text']);
 				$totalPackDep += $pack;
 				$totalWeightDep += $weight;
 			}
 			if (!empty($row['luggage_purchase_text_inbound'])) {
-				preg_match_all('/\d+/', $row['luggage_purchase_text_inbound'], $matches);
-				$pack   = (int)($matches[0][0] ?? 0); // 1
-				$weight = (int)($matches[0][1] ?? 0); // 20
-
+				[$pack, $weight] = $this->parseBaggageNumbers($row['luggage_purchase_text_inbound']);
 				$totalPackRet += $pack;
 				$totalWeightRet += $weight;
 			}
@@ -2911,5 +2862,37 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<button class="btn btn-primary" style="display: none;" id="copyQRCodeImage">Sao chép QR</button>
 					</div>
 				</dialog';
+	}
+
+	/**
+	 * Normalize an internal airline code to its display code, logo code, and image style.
+	 * Returns ['code' => string, 'logo' => string, 'img_style' => string].
+	 */
+	private function normalizeAirlineCode(string $raw): array
+	{
+		$map = [
+			'VNA' => ['VN',  'VN',  'style="width:45px"'],
+			'VJA' => ['VJ',  'VJ',  'style="width:45px"'],
+			'VNP' => ['BL',  'VNP', 'style="width:45px"'],
+			'BBA' => ['QH',  'QH',  'style="width:45px"'],
+			'VTA' => ['VU',  'VTA', 'style="width:55px"'],
+		];
+		if (isset($map[$raw])) {
+			return ['code' => $map[$raw][0], 'logo' => $map[$raw][1], 'img_style' => $map[$raw][2]];
+		}
+		return ['code' => $raw, 'logo' => $raw, 'img_style' => 'style="width:45px"'];
+	}
+
+	/**
+	 * Extract the first two integers from a baggage text string.
+	 * Returns [pack_count, weight_kg].
+	 */
+	private function parseBaggageNumbers(string $text): array
+	{
+		preg_match_all('/\d+/', $text, $matches);
+		return [
+			(int)($matches[0][0] ?? 0),
+			(int)($matches[0][1] ?? 0),
+		];
 	}
 }
