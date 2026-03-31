@@ -70,6 +70,7 @@ class CustomController extends BaseController
 
             $booking->save();
             $booking_id = $booking->id;
+            $assigned_user_id_bk = $booking->assigned_user_id;
 
             // ===== AUTO-LINK CALL → BOOKING (Case 3) =====
             // Điều kiện: booking có SĐT, không phải TEST
@@ -112,9 +113,11 @@ class CustomController extends BaseController
                         $bean_note->assigned_user_id    = $row_call['assigned_user_id'] ?? '';
                         $bean_note->save();
 
+                        $assigned_user_id = $row_call['assigned_user_id'] ?? $assigned_user_id_bk;
+
                         $db->query('
                             UPDATE ec_flight_bookings
-                            SET booking_status = "6"
+                            SET booking_status = "6", assigned_user_id = "'.$assigned_user_id.'"
                             WHERE id = "' . $db->quote($booking_id) . '"
                             AND deleted = 0
                         ');

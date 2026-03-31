@@ -364,8 +364,9 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             $bean_note->assigned_user_id    = $current_user->id;
                             $bean_note->save();
 
-                            // Update status and assigned
-                            if ((string)$type_call === 'called') {
+                            $bk = new EC_Flight_Bookings();
+                            $bk->retrieve($booking_id);
+                            if ((string)$type_call === 'called' && (int)$bk->booking_status === 1) {
                                 $sql_update = 'UPDATE ec_flight_bookings
                                         SET booking_status = "6", assigned_user_id = "' . $current_user->id . '"
                                         WHERE id = "' . $booking_id . '" AND deleted = 0';
@@ -477,9 +478,6 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     }
                 } else if (!empty($booking_id)) {
-                    /**
-                     * @var EC_Flight_Bookings $booking
-                     */
                     $booking = new EC_Flight_Bookings();
                     $booking->retrieve($booking_id);
                     if (!empty($booking->id) && strtoupper(trim($booking->contact_name)) == 'THAM KHAO' && $booking->total_amount == 0) {
