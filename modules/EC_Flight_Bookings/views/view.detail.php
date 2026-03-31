@@ -2868,7 +2868,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	 * Normalize an internal airline code to its display code, logo code, and image style.
 	 * Returns ['code' => string, 'logo' => string, 'img_style' => string].
 	 */
-	private function normalizeAirlineCode(string $raw): array
+	private function normalizeAirlineCode($raw)
 	{
 		$map = [
 			'VNA' => ['VN',  'VN',  'style="width:45px"'],
@@ -2887,7 +2887,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	 * Extract the first two integers from a baggage text string.
 	 * Returns [pack_count, weight_kg].
 	 */
-	private function parseBaggageNumbers(string $text): array
+	private function parseBaggageNumbers($text)
 	{
 		preg_match_all('/\d+/', $text, $matches);
 		return [
