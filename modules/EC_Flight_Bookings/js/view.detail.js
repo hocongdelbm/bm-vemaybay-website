@@ -1238,31 +1238,96 @@ $(document).ready(function () {
 		let call_name = $('input[name=call_name]').val().trim();
 		let booking_id = $(this).attr('booking_id');
 		let booking_name = $(this).attr('booking_name');
-		if (call_name.length == 0 || call_name.length > 20 || booking_id.length == 0) return;
+		if (call_name.length === 0 || call_name.length > 20 || booking_id.length === 0) return;
+
+		let alreadyLinked = $('input[name=call_name]').data('already-linked');
+		let linkedBooking = $('input[name=call_name]').data('linked-booking') || '';
+
+		function doMapCall(force) {
+			$.ajax({
+				url: "index.php?entryPoint=entryPointCallContact",
+				data: { type: "map_call_booking", call_name, booking_id, booking_name, force },
+				type: "POST",
+				cache: false,
+				success: function (response) {
+					response = $.trim(response);
+					if (response == 1) {
+						showModalNotify(1, "Liên kết cuộc gọi thành công");
+						$('.modal-overlay, .btn-modal-close').addClass('reload');
+					} else if (response == 2) {
+						showModalNotify(2, "Vui lòng cập nhật thông tin cuộc gọi trước khi liên kết");
+					} else if (response == 3) {
+						if (confirm("Cuộc gọi này đã liên kết với BK, bạn có chắc chắn liên kết không?")) {
+							doMapCall(1);
+						}
+					} else {
+						showModalNotify(0, "Thao tác không thành công. Không tìm thấy cuộc gọi để liên kết");
+					}
+				}
+			});
+		}
+
+		if (alreadyLinked === '1') {
+			let confirmMsg = 'Cuộc gọi này đã liên kết với BK' + (linkedBooking.length > 0 ? ' ' + linkedBooking : '') + ', bạn có chắc chắn liên kết không?';
+			if (!confirm(confirmMsg)) return;
+			doMapCall(1);
+		} else {
+			doMapCall(0);
+		}
+	});
+	// Auto-search related calls when manualLinkCall modal opens
+	$('#manualLinkCall').on('shown.bs.modal', function () {
+		// Reset state on every open
+		$('input[name=call_name]').val('').removeData('already-linked').removeData('linked-booking');
+		$('#suggested-calls-list').empty();
+		$('#suggested-calls-container').hide();
+
+		let phone = $('#btn-mapping-call-booking').attr('phone');
+		if (!phone || phone.trim().length === 0) return;
+
+		$('#suggested-calls-container').show();
+		$('#suggested-calls-list').html('<p class="text-muted small">Đang tìm kiếm...</p>');
 
 		$.ajax({
 			url: "index.php?entryPoint=entryPointCallContact",
-			data: {
-				type: "map_call_booking",
-				call_name: call_name,
-				booking_id: booking_id,
-				booking_name: booking_name
-			},
 			type: "POST",
+			dataType: "json",
+			data: { type: "search_calls_by_phone", phone: phone.trim() },
 			cache: false,
-			success: function (response) {
-				closeDialog("mapping_call_booking");
-				if (response == 1) {
-					showModalNotify(1, "Liên kết cuộc gọi thành công");
-					$('.modal-overlay, .btn-modal-close').addClass('reload');
-				} else if (response == 2) {
-					showModalNotify(2, "Vui lòng cập nhật thông tin cuộc gọi trước khi liên kết");
+			success: function (calls) {
+				$('#suggested-calls-list').empty();
+				if (!Array.isArray(calls) || calls.length === 0) {
+					$('#suggested-calls-container').hide();
+					return;
 				}
-				else {
-					showModalNotify(0, "Thao tác không thành công. Hãy đảm bảo cuộc gọi chưa Link với booking nào khác.");
-				}
+				let html = '<div class="list-group list-group-flush">';
+				$.each(calls, function (i, call) {
+					let alreadyLinked = (call.booking_id && call.booking_id.length > 0) ? '1' : '0';
+					let linkedBookingName = call.booking_name_linked ? call.booking_name_linked : '';
+					let linkedBadge = alreadyLinked === '1' ? '<span class="badge bg-warning text-dark ms-2">Đã liên kết: ' + $('<div>').text(linkedBookingName).html() + '</span>' : '';
+					html += '<button type="button" class="list-group-item list-group-item-action py-2 mb-2 w-100 suggest-call-item"'
+						+ ' data-call-name="' + $('<div>').text(call.name).html() + '"'
+						+ ' data-already-linked="' + alreadyLinked + '"'
+						+ ' data-linked-booking="' + $('<div>').text(linkedBookingName).html() + '">'
+						+ '<span class="fw-semibold">' + $('<div>').text(call.name).html() + '</span>'
+						+ '<span class="form-label small ms-2">' + (call.date_start || '') + '</span>'
+						+ linkedBadge
+						+ '</button>';
+				});
+				html += '</div>';
+				$('#suggested-calls-list').html(html);
+			},
+			error: function () {
+				$('#suggested-calls-container').hide();
 			}
 		});
+	});
+	// Clicking a suggestion row populates the input and stores link state
+	$(document).on('click', '.suggest-call-item', function () {
+		let callName = $(this).attr('data-call-name');
+		$('input[name=call_name]').val(callName).data('already-linked', $(this).attr('data-already-linked')).data('linked-booking', $(this).attr('data-linked-booking'));
+		$('.suggest-call-item').removeClass('active');
+		$(this).addClass('active');
 	});
 
 	// Voucher
@@ -1290,6 +1355,7 @@ $(document).ready(function () {
 			title: "Dùng điểm tích lũy"
 		});
 	});
+
 	$('input[name="point_of_use"]').on('input', function () {
 		let p = $(this).val();
 		let step = parseInt($(this).attr('min'));

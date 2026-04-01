@@ -2429,7 +2429,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 	exit;
 }
 
-
 function genNoteBKStt($num, $num_per, $stt_name, $init_note = '')
 {
 	$note = '';
@@ -3875,7 +3874,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'previewSendMail') {
 	echo $html;
 	exit();
 }
-
 
 /**
  * Chi tiết hành trình

@@ -122,7 +122,6 @@ $viewdefs['Calls'] = array(
 				array(
 					array(
 						'name' => 'booking',
-						'studio' => 'visible',
 						'label' => 'LBL_BOOKING',
 					),
 					array(

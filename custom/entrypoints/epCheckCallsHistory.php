@@ -65,4 +65,5 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 	}
 
 	echo $html;
+	exit;
 }

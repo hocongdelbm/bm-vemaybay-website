@@ -79,7 +79,7 @@ class CustomController extends BaseController
                 !empty($booking->phone) &&
                 !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore)
             ) {
-                // Tìm cuộc gọi inbound gần nhất
+                // Tìm cuộc gọi inbound gần nhất trong 3 ngày trở lại đây
                 $sql_call = '
                     SELECT id, name, description, assigned_user_id
                     FROM calls
@@ -87,6 +87,7 @@ class CustomController extends BaseController
                         AND direction = "inbound"
                         AND (booking_id IS NULL OR booking_id = "")
                         -- AND date_entered >= NOW() - INTERVAL 4 HOUR
+                        AND date_entered >= DATE_SUB(NOW(), INTERVAL 3 DAY)
                         AND deleted = 0
                     ORDER BY date_entered DESC
                     LIMIT 1
