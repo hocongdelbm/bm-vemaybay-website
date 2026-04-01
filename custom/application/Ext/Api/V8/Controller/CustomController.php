@@ -304,9 +304,6 @@ class CustomController extends BaseController
         $res = $db->query($contact_query);
         $row = $db->fetchByAssoc($res);
 
-        /**
-         * @var Calls $call
-         */
         $call = BeanFactory::newBean("Calls");
         if (!empty($row['id'])) { // Cập nhật thông tin liên hệ cho Call
             $call->parent_type = 'Contacts';
@@ -401,15 +398,25 @@ class CustomController extends BaseController
             // Auto mapping BK
             try {
                 if ($call->direction === 'inbound' && !empty($call_from)) {
-                    // Bước 1: Kiểm tra SĐT này có booking nào không
-                    $sql_check = '
+                    // Bước 1: Kiểm tra SĐT này có booking nào không trong vòng 3 ngày trước không?
+                    // $sql_check = '
+                    //     SELECT 
+                    //         COUNT(*) AS total,
+                    //         SUM(CASE WHEN booking_status = "8" THEN 1 ELSE 0 END) AS total_completed
+                    //     FROM ec_flight_bookings
+                    //     WHERE phone = ' . $db->quote(trim($call_from)) . '
+                    //     AND deleted = 0
+                    // ';
+                    $sql_check = "
                         SELECT 
                             COUNT(*) AS total,
-                            SUM(CASE WHEN booking_status = "8" THEN 1 ELSE 0 END) AS total_completed
+                            SUM(CASE WHEN booking_status = '8' THEN 1 ELSE 0 END) AS total_completed
                         FROM ec_flight_bookings
-                        WHERE phone = ' . $db->quote(trim($call_from)) . '
+                        WHERE phone = '" . $db->quote(trim($call_from)) . "'
+                        AND date_entered >= DATE_SUB(NOW(), INTERVAL 3 DAY)
                         AND deleted = 0
-                    ';
+                    ";
+
                     $res_check  = $db->query($sql_check);
                     $row_check  = $db->fetchByAssoc($res_check);
 

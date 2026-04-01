@@ -564,7 +564,7 @@ $(document).ready(function () {
                             $('#voiceip-email').val(email);
                         }
                         $('#voiceip-info-phone').html(phone);
-                        $('#voiceip-phone').val(phone);
+                        $('#voiceip-phone').val(phone || zaloid);
                         $('#voiceip-phone').prop('readonly', true);
 
                         if (zaloid && zaloid.length > 0) {
@@ -983,7 +983,7 @@ $(document).ready(function () {
                         $('#voiceip-name').val(name);
 
                         $('#voiceip-info-phone').html(phone);
-                        $('#voiceip-phone').val(phone);
+                        $('#voiceip-phone').val(phone || zaloid);
 
                         if (zaloid.length > 0) {
                             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zaloid}`);
@@ -1199,7 +1199,7 @@ if ('serviceWorker' in navigator) {
                         $('#voiceip-name').val(name);
 
                         $('#voiceip-info-phone').html(phone);
-                        $('#voiceip-phone').val(phone);
+                        $('#voiceip-phone').val(phone || zaloid);
                         $('#voiceip-phone').prop('readonly', true);
 
                         if (zaloid.length > 0) {
