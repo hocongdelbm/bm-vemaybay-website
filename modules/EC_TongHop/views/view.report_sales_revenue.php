@@ -259,7 +259,6 @@ class Viewreport_sales_revenue extends SugarView
 
         $html .= '<tr class="footer-tr">
             <td colspan="2" class="hide-mobile">&nbsp;</td>
-            <td>&nbsp;</td>
             <td class="text-center fw-semibold color-red total_quantity">' . format_number($total_quantity) . '</td>
             <td class="notes hide-mobile">&nbsp;</td>
             <td class="text-end fw-semibold color-red subtotal_amount hide-mobile">' . format_number($subtotal_amount) . '</td>
