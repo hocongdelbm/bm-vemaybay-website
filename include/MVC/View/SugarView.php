@@ -1154,14 +1154,13 @@ EOHTML;
     public function initJSSIP()
     {
         global $current_user;
-        $arr_sip_number = custom_get_sip_number();
 
         $html = '';
         $css = $js = '';
 
-        if (isset($arr_sip_number[$current_user->id])) {
-            $html .= '<input type="hidden" name="sip_user" id="sip_user" value="' . $arr_sip_number[$current_user->id]['user'] . '" disabled />';
-            $html .= '<input type="hidden" name="sip_password" id="sip_password" value="' . $arr_sip_number[$current_user->id]['password'] . '" disabled />';
+        if (isset($current_user->td_sip) && isset($current_user->td_password) && !empty($current_user->td_sip) && !empty($current_user->td_password)) {
+            $html .= '<input type="hidden" name="sip_user" id="sip_user" value="' . $current_user->td_sip . '" disabled />';
+            $html .= '<input type="hidden" name="sip_password" id="sip_password" value="' . $current_user->td_password . '" disabled />';
             $html .= '<input type="hidden" name="agent_status" id="agent_status" value="' . $current_user->agent_status . '" disabled />';
             $html .= '<input type="hidden" name="sip_instance_id" id="sip_instance_id" value="' . $current_user->id . '" disabled />';
             $html .= '
