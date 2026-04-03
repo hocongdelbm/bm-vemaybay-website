@@ -1,6 +1,5 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
-require_once("include/Sugar_Smarty.php");
 
 class Viewassignbk extends SugarView
 {
@@ -8,13 +7,11 @@ class Viewassignbk extends SugarView
 	{
 		$smartyCont = new Sugar_Smarty();
 		$this->populateContent($smartyCont);
-		$smartyCont->display('modules/EC_Flight_Bookings/tpls/view_assignbk.tpl');
+		$smartyCont->display('modules/' . $this->bean->object_name . '/tpls/view_assignbk.tpl');
 	}
 
 	function populateContent($smartyobj)
 	{
-		global $current_user;
-
 		$smartyobj->assign('IS_ALLOWED_USER', isAllowedUser());
 		$smartyobj->assign('ONLINE_DATA', $this->getUserSttInf());
 		$smartyobj->assign('LIST_USER', $this->getListUsers());
@@ -80,10 +77,9 @@ class Viewassignbk extends SugarView
 			';
 		} else {
 			while ($row = $this->bean->db->fetchByAssoc($res)) {
+				$start_online = '';
 				if (isset($row['start_online']) && !empty($row['start_online']) && strtotime($row['start_online']) !== false) {
-					$start_online = date('d-m-Y H:i:s', strtotime('+7 hour', strtotime($row['start_online'])));
-				} else {
-					$start_online = '';
+					$start_online = date('d-m-Y H:i:s', strtotime($row['start_online']));
 				}
 
 				if ($row['status'] == 0) {
