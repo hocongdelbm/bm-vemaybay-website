@@ -609,7 +609,7 @@ $(document).ready(function () {
 
         $searchForm.toggleClass('active', isVisible);
         $btn.toggleClass('text-primary', isVisible);
-        localStorage.setItem("searchFormVisible", isVisible ? "true" : "false");
+        localStorage.setItem("searchFormVisible", isVisible ? "open" : "closed");
       });
     }
   });
