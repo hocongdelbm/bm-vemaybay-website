@@ -14,7 +14,6 @@ $job_strings[] = 'lockSalaryAtEndMonth'; // khoá bảng lương vào cuối m�
 $job_strings[] = 'updateWorkingDays'; // cập nhật ngày công trong bảng lương
 $job_strings[] = 'updateMissingEfforts'; // cập nhật nỗ lực thật sự của tháng nếu bảng lương khoá trước ngày cuối tháng
 $job_strings[] = 'updateOnlineReport'; // cập nhật ds online mỗi ngày
-$job_strings[] = 'LoopCheckIfBookingOver24h'; // kiem tra booking co qua 24h
 // $job_strings[] = 'checkOnlineUser'; // Kiểm tra xem booking giao đã được xử lý, để biết user còn online hay không
 $job_strings[] = 'checkBookingHandle'; // Kiểm tra xem booking đã giao được xử lý hay chưa
 $job_strings[] = 'checkStatusOnlineUser'; // Kiểm tra user còn online hay không
@@ -139,24 +138,10 @@ function checkExpirationDateVoucher()
 {
 	global $db;
 
-	$today = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
-	$sql_check = ' SELECT id FROM ec_vouchers WHERE status IN ("new", "pending") AND end_time < "' . $today . '" AND deleted = 0';
-
-	$res = $db->query($sql_check);
-	$list_voucher_expired = [];
-	while ($row = $db->fetchByAssoc($res)) {
-		$list_voucher_expired[] = '"' . $row['id'] . '"';
-	}
-
-	if (!empty($list_voucher_expired) && count($list_voucher_expired) > 0) {
-		$sql_update = '
-			UPDATE ec_vouchers 
-			SET status = "expired" 
-			WHERE id IN (' . implode(',', $list_voucher_expired) . ') 
-			AND deleted = 0
-			';
-		$db->query($sql_update);
-	}
+	$today = date('Y-m-d', time() + 7 * 3600);
+	$sql_update = 'UPDATE ec_vouchers SET status = "expired"
+		WHERE status IN ("new", "pending") AND end_time < "' . $today . '" AND deleted = 0';
+	$db->query($sql_update);
 
 	return true;
 }
@@ -229,25 +214,7 @@ function updateOnlineReport()
 
 		$is_exist = $db->getOne($sql_exist);
 
-
-		// Check log
-		$GLOBALS['log']->debug($sql_exist);
-		$sql_checklog = '
-			SELECT assigned_user_id,
-				IF(DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . $date_check . '", 1, 0) AS is_exist,
-				DATE_ADD(date_entered, INTERVAL 7 HOUR) AS date
-			FROM ec_online_report
-			WHERE deleted = 0 AND assigned_user_id = "' . $row['id'] . '"
-			ORDER BY date_entered
-		';
-		$res_checklog = $db->query($sql_checklog);
-		$json = array();
-		while ($row_checklog = $db->fetchByAssoc($res_checklog)) {
-			if ($row_checklog['is_exist'] == 0) $json[$row_checklog['assigned_user_id']] = $row_checklog['date'];
-		}
-		// End check log
-
-		if ($is_exist == 0 || !$is_exist) {
+		if (!$is_exist) {
 			$online = new EC_Online_Report;
 			$online->name = trim($row['last_name']) . ' ' . trim($row['first_name']);
 			$online->assigned_user_id = $row['id'];
@@ -300,13 +267,8 @@ function TuDongTaoBang()
 				company_id char( 36 ) default NULL ,
 				location_id char( 36 ) default NULL ,
 				PRIMARY  KEY (  id  )  
-			) ENGINE  =  MyISAM DEFAULT CHARSET = utf8 ";
+			) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci ";
 		$db->query($create);
-
-		// $insert = "INSERT INTO ec_chitiettaikhoan".$nam." SELECT * FROM ec_chitiettaikhoan ";
-		// $db->query($insert);
-		// $truncate = "TRUNCATE TABLE ec_chitiettaikhoan ";
-		// $db->query($truncate);
 
 		$GLOBALS['log']->info("----->End Tu dong tao bang");
 		return true;
@@ -325,9 +287,6 @@ function KetChuyenTienMatSCK()
 	$last_year = $report_year - 1;
 	$from_date = "$last_year-01-01";
 	$to_date   = "$last_year-12-31";
-
-	// $sql_search  = "AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($from_date)) . "'";
-	// $sql_search .= "AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d 23:59:59', strtotime($to_date)) . "'";
 
 	$sql_search  = "AND DATE(p.ngayhachtoan) >= '$from_date'";
 	$sql_search .= "AND DATE(p.ngayhachtoan) <= '$to_date'";
@@ -445,7 +404,7 @@ function KetChuyenTienMatSCK()
 		$sqlInsert = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
 			VALUES(
 				uuid()
-				, "' . $row['diadiem'] . '"
+				, "' . $db->quote($row['diadiem']) . '"
 				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . $GLOBALS['current_user']->id . '"
@@ -484,11 +443,6 @@ function KetChuyenTienGuiNganHangSCK()
 
 	$sql_search = "AND DATE(p.ngayhachtoan) >= '$from_date'";
 	$sql_search .= "AND DATE(p.ngayhachtoan) <= '$to_date'";
-
-	// lấy thông tin các tài khoản ngân hàng
-	// $location_np = $this->getLocationByDep('8df43570-09de-d2b3-b2fd-506eca7522f7');
-	// $location_tp = $this->getLocationByDep('48840c01-3a4f-c430-f703-56f32c7cd8a4');
-	// $sql_search .= " AND p.com_location_id IN ('".implode("','", $location_np).'\',\''.implode("','", $location_tp)."') ";
 
 	$sql_ba = " SELECT SUM(IFNULL(tmp.thutien,0)) - SUM(IFNULL(tmp.chitien,0)) AS sotien
 		,tmp.tknganhang_id
@@ -601,7 +555,7 @@ function KetChuyenTienGuiNganHangSCK()
 		$sqlInsert = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
 			VALUES(
 				uuid()
-				, "' . $row_ba['tknganhang'] . '"
+				, "' . $db->quote($row_ba['tknganhang']) . '"
 				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . $GLOBALS['current_user']->id . '"
@@ -723,7 +677,7 @@ function KetChuyenCongNoPhaiThu()
 		$sqlInsert = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
 			VALUES(
 				uuid()
-				, "' . $row['agent_name'] . '"
+				, "' . $db->quote($row['agent_name']) . '"
 				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . $GLOBALS['current_user']->id . '"
@@ -945,7 +899,7 @@ function KetChuyenCongNoPhaiTra()
 		$sqlInsert = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
 			VALUES(
 				uuid()
-				, "' . $row['supplier'] . '"
+				, "' . $db->quote($row['supplier']) . '"
 				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . $GLOBALS['current_user']->id . '"
@@ -965,33 +919,6 @@ function KetChuyenCongNoPhaiTra()
 	}
 
 	$GLOBALS['log']->$log_level("-----> End Ket chuyen cong no phai tra cuoi ky vao dau moi nam");
-	return true;
-}
-
-
-/*
-	LOOP CHECK IF BOOKING OVER 24h 
-	AND UNPUBLISH IT
-	By: LuongQC
-	Date: 24-08-2013
- */
-function myLoopCheckIfBookingOver24h()
-{
-
-	$GLOBALS['log']->info('----->LOOP CHECK IF BOOKING OVER 24h AND UNPUBLISH IT');
-	$db = DBManagerFactory::getInstance();
-
-	$sql = "SELECT id, date_published_to_web FROM ec_flight_bookings WHERE deleted=0 AND is_published_to_web=1 ";
-	$res = $db->query($sql);
-	while ($row = $db->fetchByAssoc($res)) {
-		$date_current = strtotime(date('Y-m-d H:i:s'));
-		$date_published = strtotime($row['date_published_to_web']) + 7 * 3600; /* GMT+7 */
-		if (($date_current - $date_published) > 86400) { // 24h
-			$db->query("UPDATE ec_flight_bookings SET is_published_to_web=0 WHERE id='" . $row['id'] . "' ");
-		}
-	}
-
-	$GLOBALS['log']->info("----->END LOOP CHECK IF BOOKING OVER 24h AND UNPUBLISH IT");
 	return true;
 }
 
@@ -1109,6 +1036,7 @@ function updateWorkingDays()
 	$res = $db->query($sql);
 	$row_fdate = $db->fetchByAssoc($res);
 	$from_date_q = '';
+	$sundays_lastm_left = [];
 
 	if (strtotime($row_fdate['from_date']) < strtotime('01-' . $month) && strtotime($row_fdate['from_date']) != false) {
 		$from_date_s = $row_fdate['from_date'];
@@ -1773,23 +1701,8 @@ function checkBookingHandle()
 
 	// user off thì thông báo
 	if (count($user_off_arr) > 0) {
-		// $sendStatus = myTelegramSendMessage(
-		// 	json_encode(array(
-		// 		'text' => 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr),
-		// 	)),
-		// 	$app_list_strings['system_config_list']['telegram_token_id'],
-		// 	$app_list_strings['system_config_list']['telegram_chat_id'],
-		// );
-		// if ($sendStatus['code'] != 201) {
-		// 	$GLOBALS['log']->error('Telegram sent message failed.');
-		// }
-
 		$message = 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr);
 		NotificationService::sendWarningMessage($message, 'cty');
-
-		if (!$res || !isset($res['id']) || is_null($res['id'])) {
-			$GLOBALS['log']->error('Telegram sent message failed.');
-		}
 	}
 
 	// Giao lại các booking cho user onl khác
@@ -1802,22 +1715,8 @@ function checkBookingHandle()
 			$user = new User;
 			$user->retrieve($user_reassign_id);
 
-			// $sendStatus = myTelegramSendMessage(
-			// 	json_encode(array(
-			// 		'text' => 'Booking ' . $reassign_bk['booking_name'] . ' được giao lại cho ' . $user->last_name . ' ' . $user->first_name . '',
-			// 	)),
-			// 	$app_list_strings['system_config_list']['telegram_token_id'],
-			// 	$app_list_strings['system_config_list']['telegram_chat_id'],
-			// );
-			// if ($sendStatus['code'] != 201) {
-			// 	$GLOBALS['log']->error('Telegram sent message failed.');
-			// }
-
 			$message = 'Booking ' . $reassign_bk['booking_name'] . " được giao lại cho $user->last_name $user->first_name";
 			NotificationService::sendMessage($message, 'cty');
-			if (!$res || !isset($res['id']) || is_null($res['id'])) {
-				$GLOBALS['log']->error('Telegram sent message failed.');
-			}
 		}
 	}
 
@@ -1851,6 +1750,7 @@ function reAssignBooking()
 		$row_count = $db->countRows($res);
 
 		if ($row_count > 0) {
+			$reassign_bk = [];
 			while ($row = $db->fetchByAssoc($res)) {
 				$onl_r = new EC_Online_Report;
 				$assgined_user_id = $onl_r->assignBooking($row['id'], $row['total_qty']);
@@ -1893,22 +1793,8 @@ function reAssignBooking()
 			}
 
 			if (count($reassign_bk) > 0) {
-				// $sendStatus = myTelegramSendMessage(
-				// 	json_encode(array(
-				// 		'text' => 'Thông tin giao lại: ' . implode("\n", $reassign_bk),
-				// 	)),
-				// 	$app_list_strings['system_config_list']['telegram_token_id'],
-				// 	$app_list_strings['system_config_list']['telegram_chat_id'],
-				// );
-				// if ($sendStatus['code'] != 201) {
-				// 	$GLOBALS['log']->error('Telegram sent message failed.');
-				// }
-
 				$message = 'Thông tin giao lại: ' . implode("\n", $reassign_bk);
 				NotificationService::sendMessage($message, 'cty');
-				if (!$res || !isset($res['id']) || is_null($res['id'])) {
-					$GLOBALS['log']->error('Telegram sent message failed.');
-				}
 			}
 		}
 	}
@@ -2262,6 +2148,7 @@ function maintainZaloChat() {
 
 		$sentMap = [];
 		$failedInfo = [];
+		$listFlightSearch = [];
 
 		$res = $db->query($sql);
 		while ($row = $db->fetchByAssoc($res)) {
