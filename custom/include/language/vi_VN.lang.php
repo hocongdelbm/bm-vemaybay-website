@@ -2560,3 +2560,14 @@ $app_list_strings['product_code_list'] = [
   'PMG' => 'PMG',
   'PK' => 'PK',
 ];
+
+$app_list_strings['list_phone_airline_support'] = array(
+    '19001886' => 'Vietjet',
+    '02835475000' => 'Vietjet (Đại lý)',
+    '02862765686' => 'Phương Nam',
+    '1900068880' => 'Hồng Ngọc Hà',
+    '19001100' => 'Vietnam Airlines',
+    '19001166' => 'Bamboo Airways',
+    '19001599' => 'Sun Phú Quốc',
+    '19006686' => 'Vietravel',
+);

@@ -18,7 +18,8 @@ $searchFields['Documents'] = array(
   ),
   'booking_name'  =>
   array(
-    'query_type' => 'equals',
+    'query_type' => 'default',
+    'operator' => '=',
   ),
   'active_date' =>
   array(
@@ -30,7 +31,7 @@ $searchFields['Documents'] = array(
   ),
   'assigned_user_id' =>
   array(
-    'query_type' => 'equals',
+    'query_type' => 'default',
   ),
   'filename' =>
   array(

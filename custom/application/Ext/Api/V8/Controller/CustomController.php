@@ -70,6 +70,7 @@ class CustomController extends BaseController
 
             $booking->save();
             $booking_id = $booking->id;
+            $assigned_user_id_bk = $booking->assigned_user_id;
 
             // ===== AUTO-LINK CALL → BOOKING (Case 3) =====
             // Điều kiện: booking có SĐT, không phải TEST
@@ -78,29 +79,55 @@ class CustomController extends BaseController
                 !empty($booking->phone) &&
                 !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore)
             ) {
-                // Tìm cuộc gọi inbound gần nhất
+                // Tìm cuộc gọi inbound gần nhất trong 3 ngày trở lại đây
                 $sql_call = '
-                    SELECT id
+                    SELECT id, name, description, assigned_user_id
                     FROM calls
                     WHERE call_from = "' . $db->quote(trim($booking->phone)) . '"
                         AND direction = "inbound"
                         AND (booking_id IS NULL OR booking_id = "")
                         -- AND date_entered >= NOW() - INTERVAL 4 HOUR
+                        AND date_entered >= DATE_SUB(NOW(), INTERVAL 3 DAY)
                         AND deleted = 0
                     ORDER BY date_entered DESC
                     LIMIT 1
                 ';
-                $call_id_autolink = $db->getOne($sql_call);
+                $res_call = $db->query($sql_call);
+                $row_call = $db->fetchByAssoc($res_call);
 
-                if (!empty($call_id_autolink)) {
-                    $db->query('
-                        UPDATE calls
-                        SET booking_id = "' . $db->quote($booking_id) . '"
-                        WHERE id = "' . $db->quote($call_id_autolink) . '"
-                        AND deleted = 0
-                    ');
+                if (!empty($row_call['id'])) {
+                    try {
+                        $db->query('
+                            UPDATE calls
+                            SET booking_id = "' . $db->quote($booking_id) . '"
+                            WHERE id = "' . $db->quote($row_call['id']) . '"
+                            AND deleted = 0
+                        ');
 
-                    $GLOBALS['log']->fatal('DEBUG: Auto-link save_booking (case3) call ' . $call_id_autolink . ' → booking ' . $booking_id . ' (phone: ' . $booking->phone . ') and sql ' . $sql_call);
+                        $bean_note = BeanFactory::newBean("Notes");
+                        $bean_note->id                  = '';
+                        $bean_note->name                = $booking->name;
+                        $bean_note->parent_type         = 'EC_Flight_Bookings';
+                        $bean_note->parent_id           = $booking_id;
+                        $bean_note->description         = trim($row_call['description']) . ' (automap_call_save_bk)';
+                        $bean_note->booking_status      = '8';
+                        $bean_note->assigned_user_id    = $row_call['assigned_user_id'] ?? '';
+                        $bean_note->save();
+
+                        $assigned_user_id = $row_call['assigned_user_id'] ?? $assigned_user_id_bk;
+
+                        $db->query('
+                            UPDATE ec_flight_bookings
+                            SET booking_status = "6", assigned_user_id = "'.$assigned_user_id.'"
+                            WHERE id = "' . $db->quote($booking_id) . '"
+                            AND deleted = 0
+                        ');
+
+                        $GLOBALS['log']->fatal('DEBUG: Auto-link save_booking (case3) call ' . $row_call['id'] . ' → booking ' . $booking_id . ' (phone: ' . $booking->phone . ') and sql ' . $sql_call);
+
+                    } catch (Throwable $th) {
+                        $GLOBALS['log']->fatal("Auto-link saveBK failed: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+                    }
                 }
             }
 
@@ -278,9 +305,6 @@ class CustomController extends BaseController
         $res = $db->query($contact_query);
         $row = $db->fetchByAssoc($res);
 
-        /**
-         * @var Calls $call
-         */
         $call = BeanFactory::newBean("Calls");
         if (!empty($row['id'])) { // Cập nhật thông tin liên hệ cho Call
             $call->parent_type = 'Contacts';
@@ -375,15 +399,25 @@ class CustomController extends BaseController
             // Auto mapping BK
             try {
                 if ($call->direction === 'inbound' && !empty($call_from)) {
-                    // Bước 1: Kiểm tra SĐT này có booking nào không
-                    $sql_check = '
+                    // Bước 1: Kiểm tra SĐT này có booking nào không trong vòng 3 ngày trước không?
+                    // $sql_check = '
+                    //     SELECT 
+                    //         COUNT(*) AS total,
+                    //         SUM(CASE WHEN booking_status = "8" THEN 1 ELSE 0 END) AS total_completed
+                    //     FROM ec_flight_bookings
+                    //     WHERE phone = ' . $db->quote(trim($call_from)) . '
+                    //     AND deleted = 0
+                    // ';
+                    $sql_check = "
                         SELECT 
                             COUNT(*) AS total,
-                            SUM(CASE WHEN booking_status = "8" THEN 1 ELSE 0 END) AS total_completed
+                            SUM(CASE WHEN booking_status = '8' THEN 1 ELSE 0 END) AS total_completed
                         FROM ec_flight_bookings
-                        WHERE phone = ' . $db->quote(trim($call_from)) . '
+                        WHERE phone = '" . $db->quote(trim($call_from)) . "'
+                        AND date_entered >= DATE_SUB(NOW(), INTERVAL 3 DAY)
                         AND deleted = 0
-                    ';
+                    ";
+
                     $res_check  = $db->query($sql_check);
                     $row_check  = $db->fetchByAssoc($res_check);
 
@@ -643,6 +677,51 @@ class CustomController extends BaseController
             ], 201);
         } catch (Throwable $e) {
             return $response->withJson(['error' => true, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function save_location_booking(Request $request, Response $response, array $args) {
+        global $db, $sugar_config;
+        try {
+            $request_ip = $request->getServerParam('REMOTE_ADDR');
+            if (!in_array($request_ip, $sugar_config['ip_whitelist'])) {
+                return $response->withJson(['error' => true, 'message' => "Access denied"], 403);
+            }
+
+            $params = (array) $request->getParsedBody();
+            $lat = substr((string) global_test_input($params['lat'] ?? ''), 0, 28);
+            $long = substr((string) global_test_input($params['long'] ?? ''), 0, 28);
+            $booking_id = global_test_input($params['booking_id'] ?? '');
+
+            if(empty($lat) || empty($long) || empty($booking_id)) {
+                return $response->withJson(['error' => true, 'message' => "Invalid parameters"], 400);
+            }
+
+            // Validate lat/long are actually numeric
+            if (!is_numeric($lat) || !is_numeric($long)) {
+                return $response->withJson(['error' => true, 'message' => "Invalid coordinates"], 400);
+            }
+
+            $sql = "UPDATE ec_flight_bookings
+                SET city = '$lat,$long'
+                WHERE id = '$booking_id'
+                    AND city IS NULL OR TRIM(city) = ''
+                    AND deleted = 0";
+            if($db->query($sql)) {
+                return $response->withJson(['error' => false, 'message' => 'Success'], 200);
+            }
+            else {
+                return $response->withJson(['error' => true, 'message' => 'Failed'], 500);
+            }
+        }
+        catch (Throwable $th) {
+            $logId = LoggerHelper::generateLogId();
+            $GLOBALS['log']->fatal("[{$logId}] {$th->getMessage()} ({$th->getCode()}) on line {$th->getLine()} in {$th->getFile()}");
+            return $response->withJson([
+                "error" => true,
+                "message" => "An error occurred",
+                "description" => $logId
+            ], 500);
         }
     }
 }

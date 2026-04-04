@@ -45,7 +45,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	{
 		global $app_list_strings, $current_user;
 
-		$version = '1.0.5';
+		$version = '1.0.8';
 
 		// External file
 		$js = '
@@ -119,26 +119,15 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$res_kpi = $this->bean->db->query($sql_kpi);
 		while ($row_kpi = $this->bean->db->fetchByAssoc($res_kpi)) {
-			if ($row_kpi['called'] == 1 || $row_kpi['paid'] == 1 || $row_kpi['recheck'] > 0 || $row_kpi['recall'] > 0 || $row_kpi['remind'] > 0 || $row_kpi['check_debt'] > 0 || $row_kpi['support'] > 0) {
-				if ($row_kpi['called'] == 1)
-					$action_type = 'called';
-				elseif ($row_kpi['paid'] == 1)
-					$action_type = 'paid';
-				elseif ($row_kpi['recheck'] > 0)
-					$action_type = 'recheck';
-				elseif ($row_kpi['recall'] > 0)
-					$action_type = 'recall';
-				elseif ($row_kpi['remind'] > 0)
-					$action_type = 'remind';
-				elseif ($row_kpi['check_debt'] > 0)
-					$action_type = 'check_debt';
-				elseif ($row_kpi['support'] > 0)
-					$action_type = 'support';
-
-				$actions_kpi[$row_kpi['id']] = [
-					'type' => $action_type,
-					'description' => $row_kpi['description']
-				];
+			$action_type = null;
+			foreach (['called', 'paid', 'recheck', 'recall', 'remind', 'check_debt', 'support'] as $field) {
+				if (!empty($row_kpi[$field])) {
+					$action_type = $field;
+					break;
+				}
+			}
+			if ($action_type !== null) {
+				$actions_kpi[$row_kpi['id']] = ['type' => $action_type, 'description' => $row_kpi['description']];
 			}
 		}
 
@@ -306,7 +295,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUSTOM_CUSTOMER_SOURCE', $customer_source);
 
 		// Đánh dấu
-		$list_bookmark = '<div class="d-flex align-items-star flex-nowrap gap-3">';
+		$list_bookmark = '<div class="d-flex align-items-start flex-nowrap gap-3">';
 		// Telesale
 		if ($this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
 			$call_name = $this->bean->db->getOne("SELECT name FROM calls WHERE id = '{$this->bean->telesale_call_id}' AND deleted = 0");
@@ -472,7 +461,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				</button>
 				<dialog id="dialog-send-zalo" class="dialog-confirm-send-zalo">
 					<h2 class="title mb-1">Gửi tin nhắn theo mẫu Zalo OA</h2>
-					<h6 class="title-zalo-oa-name mb-2">Travelpass tìm chuyến bay<h6>
+					<h6 class="title-zalo-oa-name mb-2">Travelpass tìm chuyến bay</h6>
 					<form method="dialog">
 						<input type="hidden" name="zalo_flight_type" id="zalo_flight_type" value="' . $this->bean->flight_type . '" />
 						<input type="hidden" name="zalo_journeys" id="zalo_journeys" value="' . base64_encode(rawurlencode(json_encode($journeys_info, JSON_UNESCAPED_UNICODE))) . '" />
@@ -626,7 +615,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('RECHECK_STATUS', $recheck_status . $recall_status . $check_debt . $support);
 
 		// Is invoice export
-		$is_invoice_export_title = $this->bean->is_invoice_export ? 'Xuất thêm HĐ' : 'Đã xuất HĐ ra';
+		$is_invoice_export_title = !$this->bean->is_invoice_export ? 'Xuất thêm HĐ' : 'Đã xuất HĐ ra';
 		$is_invoice_export = '</form>
 		<form class="frmBookingStatus d-flex gap-1 align-items-center" action="index.php" method="post" name="frmCheckInvoiceExport" id="frmCheckInvoiceExport">
 		  <input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
@@ -637,7 +626,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		  <input type="hidden" name="is_invoice_export" value="1" />
 		  <span class="w-50">HĐ đầu ra: </span>
 		  <span class="d-flex align-items-center gap-2 flex-fill">
-		  	<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_export ? 'checked' : '') . ' />
+		  	<input type="checkbox" disabled ' . ($this->bean->is_invoice_export ? 'checked' : '') . ' />
 		  	' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->booking_status == '8') ? '<input type="submit" name="btnCheckInvoiceExport" id="btnCheckInvoiceExport" class="btn btn-primary-2 cursor-pointer" value="' . $is_invoice_export_title . '" title="' . $is_invoice_export_title . '" />' : '') . '
 		  </span>
 		</form>';
@@ -818,7 +807,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			}
 			$discount_html .= '</div>';
 		}
-		if (in_array($this->bean->booking_status, ['1', '6', '2'])) {
+		if (in_array((int)$this->bean->booking_status, [1, 2, 6])) {
 			// Giảm giá tích điểm
 			$points = $this->bean->db->getOne('SELECT points FROM contacts WHERE id = "' . $this->bean->contact_id . '" AND deleted = 0');
 			if ($points && $points > 0) {
@@ -925,7 +914,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 													<span class="form-label fw-semibold" title="Khách sử dụng điểm tích lũy để giảm giá cho BK. Sau đó đổi ý không dùng nữa!">Tiền sử dụng điểm hoàn lại:</span>
 												</div>
 												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_pass_refunded'] ?? 0) . '</p>
+													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_points_refunded'] ?? 0) . '</p>
 												</div>
 											</div>
 											<div class="row">
@@ -983,11 +972,29 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		}
 
 		$status_button = $calls_button = '';
-
-		/**
-		 * Ở trạng thái hoàn tất - cho phép Auto LK call
-		 */
 		if (in_array((int)$this->bean->booking_status, [1, 8]) && $this->editing_rights) {
+			// Ở trạng thái hoàn tất - cho phép Auto LK call
+			$item_link_call_auto = '';
+			if ((int)$this->bean->booking_status === 8) {
+				$item_link_call_auto = '<li>
+											<a class="dropdown-item btn-voiceip-mapping" id="btnAutoMapping" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . $this->bean->phone . '">
+												<svg fill="#000000" width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" d="M10.9745053,6.25438069 C11.5604671,6.90391332 11.3746817,7.63976469 10.8565778,8.33797195 C10.7337406,8.50350982 10.5921521,8.6666145 10.4211441,8.84634226 C10.3390625,8.93260918 10.2750591,8.99748744 10.141183,9.13149508 C9.83714115,9.43583583 9.58155513,9.69156272 9.37441088,9.89868984 C9.27396046,9.99913195 9.95978257,11.3696024 11.2907766,12.7019048 C12.6210476,14.0334833 13.9914431,14.7197765 14.0923663,14.6187976 L14.8586096,13.852132 C15.2805737,13.4297532 15.5040355,13.2259664 15.8111037,13.0245121 C16.4494656,12.6057102 17.1457524,12.4919023 17.7329975,13.0170075 C19.6503895,14.3885354 20.7354185,15.2301771 21.2669798,15.782495 C22.303783,16.8597835 22.1679037,18.5180455 21.2728679,19.4640525 C20.9625009,19.7920945 20.5689704,20.1858419 20.1041752,20.6339203 C17.2926326,23.4470127 11.3589665,21.7350681 6.81145433,17.1830859 C2.26291105,12.6300716 0.5518801,6.69583839 3.35753082,3.88868121 C3.86122573,3.37707043 4.02729858,3.211082 4.51785466,2.72771931 C5.43117982,1.82778693 7.16594962,1.68687606 8.22050841,2.7286095 C8.77521019,3.27656509 9.65955176,4.41440275 10.9745053,6.25438069 Z M16.2721965,15.266193 L15.5058008,16.0330112 C14.203091,17.336439 11.9845452,16.2253927 9.8770373,14.1158132 C7.76808363,12.0047866 6.65827534,9.78706944 7.96142436,8.48402821 C8.16828995,8.27717972 8.42363443,8.0216945 8.72744369,7.71758662 C8.8500234,7.59488642 8.90609452,7.5380489 8.97339653,7.46731514 C9.06509326,7.37094278 9.1404434,7.28630078 9.20077275,7.211402 C8.03540499,5.58806095 7.24320651,4.57370892 6.8161396,4.15183592 C6.59558525,3.93396391 6.1017247,3.97407893 5.9204189,4.1527261 C5.43686641,4.6291879 5.27792422,4.78804929 4.77626041,5.29755675 C2.9719475,7.10286418 4.35321008,11.8933879 8.22519368,15.7691775 C12.0959638,19.6437524 16.8857659,21.0256764 18.7038097,19.2068681 C19.161375,18.7655298 19.5342402,18.3924591 19.8212354,18.08912 C20.0286173,17.8699279 20.0656783,17.4176384 19.8271235,17.1697684 C19.4297888,16.7569185 18.4570205,15.9984643 16.777362,14.7922626 C16.6549304,14.8908077 16.5044234,15.033738 16.2721965,15.266193 Z M17.5857864,7 L13,7 L13,5 L17.5857864,5 L16.2928932,3.70710678 L17.7071068,2.29289322 L21.4142136,6 L17.7071068,9.70710678 L16.2928932,8.29289322 L17.5857864,7 Z"></path> </g></svg>
+												<span class="ms-1">Auto LK</span>
+											</a>
+										</li>';
+			}
+
+			// Ở trạng thái mới tạo - cho phép Link BK thủ công
+			$item_link_call_manual = '';
+			if ((int)$this->bean->booking_status === 1) {
+				$item_link_call_manual = '<li>
+											<a class="dropdown-item btn-voiceip-mapping" data-bs-toggle="modal" data-bs-target="#manualLinkCall">
+												<svg fill="#000000" width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" d="M10.9745053,6.25438069 C11.5604671,6.90391332 11.3746817,7.63976469 10.8565778,8.33797195 C10.7337406,8.50350982 10.5921521,8.6666145 10.4211441,8.84634226 C10.3390625,8.93260918 10.2750591,8.99748744 10.141183,9.13149508 C9.83714115,9.43583583 9.58155513,9.69156272 9.37441088,9.89868984 C9.27396046,9.99913195 9.95978257,11.3696024 11.2907766,12.7019048 C12.6210476,14.0334833 13.9914431,14.7197765 14.0923663,14.6187976 L14.8586096,13.852132 C15.2805737,13.4297532 15.5040355,13.2259664 15.8111037,13.0245121 C16.4494656,12.6057102 17.1457524,12.4919023 17.7329975,13.0170075 C19.6503895,14.3885354 20.7354185,15.2301771 21.2669798,15.782495 C22.303783,16.8597835 22.1679037,18.5180455 21.2728679,19.4640525 C20.9625009,19.7920945 20.5689704,20.1858419 20.1041752,20.6339203 C17.2926326,23.4470127 11.3589665,21.7350681 6.81145433,17.1830859 C2.26291105,12.6300716 0.5518801,6.69583839 3.35753082,3.88868121 C3.86122573,3.37707043 4.02729858,3.211082 4.51785466,2.72771931 C5.43117982,1.82778693 7.16594962,1.68687606 8.22050841,2.7286095 C8.77521019,3.27656509 9.65955176,4.41440275 10.9745053,6.25438069 Z M16.2721965,15.266193 L15.5058008,16.0330112 C14.203091,17.336439 11.9845452,16.2253927 9.8770373,14.1158132 C7.76808363,12.0047866 6.65827534,9.78706944 7.96142436,8.48402821 C8.16828995,8.27717972 8.42363443,8.0216945 8.72744369,7.71758662 C8.8500234,7.59488642 8.90609452,7.5380489 8.97339653,7.46731514 C9.06509326,7.37094278 9.1404434,7.28630078 9.20077275,7.211402 C8.03540499,5.58806095 7.24320651,4.57370892 6.8161396,4.15183592 C6.59558525,3.93396391 6.1017247,3.97407893 5.9204189,4.1527261 C5.43686641,4.6291879 5.27792422,4.78804929 4.77626041,5.29755675 C2.9719475,7.10286418 4.35321008,11.8933879 8.22519368,15.7691775 C12.0959638,19.6437524 16.8857659,21.0256764 18.7038097,19.2068681 C19.161375,18.7655298 19.5342402,18.3924591 19.8212354,18.08912 C20.0286173,17.8699279 20.0656783,17.4176384 19.8271235,17.1697684 C19.4297888,16.7569185 18.4570205,15.9984643 16.777362,14.7922626 C16.6549304,14.8908077 16.5044234,15.033738 16.2721965,15.266193 Z M17,5 L17,2 L19,2 L19,5 L22,5 L22,7 L19,7 L19,10 L17,10 L17,7 L14,7 L14,5 L17,5 Z"></path> </g></svg>
+												<span class="ms-1">Liên kết</span>
+											</a>
+										</li>';
+			}
+
 			$calls_button .= '<div class="btn-group btn-group-called">
 								<button type="button" class="btn btn-warning dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
 									Gọi
@@ -1005,27 +1012,29 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 											<span class="ms-1">Gọi Zalo</span>
 										</a>
 									</li>
-									<li>
-										<a class="dropdown-item btn-voiceip-mapping" onclick="showDialog(' . "'mapping_call_booking'" . ')">
-											<svg fill="#000000" width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" d="M10.9745053,6.25438069 C11.5604671,6.90391332 11.3746817,7.63976469 10.8565778,8.33797195 C10.7337406,8.50350982 10.5921521,8.6666145 10.4211441,8.84634226 C10.3390625,8.93260918 10.2750591,8.99748744 10.141183,9.13149508 C9.83714115,9.43583583 9.58155513,9.69156272 9.37441088,9.89868984 C9.27396046,9.99913195 9.95978257,11.3696024 11.2907766,12.7019048 C12.6210476,14.0334833 13.9914431,14.7197765 14.0923663,14.6187976 L14.8586096,13.852132 C15.2805737,13.4297532 15.5040355,13.2259664 15.8111037,13.0245121 C16.4494656,12.6057102 17.1457524,12.4919023 17.7329975,13.0170075 C19.6503895,14.3885354 20.7354185,15.2301771 21.2669798,15.782495 C22.303783,16.8597835 22.1679037,18.5180455 21.2728679,19.4640525 C20.9625009,19.7920945 20.5689704,20.1858419 20.1041752,20.6339203 C17.2926326,23.4470127 11.3589665,21.7350681 6.81145433,17.1830859 C2.26291105,12.6300716 0.5518801,6.69583839 3.35753082,3.88868121 C3.86122573,3.37707043 4.02729858,3.211082 4.51785466,2.72771931 C5.43117982,1.82778693 7.16594962,1.68687606 8.22050841,2.7286095 C8.77521019,3.27656509 9.65955176,4.41440275 10.9745053,6.25438069 Z M16.2721965,15.266193 L15.5058008,16.0330112 C14.203091,17.336439 11.9845452,16.2253927 9.8770373,14.1158132 C7.76808363,12.0047866 6.65827534,9.78706944 7.96142436,8.48402821 C8.16828995,8.27717972 8.42363443,8.0216945 8.72744369,7.71758662 C8.8500234,7.59488642 8.90609452,7.5380489 8.97339653,7.46731514 C9.06509326,7.37094278 9.1404434,7.28630078 9.20077275,7.211402 C8.03540499,5.58806095 7.24320651,4.57370892 6.8161396,4.15183592 C6.59558525,3.93396391 6.1017247,3.97407893 5.9204189,4.1527261 C5.43686641,4.6291879 5.27792422,4.78804929 4.77626041,5.29755675 C2.9719475,7.10286418 4.35321008,11.8933879 8.22519368,15.7691775 C12.0959638,19.6437524 16.8857659,21.0256764 18.7038097,19.2068681 C19.161375,18.7655298 19.5342402,18.3924591 19.8212354,18.08912 C20.0286173,17.8699279 20.0656783,17.4176384 19.8271235,17.1697684 C19.4297888,16.7569185 18.4570205,15.9984643 16.777362,14.7922626 C16.6549304,14.8908077 16.5044234,15.033738 16.2721965,15.266193 Z M17,5 L17,2 L19,2 L19,5 L22,5 L22,7 L19,7 L19,10 L17,10 L17,7 L14,7 L14,5 L17,5 Z"></path> </g></svg>
-											<span class="ms-1">Liên kết</span>
-										</a>
-									</li>
-									<li>
-										<a class="dropdown-item btn-voiceip-mapping" id="btnAutoMapping" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . $this->bean->phone . '">
-											<svg fill="#000000" width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" d="M10.9745053,6.25438069 C11.5604671,6.90391332 11.3746817,7.63976469 10.8565778,8.33797195 C10.7337406,8.50350982 10.5921521,8.6666145 10.4211441,8.84634226 C10.3390625,8.93260918 10.2750591,8.99748744 10.141183,9.13149508 C9.83714115,9.43583583 9.58155513,9.69156272 9.37441088,9.89868984 C9.27396046,9.99913195 9.95978257,11.3696024 11.2907766,12.7019048 C12.6210476,14.0334833 13.9914431,14.7197765 14.0923663,14.6187976 L14.8586096,13.852132 C15.2805737,13.4297532 15.5040355,13.2259664 15.8111037,13.0245121 C16.4494656,12.6057102 17.1457524,12.4919023 17.7329975,13.0170075 C19.6503895,14.3885354 20.7354185,15.2301771 21.2669798,15.782495 C22.303783,16.8597835 22.1679037,18.5180455 21.2728679,19.4640525 C20.9625009,19.7920945 20.5689704,20.1858419 20.1041752,20.6339203 C17.2926326,23.4470127 11.3589665,21.7350681 6.81145433,17.1830859 C2.26291105,12.6300716 0.5518801,6.69583839 3.35753082,3.88868121 C3.86122573,3.37707043 4.02729858,3.211082 4.51785466,2.72771931 C5.43117982,1.82778693 7.16594962,1.68687606 8.22050841,2.7286095 C8.77521019,3.27656509 9.65955176,4.41440275 10.9745053,6.25438069 Z M16.2721965,15.266193 L15.5058008,16.0330112 C14.203091,17.336439 11.9845452,16.2253927 9.8770373,14.1158132 C7.76808363,12.0047866 6.65827534,9.78706944 7.96142436,8.48402821 C8.16828995,8.27717972 8.42363443,8.0216945 8.72744369,7.71758662 C8.8500234,7.59488642 8.90609452,7.5380489 8.97339653,7.46731514 C9.06509326,7.37094278 9.1404434,7.28630078 9.20077275,7.211402 C8.03540499,5.58806095 7.24320651,4.57370892 6.8161396,4.15183592 C6.59558525,3.93396391 6.1017247,3.97407893 5.9204189,4.1527261 C5.43686641,4.6291879 5.27792422,4.78804929 4.77626041,5.29755675 C2.9719475,7.10286418 4.35321008,11.8933879 8.22519368,15.7691775 C12.0959638,19.6437524 16.8857659,21.0256764 18.7038097,19.2068681 C19.161375,18.7655298 19.5342402,18.3924591 19.8212354,18.08912 C20.0286173,17.8699279 20.0656783,17.4176384 19.8271235,17.1697684 C19.4297888,16.7569185 18.4570205,15.9984643 16.777362,14.7922626 C16.6549304,14.8908077 16.5044234,15.033738 16.2721965,15.266193 Z M17.5857864,7 L13,7 L13,5 L17.5857864,5 L16.2928932,3.70710678 L17.7071068,2.29289322 L21.4142136,6 L17.7071068,9.70710678 L16.2928932,8.29289322 L17.5857864,7 Z"></path> </g></svg>
-											<span class="ms-1">Auto LK</span>
-										</a>
-									</li>
+									' . $item_link_call_manual . '
+									' . $item_link_call_auto . '
 								</ul>
-								<dialog id="mapping_call_booking">
-									<h5 class="text-center">Liên kết cuộc gọi</h5>
-									<input type="text" name="call_name" class="form-control" placeholder="Nhập mã cuộc gọi" />
-									<div class="wrap-button mt-3">
-										<button type="button" class="btn btn-secondary" onclick="closeDialog(' . "'mapping_call_booking'" . ')">Hủy</button>
-										<button type="button" class="btn btn-primary ms-1" id="btn-mapping-call-booking" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '">Liên kết</button>
+								<div class="modal fade" id="manualLinkCall" tabindex="-1" aria-labelledby="manualLinkCallLabel" aria-hidden="true">
+									<div class="modal-dialog modal-dialog-centered">
+										<div class="modal-content">
+											<div class="modal-header">
+												<h6 class="modal-title" id="manualLinkCallLabel">Liên kết cuộc gọi</h6>
+											</div>
+											<div class="modal-body">
+												 <input type="text" name="call_name" class="form-control" placeholder="Nhập mã cuộc gọi" />
+												<div id="suggested-calls-container" class="mt-3" style="display:none;">
+													<p class="mb-1 fw-semibold text-muted small">Cuộc gọi đến gần đây:</p>
+													<div id="suggested-calls-list"></div>
+												</div>
+											</div>
+											<div class="modal-footer">
+												<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+												<button type="button" class="btn btn-primary" id="btn-mapping-call-booking" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . htmlspecialchars($this->bean->phone, ENT_QUOTES) . '">Liên kết</button>
+											</div>
+										</div>
 									</div>
-								</dialog>
+								</div>
 							</div>';
 
 			// Bổ sung thêm Chờ TT
@@ -1481,25 +1490,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
 
-			$airline_code = $airline_code_logo = $row['airline_code'];
-			$img_style = 'style="width:45px"';
-			if ($row['airline_code'] == 'VNA') {
-				$airline_code = $airline_code_logo = 'VN';
-			}
-			if ($row['airline_code'] == 'VJA') {
-				$airline_code = $airline_code_logo = 'VJ';
-			}
-			if ($row['airline_code'] == 'VNP') {
-				$airline_code = 'BL';
-				$airline_code_logo = 'VNP';
-			}
-			if ($row['airline_code'] == 'BBA')
-				$airline_code = $airline_code_logo = 'QH';
-			if ($row['airline_code'] == 'VTA') {
-				$airline_code = 'VU';
-				$airline_code_logo = 'VTA';
-				$img_style = 'style="width:55px"';
-			}
+			['code' => $airline_code, 'logo' => $airline_code_logo, 'img_style' => $img_style] = $this->normalizeAirlineCode($row['airline_code']);
 
 			$img_src = !$row['is_layover'] && !empty($airline_code_logo) ? '<img ' . $img_style . ' src="custom/themes/default/images/airline-icon-100x100/' . $airline_code_logo . '.png" alt="' . $airline_code . '" border="0" />' : '';
 
@@ -2170,13 +2161,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$directionLabel = $app_list_strings['bk_direction_list'][(int)$row['direction']] ?? '';
-			$airlineCode = $row['airline_code'] ?? '';
-			// Map internal codes to display codes
-			if ($airlineCode == 'VNA') $airlineCode = 'VN';
-			elseif ($airlineCode == 'VJA') $airlineCode = 'VJ';
-			elseif ($airlineCode == 'VNP') $airlineCode = 'BL';
-			elseif ($airlineCode == 'BBA') $airlineCode = 'QH';
-			elseif ($airlineCode == 'VTA') $airlineCode = 'VU';
+			$airlineCode = $this->normalizeAirlineCode($row['airline_code'] ?? '')['code'];
 
 			$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
 			$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
@@ -2737,38 +2722,24 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 			// Hành lý có sẵn
 			if (!empty($row['luggage_index_outbound'])) {
-				$bagText = Baggage::renderAvailableBaggage($row['luggage_index_outbound']);
-				preg_match_all('/\d+/', $bagText, $matches);
-				$pack   = (int)($matches[0][0] ?? 0); // 1
-				$weight = (int)($matches[0][1] ?? 0); // 20
-
+				[$pack, $weight] = $this->parseBaggageNumbers(Baggage::renderAvailableBaggage($row['luggage_index_outbound']));
 				$totalPackDep += $pack;
 				$totalWeightDep += $weight;
 			}
 			if (!empty($row['luggage_index_inbound'])) {
-				$bagText = Baggage::renderAvailableBaggage($row['luggage_index_inbound']);
-				preg_match_all('/\d+/', $bagText, $matches);
-				$pack   = (int)($matches[0][0] ?? 0); // 1
-				$weight = (int)($matches[0][1] ?? 0); // 20
-
+				[$pack, $weight] = $this->parseBaggageNumbers(Baggage::renderAvailableBaggage($row['luggage_index_inbound']));
 				$totalPackRet += $pack;
 				$totalWeightRet += $weight;
 			}
 
 			// Hành lý mua thêm
 			if (!empty($row['luggage_purchase_text'])) {
-				preg_match_all('/\d+/', $row['luggage_purchase_text'], $matches);
-				$pack   = (int)($matches[0][0] ?? 0); // 1
-				$weight = (int)($matches[0][1] ?? 0); // 20
-
+				[$pack, $weight] = $this->parseBaggageNumbers($row['luggage_purchase_text']);
 				$totalPackDep += $pack;
 				$totalWeightDep += $weight;
 			}
 			if (!empty($row['luggage_purchase_text_inbound'])) {
-				preg_match_all('/\d+/', $row['luggage_purchase_text_inbound'], $matches);
-				$pack   = (int)($matches[0][0] ?? 0); // 1
-				$weight = (int)($matches[0][1] ?? 0); // 20
-
+				[$pack, $weight] = $this->parseBaggageNumbers($row['luggage_purchase_text_inbound']);
 				$totalPackRet += $pack;
 				$totalWeightRet += $weight;
 			}
@@ -2906,5 +2877,37 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<button class="btn btn-primary" style="display: none;" id="copyQRCodeImage">Sao chép QR</button>
 					</div>
 				</dialog';
+	}
+
+	/**
+	 * Normalize an internal airline code to its display code, logo code, and image style.
+	 * Returns ['code' => string, 'logo' => string, 'img_style' => string].
+	 */
+	private function normalizeAirlineCode($raw)
+	{
+		$map = [
+			'VNA' => ['VN',  'VN',  'style="width:45px"'],
+			'VJA' => ['VJ',  'VJ',  'style="width:45px"'],
+			'VNP' => ['BL',  'VNP', 'style="width:45px"'],
+			'BBA' => ['QH',  'QH',  'style="width:45px"'],
+			'VTA' => ['VU',  'VTA', 'style="width:55px"'],
+		];
+		if (isset($map[$raw])) {
+			return ['code' => $map[$raw][0], 'logo' => $map[$raw][1], 'img_style' => $map[$raw][2]];
+		}
+		return ['code' => $raw, 'logo' => $raw, 'img_style' => 'style="width:45px"'];
+	}
+
+	/**
+	 * Extract the first two integers from a baggage text string.
+	 * Returns [pack_count, weight_kg].
+	 */
+	private function parseBaggageNumbers($text)
+	{
+		preg_match_all('/\d+/', $text, $matches);
+		return [
+			(int)($matches[0][0] ?? 0),
+			(int)($matches[0][1] ?? 0),
+		];
 	}
 }

@@ -284,9 +284,9 @@ $(document).ready(function () {
 				} else if (response == 2) {
 					showModalNotify(2, "Vui lòng cập nhật thông tin cuộc gọi trước khi liên kết");
 				} else if (response == 400) {
-					showModalNotify(2, "SĐT hoặc ID của Booking không xác định. Vui lòng kiểm tra lại hoặc liên hệ IT để được hỗ trợ!");
+					showModalNotify(2, "SĐT hoặc ID của Booking không xác định. Kiểm tra lại thông tin SĐT hoặc liên hệ IT để được hỗ trợ!");
 				} else {
-					let text_warning = 'LK thất bại. Không tìm thấy cuộc gọi để liên kết!';
+					let text_warning = 'LK thất bại. Không tìm thấy cuộc gọi phù hợp để liên kết.';
 					showModalNotify(0, text_warning);
 					$('.modal-overlay, .btn-modal-close').addClass('reload');
 				}
@@ -425,16 +425,6 @@ $(document).ready(function () {
 
 		let checkBoxPassengers = '';
 		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function (index, element) {
-			// if(ln > 0 && index + 1 < ln) {
-			// 	console.warn(ln, index);
-			// 	return true; // Skip
-			// }
-
-			// let timesChangePass = $(this).attr('data-times-change');
-			// if(timesChangeIti != timesChangePass) {
-			// 	return true; // Skip
-			// }
-
 			let passId = $(this).attr('data-id');
 			let passName = $(this).find('td.passenger_name .fullname').text();
 			checkBoxPassengers += `<div class="form-check">
@@ -689,7 +679,7 @@ $(document).ready(function () {
 			if ($(this).val().length == 0) $(MESSAGE_LIST_CHAT_ID).height(HEIGHT_MESSAGE_LIST_CHAT);
 		}
 	});
-	
+
 	$('#btn-open-mobile-menu').click(function () {
 		$('.message_list').scrollTop($('.message_list')[0].scrollHeight);
 	});
@@ -1117,10 +1107,7 @@ $(document).ready(function () {
 	$(document).on('change', 'select[name="pass_luggage_ob[]"], select[name="pass_luggage_ib[]"]', function () {
 		let name = $(this).attr('name'); // name="pass_luggage_ob[]" or "...ib[]"
 		let index = $(`select[name="${name}"]`).index(this);
-		// let value = $(this).val(); // selected option value
 		let dataCost = $(this).find(':selected').data('cost'); // get data-cost
-		// let dataText  = $(this).find(':selected').data('text'); // get data-text
-		// let dataValue = $(this).find(':selected').data('value'); // get data-value
 
 		// Update luggage_price[] at same index
 		if (name == 'pass_luggage_ob[]') {
@@ -1193,6 +1180,7 @@ $(document).ready(function () {
 			$(".wrap-redo").show();
 		}
 	});
+
 	$(document).on("click", "#copyQRCodeImage", async function () {
 		let img = document.getElementById("img_qr_code");
 
@@ -1212,6 +1200,7 @@ $(document).ready(function () {
 			console.error("Lỗi copy ảnh:", error);
 		}
 	});
+
 	$(document).on("click", "#btnRenderQRCode", async function () {
 		let qrcode = $('#img_qr_code').attr("src");
 		let new_amount = parseInt($('#new_payment_amount').val().trim() ?? 0);
@@ -1249,32 +1238,96 @@ $(document).ready(function () {
 		let call_name = $('input[name=call_name]').val().trim();
 		let booking_id = $(this).attr('booking_id');
 		let booking_name = $(this).attr('booking_name');
-		if (call_name.length == 0 || call_name.length > 20 || booking_id.length == 0) return;
+		if (call_name.length === 0 || call_name.length > 20 || booking_id.length === 0) return;
+
+		let alreadyLinked = $('input[name=call_name]').data('already-linked');
+		let linkedBooking = $('input[name=call_name]').data('linked-booking') || '';
+
+		function doMapCall(force) {
+			$.ajax({
+				url: "index.php?entryPoint=entryPointCallContact",
+				data: { type: "map_call_booking", call_name, booking_id, booking_name, force },
+				type: "POST",
+				cache: false,
+				success: function (response) {
+					response = $.trim(response);
+					if (response == 1) {
+						showModalNotify(1, "Liên kết cuộc gọi thành công");
+						$('.modal-overlay, .btn-modal-close').addClass('reload');
+					} else if (response == 2) {
+						showModalNotify(2, "Vui lòng cập nhật thông tin cuộc gọi trước khi liên kết");
+					} else if (response == 3) {
+						if (confirm("Cuộc gọi này đã liên kết với BK, bạn có chắc chắn liên kết không?")) {
+							doMapCall(1);
+						}
+					} else {
+						showModalNotify(0, "Thao tác không thành công. Không tìm thấy cuộc gọi để liên kết");
+					}
+				}
+			});
+		}
+
+		if (alreadyLinked === '1') {
+			let confirmMsg = 'Cuộc gọi này đã liên kết với BK' + (linkedBooking.length > 0 ? ' ' + linkedBooking : '') + ', bạn có chắc chắn liên kết không?';
+			if (!confirm(confirmMsg)) return;
+			doMapCall(1);
+		} else {
+			doMapCall(0);
+		}
+	});
+	// Auto-search related calls when manualLinkCall modal opens
+	$('#manualLinkCall').on('shown.bs.modal', function () {
+		// Reset state on every open
+		$('input[name=call_name]').val('').removeData('already-linked').removeData('linked-booking');
+		$('#suggested-calls-list').empty();
+		$('#suggested-calls-container').hide();
+
+		let phone = $('#btn-mapping-call-booking').attr('phone');
+		if (!phone || phone.trim().length === 0) return;
+
+		$('#suggested-calls-container').show();
+		$('#suggested-calls-list').html('<p class="text-muted small">Đang tìm kiếm...</p>');
 
 		$.ajax({
 			url: "index.php?entryPoint=entryPointCallContact",
-			data: {
-				type: "map_call_booking",
-				call_name: call_name,
-				booking_id: booking_id,
-				booking_name: booking_name
-			},
 			type: "POST",
+			dataType: "json",
+			data: { type: "search_calls_by_phone", phone: phone.trim() },
 			cache: false,
-			success: function (response) {
-				closeDialog("mapping_call_booking");
-				if (response == 1) {
-					showModalNotify(1, "Liên kết cuộc gọi thành công");
-					$('.modal-overlay, .btn-modal-close').addClass('reload');
-				} else if (response == 2) {
-					// warning
-					showModalNotify(2, "Vui lòng cập nhật thông tin cuộc gọi trước khi liên kết");
+			success: function (calls) {
+				$('#suggested-calls-list').empty();
+				if (!Array.isArray(calls) || calls.length === 0) {
+					$('#suggested-calls-container').hide();
+					return;
 				}
-				else {
-					showModalNotify(0, "Thao tác không thành công. Liên hệ IT để được hỗ trợ.");
-				}
+				let html = '<div class="list-group list-group-flush">';
+				$.each(calls, function (i, call) {
+					let alreadyLinked = (call.booking_id && call.booking_id.length > 0) ? '1' : '0';
+					let linkedBookingName = call.booking_name_linked ? call.booking_name_linked : '';
+					let linkedBadge = alreadyLinked === '1' ? '<span class="badge bg-warning text-dark ms-2">Đã liên kết: ' + $('<div>').text(linkedBookingName).html() + '</span>' : '';
+					html += '<button type="button" class="list-group-item list-group-item-action py-2 mb-2 w-100 suggest-call-item"'
+						+ ' data-call-name="' + $('<div>').text(call.name).html() + '"'
+						+ ' data-already-linked="' + alreadyLinked + '"'
+						+ ' data-linked-booking="' + $('<div>').text(linkedBookingName).html() + '">'
+						+ '<span class="fw-semibold">' + $('<div>').text(call.name).html() + '</span>'
+						+ '<span class="form-label small ms-2">' + (call.date_start || '') + '</span>'
+						+ linkedBadge
+						+ '</button>';
+				});
+				html += '</div>';
+				$('#suggested-calls-list').html(html);
+			},
+			error: function () {
+				$('#suggested-calls-container').hide();
 			}
 		});
+	});
+	// Clicking a suggestion row populates the input and stores link state
+	$(document).on('click', '.suggest-call-item', function () {
+		let callName = $(this).attr('data-call-name');
+		$('input[name=call_name]').val(callName).data('already-linked', $(this).attr('data-already-linked')).data('linked-booking', $(this).attr('data-linked-booking'));
+		$('.suggest-call-item').removeClass('active');
+		$(this).addClass('active');
 	});
 
 	// Voucher
@@ -1302,6 +1355,7 @@ $(document).ready(function () {
 			title: "Dùng điểm tích lũy"
 		});
 	});
+
 	$('input[name="point_of_use"]').on('input', function () {
 		let p = $(this).val();
 		let step = parseInt($(this).attr('min'));
@@ -1414,8 +1468,8 @@ $(document).ready(function () {
 
 	// Get location from geocode in booking
 	const regexlatlong = /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/;
-	const latlong= $("#city").text().trim();
-	if(regexlatlong.test(latlong)) {
+	const latlong = $("#city").text().trim();
+	if (regexlatlong.test(latlong)) {
 		const latlongparts = latlong.split(',');
 		if (latlongparts.length != 2) return false;
 		const lat = latlongparts[0].trim();
@@ -1424,8 +1478,8 @@ $(document).ready(function () {
 		$.ajax({
 			url: "index.php?entryPoint=entryPointGeneral&class=entryBookingClass&method=getLocation",
 			type: "POST",
-			contentType: "application/json", 
-			dataType: "json",  
+			contentType: "application/json",
+			dataType: "json",
 			data: JSON.stringify({
 				params: {
 					lat: lat,
@@ -1438,8 +1492,8 @@ $(document).ready(function () {
 			},
 			success: function (res) {
 				$("#location-loading").remove();
-				if('status' in res && res.status === 1) {
-					if(res.data.length > 0) $("#city").text(res.data);
+				if ('status' in res && res.status === 1) {
+					if (res.data.length > 0) $("#city").text(res.data);
 				}
 				else {
 					let message = res.message || 'Có lỗi xảy ra khi lấy dữ liệu';
@@ -1448,6 +1502,31 @@ $(document).ready(function () {
 							<svg width="14px" height="14px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12ZM10.0586 6.05547C10.0268 5.48227 10.483 5 11.0571 5H12.9429C13.517 5 13.9732 5.48227 13.9414 6.05547L13.5525 13.0555C13.523 13.5854 13.0847 14 12.554 14H11.446C10.9153 14 10.477 13.5854 10.4475 13.0555L10.0586 6.05547ZM14 17C14 18.1046 13.1046 19 12 19C10.8954 19 10 18.1046 10 17C10 15.8954 10.8954 15 12 15C13.1046 15 14 15.8954 14 17Z" fill="#ff0000"></path></g></svg>
 						</span>
 					`);
+				}
+			},
+			error: function (XMLHttpRequest, textStatus, errorThrown) {
+				console.error("Status: " + textStatus);
+				console.error("Error: " + errorThrown);
+			},
+		});
+	} else if ($("#city").text().trim() === '') {
+		// Fallback - get location from IP
+		const ipAddress = $("#ip_address").text().trim();
+		if (!ipAddress) return false;
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointGeneral&class=entryBookingClass&method=getLocationByIp",
+			type: "POST",
+			contentType: "application/json",
+			dataType: "json",
+			data: JSON.stringify({ params: { ip: ipAddress, bookingId: bookingId } }),
+			beforeSend: function () {
+				$("#city").append(`<i id="location-loading" class="ms-2" style="color:#a7a7a7;">Đang định vị...</i>`);
+			},
+			success: function (res) {
+				$("#location-loading").remove();
+				if ('status' in res && res.status === 1) {
+					if (res.data.length > 0) $("#city").text(res.data);
 				}
 			},
 			error: function (XMLHttpRequest, textStatus, errorThrown) {

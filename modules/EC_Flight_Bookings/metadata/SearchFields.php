@@ -6,7 +6,10 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 $module_name = 'EC_Flight_Bookings';
 $searchFields[$module_name] = array(
-    'name' => array('query_type' => 'equals'),
+    'name' => [
+        'query_type' => 'default',
+        // 'operator' => '=',
+    ],
     'current_user_only' => array(
         'query_type' => 'default',
         'db_field' => array('assigned_user_id'),

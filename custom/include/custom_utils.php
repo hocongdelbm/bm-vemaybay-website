@@ -1133,79 +1133,20 @@ function global_test_input($data)
 
 function custom_get_sip_number($key = '')
 {
-    $arr = [
-        /************************  IT  ************************/
-        '1' => ['user' => '012', 'password' => 'QAnTigDjZ8WSw%4finb1'], // Admin
-        'dedf3602-b1ec-97da-abbe-6656e656f5eb' => ['user' => '001', 'password' => '0Cm1Wc$bQd%ZTK5tnGGZ'], // Admin
-        '168889bb-54c2-59c7-8b3f-649102530d3c' => ['user' => '010', 'password' => 'JgXTH7xYX?A4qLzK%vAD'], // Admin
-        '622ecf27-f729-7187-7e27-6520e0dab882' => ['user' => '222', 'password' => '246357@89'], // Admin
+    global $db;
 
-        /************************  BOOKER  ************************/
-        // Nguyễn Ngọc Lan Phương
-        '976a054f-370f-7945-7776-5d1c28f96e8a' => ['user' => '101', 'password' => '%22ZAQfS1!cb2UIZtB%H'],
-        // Nguyễn Thị Đông
-        '2d7dfd04-2e91-8302-0c91-56d69b4cc08e' => ['user' => '102', 'password' => 'Tw.gyg5JSErHR40XKVku'],
-        // Đoàn Thị Kim Ly
-        'a2dae06b-ca09-7b35-b1a2-5ccb9c7cab3d' => ['user' => '103', 'password' => 'hUJPhU6wF9NIvGb!s$K0'],
-        // Trần Minh Tuấn
-        'da25400e-a030-389c-4228-5c233d8cd04e' => ['user' => '104', 'password' => 'L6U%a9^%Ggzkb9u4ryIx'],
-        // Trần Như Điền
-        // '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
+    $arr = array();
+    $sql = "SELECT id, td_sip, td_password
+            FROM users
+            WHERE td_sip IS NOT NULL AND deleted = 0";
 
-        // Mai Thị Anh Đào
-        'e692a4e4-b402-4ffa-ce78-68c904aa4086' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
-
-        // Trương Mỹ Nhân
-        '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => ['user' => '106', 'password' => 'ct0*LiQHAo1B5?s.C$Zq'],
-        // Lê Tín Nghĩa
-        'ebc40fa1-8878-1a86-000d-5b6949a87e11' => ['user' => '107', 'password' => 'C1UtQnCWTpUmH8C5?9wE'],
-        // Nguyễn Duy Đăng
-        // 'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
-
-        // Trịnh Thị Kim Ly
-        // '2037c237-a846-7dc4-0b76-68c7699f5a03' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
-
-        // Nguyễn Thị Kim Loan
-        'f299609a-28c0-c30e-d661-68ccb9aec236' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
-
-        // Nguyễn Lộc Danh
-        '4ef24994-3d8e-ff0d-2784-599d0b3e56e1' => ['user' => '109', 'password' => 'rRTMeTJDrHJG7skLtnzd'],
-        // Đỗ Nhật
-        '245134a3-0382-7578-601a-6790ab9bb6b3' => ['user' => '789', 'password' => 't5scZL2Gnpuvc1JNYQYW'],
-
-        /************************  KẾ TOÁN  ************************/
-        // Đỗ Thị Kim Ngân
-        '37cd4853-721c-9808-af64-5600c8835d03' => ['user' => '120', 'password' => 'epqUwwnKzvfoW*Gmmn1k'],
-        // Nguyễn Trang Đài
-        'b4ff32c8-8a1e-0648-b20d-63437ab44554' => ['user' => '121', 'password' => 'gMDB5Gn8tyvg1emav5cb'],
-        // Nhân Thanh Chung
-        'd61ac0c1-91b3-0dc8-049a-518b21d2deb9' => ['user' => '122', 'password' => 'e5C2FUk3^VbqCBH47Fq1'],
-
-        // Booker test
-        '493ad5e5-ffea-a84f-96d7-6577fed623d6' => ['user' => '130', 'password' => '24635789'], // Booker
-
-
-        /************************  LAPTOP  ************************/
-        // Phạm Chiến Thắng
-        '61b537e5-6bc5-77e5-1102-5ff3dc1e40ee' => ['user' => '203', 'password' => '9$K4V2.8ofNf^jKGoQg4'],
-
-
-        /************************  ĐẶC BIỆT  ************************/
-        // trangbtq
-        '72ece22c-cb25-8e30-9dea-56f2201cd359' => ['user' => '123', 'password' => 'tESRN16LC5z*jqcBumN%'],
-        // soinau
-        '9ba5c5a0-a402-02f4-76d3-53ba0481ce45' => ['user' => '124', 'password' => 'po*HUpMmx8.nLPAjj6Vb'],
-        // thu
-        'b5523dbd-b9a7-67c0-77b5-533e6ece89b1' => ['user' => '125', 'password' => 'E*UX8bbm8oSyj?jzQySj'],
-        // pandapo
-        '4f4d7a13-4171-9b7d-251c-64dd8f9885e4' => ['user' => '888', 'password' => '8sfJMj0hDWWPbvtcDg!e'],
-
-        // Tiên TĐ
-        'c57196c6-e211-9856-43d5-6695498f39ae' => ['user' => '998', 'password' => 'Bhq*B1rWSZ%n!dFEBJ$k'],
-        // BinhLD
-        '6eb3570d-ee8d-d834-c016-6846ed8c8811' => ['user' => '996', 'password' => 'oH.1JxtenKcIbVVnz7N0'],
-
-    ];
+    $res = $db->query($sql);
+    while ($row = $db->fetchByAssoc($res)) {
+        $arr[$row['id']] = array(
+            'user' => $row['td_sip'],
+            'password' => $row['td_password']
+        );
+    }
 
     if (strlen($key) == 3) {
         foreach ($arr as $k => $v) {
