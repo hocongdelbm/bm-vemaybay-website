@@ -1869,4 +1869,593 @@ $(document).ready(function () {
             $tbody.append(html);
         });
     }
+
+    // ── IP Journey Tab ────────────────────────────────────────────────────
+    (function () {
+        var $btn = $('#ec_journey_btn');
+        var $ipInput = $('#ec_journey_ip');
+        var $daysSelect = $('#ec_journey_days');
+        var $loading = $('#ec_journey_loading');
+        var $error = $('#ec_journey_error');
+        var $result = $('#ec_journey_result');
+        var $summary = $('#ec_journey_summary');
+        var $sessCard = $('#ec_journey_sessions_card');
+        var $sessCount = $('#ec_journey_session_count');
+        var $sessList = $('#ec_journey_session_list');
+        var $tree = $('#ec_journey_tree');
+        var $detail = $('#ec_journey_path_detail');
+
+        var currentSessionIdx = 0;
+        var currentData = null;
+
+        var LBL_MAP = {
+            'contact_name': 'Họ tên', 'field_ho_ten': 'Họ tên',
+            'contact_phone': 'Số ĐT', 'client-phone': 'Số ĐT', 'field_sdt': 'Số ĐT',
+            'contact_email': 'Email', 'field_email': 'Email',
+            'special_request': 'Yêu cầu',
+            'passenger_name': 'Tên Hành khách',
+            'identification': 'CCCD/Thẻ',
+            'payment-online': 'TT Online',
+            'field_ngay_sinh': 'Ngày sinh',
+            'pay_atm': 'Thẻ ATM',
+            'pay_visa': 'Thẻ tín dụng',
+            'pay_later': 'Trả sau',
+            'pay_qr': 'Quét mã QR'
+        };
+
+        // --- Hỗ trợ cuộn ngang bằng nút lăn chuột (Smart Scroll) ---
+        $tree.on('wheel', function (e) {
+            var evt = e.originalEvent;
+            // Áp dụng nếu người dùng lăn dọc (deltaY) và chưa đè phím Shift
+            if (evt.deltaY !== 0 && !evt.shiftKey) {
+                var currentScroll = $tree.scrollLeft();
+                var maxScroll = $tree[0].scrollWidth - $tree[0].clientWidth;
+
+                if (maxScroll > 0) {
+                    var isAtLeft = currentScroll <= 0 && evt.deltaY < 0;
+                    var isAtRight = currentScroll >= maxScroll && evt.deltaY > 0;
+
+                    // Chuyển trục lăn từ dọc sang ngang, 
+                    // nếu chưa đụng lề 2 bên thì chặn cuộn nguyên trang web
+                    if (!isAtLeft && !isAtRight) {
+                        e.preventDefault();
+                        $tree.scrollLeft(currentScroll + evt.deltaY);
+                    }
+                }
+            }
+        });
+        $btn.on('click', fetchJourney);
+        $ipInput.on('keydown', function (e) { if (e.key === 'Enter') fetchJourney(); });
+
+        function fetchJourney() {
+            var ip = $ipInput.val().trim();
+            var days = $daysSelect.val() || 30;
+            if (!ip) { $ipInput.focus(); return; }
+
+            if (!/^[0-9a-fA-F:\.]+$/.test(ip)) {
+                showJourneyError('Vui lòng nhập địa chỉ IP hợp lệ.');
+                $ipInput.focus();
+                return;
+            }
+
+            $result.hide();
+            $loading.show();
+            $error.hide();
+
+            // Sử dụng apiGet() đã có trong EC_TongHop, endpoint tracking/v1/ip-timeline
+            apiGet('/dashboard/ip-timeline', { ip: ip, days: days })
+                .done(function (data) {
+                    $loading.hide();
+                    if (data.error) { showJourneyError(data.error); return; }
+                    currentData = data;
+                    currentSessionIdx = 0;
+                    renderJourney(data);
+                    $result.show();
+                })
+                .fail(function (xhr) {
+                    $loading.hide();
+                    var msg = 'Lỗi kết nối đến API';
+                    if (xhr && xhr.status === 404) msg = 'Endpoint ip-timeline không tìm thấy. Kiểm tra lại api_base.';
+                    else if (xhr && xhr.status === 401) msg = 'Không có quyền truy cập API.';
+                    showJourneyError(msg);
+                });
+        }
+
+        function showJourneyError(msg) {
+            $error.text(msg).show();
+        }
+
+        function renderJourney(data) {
+            var s = data.summary || {};
+            var convertedHtml = s.converted
+                ? '<span class="ec-sum-status-done">Đã hoàn tất</span>'
+                : '<span class="ec-sum-status-fail">Chưa hoàn tất</span>';
+
+            var firstSeen = s.first_seen ? formatJourneyDate(s.first_seen) : 'N/A';
+            var lastSeen = s.last_seen ? formatJourneyDate(s.last_seen) : 'N/A';
+
+            $summary.html(
+                '<div class="ec-journey-summary-item">' +
+                '<span class="ec-journey-summary-label">IP</span>' +
+                '<span class="ec-sum-ip">' + escH(data.ip) + '</span>' +
+                '</div>' +
+                '<div class="ec-journey-summary-divider"></div>' +
+                '<div class="ec-journey-summary-item">' +
+                '<span class="ec-journey-summary-label">Tổng Sessions</span>' +
+                '<span class="ec-sum-val-lg">' + (s.total_sessions || 0) + '</span>' +
+                '</div>' +
+                '<div class="ec-journey-summary-divider"></div>' +
+                '<div class="ec-journey-summary-item">' +
+                '<span class="ec-journey-summary-label">Sâu nhất</span>' +
+                '<span class="ec-sum-val-md">' + escH(s.deepest_stage_label || s.deepest_stage || '') + '</span>' +
+                '</div>' +
+                '<div class="ec-journey-summary-divider"></div>' +
+                '<div class="ec-journey-summary-item">' +
+                '<span class="ec-journey-summary-label">Trạng thái</span>' +
+                convertedHtml +
+                '</div>' +
+                '<div class="ec-journey-summary-divider"></div>' +
+                '<div class="ec-journey-summary-item">' +
+                '<span class="ec-journey-summary-label">Lần đầu</span>' +
+                '<span class="ec-sum-val-sm">' + firstSeen + '</span>' +
+                '</div>' +
+                '<div class="ec-journey-summary-divider"></div>' +
+                '<div class="ec-journey-summary-item">' +
+                '<span class="ec-journey-summary-label">Lần cuối</span>' +
+                '<span class="ec-sum-val-sm">' + lastSeen + '</span>' +
+                '</div>'
+            );
+
+            if (data.sessions && data.sessions.length > 0) {
+                $sessCard.show();
+                $sessCount.text(data.sessions.length + ' sessions');
+                $sessList.empty();
+
+                $.each(data.sessions, function (idx, sess) {
+                    // Bơm dữ liệu ảo (Mock path) vào nếu session lấy được bị mất mảng path nhưng vẫn có point dropping
+                    if ((!sess.path || sess.path.length === 0) && sess.funnel_summary && sess.funnel_summary.stage_reached) {
+                        sess.path = [{
+                            template_node_id: sess.funnel_summary.stage_reached,
+                            type: 'pageview',
+                            dropped_here: true,
+                            entered_at: sess.meta ? sess.meta.created_at : '',
+                            url: sess.funnel_summary.stage_label || sess.funnel_summary.stage_reached
+                        }];
+                    }
+
+                    var fs = sess.funnel_summary || {};
+                    var m = sess.meta || {};
+                    var chipClass = 'ec-journey-session-chip';
+                    if (fs.completed) chipClass += ' converted';
+                    else if (fs.dropped_at) chipClass += ' dropped';
+
+                    var dt = m.created_at ? formatJourneyDate(m.created_at) : '';
+                    var $chip = $('<button class="' + chipClass + '" type="button"></button>')
+                        .attr('title', dt + ' | ' + (m.device || '') + ' | ' + (m.referrer_source || ''))
+                        .html('<strong>#' + (idx + 1) + '</strong> ' + escH(fs.stage_label || fs.stage_reached || ''));
+
+                    if (idx === 0) $chip.addClass('active');
+
+                    (function (i, s) {
+                        $chip.on('click', function () {
+                            $('.ec-journey-session-chip').removeClass('active');
+                            $(this).addClass('active');
+                            currentSessionIdx = i;
+                            renderTreeForSession(data.template_tree, s);
+                            renderPathDetail(s, i);
+                            $detail.show();
+                        });
+                    })(idx, sess);
+
+                    $sessList.append($chip);
+                });
+
+                renderTreeForSession(data.template_tree, data.sessions[0]);
+                renderPathDetail(data.sessions[0], 0);
+                $detail.show();
+            } else {
+                $sessCard.hide();
+                $tree.html('<p class="ec-empty-msg">IP này không có sessions trong khoảng thời gian đã chọn.</p>');
+                $detail.hide();
+            }
+        }
+
+        function renderTreeForSession(templateTree, session) {
+            var path = (session && session.path) ? session.path : [];
+
+            // Build visitedMap: nodeId → { count, deviation, dropped }
+            var visitedMap = {};
+            var dynamicChildrenMap = {};
+
+            function addOrIncrementItem(arr, val) {
+                for (var i = 0; i < arr.length; i++) {
+                    if (arr[i].val === val) {
+                        arr[i].cnt++;
+                        return;
+                    }
+                }
+                arr.push({ val: val, cnt: 1 });
+            }
+
+            $.each(path, function (_, node) {
+                var tid = node.template_node_id;
+                if (!visitedMap[tid]) visitedMap[tid] = { count: 0, deviation: null, dropped: false };
+                visitedMap[tid].count++;
+                if (node.deviation_type) visitedMap[tid].deviation = node.deviation_type;
+                if (node.dropped_here) visitedMap[tid].dropped = true;
+
+                // Dynamically form groups of "typing" & "click" events relative to their parent
+                if ((node.type === 'typing' || node.type === 'click') && node.parent_node && node.parent_node !== tid) {
+                    var parent = node.parent_node;
+                    if (parent === 'form_fill') parent = 'passenger_info'; // tương thích ngược legacy data
+
+                    if (!dynamicChildrenMap[parent]) dynamicChildrenMap[parent] = { typing: [], click: [] };
+                    var groupMap = dynamicChildrenMap[parent][node.type]; // natively map typing/click
+
+                    var finalLabel = LBL_MAP[tid] || node.element_value || tid;
+                    addOrIncrementItem(groupMap, finalLabel);
+                }
+
+                // search_query special grouping
+                if (tid === 'search_query') {
+                    if (!visitedMap['flight_search_info']) {
+                        visitedMap['flight_search_info'] = { count: 0, deviation: null, dropped: false, queries: [] };
+                    }
+                    visitedMap['flight_search_info'].count++;
+                    if (node.element_value) {
+                        addOrIncrementItem(visitedMap['flight_search_info'].queries, node.element_value);
+                    }
+                }
+            });
+
+            var converted = session && session.funnel_summary && session.funnel_summary.completed;
+
+            // ── Helper: render một node box ─────────────────────────────
+            function nodeBox(tNode) {
+                var nodeId = tNode.id;
+                var label = tNode.label || nodeId;
+                var type = tNode.type || '';
+
+                // Root node
+                if (nodeId === 'root') {
+                    return '<div class="ec-tree-node root-node">' +
+                        '<div class="ec-tree-node-label root">' + escH(label) + '</div>' +
+                        '</div>';
+                }
+
+                var vi = visitedMap[nodeId];
+                var cls = 'ec-tree-node';
+                var badge = '';
+
+                if (nodeId === 'completed' && converted) {
+                    cls += ' converted';
+                    badge = '<span class="ec-tree-node-badge done">Hoàn tất</span>';
+                } else if (vi) {
+                    if (vi.dropped) {
+                        cls += ' dropped';
+                        badge = '<span class="ec-tree-node-badge drop">Thoát</span>';
+                    } else if (vi.deviation === 'backtrack') {
+                        cls += ' backtrack';
+                        badge = '<span class="ec-tree-node-badge back">Quay lại</span>';
+                    } else {
+                        cls += ' visited';
+                    }
+                } else {
+                    cls += ' not-visited';
+                }
+
+                var typeLabel = (type === 'pageview') ? 'Trang' : (type === 'click') ? 'Click' : (type === 'typing') ? 'Nhập liệu' : '';
+
+                var mainNodeHtml = '<div class="' + cls + '" title="' + escH(nodeId) + '">' +
+                    '<div class="ec-tree-node-label">' + escH(label) + '</div>' +
+                    (typeLabel ? '<div class="ec-tree-node-type">' + typeLabel + '</div>' : '') +
+                    badge +
+                    '</div>';
+
+                // Look for dynamic children (mini branches)
+                var dyn = dynamicChildrenMap[nodeId];
+                var hasDynTyping = dyn && dyn.typing.length > 0;
+                var hasDynClick = dyn && dyn.click.length > 0;
+                var hasSearchQueries = (nodeId === 'flight_search' && visitedMap['flight_search_info']);
+
+                if (!hasDynTyping && !hasDynClick && !hasSearchQueries) {
+                    return mainNodeHtml;
+                }
+
+                function buildMiniBox(title, dynType, items) {
+                    var isInfo = dynType === 'info';
+                    var isClick = dynType === 'click';
+
+                    var stateCls = isClick ? ' click' : (isInfo ? ' info' : ' data');
+
+                    var html = '<div class="ec-minibox-wrap' + stateCls + '">';
+                    html += '<div class="ec-minibox-title">' + escH(title) + '</div>';
+
+                    if (isInfo) {
+                        html += '<div class="ec-minibox-info-container">';
+                    } else {
+                        html += '<div class="ec-minibox-click-container">';
+                    }
+
+                    $.each(items, function (_, obj) {
+                        if (!obj || !obj.val) return true;
+                        var lbl = obj.val;
+                        var cntStr = obj.cnt > 1 ? ' (x' + obj.cnt + ')' : '';
+
+                        if (isInfo) {
+                            html += '<span class="ec-minibox-info-item' + stateCls + '" title="' + escH(lbl + cntStr) + '">' + escH(lbl + cntStr) + '</span>';
+                        } else {
+                            html += '<span class="ec-minibox-click-item' + stateCls + '" title="' + escH(lbl + cntStr) + '">' + escH(lbl + cntStr) + '</span>';
+                        }
+                    });
+                    html += '</div></div>';
+                    return html;
+                }
+
+                var miniBoxes = [];
+                if (hasDynTyping) miniBoxes.push('<div class="ec-minibox-item">' + buildMiniBox('Nhập liệu', 'typing', dyn.typing) + '</div>');
+                if (hasDynClick) miniBoxes.push('<div class="ec-minibox-item">' + buildMiniBox('Thao tác', 'click', dyn.click) + '</div>');
+                if (hasSearchQueries) {
+                    var queries = visitedMap['flight_search_info'].queries || [];
+                    var chunkSize = 5;
+                    var chunks = [];
+                    for (var i = 0; i < queries.length; i += chunkSize) chunks.push(queries.slice(i, i + chunkSize));
+                    $.each(chunks, function (j, chk) {
+                        var isHidden = j >= 4;
+                        var lblTitle = chunks.length > 1 ? 'Truy vấn (' + (j * chunkSize + 1) + '-' + Math.min(queries.length, (j + 1) * chunkSize) + ')' : 'Truy vấn';
+                        var hideCls = isHidden ? (' ec-query-hide-' + nodeId) : '';
+                        var dispAttr = isHidden ? 'display:none;' : '';
+                        miniBoxes.push('<div class="ec-minibox-item ec-query-box-' + nodeId + hideCls + '" style="' + dispAttr + '">' + buildMiniBox(lblTitle, 'info', chk) + '</div>');
+                    });
+
+                    if (chunks.length > 4) {
+                        var btnHtml = '<button type="button" data-nid="' + nodeId + '" class="ec-query-more-btn ec-btn-action" style="margin:auto 2px;">Xem thêm</button>';
+                        btnHtml += '<button type="button" data-nid="' + nodeId + '" class="ec-query-less-btn ec-btn-action" style="margin:auto 2px;display:none;">Thu gọn</button>';
+                        miniBoxes.push('<div class="ec-minibox-item ec-btn-wrap-query-' + nodeId + '" style="display:flex;">' + btnHtml + '</div>');
+                    }
+                }
+
+                var wrappedGrid = [];
+                $.each(miniBoxes, function (idx, boxHtml) {
+                    wrappedGrid.push(boxHtml);
+                    if ((idx + 1) % 5 === 0 && (idx + 1) < miniBoxes.length) {
+                        wrappedGrid.push('<div class="ec-flex-break"></div>');
+                    }
+                });
+
+                return '<div class="ec-node-container">' +
+                    mainNodeHtml +
+                    '<div class="ec-node-line-bottom"></div>' +
+                    '<div class="ec-miniboxes-grid">' + wrappedGrid.join('') + '</div>' +
+                    '</div>';
+            }
+
+            // ── Helper: connector dọc đứt ngang
+            function vConnector(active) {
+                return '<div style="display:flex;justify-content:center;width:100%;">' +
+                    '<div class="ec-tree-connector' + (active ? ' active' : '') + '"></div>' +
+                    '</div>';
+            }
+
+            // ── Recursive renderer ────────────────────────────────────────
+            function renderSubtree(tNode) {
+                if (tNode.ref) return '';
+
+                var children = (tNode.children || []).filter(function (c) {
+                    return !c.ref && c.id !== 'form_fill' && c.id !== 'payment_method' && c.id.indexOf('flight_search_info') !== 0;
+                });
+
+                var nodeIsVisited = !!(visitedMap[tNode.id]) || tNode.id === 'root';
+                var boxHtml = '<div class="ec-tree-node-wrap">' + nodeBox(tNode) + '</div>';
+                var html = '';
+
+                if (children.length === 0) {
+                    html += '<div class="ec-tree-level" style="justify-content:center;">' + boxHtml + '</div>';
+                    return html;
+                }
+
+                if (children.length === 1) {
+                    var child = children[0];
+                    var childVisited = !!(visitedMap[child.id]);
+                    html += '<div class="ec-tree-level" style="justify-content:center;">' + boxHtml + '</div>';
+                    html += vConnector(nodeIsVisited && childVisited);
+                    html += renderSubtree(child);
+                    return html;
+                }
+
+                // Branching flow
+                html += '<div class="ec-tree-level" style="justify-content:center;">' + boxHtml + '</div>';
+                html += vConnector(nodeIsVisited);
+
+                html += '<div class="ec-tree-level-flex">';
+                $.each(children, function (idx, child) {
+                    var childActive = !!(visitedMap[child.id]);
+                    var clr = (nodeIsVisited && childActive) ? '#6366f1' : '#e2e8f0';
+                    var topColor = nodeIsVisited ? '#6366f1' : '#e2e8f0';
+                    var lineWidth = (children.length === 2) ? '50%' : '100%';
+
+                    html += '<div class="ec-tree-col">';
+
+                    // Đường kẻ ngang (từ trung tâm ra biên)
+                    if (idx === 0) {
+                        html += '<div class="ec-tree-h-line" style="background:' + topColor + ';right:0;width:50%;"></div>';
+                    } else if (idx === children.length - 1) {
+                        html += '<div class="ec-tree-h-line" style="background:' + topColor + ';left:0;width:50%;"></div>';
+                    } else {
+                        html += '<div class="ec-tree-h-line" style="background:' + topColor + ';left:0;width:100%;"></div>';
+                    }
+
+                    // Đường kẻ dọc xuống node con
+                    html += '<div class="ec-tree-v-line" style="background:' + clr + ';"></div>';
+
+                    html += renderSubtree(child);
+                    html += '</div>';
+                });
+                html += '</div>';
+
+                return html;
+            }
+
+            var html = '<div class="ec-journey-tree-inner">' + renderSubtree(templateTree) + '</div>';
+            $tree.html(html);
+
+            $tree.off('click', '.ec-query-more-btn').on('click', '.ec-query-more-btn', function () {
+                var nid = $(this).data('nid');
+                var $hiddens = $tree.find('.ec-query-hide-' + nid);
+                var $parent = $(this).parent();
+                if ($hiddens.length > 0) {
+                    $hiddens.first().removeClass('ec-query-hide-' + nid).addClass('ec-query-opened-' + nid).fadeIn(250).css('display', '');
+                    $parent.find('.ec-query-less-btn').show();
+                    if ($hiddens.length <= 1) $(this).hide();
+                }
+            });
+
+            $tree.off('click', '.ec-query-less-btn').on('click', '.ec-query-less-btn', function () {
+                var nid = $(this).data('nid');
+                var $opened = $tree.find('.ec-query-opened-' + nid);
+                var $parent = $(this).parent();
+                if ($opened.length > 0) {
+                    $opened.removeClass('ec-query-opened-' + nid).addClass('ec-query-hide-' + nid).hide();
+                    $parent.find('.ec-query-more-btn').show();
+                    $(this).hide();
+                }
+            });
+        }
+
+        function renderPathDetail(session, sessIdx) {
+            var path = (session && session.path) ? session.path : [];
+            var fs = session.funnel_summary || {};
+            var m = session.meta || {};
+            var dur = (m.duration_seconds > 0) ? formatDuration(m.duration_seconds) : 'N/A';
+            var dt = m.created_at ? formatJourneyDate(m.created_at) : '';
+
+            var searchTimes = [];
+            var stepsHtml = '<div class="ec-journey-path-steps">';
+            var renderedCount = 0;
+            $.each(path, function (i, node) {
+                if (node.template_node_id === 'search_query') {
+                    if (node.entered_at) {
+                        var t = new Date(node.entered_at.replace(' ', 'T')).getTime();
+                        if (!isNaN(t)) searchTimes.push(t);
+                    }
+                    return true; // Bỏ qua node info để Path detail gọn gàng
+                }
+
+                var rawLabel = node.url
+                    ? (node.url.replace(/.*\/([^?#]+)(\?.*)?$/, '$1') || node.template_node_id)
+                    : (node.element || node.template_node_id);
+                var label = rawLabel.substring(0, 22);
+                var cls = 'ec-journey-step-node visited';
+                if (node.dropped_here) cls = 'ec-journey-step-node dropped';
+                else if (node.deviation_type === 'backtrack') cls = 'ec-journey-step-node backtrack-node';
+                else if (node.template_node_id === 'completed') cls = 'ec-journey-step-node converted';
+
+                var actionMap = { 'pageview': 'View', 'click': 'Click', 'typing': 'Typing' };
+                var actionTxt = actionMap[node.type] || node.type || '';
+                var actionHtml = actionTxt ? '<strong class="ec-action-txt">[' + actionTxt + ']</strong> ' : '';
+
+                var isBack = node.deviation_type === 'backtrack';
+
+                // Phân mảnh để ẩn/hiện trên mobile (mỗi 5 item 1 cụm)
+                var chunkIdx = Math.floor(renderedCount / 5);
+                var chunkCls = chunkIdx > 0 ? (' ec-step-mobile-hidden ec-step-chunk-' + chunkIdx) : '';
+
+                stepsHtml += '<div class="ec-journey-step' + (isBack ? ' is-back' : '') + chunkCls + '">';
+                if (renderedCount > 0) {
+                    stepsHtml += '<span class="ec-journey-step-arrow' + (isBack ? ' back' : '') + '">' + (isBack ? '↩' : '→') + '</span>';
+                }
+                stepsHtml += '<span class="' + cls + '" title="' + escH(node.entered_at || '') + '">' + actionHtml + escH(label) + '</span>';
+                stepsHtml += '</div>';
+
+                renderedCount++;
+            });
+            stepsHtml += '</div>';
+
+            // Sinh nút Xem Thêm/Thu Gọn cho Path Detail (Chỉ hiển thị trên Mobile nhờ CSS)
+            var totalChunks = Math.ceil(renderedCount / 5);
+            if (totalChunks > 1) {
+                var mobileBtnHtml = '<div class="ec-mobile-btn-group">';
+                mobileBtnHtml += '<button type="button" class="ec-path-more-btn ec-btn-action" data-current-chunk="0" data-max-chunk="' + (totalChunks - 1) + '">Xem thêm</button>';
+                mobileBtnHtml += '<button type="button" class="ec-path-less-btn ec-btn-action" style="display:none;">Thu gọn</button>';
+                mobileBtnHtml += '</div>';
+                stepsHtml += mobileBtnHtml;
+            }
+
+            var totalSearches = searchTimes.length;
+            var searchStatsHtml = '';
+            if (totalSearches > 0) {
+                var avgDistStats = '';
+                if (totalSearches > 1) {
+                    var firstTime = Math.min.apply(null, searchTimes);
+                    var lastTime = Math.max.apply(null, searchTimes);
+                    var diffSec = (lastTime - firstTime) / 1000;
+                    var avgSec = diffSec / (totalSearches - 1);
+                    if (avgSec >= 0) {
+                        avgDistStats = '<span>Mỗi lần tìm cách nhau: <strong class="ec-metric-highlight">' + formatDuration(Math.round(avgSec)) + '</strong></span>';
+                    }
+                }
+                searchStatsHtml = '<span>Tổng lượt tìm: <strong class="ec-metric-highlight">' + totalSearches + ' lần</strong></span>' + avgDistStats;
+            }
+
+            $detail.html(
+                '<h4>Chi tiết hành trình Session #' + ((sessIdx !== undefined ? sessIdx : currentSessionIdx) + 1) + '</h4>' +
+                '<div class="ec-path-detail-meta">' +
+                '<span>' + escH(dt) + '</span>' +
+                '<span>Thời gian: <strong>' + dur + '</strong></span>' +
+                searchStatsHtml +
+                '<span>Thiết bị: <strong>' + escH(m.device || '') + '</strong></span>' +
+                '<span>Nguồn: <strong>' + escH(m.referrer_source || '') + '</strong></span>' +
+                '<span>Backtracks: <strong class="ec-metric-danger">' + (fs.backtrack_count || 0) + '</strong></span>' +
+                '<span>Tổng bước: <strong>' + (fs.total_nodes || path.length) + '</strong></span>' +
+                '</div>' +
+                stepsHtml
+            );
+
+            // Bắt sự kiện Xem thêm / Thu gọn của Mobile Path Detail
+            $detail.off('click', '.ec-path-more-btn').on('click', '.ec-path-more-btn', function () {
+                var currentChunk = parseInt($(this).attr('data-current-chunk'), 10);
+                var maxChunk = parseInt($(this).attr('data-max-chunk'), 10);
+                var nextChunk = currentChunk + 1;
+
+                $detail.find('.ec-step-chunk-' + nextChunk).removeClass('ec-step-mobile-hidden');
+                $(this).attr('data-current-chunk', nextChunk);
+                $detail.find('.ec-path-less-btn').show();
+
+                if (nextChunk >= maxChunk) $(this).hide();
+            });
+
+            $detail.off('click', '.ec-path-less-btn').on('click', '.ec-path-less-btn', function () {
+                var maxChunk = parseInt($detail.find('.ec-path-more-btn').attr('data-max-chunk'), 10);
+                for (var c = 1; c <= maxChunk; c++) {
+                    $detail.find('.ec-step-chunk-' + c).addClass('ec-step-mobile-hidden');
+                }
+                $detail.find('.ec-path-more-btn').attr('data-current-chunk', 0).show();
+                $(this).hide();
+            });
+        }
+
+        function formatJourneyDate(str) {
+            if (!str) return '';
+            try {
+                // Expected format from DB: "YYYY-MM-DD HH:mm:ss"
+                var parts = str.split(' ');
+                if (parts.length === 2) {
+                    var dParts = parts[0].split('-');
+                    if (dParts.length === 3) {
+                        var timePart = parts[1].substring(0, 5); // HH:mm
+                        return dParts[2] + '/' + dParts[1] + '/' + dParts[0] + ' ' + timePart;
+                    }
+                }
+                return str;
+            } catch (e) { return str; }
+        }
+
+        function formatDuration(secs) {
+            secs = parseInt(secs) || 0;
+            if (secs <= 0) return 'N/A';
+            var m = Math.floor(secs / 60);
+            var s = secs % 60;
+            return m > 0 ? (m + 'm ' + s + 's') : (s + 's');
+        }
+    })();
 });
