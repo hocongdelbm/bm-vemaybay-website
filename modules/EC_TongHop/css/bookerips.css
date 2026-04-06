@@ -1,0 +1,149 @@
+/* ─── Form fields matching ec_tonghop ────────────────────── */
+.uat-booker-field {
+    margin-bottom: 20px;
+}
+
+.uat-booker-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--uat-text);
+    margin-bottom: 8px;
+}
+
+.uat-booker-field label .required {
+    color: var(--uat-danger);
+    margin-left: 2px;
+}
+
+.uat-booker-field textarea,
+.uat-booker-field input[type="text"],
+.uat-booker-field input[type="date"] {
+    width: 100%;
+    border: 1px solid var(--uat-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--uat-text);
+    background: #fff;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.uat-booker-field textarea:focus,
+.uat-booker-field input:focus {
+    border-color: var(--uat-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--uat-primary-light);
+}
+
+.field-hint {
+    font-size: 11px;
+    color: var(--uat-text-muted);
+    margin: 6px 0 0;
+}
+
+/* ─── Buttons ────────────────────────────────────────── */
+.uat-btn-form {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: var(--uat-primary);
+    color: #fff;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.uat-btn-form:hover {
+    background: var(--uat-primary-dark);
+}
+
+.uat-btn-form:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+.uat-btn-ghost {
+    background: transparent;
+    color: var(--uat-primary);
+    border: 1px solid var(--uat-border);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.uat-btn-ghost:hover {
+    background: var(--uat-primary-light);
+    border-color: var(--uat-primary);
+}
+
+.uat-btn-delete {
+    background: var(--uat-danger-light);
+    color: var(--uat-danger);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.uat-btn-delete:hover {
+    background: var(--uat-danger);
+    color: #fff;
+}
+
+/* ─── Result box ─────────────────────────────────────── */
+.uat-booker-result {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.uat-booker-result.success {
+    background: var(--uat-success-light);
+    border: 1px solid #10b981;
+    color: #065f46;
+}
+
+.uat-booker-result.error {
+    background: var(--uat-danger-light);
+    border: 1px solid #ef4444;
+    color: #991b1b;
+}
+
+.uat-booker-result.partial {
+    background: var(--uat-warning-light);
+    border: 1px solid #f59e0b;
+    color: #92400e;
+}
+
+/* ─── IP Cell Specific ───────────────────────────────── */
+.bip-ip-cell {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-weight: 600;
+    color: var(--uat-text);
+    font-size: 13px;
+}
+
+.bip-note-cell {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--uat-text-muted);
+}

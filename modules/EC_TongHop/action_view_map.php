@@ -11,6 +11,7 @@ $action_view_map['report_sales_weekly']      = 'report_sales_weekly'; //Báo cá
 
 $action_view_map['iplist'] = 'iplist';
 $action_view_map['analytics'] = 'analytics';
+$action_view_map['bookerips'] = 'bookerips';
 
 $action_view_map['summaryview'] = 'summaryview';
 
