@@ -16,14 +16,14 @@
         const activeOnly = document.getElementById('bip-active-only').checked;
         const tbody = document.getElementById('bip-tbody');
 
-        tbody.innerHTML = '<tr><td colspan="8" class="uat-empty-cell">Đang tải…</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="uat-empty-cell">Đang tải…</td></tr>';
 
         fetch(API_PROXY + (activeOnly ? '&active_only=1' : '&active_only=0'))
             .then(r => r.json())
             .then(json => {
                 const rows = json.data || [];
                 if (!rows.length) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="uat-empty-cell">Không có IP nào.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="uat-empty-cell">Không có IP nào.</td></tr>';
                     return;
                 }
                 tbody.innerHTML = rows.map((r, i) => {
@@ -36,6 +36,7 @@
                         badge = '<span class="badge" style="background:#f1f5f9;color:#64748b">Hết hạn</span>';
                     }
                     const delBtn = r.is_deleted ? '' : `<button class="uat-btn-delete bip-del-btn" data-ip="${esc(r.ip)}">Xoá</button>`;
+                    const editBtn = r.is_deleted ? '' : `<button class="uat-btn-ghost bip-edit-btn" data-ip="${esc(r.ip)}" data-note="${esc(r.note)}" style="margin-right:6px">Sửa</button>`;
 
                     const domains = (r.domains || []).map(d => `<span class="badge badge-blue" style="margin-right:4px;">${d}</span>`).join('');
                     return `<tr>
@@ -43,12 +44,24 @@
                         <td class="bip-ip-cell">${esc(r.ip)}</td>
                         <td>${domains}</td>
                         <td class="bip-note-cell" title="${esc(r.note)}">${esc(r.note) || '<em style="color:var(--uat-border)">—</em>'}</td>
-                        <td>${esc(fmtDate(r.declared_at))}</td>
-                        <td>${esc(fmtDate(r.expires_at))}</td>
+                        <td>${esc(fmtDate(r.created_at))}</td>
                         <td>${badge}</td>
-                        <td style="text-align:right;">${delBtn}</td>
+                        <td>
+                            <div style="display:flex; gap:8px; justify-content:flex-end; align-items:center;">
+                                ${editBtn}${delBtn}
+                            </div>
+                        </td>
                     </tr>`;
                 }).join('');
+
+                tbody.querySelectorAll('.bip-edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        document.getElementById('bip-ips').value = this.dataset.ip;
+                        document.getElementById('bip-note').value = this.dataset.note;
+                        document.getElementById('bip-note').focus();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    });
+                });
 
                 tbody.querySelectorAll('.bip-del-btn').forEach(btn => {
                     btn.addEventListener('click', function () {
@@ -59,7 +72,7 @@
                 });
             })
             .catch(err => {
-                tbody.innerHTML = `<tr><td colspan="8" class="uat-empty-cell" style="color:var(--uat-danger)">Lỗi tải dữ liệu: ${esc(err.message)}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="uat-empty-cell" style="color:var(--uat-danger)">Lỗi tải dữ liệu: ${esc(err.message)}</td></tr>`;
             });
     }
 
@@ -82,7 +95,6 @@
     document.getElementById('bip-submit').addEventListener('click', function () {
         const rawIps = document.getElementById('bip-ips').value.trim();
         const note = document.getElementById('bip-note').value.trim();
-        const date = document.getElementById('bip-date').value.trim();
         const result = document.getElementById('bip-result');
         const btnText = this.querySelector('.btn-text');
         const btnLoad = this.querySelector('.btn-loader');
@@ -103,7 +115,6 @@
 
         const body = { ips: ips };
         if (note) body.note = note;
-        if (date) body.date = date;
 
         fetch(API_PROXY, {
             method: 'POST',
@@ -131,8 +142,6 @@
                     cls = 'partial';
                 }
                 if (!ins.length && (inv.length || skipped.length)) cls = 'error';
-
-                if (json.expires_at) lines.push(`Hết hiệu lực: ${json.expires_at}`);
 
                 result.className = 'uat-booker-result ' + cls;
                 result.innerHTML = lines.map(l => esc(l)).join('<br>');

@@ -6,8 +6,8 @@
     <div class="uat-header" style="margin-bottom: 24px;">
         <div class="uat-header-info">
             <h1>Booker IP Whitelist</h1>
-            <p class="uat-header-desc">Khai báo IP được bỏ qua toàn bộ cảnh báo đáng ngờ trong ngày khai báo (hết hiệu
-                lực lúc 23:59:59). Proxy xử lý multi-domain.</p>
+            <p class="uat-header-desc">Khai báo IP được bỏ qua toàn bộ cảnh báo đáng ngờ vô thời hạn (trừ khi bị xoá).
+                Proxy xử lý multi-domain.</p>
         </div>
     </div>
 
@@ -31,11 +31,7 @@
                     <input type="text" id="bip-note" placeholder="Ví dụ: Booker văn phòng HN, Tour HCM…">
                 </div>
 
-                <div class="uat-booker-field">
-                    <label for="bip-date">Ngày có hiệu lực</label>
-                    <input type="date" id="bip-date" value="{$TODAY}">
-                    <p class="field-hint">Mặc định hôm nay. IP sẽ hết hiệu lực lúc 23:59:59 của ngày này.</p>
-                </div>
+
 
                 <button id="bip-submit" class="uat-btn-form">
                     <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
@@ -89,15 +85,14 @@
                                 <th>IP</th>
                                 <th>Đồng bộ trên</th>
                                 <th>Ghi chú</th>
-                                <th>Khai báo</th>
-                                <th>Hết hạn</th>
+                                <th>Khai báo lúc</th>
                                 <th style="width:80px">Trạng thái</th>
-                                <th style="width:70px; text-align:right;">Hành động</th>
+                                <th style="min-width:130px; text-align:right;">Hành động</th>
                             </tr>
                         </thead>
                         <tbody id="bip-tbody">
                             <tr>
-                                <td colspan="7" class="uat-empty-cell">Đang tải…</td>
+                                <td colspan="6" class="uat-empty-cell">Đang tải…</td>
                             </tr>
                         </tbody>
                     </table>

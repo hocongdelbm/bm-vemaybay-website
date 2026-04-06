@@ -147,3 +147,14 @@
     white-space: nowrap;
     color: var(--uat-text-muted);
 }
+
+.uat-table th,
+.uat-table td {
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .uat-table {
+        font-size: 12px;
+    }
+}
