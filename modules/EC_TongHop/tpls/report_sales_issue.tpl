@@ -72,6 +72,12 @@
 	</svg>
 </div>
 
+<ul class="currentsales-note alert alert-info text-dark fw-semibold">
+	<li>- Thông kê các Booking đã <span class="fw-semibold" style="color:#0a58ca;">Hoàn tất</span></li>
+	<li>- Doanh số lấy theo <span class="fw-semibold text-danger">ngày xuất vé</span>.</li>
+	<li>- Doanh số & Phiếu thu: Cột "tổng doanh số" bên BC "doanh thu trong ngày"</li>
+</ul>
+
 <div class="box-section position-relative">
 	<div class="overlay-mobile"></div>
 
@@ -157,10 +163,6 @@
 				<input type="submit" id="btnView" name="btnView" class="btn btn-primary button-action" value="Tìm kiếm" title="Tìm kiếm" />
 				<input type="button" id="btnSearch_cancel" name="search_cancel" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" value="Hủy bỏ" title="Hủy bỏ"/>
 			</div>	
-			<ul class="currentsales-note m-0">
-				<li class="fst-italic"><i>Lưu ý:</i> Doanh số lấy theo ngày xuất vé. Booking đã hoàn tất</li>
-				<li class="fst-italic">Doanh số PThu: Cột "tổng doanh số" bên BC "doanh thu trong ngày"</li>
-			</ul>
 		</div>
 	</form>
 
@@ -171,8 +173,9 @@
                 <th width="5%" style="background-color: #068FFF; color: #fff">Số vé</th>
                 <th width="8%" style="background-color: #068FFF; color: #fff">D/s Nội địa</th>
                 <th width="8%" style="background-color: #068FFF; color: #fff">D/s Quốc tế</th>
-                <th width="8%" style="background-color: #068FFF; color: #fff">Tổng Doanh số</th>
-                <th width="8%" style="background-color: #068FFF; color: #fff">Doanh số PThu</th>
+                <th width="8%" style="background-color: #068FFF; color: #fff">Doanh số vé</th>
+                <th width="8%" style="background-color: #068FFF; color: #fff">Doanh số & Phiếu thu</th>
+                <th width="8%" style="background-color: #068FFF; color: #fff">Chi phí Quảng cáo</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff" title="Tổng số lượng BK hoàn tất">Booking</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff">BK 2-3 vé</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff">BK 4-6 vé</th>
@@ -193,7 +196,7 @@
 
 {if $DATA2 != ''}
 <h1 class="title my-3">Booking chưa xuất vé</h1>
-<p class="alert alert-info text-dark fw-semibold">Lưu ý: Booking ở tình trạng <span class="fw-semibold" style="color:#26A86A">Xác nhận</span> hoặc <span class="fw-semibold" style="color:#CF822E">Xuất vé</span> <strong>CHƯA</strong> được ghi nhận doanh số theo ngày xuất vé. Vui lòng hoàn tất booking!</p>
+<p class="alert alert-info text-dark fw-semibold">Lưu ý: Booking ở tình trạng <span class="fw-semibold" style="color:#26A86A">Xác nhận</span> hoặc <span class="fw-semibold" style="color:#CF822E">Xuất vé</span> <strong>CHƯA</strong> được ghi nhận doanh số theo ngày xuất vé. Vui lòng <span class="fw-semibold" style="color:#0a58ca;">Hoàn tất</span> booking!</p>
 
 <div class="box-section">
     <table id="tbl-chuaxuatve" class="table-chuaxuatve table-details__booking" border="0" cellpadding="0" cellspacing="0">
