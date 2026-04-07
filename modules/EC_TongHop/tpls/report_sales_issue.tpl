@@ -164,7 +164,7 @@
 <ul class="currentsales-note alert alert-info text-dark fw-semibold">
 	<li>- Thông kê các Booking đã <span class="fw-semibold" style="color:#0a58ca;">Hoàn tất</span></li>
 	<li>- Doanh số lấy theo <span class="fw-semibold text-danger">ngày xuất vé</span>.</li>
-	<li>- Doanh số & Phiếu thu: Cột "tổng doanh số" bên BC "doanh thu trong ngày"</li>
+	<li>- Doanh số & Phiếu thu: Cột "tổng doanh số" bên BC <span class="fw-semibold text-danger">doanh thu trong ngày</span></li>
 	{if $CAN_EDIT_AD_COST}
 		<li>- Chi phí quảng cáo: Nhập <span class="fw-semibold">theo từng ngày</span>. Chỉ được <span class="fw-semibold" style="color:#0a58ca;">Sửa</span> trong <span class="fw-semibold text-danger">3 ngày gần nhất</span>. Thời gian là khoảng nhiều ngày thì hiển thị tổng chi phí qc các ngày trong khoảng đó.</li>
 	{/if}

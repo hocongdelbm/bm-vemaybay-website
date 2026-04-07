@@ -146,7 +146,7 @@ class Viewreport_sales_issue extends SugarView
         };
 
         $sel = ($_POST['date_select'] ?? 'today');
-        $title_current = 'Hiện tại: mốc thời gian 6 ngày liên tiếp (từ ngày mốc lùi 5 ngày)';
+        $title_current = 'Hiện tại: mốc thời gian 6 ngày liên tiếp';
         $title_prev1 = 'Cùng kỳ: so sánh với mốc thời gian hiện tại ở trên (07 ngày)';
         $title_prev2 = 'Cùng kỳ kế tiếp: so sánh với mốc thời gian hiện tại ở trên (14 ngày)';
         switch ($sel) {
