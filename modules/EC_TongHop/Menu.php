@@ -37,6 +37,8 @@ if (isAllowedUser()) {
     if (ACLController::checkAccess('EC_TongHop', 'view', true)) $module_menu[]     = array("index.php?module=EC_TongHop&action=profitreport&return_module=EC_TongHop&return_action=profitreport", "Báo cáo lãi lỗ", "profit_16x16", 'EC_TongHop');
     // if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] 	= array("index.php?module=EC_TongHop&action=iplist&return_module=EC_TongHop&return_action=iplist", "IP Tracking", "ip-location", 'EC_TongHop');
     // if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] 	= array("index.php?module=EC_TongHop&action=analytics&return_module=EC_TongHop&return_action=analytics", "Analytics TCB", "analytics", 'EC_TongHop');
+    if (ACLController::checkAccess('EC_TongHop', 'list', true))
+        $module_menu[] = array("index.php?module=EC_TongHop&action=bookerips&return_module=EC_TongHop&return_action=bookerips", "Booker IPs Whitelist", "analytics", 'EC_TongHop');
 }
 
 if (ACLController::checkAccess('EC_Contact_Points_Log', 'list', true)) {

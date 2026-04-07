@@ -46,6 +46,9 @@ class EC_TongHopController extends SugarController
                case "analytics":
                     $this->action = "analytics";
                     break;
+               case "bookerips":
+                    $this->action = "bookerips";
+                    break;
                case "report_sales_weekly":
                     $this->action = "report_sales_weekly";
                     break;
