@@ -24,6 +24,7 @@ class Viewreport_sales_issue extends SugarView
 
         $smartyobj->assign('MODULE_NAME', $this->bean->object_name);
         $smartyobj->assign('MODULE_ACTION', 'report_sales_issue');
+        $smartyobj->assign('CAN_EDIT_AD_COST', is_admin($current_user));
 
         $from_date          = isset($_REQUEST['from_date']) ? preg_replace('/[^0-9\-]/', '', $_REQUEST['from_date']) : date('Y-m-d');
         $to_date            = isset($_REQUEST['to_date']) ? preg_replace('/[^0-9\-]/', '', $_REQUEST['to_date']) : date('Y-m-d');
@@ -458,6 +459,19 @@ class Viewreport_sales_issue extends SugarView
                             OR date_ticket_issue BETWEEN '{$ranges['dayminus5_prev2']['from']}'   AND '{$ranges['dayminus5_prev2']['to']}'
                         )";
 
+        ad_cost_ensure_table($db);
+        $adMin = null;
+        $adMax = null;
+        foreach ($ranges as $r) {
+            if ($adMin === null || $r['from'] < $adMin) {
+                $adMin = $r['from'];
+            }
+            if ($adMax === null || $r['to'] > $adMax) {
+                $adMax = $r['to'];
+            }
+        }
+        $adCosts = ad_cost_fetch_map($db, $adMin, $adMax);
+
         try {
             // get thông tin doanh số theo ngày xuất vé
             $sql = "SELECT
@@ -655,7 +669,7 @@ class Viewreport_sales_issue extends SugarView
                         $mark_current = true;
 
                         $html .= '<tr style="background-color: #fff2cc;">
-								<td colspan="30">
+								<td colspan="16">
 									<span class="form-label text-dark fw-semibold">' . $title_current . '</span> 
 								</td>
 							</tr>';
@@ -663,7 +677,7 @@ class Viewreport_sales_issue extends SugarView
                         $mark_previous1 = true;
 
                         $html .= '<tr style="background-color: #fff2cc;">
-								<td colspan="30">
+								<td colspan="16">
 									<span class="form-label text-dark fw-semibold">' . $title_prev1 . '</span> 
 								</td>
 							</tr>';
@@ -671,7 +685,7 @@ class Viewreport_sales_issue extends SugarView
                         $mark_previous2 = true;
 
                         $html .= '<tr style="background-color: #fff2cc;">
-								<td colspan="30">
+								<td colspan="16">
 									<span class="form-label text-dark fw-semibold">' . $title_prev2 . '</span> 
 								</td>
 							</tr>';
@@ -696,7 +710,7 @@ class Viewreport_sales_issue extends SugarView
                                 </td>
                                 <td align="right" data-label="Doanh số tổng">' . format_number($row['total_profit']) . '</td>
                                 <td align="right" data-label="Doanh số PThu">' . format_number($ds_pt_arr['total_profit']) . '</td>
-                                <td align="right" data-label="Chi phí QC"></td>
+                                <td align="right" data-label="Chi phí Quảng cáo">' . $this->buildDailyAdCostCell($row['from_date'], $row['to_date'], $adCosts) . '</td>
                                 <td align="center" data-label="Booking">' . format_number($row['total_qty']) . '</td>
                                 <td align="center" data-label="BK 2-3 vé">' . format_number($row['total_bk_2_3']) . '</td>
                                 <td align="center" data-label="BK 4-6 vé">' . format_number($row['total_bk_4_6']) . '</td>
@@ -714,7 +728,7 @@ class Viewreport_sales_issue extends SugarView
                             </tr>';
                 }
             } else {
-                $html .= '<tr><td colspan="15">0</td></tr>';
+                $html .= '<tr><td colspan="16">0</td></tr>';
             }
 
             $smartyobj->assign('DATA', $html);
@@ -730,6 +744,52 @@ class Viewreport_sales_issue extends SugarView
         $smartyobj->assign('TONGTIENDOANHSO', format_number($paid_booking['total_ds']));
         $smartyobj->assign('TONGTIENCHUAXUAT', format_number($paid_booking['total_amt']));
         $smartyobj->assign('TONGSOVECHUAXUAT', format_number($paid_booking['total_tkt']));
+    }
+
+    /**
+     * Hiển thị chi phí QC theo ngày; 
+     * một ngày = một số tiền; 
+     * khoảng nhiều ngày = tổng các ngày.
+     *
+     * @param array<string,float> $adCosts
+     */
+    protected function buildDailyAdCostCell($from, $to, array $adCosts)
+    {
+        if ($from === $to) {
+            $d = $from;
+            $hasRecord = isset($adCosts[$d]);
+            $amt = $hasRecord ? (float) $adCosts[$d] : 0.0;
+            $display = format_number($amt);
+            $dSafe = htmlspecialchars($d, ENT_QUOTES, 'UTF-8');
+            $amtSafe = htmlspecialchars((string) $amt, ENT_QUOTES, 'UTF-8');
+
+            if (!$hasRecord) {
+                return '<span class="d-inline-flex align-items-center gap-1 justify-content-end flex-wrap">'
+                    . '<span class="ad-cost-display">0</span>'
+                    . '<button type="button" class="btn btn-sm btn-outline-success btn-edit-daily-ad-cost" data-ad-date="' . $dSafe . '" data-ad-amount="0">Thêm</button>'
+                    . '</span>';
+            }
+
+            if (ad_cost_is_editable_date($d)) {
+                // Đã có + trong 3 ngày gần nhất → nút "Sửa"
+                return '<span class="d-inline-flex align-items-center gap-1 justify-content-end flex-wrap">'
+                    . '<span class="ad-cost-display">' . $display . '</span>'
+                    . '<button type="button" class="btn btn-sm btn-outline-primary btn-edit-daily-ad-cost" data-ad-date="' . $dSafe . '" data-ad-amount="' . $amtSafe . '">Sửa</button>'
+                    . '</span>';
+            }
+
+            return $display;
+        }
+        $sum = 0;
+        $cur = strtotime($from);
+        $end = strtotime($to);
+        while ($cur <= $end) {
+            $dd = date('Y-m-d', $cur);
+            $sum += isset($adCosts[$dd]) ? (float) $adCosts[$dd] : 0;
+            $cur = strtotime('+1 day', $cur);
+        }
+
+        return '<span title="Tổng chi phí quảng cáo theo từng ngày trong khoảng">' . format_number($sum) . '</span>';
     }
 
     /**

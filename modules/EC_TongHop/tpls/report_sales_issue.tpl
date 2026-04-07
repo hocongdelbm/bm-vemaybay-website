@@ -56,6 +56,95 @@
 			$("#from_date").val($(this).find("option:selected").attr("fromdate"));
 			$("#to_date").val($(this).find("option:selected").attr("todate"));
 		});
+{/literal}
+
+{if $CAN_EDIT_AD_COST}
+{literal}
+		function formatVnIntegerInput(el) {
+			var v = String($(el).val() || "").replace(/\D/g, "");
+			if (v === "") { $(el).val(""); return; }
+			$(el).val(v.replace(/\B(?=(\d{3})+(?!\d))/g, "."));
+		}
+
+		$(document).on("click", ".btn-edit-daily-ad-cost", function() {
+			var d = $(this).data("ad-date");
+			var raw = $(this).data("ad-amount");
+			var isAdd = $(this).text().trim() === "Thêm";
+
+			$("#modal_daily_ad_cost_date").val(d);
+			$("#modal_daily_ad_cost_date_label").text(d);
+			$("#modalDailyAdCostLabel").html((isAdd ? "Thêm" : "Chi phí") + " chi phí quảng cáo — ngày <span id=\"modal_daily_ad_cost_date_label\">" + d + "</span>");
+			var n = Math.round(Number(raw) || 0);
+			$("#modal_daily_ad_cost_amount").val(n ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".") : "");
+			var modal = document.getElementById("modalDailyAdCost");
+			if (modal && typeof bootstrap !== "undefined") {
+				new bootstrap.Modal(modal).show();
+			} else if (typeof $ !== "undefined" && $("#modalDailyAdCost").modal) {
+				$("#modalDailyAdCost").modal("show");
+			}
+		});
+
+		$("#modal_daily_ad_cost_amount").on("input", function() { formatVnIntegerInput(this); });
+		$("#frmDailyAdCost").on("submit", function(e) {
+			e.preventDefault();
+			var costDate = $("#modal_daily_ad_cost_date").val();
+			var amount = String($("#modal_daily_ad_cost_amount").val() || "").replace(/\D/g, "");
+			var $btn = $(this).find('button[type="submit"]');
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				type: "POST",
+				dataType: "json",
+				data: { for: "saveDailyAdCost", cost_date: costDate, amount: amount },
+				beforeSend: function() {
+					$(".container-waiting").show();
+					$btn.prop("disabled", true);
+				},
+				complete: function() {
+					$(".container-waiting").hide();
+					$btn.prop("disabled", false);
+				},
+				success: function(res) {
+					if (res && res.ok) {
+						var $rowBtn = $('.btn-edit-daily-ad-cost[data-ad-date="' + costDate + '"]');
+						$rowBtn.closest("td").find(".ad-cost-display").text(res.formatted);
+						if (res.can_edit) {
+							$rowBtn.text("Sửa").removeClass("btn-outline-success").addClass("btn-outline-primary").attr("data-ad-amount", res.amount);
+						} else {
+							$rowBtn.remove();
+						}
+				
+						var modalEl = document.getElementById("modalDailyAdCost");
+						if (modalEl && typeof bootstrap !== "undefined") {
+							bootstrap.Modal.getInstance(modalEl).hide();
+						} else {
+							$("#modalDailyAdCost").modal("hide");
+						}
+					} else {
+						var msg = (res && res.message) ? res.message : "Không lưu được.";
+						if (typeof showModalNotify === "function") {
+							showModalNotify("error", msg);
+						} else {
+							alert(msg);
+						}
+					}
+				},
+				error: function(xhr) {
+					var msg = "Lỗi lưu.";
+					try {
+						var j = JSON.parse(xhr.responseText);
+						if (j && j.message) { msg = j.message; }
+					} catch (err) {}
+					if (typeof showModalNotify === "function") {
+						showModalNotify("error", msg);
+					} else {
+						alert(msg);
+					}
+				}
+			});
+		});
+{/literal}
+{/if}
+{literal}
 	});
 </script>
 {/literal}
@@ -76,6 +165,9 @@
 	<li>- Thông kê các Booking đã <span class="fw-semibold" style="color:#0a58ca;">Hoàn tất</span></li>
 	<li>- Doanh số lấy theo <span class="fw-semibold text-danger">ngày xuất vé</span>.</li>
 	<li>- Doanh số & Phiếu thu: Cột "tổng doanh số" bên BC "doanh thu trong ngày"</li>
+	{if $CAN_EDIT_AD_COST}
+		<li>- Chi phí quảng cáo: Nhập <span class="fw-semibold">theo từng ngày</span>. Chỉ được <span class="fw-semibold" style="color:#0a58ca;">Sửa</span> trong <span class="fw-semibold text-danger">3 ngày gần nhất</span>. Thời gian là khoảng nhiều ngày thì hiển thị tổng chi phí qc các ngày trong khoảng đó.</li>
+	{/if}
 </ul>
 
 <div class="box-section position-relative">
@@ -175,7 +267,7 @@
                 <th width="8%" style="background-color: #068FFF; color: #fff">D/s Quốc tế</th>
                 <th width="8%" style="background-color: #068FFF; color: #fff">Doanh số vé</th>
                 <th width="8%" style="background-color: #068FFF; color: #fff">Doanh số & Phiếu thu</th>
-                <th width="8%" style="background-color: #068FFF; color: #fff">Chi phí Quảng cáo</th>
+                <th width="8%" style="background-color: #068FFF; color: #fff">Chi phí QC</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff" title="Tổng số lượng BK hoàn tất">Booking</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff">BK 2-3 vé</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff">BK 4-6 vé</th>
@@ -193,6 +285,31 @@
 
 </div>
 
+{if $CAN_EDIT_AD_COST}
+<div class="modal fade" id="modalDailyAdCost" tabindex="-1" aria-labelledby="modalDailyAdCostLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<form id="frmDailyAdCost" name="frmDailyAdCost">
+				<div class="modal-header">
+					<h2 class="modal-title fs-5" id="modalDailyAdCostLabel">Chi phí quảng cáo — ngày <span id="modal_daily_ad_cost_date_label"></span></h2>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<input type="hidden" id="modal_daily_ad_cost_date" name="cost_date" value="" />
+					<div class="mb-2">
+						<label for="modal_daily_ad_cost_amount" class="form-label">Số tiền (VNĐ)</label>
+						<input type="text" class="form-control box-input text-end" id="modal_daily_ad_cost_amount" name="amount" autocomplete="off" placeholder="0" />
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+					<button type="submit" class="btn btn-primary">Lưu</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+{/if}
 
 {if $DATA2 != ''}
 <h1 class="title my-3">Booking chưa xuất vé</h1>
