@@ -1,6 +1,5 @@
 <?php
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
-require_once("include/Sugar_Smarty.php");
 		
 class Viewprintrv extends SugarView {
 	function display() {
@@ -11,8 +10,6 @@ class Viewprintrv extends SugarView {
 	
 	function populateContent($smartyobj){
 		global $current_user;
-		require_once("ReadNumberInWords.php");
-		$readnum = new ReadNumberInWords();
 		
 		if(isset($_POST['dep_id']) && !empty($_POST['dep_id'])){
 			$dep_id = $_POST['dep_id'];
@@ -36,7 +33,7 @@ class Viewprintrv extends SugarView {
 		$smartyobj->assign('DIACHI', $this->bean->guest_address);
 		$smartyobj->assign('LYDONOP', str_replace("\n","<br />",$this->bean->description));
 		$smartyobj->assign('SOTIEN', number_format($this->bean->amount_converted,0,'.',','));
-		$smartyobj->assign('SOTIENBANGCHU', $readnum->docso($this->bean->amount_converted).' đồng');
+		$smartyobj->assign('SOTIENBANGCHU', ReadNumberInWords::readNumber($this->bean->amount_converted).' đồng');
 		$smartyobj->assign('KEMTHEO', str_replace("\n","<br />",$this->bean->rv_notes));
 		$smartyobj->assign('DIENTHOAI', $this->bean->guest_phone);
 	}

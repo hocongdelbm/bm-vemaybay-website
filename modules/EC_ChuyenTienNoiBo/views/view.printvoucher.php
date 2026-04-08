@@ -1,6 +1,5 @@
 <?php
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
-require_once("include/Sugar_Smarty.php");
 		
 class Viewprintvoucher extends SugarView {
 	function display() {
@@ -11,10 +10,6 @@ class Viewprintvoucher extends SugarView {
 	
 	function populateContent($smartyobj){
 		global $app_list_strings;
-		require_once("ReadNumberInWords.php");
-		$readnum = new ReadNumberInWords();
-		
-		$ngaychungtu = 'Ngày '.date('d', strtotime($this->bean->ngaychungtu)).' tháng '.date('m', strtotime($this->bean->ngaychungtu)).' năm '.date('Y', strtotime($this->bean->ngaychungtu));
 		$smartyobj->assign('VOUCHER_NUMBER', $this->bean->name);
 		$smartyobj->assign('DATE_ENTERED', $this->bean->ngaychungtu);
 		
@@ -53,7 +48,7 @@ class Viewprintvoucher extends SugarView {
 		$smartyobj->assign('TO_OWNER', $to_owner);
 		$smartyobj->assign('TO_ACCOUNT', $to_account);
 		$smartyobj->assign('TO_BANK', $to_bank);
-		$smartyobj->assign('AMOUNT_IN_WORD', $readnum->docso($this->bean->sotien).' đồng');
+		$smartyobj->assign('AMOUNT_IN_WORD', ReadNumberInWords::readNumber($this->bean->sotien).' đồng');
 		$smartyobj->assign('AMOUNT', format_number($this->bean->sotien));
 		$smartyobj->assign('CURRENCY', $app_list_strings['loaitien_list'][$this->bean->loaitien]);
 		$smartyobj->assign('DESCRIPTION', str_replace("\n", "<br />", $this->bean->description));

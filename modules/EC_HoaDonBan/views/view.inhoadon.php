@@ -30,9 +30,6 @@ class Viewinhoadon extends SugarView {
 	function populateCont($smartyobj){
 		global $db, $app_list_strings;
 		
-		require_once("ReadNumberInWords.php");
-		$readnum = new ReadNumberInWords();
-		
 		$smartyobj->assign('COM_NAME', $app_list_strings['company_info_list']['name']);
 		$smartyobj->assign('COM_ADDRESS', $app_list_strings['company_info_list']['name']);
 		$smartyobj->assign('COM_TAXCODE', $app_list_strings['company_info_list']['taxcode']);
@@ -61,7 +58,7 @@ class Viewinhoadon extends SugarView {
 		$smartyobj->assign('TOTAL_AMT', number_format($this->bean->tongtien, 0, ',', '.'));
 		$smartyobj->assign('TOTAL_TAX_AMT', number_format($this->bean->tongtienthue, 0, ',', '.'));
 		$smartyobj->assign('TOTAL_PAY_AMT', number_format($this->bean->tongthanhtoan, 0, ',', '.'));
-		$smartyobj->assign('TOTAL_PAY_AMT_IN_WORDS', $readnum->docso($this->bean->tongthanhtoan).' đồng chẵn');
+		$smartyobj->assign('TOTAL_PAY_AMT_IN_WORDS', ReadNumberInWords::readNumber($this->bean->tongthanhtoan).' đồng chẵn');
 		
 	}
 	
