@@ -6,10 +6,12 @@ require 'vendor/autoload.php';
 // use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class Viewinputinvoice extends SugarView {
+class Viewinputinvoice extends SugarView
+{
     public $page_row_num = 30;
 
-    function display() {
+    function display()
+    {
         global $current_user;
         // Phân quyền - Không cho telesale truy cập mục này
         if (isTelesaleUser($current_user->id)) {
@@ -93,7 +95,8 @@ class Viewinputinvoice extends SugarView {
         $smarty->display("modules/{$this->bean->module_dir}/tpls/view.inputinvoice.tpl");
     }
 
-    function removeNotImportedInvoice() {
+    function removeNotImportedInvoice()
+    {
         $this->bean->db->query("UPDATE ec_input_invoices SET deleted = 1 WHERE deleted = 0 AND status = 0");
     }
 
@@ -103,7 +106,8 @@ class Viewinputinvoice extends SugarView {
      * @param array $post_fields POST
      * @return void
      */
-    private function updateInvoiceData($post_fields) {
+    private function updateInvoiceData($post_fields)
+    {
         // Xác nhận (Lưu lại thông tin giá vốn mới)
         if (isset($post_fields['confirmed'])) {
             $bk_arr = [];
@@ -115,7 +119,7 @@ class Viewinputinvoice extends SugarView {
                 $authorized_fee = unformat_number($_POST['authorized_fee'][$i]);
                 $total          = $cost + $authorized_fee;
                 $ticket_type    = $_POST['ticket_type'][$i] ?? 'flight';
-                
+
                 $sql = "UPDATE ec_input_invoices 
                     SET cost = {$cost}
                         ,vat = {$vat}
@@ -125,8 +129,8 @@ class Viewinputinvoice extends SugarView {
                         ,ticket_type = '{$ticket_type}'
                         ,status = '1'
                     WHERE id = '{$input_inv_id}' AND deleted = 0";
-                
-                if($this->bean->db->query($sql)) {
+
+                if ($this->bean->db->query($sql)) {
                     // Cập nhật đã xuất hoá đơn đầu vào cho các booking
                     $input_inv = new EC_Input_Invoices;
                     $input_inv->retrieve($_POST['invoice_id'][$i]);
@@ -163,7 +167,7 @@ class Viewinputinvoice extends SugarView {
         if (isset($post_fields['confirmed'])) {
             $at = 0;
             foreach ($bk_arr as $bk_id => $bk_inf) {
-                if(isset($bk_inf['total']) && $bk_inf['total'] < 0) continue;
+                if (isset($bk_inf['total']) && $bk_inf['total'] < 0) continue;
                 $this->bean->createAuto($bk_id, $at);
                 $at++;
             }
@@ -177,19 +181,20 @@ class Viewinputinvoice extends SugarView {
      * @return array [rm_out_inv, signed_out_inv, count_rm_in_inv]
      * @author DucPham
      */
-    public function removeInputInvoiceData($post_fields) {
+    public function removeInputInvoiceData($post_fields)
+    {
         $rm_invoice_number  = trim($post_fields['rm_invoice_number'] ?? '');
         $rm_invoice_serial  = trim($post_fields['rm_invoice_serial'] ?? '');
         $rm_supplier        = trim($post_fields['rm_supplier'] ?? '');
         $rm_ticket_code     = trim($post_fields['rm_ticket_code'] ?? '');
         $results = [];
 
-        if(empty($rm_invoice_number) || empty($rm_invoice_serial) || empty($rm_supplier)) return $results;
+        if (empty($rm_invoice_number) || empty($rm_invoice_serial) || empty($rm_supplier)) return $results;
 
         global $current_user;
         try {
             $des = trim("Xóa hóa đơn đã nạp $rm_invoice_number, $rm_invoice_serial, $rm_supplier");
-            $date_modified = date('Y-m-d H:i:s', time() - 7*3600);
+            $date_modified = date('Y-m-d H:i:s', time() - 7 * 3600);
 
             // Lấy tất cả số vé từ thông tin hóa đơn đầu vào
             $sql_ext = !empty($rm_ticket_code) ? " AND name = '$rm_ticket_code'" : "";
@@ -204,7 +209,7 @@ class Viewinputinvoice extends SugarView {
             $res = $this->bean->db->query($sql);
             $rm_id = [];
             while ($row = $this->bean->db->fetchByAssoc($res)) $rm_id[] = $row['id'];
-            if(empty($rm_id)) return $results;
+            if (empty($rm_id)) return $results;
             $in_list_in_inv_id = "'" . implode("','", $rm_id) . "'";
 
             // Xoá HĐ đầu vào chưa có HĐ đầu ra
@@ -219,7 +224,7 @@ class Viewinputinvoice extends SugarView {
                         FROM ec_chitiethoadon cthd
                         WHERE cthd.ticket_number_id = in_inv.id AND cthd.deleted = 0
                     )";
-            if($this->bean->db->query($sqlRemove)) {
+            if ($this->bean->db->query($sqlRemove)) {
                 $results['count_rm_in_inv'] = $this->bean->db->getOne("SELECT COUNT(*)
                     FROM ec_input_invoices
                     WHERE id IN ($in_list_in_inv_id) AND deleted = 1");
@@ -240,20 +245,19 @@ class Viewinputinvoice extends SugarView {
             $res_out_inv_id = $this->bean->db->query($sql);
 
             while ($row = $this->bean->db->fetchByAssoc($res_out_inv_id)) {
-                if(!isset($results["rm_out_inv"][$row['id']]) && !isset($results["signed_out_inv"][$row['id']])) {
+                if (!isset($results["rm_out_inv"][$row['id']]) && !isset($results["signed_out_inv"][$row['id']])) {
                     $tinhtrang = $row['tinhtrang'] ?? '0';
                     $is_signed = $row['is_signed'] ?? 0;
                     $sohoadon  = $row['sohoadon'] ?? '';
                     $deleteInfo = [];
 
-                    if($tinhtrang == '2' || $is_signed == 1 || (strlen($sohoadon) > 0 && $sohoadon != '0')) { // Đã ký
+                    if ($tinhtrang == '2' || $is_signed == 1 || (strlen($sohoadon) > 0 && $sohoadon != '0')) { // Đã ký
                         $results["signed_out_inv"][$row['id']] = [
                             'name'   => $row['name'],
                             'status' => '2',
                         ];
                         continue;
-                    }
-                    else if($tinhtrang == '1') { // Đã ghi sổ
+                    } else if ($tinhtrang == '1') { // Đã ghi sổ
                         // Bỏ ghi sổ (Đã bao gồm luôn xóa chi tiết HĐ đầu ra ở đây)
                         $ep = new entryFactory();
                         $epOutInvoice = $ep->create('entryOutputInvoiceClass');
@@ -262,8 +266,7 @@ class Viewinputinvoice extends SugarView {
                             'invRef'    => $row['name'],
                             'invSerial' => $row['kyhieuhd'],
                         ]);
-                    }
-                    else {
+                    } else {
                         // Xoá chi tiết HĐ đầu ra
                         $sqlRemove = "UPDATE ec_chitiethoadon
                             SET deleted = 1
@@ -283,7 +286,7 @@ class Viewinputinvoice extends SugarView {
                             ,date_modified = '$date_modified'
                             ,modified_user_id = '{$current_user->id}'
                         WHERE id = '{$row['id']}' AND deleted = 0";
-                    if($this->bean->db->query($sqlRemove)) {
+                    if ($this->bean->db->query($sqlRemove)) {
                         $rm_out_inv_id[] = $row['id'];
                         $results["rm_out_inv"][$row['id']] = [
                             'name'   => $row['name'],
@@ -291,22 +294,21 @@ class Viewinputinvoice extends SugarView {
                             'count_in' => 1, // Số lượng đầu vào
                         ];
 
-                        if($tinhtrang == '1') {
+                        if ($tinhtrang == '1') {
                             $results["rm_out_inv"][$row['id']]['message'] = $deleteInfo['message'] ?? '';
                         }
                     }
-                }
-                elseif(isset($results["rm_out_inv"][$row['id']])) {
+                } elseif (isset($results["rm_out_inv"][$row['id']])) {
                     $results["rm_out_inv"][$row['id']]['count_in'] += 1;
                 }
 
-                if(in_array($row['booking_id'], $rm_bk_id, true) === false) $rm_bk_id[] = $row['booking_id'];
+                if (in_array($row['booking_id'], $rm_bk_id, true) === false) $rm_bk_id[] = $row['booking_id'];
             }
             $in_list_out_inv_id = "'" . implode("','", $rm_out_inv_id) . "'"; // Danh sách ID hóa đơn ra được xóa
             $in_list_bk_id = "'" . implode("','", $rm_bk_id) . "'"; // Danh sách ID booking có hóa đơn vào được xóa
 
             // Xoá HĐ đầu vào có HĐ đầu ra chưa ký
-            if(!empty($rm_out_inv_id)) {
+            if (!empty($rm_out_inv_id)) {
                 $this->bean->db->query("UPDATE ec_input_invoices in_inv
                     LEFT JOIN ec_chitiethoadon cthd ON cthd.ticket_number_id = in_inv.id AND cthd.deleted = 1
                     SET in_inv.deleted = 1
@@ -318,7 +320,7 @@ class Viewinputinvoice extends SugarView {
             }
 
             // Xóa notes
-            if(!empty($rm_bk_id)) {
+            if (!empty($rm_bk_id)) {
                 $this->bean->db->query("UPDATE notes
                     SET deleted = 1
                         ,date_modified = '$date_modified'
@@ -327,17 +329,17 @@ class Viewinputinvoice extends SugarView {
                         AND parent_type = 'EC_Flight_Bookings'
                         AND description LIKE '%lấy hóa đơn đầu vào số: $rm_invoice_number%'");
             }
-            
+
             return $results;
-        }
-        catch(Throwable $th) {
+        } catch (Throwable $th) {
             $GLOBALS['log']->fatal("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             return $results ?? [];
         }
     }
 
     // Màn hình preview
-    function populateConfirmForm($html_invoice, $request_fields) {
+    function populateConfirmForm($html_invoice, $request_fields)
+    {
         global $app_list_strings, $current_user;
 
         // Hiện lỗi nếu có
@@ -390,7 +392,7 @@ class Viewinputinvoice extends SugarView {
                     <th>Đơn vị</th>
                 </thead>
                 <tbody>
-                    '. $html_invoice .'
+                    ' . $html_invoice . '
                 </tbody>
                 <tfoot>
                     <tr class="footer-tr">
@@ -405,7 +407,8 @@ class Viewinputinvoice extends SugarView {
         return $html;
     }
 
-    function calculateTotalLine($request_fields) {
+    function calculateTotalLine($request_fields)
+    {
         $sql_search = $this->populateSearchCondition($request_fields);
 
         $sql = 'SELECT 
@@ -446,7 +449,8 @@ class Viewinputinvoice extends SugarView {
     }
 
     // Lấy dữ liệu hóa đơn đầu vào dưới dạng HTML
-    function getData($request_fields) {
+    function getData($request_fields)
+    {
         global $app_list_strings;
 
         $sql_search = $this->populateSearchCondition($request_fields);
@@ -496,22 +500,21 @@ class Viewinputinvoice extends SugarView {
 
             // Màn hình preview trước khi nạp hoá đơn vào hệ thống
             if (isset($request_fields['preview'])) {
-                $cost_input = '<input type="text" name="invoice_cost[]" value="'. (int)$row['cost_no_vat'] .'" class="allow_number_only text-end invoice_cost" />';
-                $vat_input = '<input type="text" name="invoice_vat[]" value="'. (int)$row['vat'] .'" class="allow_number_only text-end invoice_vat" />';
+                $cost_input = '<input type="text" name="invoice_cost[]" value="' . (int)$row['cost_no_vat'] . '" class="allow_number_only text-end invoice_cost" />';
+                $vat_input = '<input type="text" name="invoice_vat[]" value="' . (int)$row['vat'] . '" class="allow_number_only text-end invoice_vat" />';
                 $cost_input_vat = '
-                    <input type="text" name="invoice_cost_vat[]" value="'. (int)$row['cost'] .'" class="allow_number_only text-end invoice_cost_vat" />
-                    <input type="hidden" name="invoice_id[]" value="'. $row['id'] .'" />
+                    <input type="text" name="invoice_cost_vat[]" value="' . (int)$row['cost'] . '" class="allow_number_only text-end invoice_cost_vat" />
+                    <input type="hidden" name="invoice_id[]" value="' . $row['id'] . '" />
                 ';
-                $author_input = '<input type="text" name="authorized_fee[]" value="'. (int)$row['authorized_fee'] .'" class="allow_number_only text-end authorized_fee" />';
-                
+                $author_input = '<input type="text" name="authorized_fee[]" value="' . (int)$row['authorized_fee'] . '" class="allow_number_only text-end authorized_fee" />';
+
                 $ticket_type_input = '<select name="ticket_type[]" class="ticket_type">
-                    '. get_select_options_with_id($app_list_strings['ticket_type_list'], $row['ticket_type']) .'
+                    ' . get_select_options_with_id($app_list_strings['ticket_type_list'], $row['ticket_type']) . '
                 </select>';
-                
+
                 $available = '';
                 $error_minus = '';
-            }
-            else {
+            } else {
                 $cost_input     = format_number($row['cost_no_vat']);
                 $vat_input      = format_number($row['vat']);
                 $cost_input_vat = format_number($row['cost']);
@@ -536,7 +539,7 @@ class Viewinputinvoice extends SugarView {
 
             // Duplicate
             $icon_dup_form_data = base64_encode(json_encode([
-                'supplier'=> [
+                'supplier' => [
                     'label'     => 'Nhà cung cấp',
                     'value'     => $row['supplier'] ?? '',
                     'type'      => 'select',
@@ -566,7 +569,7 @@ class Viewinputinvoice extends SugarView {
                     'value' => $cost_input,
                     'class' => 'money'
                 ],
-                'vat'=> [
+                'vat' => [
                     'label' => 'VAT',
                     'value' => $vat_input,
                     'class' => 'money'
@@ -582,7 +585,7 @@ class Viewinputinvoice extends SugarView {
                     'class' => 'money'
                 ],
             ]));
-            $icon_duplicate = '<i class="icon-duplicate" form-data="'.$icon_dup_form_data .'" title="Nhân bản">
+            $icon_duplicate = '<i class="icon-duplicate" form-data="' . $icon_dup_form_data . '" title="Nhân bản">
                 <svg fill="#454545" width="13px" height="13px" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" stroke="#454545">
                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -593,7 +596,7 @@ class Viewinputinvoice extends SugarView {
             </i>';
 
             // Remove
-            $icon_delete = '<i class="icon-remove" record-id="'.$row['id'].'" record-name="'.$row['name'].'" title="Xóa">
+            $icon_delete = '<i class="icon-remove" record-id="' . $row['id'] . '" record-name="' . $row['name'] . '" title="Xóa">
                 <svg fill="#ff4242" height="13px" width="13px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 459.739 459.739" xml:space="preserve" stroke="#ff4242">
                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -603,11 +606,11 @@ class Viewinputinvoice extends SugarView {
                 </svg>
             </i>';
 
-            $html .= '<tr class="'. trim($row_class . ' ' . $error_minus) .'" id="record-'.$row['id'].'">';
+            $html .= '<tr class="' . trim($row_class . ' ' . $error_minus) . '" id="record-' . $row['id'] . '">';
             $html .= '<td class="text-center sep_order">
-                '. (++$i) .'
-                '. $icon_duplicate .'
-                '. $icon_delete .'
+                ' . (++$i) . '
+                ' . $icon_duplicate . '
+                ' . $icon_delete . '
             </td>';
             $html .= '<td class="text-center accounting_date">' . $accounting_date . '</td>';
             $html .= '<td class="text-center invoice_date">' . date('d-m-Y', strtotime($row['invoice_date'])) . '</td>';
@@ -628,7 +631,7 @@ class Viewinputinvoice extends SugarView {
             $html .= '<td class="text-end cost_input_vat">' . $cost_input_vat . '</td>';
             $html .= '<td class="text-end author_input">' . $author_input . '</td>';
             $html .= '<td class="text-end ln_total allow_number_only">' . format_number($row['cost'] + $row['authorized_fee']) . '</td>';
-            $html .= '<td class="text-center ticket_type">'. $ticket_type_input .'</td>';
+            $html .= '<td class="text-center ticket_type">' . $ticket_type_input . '</td>';
             $html .= '<td class="text-center"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">' . $row['booking'] . '</a></td>';
             $html .= '<td class="text-center supplier_infor">' . $app_list_strings['supplier_invoice_list'][$row['supplier']] . '</td>';
             $html .= '<td class="text-center company_unit_infor">' . $app_list_strings['company_unit_invoice_list'][$row['company_unit']] . '</td>';
@@ -661,21 +664,22 @@ class Viewinputinvoice extends SugarView {
             $html .= '<td id="total_authorized_fee" class="text-end allow_number_only">' . format_number($total_authorized) . '</td>';
             $html .= '<td id="total" class="text-end allow_number_only">' . format_number($total) . '</td>';
             $html .= '<td colspan="4">
-                <input type="hidden" id="inv_row_count" value="'. ($i + 1) .'">
+                <input type="hidden" id="inv_row_count" value="' . ($i + 1) . '">
             </td>';
             $html .= '</tr>';
         }
         return $html;
     }
 
-    function populateSearchCondition($request_fields) {
+    function populateSearchCondition($request_fields)
+    {
         $sql_search = '';
         if (!isset($request_fields['denied'])) {
             $missing_qty = (int)($request_fields['missing_qty'] ?? 0);
             $missing_bk = (int)($request_fields['missing_bk'] ?? 0);
             $over_qty = (int)($request_fields['over_qty'] ?? 0);
             $stock_stt = (int)($request_fields['stock_stt'] ?? 0);
-           
+
             if (!isset($request_fields['preview'])) {
                 // Từ ngày
                 if (isset($request_fields['from_date']) && !empty($request_fields['from_date'])) {
@@ -786,8 +790,7 @@ class Viewinputinvoice extends SugarView {
             } else if ($missing_bk == 2) {
                 $sql_search .= ' AND (in_inv.booking_id IS NOT NULL OR in_inv.booking_id <> "")';
             }
-        }
-        else {
+        } else {
             $sql_search .= ' AND in_inv.status = "1"';
         }
 
@@ -812,7 +815,8 @@ class Viewinputinvoice extends SugarView {
      * @param array $post_fields Post fields in tab import
      * @return void
      */
-    public function importData($post_fields) {
+    public function importData($post_fields)
+    {
         if ($_FILES['from_file']['name'] != '') {
             $path_parts = pathinfo($_FILES["from_file"]["name"]);
             $file_type = strtolower($path_parts['extension'] ?? '');
@@ -826,8 +830,7 @@ class Viewinputinvoice extends SugarView {
                     // $sheet = $objReader->getActiveSheet();
                     try {
                         $spreadsheet = IOFactory::load("cache/upload/inputinvoices/$fileName");
-                    }
-                    catch(Throwable $th) {
+                    } catch (Throwable $th) {
                         echo "<p class='text-danger'>{$th->getMessage()} on line {$th->getLine()} at {$th->getFile()}</p>";
                     }
 
@@ -850,11 +853,11 @@ class Viewinputinvoice extends SugarView {
 
                                 // Post fields contain column name
                                 foreach ($post_fields as $field => $val) {
-                                    if(stripos($field, "col_") === 0) {
+                                    if (stripos($field, "col_") === 0) {
                                         $fieldName = str_replace("col_", "", $field);
 
-                                        if(!empty($val)) $array_data[$k][$fieldName] = $this->getDataFromFile($val, $i, $sheet);
-                                        else if($fieldName == 'pass_qty') $array_data[$k][$fieldName] = 1;
+                                        if (!empty($val)) $array_data[$k][$fieldName] = $this->getDataFromFile($val, $i, $sheet);
+                                        else if ($fieldName == 'pass_qty') $array_data[$k][$fieldName] = 1;
                                         else $array_data[$k][$fieldName] = '';
                                     }
                                 }
@@ -870,24 +873,22 @@ class Viewinputinvoice extends SugarView {
                     $err = $this->insertData($array_data);
                     header("Location: index.php?module=EC_HoaDonBan&action=inputinvoice&preview&supplier=" . $post_fields['supplier'] . "&supplier_name=" . $post_fields['supplier_name'] . "&invoice_number=" . trim($post_fields['invoice_number']) . "&invoice_serial=" . trim($post_fields['invoice_serial']) . "&invoice_date=" . trim($post_fields['invoice_date']) . "&status=0" . $err);
                     exit;
-                }
-                else {
+                } else {
                     header("Location: index.php?module=EC_HoaDonBan&action=Error&error_string=" . urlencode("Chỉ hỗ trợ định dạng xlsx và xls"));
                     exit;
                 }
-            }
-            else {
+            } else {
                 header("Location: index.php?module=EC_HoaDonBan&action=Error&error_string=" . urlencode("Vui lòng đặt lại tên file excel"));
                 exit;
             }
-        }
-        else {
+        } else {
             header("Location: index.php?module=EC_HoaDonBan&action=Error&error_string=" . urlencode("Chưa có thông tin file import. Vui lòng import lại"));
             exit;
         }
     }
 
-    public function getDataFromFile($col_letter, $ln, $sheet) {
+    public function getDataFromFile($col_letter, $ln, $sheet)
+    {
         $data = '';
         if (!empty($col_letter)) {
             /**
@@ -922,7 +923,8 @@ class Viewinputinvoice extends SugarView {
      * @param array $data
      * @param string $supplier
      */
-    public function filterData($data, $supplier) {
+    public function filterData($data, $supplier)
+    {
         for ($i = 0; $i < count($data); $i++) {
             if (!empty($data[$i]['ticket_code'])) {
                 $data[$i]['ticket_price'] = $this->changeAmountFormat($data[$i]['ticket_price']);
@@ -930,21 +932,21 @@ class Viewinputinvoice extends SugarView {
                 $data[$i]['authorized_collection'] = $this->changeAmountFormat($data[$i]['authorized_collection'] ?? 0);
                 $data[$i]['other_charge'] = $this->changeAmountFormat($data[$i]['other_charge'] ?? 0);
                 $data[$i]['total'] = $this->changeAmountFormat($data[$i]['total'] ?? 0);
-                
+
                 if ($supplier == 'PNA') {
                     // Định dạng số vé
-                    if(!ctype_digit($data[$i]['ticket_code'])) {
+                    if (!ctype_digit($data[$i]['ticket_code'])) {
                         $data[$i]['ticket_code'] = str_replace("*1", "", trim($data[$i]['ticket_code']));
                         $data[$i]['ticket_code'] = substr($data[$i]['ticket_code'], -6);
                     }
-                    
+
                     // Định dạng hành trình
                     $j = 0;
                     $iti = $data[$i]['itinerary'];
                     $itiFormat = '';
-                    while(strlen($iti) > 0) {
+                    while (strlen($iti) > 0) {
                         // Location
-                        if($j % 2 == 0) {
+                        if ($j % 2 == 0) {
                             $itiFormat .= empty($itiFormat) ? substr($iti, 0, 3) : "-" . substr($iti, 0, 3);
                             $iti = substr($iti, 3);
                         }
@@ -955,11 +957,10 @@ class Viewinputinvoice extends SugarView {
                         $j++;
                     }
                     $data[$i]['itinerary'] = $itiFormat;
-                }
-                elseif ($supplier == 'HNH') {
+                } elseif ($supplier == 'HNH') {
                     // Định dạng số vé
-                    if(!ctype_digit($data[$i]['ticket_code'])) {
-                        if(stripos($data[$i]['ticket_code'], 'VJA') === 0) {
+                    if (!ctype_digit($data[$i]['ticket_code'])) {
+                        if (stripos($data[$i]['ticket_code'], 'VJA') === 0) {
                             $data[$i]['ticket_code'] = substr($data[$i]['ticket_code'], 3);
                         }
                     }
@@ -968,9 +969,9 @@ class Viewinputinvoice extends SugarView {
                     $j = 0;
                     $iti = $data[$i]['itinerary'];
                     $itiFormat = '';
-                    while(strlen($iti) > 0) {
+                    while (strlen($iti) > 0) {
                         // Location
-                        if($j % 2 == 0) {
+                        if ($j % 2 == 0) {
                             $itiFormat .= empty($itiFormat) ? substr($iti, 0, 3) : "-" . substr($iti, 0, 3);
                             $iti = substr($iti, 3);
                         }
@@ -986,7 +987,7 @@ class Viewinputinvoice extends SugarView {
 
                 // Check is international
                 $data[$i]['is_inter'] = $this->checkInter($data[$i]['itinerary'] ?? '');
-                
+
                 // Tìm thông tin giá vé và booking dựa theo số vé trong booking
                 $data[$i] = $this->populateBookingPriceDetail($data[$i], $supplier);
             }
@@ -1000,7 +1001,8 @@ class Viewinputinvoice extends SugarView {
      * @param array $data Data after map and filter
      * @return string
      */
-    protected function insertData($data) {
+    protected function insertData($data)
+    {
         global $current_user, $db;
         $is_exist_err       = "";
         $missing_bk_err     = "";
@@ -1022,7 +1024,7 @@ class Viewinputinvoice extends SugarView {
                     AND status = 1
                     AND deleted = 0 
                     AND invoice_serial = "' . $data[$i]['invoice_serial'] . '"'
-                    . $sql_iti;
+                . $sql_iti;
             $is_exist = $db->getOne($sql);
 
             if (!$is_exist && !empty($data[$i]['booking_id']) && $data[$i]['pass_qty'] > 0) {
@@ -1044,12 +1046,20 @@ class Viewinputinvoice extends SugarView {
 
                 // Nếu là vé quốc tế, VAT = 0
                 if (isset($data[$i]['is_inter']) && $data[$i]['is_inter']) {
-                    if($input_iv->supplier == 'HNH') {
+                    if ($input_iv->supplier == 'HNH') {
                         $input_iv->vat              = $data[$i]['vat'] ?? 0;
                         $input_iv->vat_per          = $input_iv->vat > 0 ? 0.08 : 0;
                         $input_iv->authorized_fee   = $data[$i]['authorized_collection'] ?? 0;
                         $input_iv->cost_no_vat      = ($data[$i]['total'] - $input_iv->authorized_fee);
-                        if($input_iv->vat_per > 0) $input_iv->cost_no_vat /= 1.08;
+                        if ($input_iv->vat_per > 0) $input_iv->cost_no_vat /= 1.08;
+                        $input_iv->cost             = $input_iv->cost_no_vat + $input_iv->vat;
+                    }
+                    if ($input_iv->supplier == 'PNA') {
+                        $input_iv->vat              = $data[$i]['vat'] ?? 0;
+                        $input_iv->vat_per          = $input_iv->vat > 0 ? 0.08 : 0;
+                        $input_iv->authorized_fee   = $data[$i]['authorized_collection'] ?? 0;
+                        $input_iv->cost_no_vat      = ($data[$i]['total'] - $input_iv->authorized_fee);
+                        if ($input_iv->vat_per > 0) $input_iv->cost_no_vat /= 1.08;
                         $input_iv->cost             = $input_iv->cost_no_vat + $input_iv->vat;
                     }
                 }
@@ -1057,26 +1067,24 @@ class Viewinputinvoice extends SugarView {
                 else {
                     $input_iv->authorized_fee = $data[$i]['authorized_collection'] ?? 0;
 
-                    if($input_iv->supplier == 'HNH') {
+                    if ($input_iv->supplier == 'HNH') {
                         $input_iv->cost_no_vat  = ($data[$i]['total'] - $input_iv->authorized_fee) / 1.08;
                         $input_iv->vat_per      = 0.08;
                         $input_iv->vat          = $input_iv->cost_no_vat * $input_iv->vat_per;
                         $input_iv->cost         = $input_iv->cost_no_vat + $input_iv->vat;
-                    }
-                    else if($input_iv->supplier == 'PNA') {
+                    } else if ($input_iv->supplier == 'PNA') {
                         $input_iv->cost_no_vat  = $data[$i]['ticket_price'] + $data[$i]['other_charge'];
                         $input_iv->vat_per      = 0.08;
                         $input_iv->vat          = $input_iv->cost_no_vat * $input_iv->vat_per;
                         $input_iv->cost         = $input_iv->cost_no_vat + $input_iv->vat;
-                    }
-                    else if($input_iv->supplier == 'VJA') {
+                    } else if ($input_iv->supplier == 'VJA') {
                         $input_iv->cost_no_vat  = $data[$i]['ticket_price'] + $data[$i]['other_charge'];
                         $input_iv->vat_per      = 0.08;
                         $input_iv->vat          = $input_iv->cost_no_vat * $input_iv->vat_per;
                         $input_iv->cost         = $input_iv->cost_no_vat + $input_iv->vat;
                     }
                 }
-            
+
                 // Cột code vé nếu có thì lưu
                 if (isset($data[$i]['ticket_c']) && !empty($data[$i]['ticket_c'])) {
                     $input_iv->ticket_code = $data[$i]['ticket_c'];
@@ -1086,20 +1094,16 @@ class Viewinputinvoice extends SugarView {
                 $input_iv->ticket_type = $input_iv->authorized_fee == 0 ? '' : 'flight';
 
                 $input_iv->save2();
-            }
-            else if ($is_exist) {
+            } else if ($is_exist) {
                 if (!empty($is_exist_err)) $is_exist_err .= ",";
                 $is_exist_err .= $data[$i]['ticket_code'];
-            }
-            else if (empty($data[$i]['booking_id'])) {
+            } else if (empty($data[$i]['booking_id'])) {
                 if (!empty($missing_bk_err)) $missing_bk_err .= ",";
                 $missing_bk_err .= $data[$i]['ticket_code'];
-            }
-            else if ($data[$i]['pass_qty'] == 0) {
+            } else if ($data[$i]['pass_qty'] == 0) {
                 if (!empty($missing_qty_err)) $missing_qty_err .= ",";
                 $missing_qty_err .= $data[$i]['ticket_code'];
-            }
-            else {
+            } else {
                 if (!empty($other_err)) $other_err = ",";
                 $other_err .= $data[$i]['ticket_code'];
             }
@@ -1127,7 +1131,8 @@ class Viewinputinvoice extends SugarView {
     }
 
     // Cập nhật đã xuất hoá đơn đầu vào
-    function markExportInputInvoice($import_data) {
+    function markExportInputInvoice($import_data)
+    {
         global $db, $current_user;
         $booking_id = $import_data['booking_id'];
         if (!empty($booking_id)) {
@@ -1160,7 +1165,8 @@ class Viewinputinvoice extends SugarView {
         }
     }
 
-    function checkIsInternationalTicket($departure, $arrival) {
+    function checkIsInternationalTicket($departure, $arrival)
+    {
         global $app_list_strings;
         if (!in_array($departure, array_keys($app_list_strings['domestic_airport_list'])) || !in_array($arrival, array_keys($app_list_strings['domestic_airport_list']))) {
             return true;
@@ -1168,10 +1174,11 @@ class Viewinputinvoice extends SugarView {
         return false;
     }
 
-    function populateBookingPriceDetail($data_arr, $supplier) {
+    function populateBookingPriceDetail($data_arr, $supplier)
+    {
         global $db;
 
-        if($supplier == 'PNA' || $supplier == 'HNH' || $supplier == 'VJA') {
+        if ($supplier == 'PNA' || $supplier == 'HNH' || $supplier == 'VJA') {
             $ticketCode = trim($data_arr['ticket_code'] ?? '');
 
             $sql = "SELECT p.booking_id
@@ -1186,8 +1193,7 @@ class Viewinputinvoice extends SugarView {
             $res = $this->bean->db->query($sql);
             $row = $this->bean->db->fetchByAssoc($res);
             $data_arr['booking_id'] = $row['booking_id'];
-        }
-        else {
+        } else {
             // Tính sl khách
             // Tuỳ hãng trong hoá đơn sẽ gộp số vé hay không
             // Nghĩa là 1 số vé dùng cho nhiều khách
@@ -1467,7 +1473,8 @@ class Viewinputinvoice extends SugarView {
         return $data_arr;
     }
 
-    function changeAmountFormat($amount) {
+    function changeAmountFormat($amount)
+    {
         // Lọc cột giá tiền, 
         // Đầu tiên, bỏ các dấu phân cách
         // Sau đó, giá < 1000 -> giá * 1000 
@@ -1488,7 +1495,8 @@ class Viewinputinvoice extends SugarView {
      * @param string $type File type (default: xls)
      * @return string Uploaded file name
      */
-    protected function sys_uploads($folder, $file, $type = 'xls') {
+    protected function sys_uploads($folder, $file, $type = 'xls')
+    {
         $size = 50000000;
         $upload_file = "";
 
@@ -1523,11 +1531,12 @@ class Viewinputinvoice extends SugarView {
      * @param string $itinerary
      * @return bool
      */
-    public function checkInter($itinerary) {
-        if(!empty($itinerary) && strpos($itinerary, '-') !== false) {
+    public function checkInter($itinerary)
+    {
+        if (!empty($itinerary) && strpos($itinerary, '-') !== false) {
             $arr = explode('-', $itinerary);
-            foreach($arr as $i) {
-                if(Flight::isInterLocation($i)) return true;
+            foreach ($arr as $i) {
+                if (Flight::isInterLocation($i)) return true;
             }
         }
         return false;
