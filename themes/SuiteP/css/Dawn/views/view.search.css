@@ -1,13 +1,16 @@
-#search_form {
-    display: none;
-}
 
-.search-open #search_form {
-    display: block;
-}
-
-.search-open #search_form select {
-    visibility: hidden;
+@media screen and (min-width: 768px){
+    #search_form {
+        display: none;
+    }
+    
+    .search-open #search_form {
+        display: block;
+    }
+    
+    .search-open #search_form select {
+        visibility: hidden;
+    }
 }
 
 #search_form label {

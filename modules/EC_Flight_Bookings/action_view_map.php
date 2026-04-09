@@ -12,7 +12,6 @@ $action_view_map['checkflydate']        = 'checkflydate';
 $action_view_map['checksms']            = 'checksms';
 $action_view_map['debtopay']            = 'debtopay';
 $action_view_map['sendconfirm']         = 'sendconfirm';
-$action_view_map['addbonus']            = 'addbonus';
 $action_view_map['recoveryorder']       = 'recoveryorder';
 $action_view_map['airportstatistics']   = 'airportstatistics';
 $action_view_map['bksalereport']        = 'bksalereport';

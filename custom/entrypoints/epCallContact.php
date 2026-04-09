@@ -364,8 +364,9 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             $bean_note->assigned_user_id    = $current_user->id;
                             $bean_note->save();
 
-                            // Update status and assigned
-                            if ((string)$type_call === 'called') {
+                            $bk = new EC_Flight_Bookings();
+                            $bk->retrieve($booking_id);
+                            if ((string)$type_call === 'called' && (int)$bk->booking_status === 1) {
                                 $sql_update = 'UPDATE ec_flight_bookings
                                         SET booking_status = "6", assigned_user_id = "' . $current_user->id . '"
                                         WHERE id = "' . $booking_id . '" AND deleted = 0';
@@ -477,9 +478,6 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     }
                 } else if (!empty($booking_id)) {
-                    /**
-                     * @var EC_Flight_Bookings $booking
-                     */
                     $booking = new EC_Flight_Bookings();
                     $booking->retrieve($booking_id);
                     if (!empty($booking->id) && strtoupper(trim($booking->contact_name)) == 'THAM KHAO' && $booking->total_amount == 0) {
@@ -549,7 +547,14 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         $call_name      = isset($_POST['call_name']) ? global_test_input($_POST['call_name']) : "";
         $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
         $booking_name   = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
+        $force = isset($_POST['force']) ? (int)$_POST['force'] : 0;
 
+        /**
+         * 0 — call not found
+         * 1 — success
+         * 2 — description empty
+         * 3 — call already linked, force=0 (frontend should show confirm)
+         */
         if (empty($call_name) || empty($booking_id)) {
             echo 0;
             exit();
@@ -557,12 +562,18 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 
         global $db, $current_user;
 
-        $sql = 'SELECT id
-                FROM calls cal
-                WHERE cal.name = "' . trim($call_name) . '"
-                    AND (cal.booking_id IS NULL OR cal.booking_id = "")
-                    AND cal.deleted = 0';
-        $call_id = $db->getOne($sql);
+        $sql_find = 'SELECT id FROM calls WHERE name = "' . trim($call_name) . '" AND deleted = 0';
+        $call_id  = $db->getOne($sql_find);
+
+        // If found but already linked, return 3 unless force=1
+        if (!empty($call_id) && $force === 0) {
+            $sql_check = 'SELECT booking_id FROM calls WHERE id = "' . $call_id . '" AND deleted = 0';
+            $existing_booking = $db->getOne($sql_check);
+            if (!empty($existing_booking)) {
+                echo 3;
+                exit();
+            }
+        }
 
         if (!empty($call_id)) {
             $cal = new Call();
@@ -665,6 +676,44 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         echo 0;
+        exit();
+    } else if ((string)$type === "search_calls_by_phone") {
+        $phone = isset($_POST['phone']) ? global_test_input(trim($_POST['phone'])) : "";
+
+        if (empty($phone)) {
+            echo json_encode([]);
+            exit();
+        }
+
+        global $db;
+
+        $sql = 'SELECT
+                    c.name,
+                    c.date_start,
+                    c.direction,
+                    c.booking_id,
+                    bk.name AS booking_name_linked
+                FROM calls c
+                LEFT JOIN ec_flight_bookings bk ON bk.id = c.booking_id AND bk.deleted = 0
+                WHERE c.call_from = ' . $db->quote(trim($phone)) . '
+                AND c.direction = "inbound"
+                AND c.deleted = 0
+                ORDER BY c.date_entered DESC
+                LIMIT 10';
+
+        $res   = $db->query($sql);
+        $calls = [];
+        while ($row = $db->fetchByAssoc($res)) {
+            $calls[] = [
+                'name'                => $row['name'],
+                'date_start'          => $row['date_start'],
+                'direction'           => $row['direction'],
+                'booking_id'          => $row['booking_id'],
+                'booking_name_linked' => $row['booking_name_linked'],
+            ];
+        }
+
+        echo json_encode($calls, JSON_UNESCAPED_UNICODE);
         exit();
     } else if ((string)$type === 'save_log_call') {
         $log_call = isset($_POST['log']) ? $_POST['log'] : '';

@@ -49,3 +49,6 @@ vendor
 # Ignore local system
 .vscode
 .DS_Store
+
+# Ignore file md
+CLAUDE.md

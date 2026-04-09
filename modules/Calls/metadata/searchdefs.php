@@ -148,6 +148,22 @@ $searchdefs['Calls'] = array(
 				'default' => true,
 				'width' => '10%',
 			),
+			'assigned_user_id' =>
+            array(
+                'name' => 'assigned_user_id',
+                'type' => 'enum',
+                'label' => 'LBL_ASSIGNED_TO',
+                'function' =>
+                array(
+                    'name' => 'UsersHelper::get_user_array_search',
+                    'params' =>
+                    array(
+                        0 => false,
+                    ),
+                ),
+                'default' => true,
+                'width' => '10%',
+            ),
 			'current_user_only' => array(
 				'name' => 'current_user_only',
 				'label' => 'LBL_CURRENT_USER_FILTER',
