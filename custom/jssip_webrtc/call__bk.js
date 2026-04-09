@@ -15,8 +15,7 @@ const TITLE_PAGE = document.getElementsByTagName("title")[0].innerHTML;
 var ua_status = '';
 var callLog = [];
 var ua;
-var sessions = {};      // { call_id: JsSIP.RTCSession } – tất cả session đang pending/active
-var activeSession = null; // session hiện tại đang mở trong popup
+var session;
 var configuration = {
     'uri': SIP_URI,
     'password': SIP_PASSWORD,
@@ -49,9 +48,11 @@ var eventHandlers = {
         }
     },
     'ended': function (e) {
+        // console.warn('call ended with cause:  ' + e.cause + ' ');
         call_flow += 'Call ended with cause: ' + e.cause + ' ';
     },
     'confirmed': function (e) {
+        // console.warn('call confirmed');
         call_flow += 'Call confirmed. ';
     }
 };
@@ -109,13 +110,16 @@ ua.on('registrationFailed', function (ev) {
     ua_status = 'registrationFailed';
 });
 ua.on('connecting', function (ev) {
+    // console.warn('Connecting');
     ua_status = 'Connecting';
 });
 ua.on('connected', function (ev) {
+    // console.warn('Connected');
     showConnect(true);
     ua_status = 'Connected';
 });
 ua.on('disconnected', function (ev) {
+    // console.warn('Disconnected');
     showConnect(false);
     ua_status = 'disconnected';
 });
@@ -124,7 +128,7 @@ ua.on('disconnected', function (ev) {
 setInterval(check_online_for_call, 90000);
 function check_online_for_call() {
     // On calling not check online
-    if (Object.keys(sessions).length > 0) return;
+    if (session) return;
 
     if (configuration.uri && configuration.password) {
         if (AGENT_STATUS == 'Available') {
@@ -143,182 +147,21 @@ function check_online_for_call() {
 }
 
 ua.on('newRTCSession', function (ev) {
-    var thisSession = ev.session;
 
-    console.warn(thisSession);
-
-    /************  HANDLE INBOUND CALL  ************/
-    if (thisSession.direction === "incoming") {
-        let INVITE = thisSession._request.data;
-        let call_id = extract_call_id(INVITE);
-        let phone = thisSession._request.from._uri._user.length < 12 ? thisSession._request.from._uri._user : '';
-        let zalo_id = thisSession._request.from._uri._user.length > 18 ? thisSession._request.from._uri._user : '';
-
-        console.warn('thisSession direction incoming: ' + call_id + ' - ' + phone + ' - ' + zalo_id);
-
-        // SPAM
-        if (isSpamPhoneNumber(phone)) {
-            thisSession.terminate();
-            return;
+    // When the previous call is existing
+    if (session) {
+        if (ev.session.direction === "incoming") {
+            ev.session.terminate(); // End the call to forward
+            ev.session = null;
         }
-
-        // Lưu session vào map theo call_id – cho phép nhiều cuộc gọi đến cùng lúc
-        sessions[call_id] = thisSession;
-
-        // Ringtone
+        incomingCallAudio.autoplay = false;
         incomingCallAudio.pause();
-        incomingCallAudio.currentTime = 0;
-        incomingCallAudio.muted = false;
-        incomingCallAudio.autoplay = true;
-
-        sendNotification(phone);
-
-        setTimeout(() => {
-            incomingCallAudio.play().catch(error => console.warn("Không thể tự động phát âm thanh:", error));
-        }, 100);
-
-        $(document).prop('title', 'Có cuộc gọi đến...');
-        extract_hotline(INVITE).then(hotline => {
-            showToastCall('incoming__call', call_id, zalo_id, phone, hotline);
-        });
-
-        $('#template-notes').html(`
-            <option value="">--Trống--</option>
-            <option value="in_price">Hỏi giá vé máy bay</option>
-            <option value="in_consultant">Cần tư vấn thông tin</option>
-            <option value="in_mistake">Nhầm đại lý khác</option>
-            <option value="in_telesale_recall">Telephone sale gọi lại</option>
-            <option value="in_complaint_delay">Khách phàn nàn, khó chịu</option>
-            <option value="in_other">Trường hợp khác</option>
-        `);
-
-        // Nghe máy (accepted = sau khi agent nhấn chấp nhận)
-        thisSession.on("accepted", function () {
-            console.warn('thisSession accepted inbound');
-
-            incomingCallAudio.autoplay = false;
-            incomingCallAudio.pause();
-            $(document).prop('title', 'Đang gọi...');
-        });
-
-        // Confirmed – cuộc gọi được thiết lập hoàn toàn
-        thisSession.on("confirmed", function () {
-            console.warn('thisSession confirmed inbound');
-
-            if (activeSession !== thisSession) return;
-
-            $(document).prop('title', 'Đang gọi...');
-            closeNotification();
-            handleButtons('processing');
-            startTimer();
-
-            $(document).on('click', '.calc-number', function () {
-                let dtml_value = $("#display_dtmf").html().trim();
-                let value_dtmf = $(this).attr('dtmf');
-                dtml_value += value_dtmf;
-                $("#display_dtmf").html(dtml_value);
-                if (value_dtmf.length > 0 && activeSession) {
-                    activeSession.sendDTMF(value_dtmf, { 'duration': 160, 'interToneGap': 1200 });
-                }
-            });
-
-            $('#clear_dtmf').on('click', function () {
-                let cur_dtml_value = $("#display_dtmf").html().trim();
-                if (cur_dtml_value.length > 0) {
-                    cur_dtml_value = cur_dtml_value.slice(0, -1);
-                    $('#display_dtmf').html(cur_dtml_value);
-                }
-            });
-        });
-
-        // Ended – cuộc gọi đến đã kết thúc (sau khi kết nối)
-        thisSession.on("ended", function () {
-            delete sessions[call_id];
-            console.warn('thisSession ended inbound');
-
-            var hasRinging = Object.values(sessions).some(function (s) { return s.direction === 'incoming' && !s.isEstablished(); });
-            if (!hasRinging) {
-                incomingCallAudio.autoplay = false;
-                incomingCallAudio.pause();
-            }
-
-            if (activeSession === thisSession) {
-                activeSession = null;
-                $(document).prop('title', TITLE_PAGE);
-                closeNotification();
-                stopTimer();
-                handleButtons('completed');
-                $('.voiceip-content__client').slideDown();
-                $('.calc-dtmf__wrap').slideUp();
-                $(".voiceip-modal-transfer").hide();
-            } else {
-                $(`.toast__main[type="incoming__call"][call_id="${call_id}"]`).parent().remove();
-                if (Object.keys(sessions).length === 0) {
-                    $(document).prop('title', TITLE_PAGE);
-                }
-            }
-
-            logCallEvent(thisSession, SIP_USER, ua_status, call_flow);
-            saveCallLog();
-            call_flow = '';
-        });
-
-        // Failed – cuộc gọi đến kết thúc TRƯỚC khi kết nối (nhỡ, từ chối...)
-        thisSession.on("failed", function () {
-            console.warn('thisSession failed inbound');
-
-            delete sessions[call_id];
-            var hasRinging = Object.values(sessions).some(function (s) { return s.direction === 'incoming' && !s.isEstablished(); });
-            if (!hasRinging) {
-                incomingCallAudio.autoplay = false;
-                incomingCallAudio.pause();
-            }
-
-            if (activeSession === thisSession) {
-                activeSession = null;
-                stopTimer();
-                handleButtons('completed');
-                togglePopupCall(false);
-            }
-
-            if (Object.keys(sessions).length === 0) {
-                $(document).prop('title', TITLE_PAGE);
-            }
-
-            setTimeout(function () {
-                $.ajax({
-                    url: "index.php?entryPoint=entryPointCallContact",
-                    data: { type: "check_missed_call", call_id: call_id },
-                    type: "POST",
-                    cache: false,
-                    success: function (response) {
-                        $(`.toast__main[type="incoming__call"][call_id="${call_id}"]`).parent().remove();
-                        if (response == 1) {
-                            extract_hotline(INVITE).then(hotline => {
-                                showToastCall('missed__call', call_id, zalo_id, phone, hotline);
-                            });
-                        }
-                    }
-                });
-            }, 1000);
-
-            logCallEvent(thisSession, SIP_USER, ua_status, '');
-            saveCallLog();
-            call_flow = '';
-        });
-
         return;
     }
+    session = ev.session;
 
     /************  HANDLE OUTBOUND CALL  ************/
-    // Outgoing: set activeSession ngay lập tức
-    activeSession = thisSession;
-    var outCallId = thisSession._request.call_id;
-    sessions[outCallId] = thisSession;
-
-    thisSession.on("confirmed", function () {
-        console.warn('thisSession confirmed outbound');
-
+    session.on("confirmed", function () {
         $(document).prop('title', 'Đang gọi...');
 
         // Close notification
@@ -345,6 +188,7 @@ ua.on('newRTCSession', function (ev) {
         handleButtons('processing');
         startTimer();
 
+        // session.sendDTMF(4);
         $(document).on('click', '.calc-number', function () {
             let dtml_value = $("#display_dtmf").html().trim();
             let value_dtmf = $(this).attr('dtmf');
@@ -352,8 +196,14 @@ ua.on('newRTCSession', function (ev) {
             dtml_value += value_dtmf;
             $("#display_dtmf").html(dtml_value);
 
-            if (value_dtmf.length > 0 && activeSession) {
-                activeSession.sendDTMF(value_dtmf, { 'duration': 160, 'interToneGap': 1200 });
+            if (value_dtmf.length > 0) {
+                if (session) {
+                    let options = {
+                        'duration': 160,
+                        'interToneGap': 1200,
+                    };
+                    session.sendDTMF(value_dtmf, options);
+                }
             }
         });
 
@@ -364,46 +214,172 @@ ua.on('newRTCSession', function (ev) {
                 $('#display_dtmf').html(cur_dtml_value);
             }
         });
+
+        // UDPATE TƯƠNG TÁC KHI CUỘC GỌI ĐANG DIỄN RA
+        setInterval(function () {
+            const currentTime = new Date(new Date().toString().split('GMT')[0] + ' UTC').toISOString().split('.')[0].replace('T', ' ');
+            $.ajax({
+                url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
+                type: "POST",
+                cache: false,
+                data: {
+                    time: currentTime,
+                    for: "saveLastClickUser",
+                },
+                success: function (response) { }
+            });
+        }, 90000);
     });
 
-    /************  HANDLE ENDED (outgoing)  ************/
-    thisSession.on("ended", function () {
-        console.warn('thisSession ended outbound');
+    /************  HANDLE INBOUND CALL  ************/
+    if (session.direction === "incoming") {
+        incomingCallAudio.pause();
+        incomingCallAudio.currentTime = 0;
+        incomingCallAudio.muted = false;  // Không mute từ đầu
+        incomingCallAudio.autoplay = true;
 
-        delete sessions[outCallId];
-        if (activeSession === thisSession) activeSession = null;
+        // Get data
+        let INVITE = session._request.data;
+        let call_id = extract_call_id(INVITE);
+        let phone = session._request.from._uri._user.length < 12 ? session._request.from._uri._user : '';
+        let zalo_id = session._request.from._uri._user.length > 18 ? session._request.from._uri._user : '';
+
+        // Push nofitication 
+        sendNotification(phone);
+
+        // SPAM
+        if (isSpamPhoneNumber(phone)) {
+            session.terminate();
+            return;
+        }
+
+        setTimeout(() => {
+            incomingCallAudio.play().catch(error => console.warn("Không thể tự động phát âm thanh:", error));
+        }, 100);
+
+        $(document).prop('title', 'Có cuộc gọi đến...');
+        extract_hotline(INVITE).then(hotline => {
+            showToastCall('incoming__call', call_id, zalo_id, phone, hotline);
+        });
+
+        // ADD template-notes CHO cuộc gọi đến
+        // $('#template-notes').html(`
+        //     <option value="">--Trống--</option>
+        //     <option value="in_journey">Khách hỏi hành trình</option>
+        //     <option value="in_ticket_hunt">Nhu cầu săn vé máy bay</option>
+        //     <option value="in_group_booking">Đặt vé đoàn nhiều người</option>
+        //     <option value="in_complaint_delay">Phàn nàn sự cố delay</option>
+        //     <option value="in_invoice_contact">Liên hệ kế toán hóa đơn</option>
+        //     <option value="in_mistake">Nhầm lẫn, Lý Thông linh tinh</option>
+        //     <option value="in_no_need">Khách chưa có nhu cầu</option>
+        //     <option value="in_other">Khác, chưa định nghĩa</option>
+        // `)
+        $('#template-notes').html(`
+            <option value="">--Trống--</option>
+            <option value="in_price">Hỏi giá vé máy bay</option>
+            <option value="in_consultant">Cần tư vấn thông tin</option>
+            <option value="in_mistake">Nhầm đại lý khác</option>
+            <option value="in_telesale_recall">Telephone sale gọi lại</option>
+            <option value="in_complaint_delay">Khách phàn nàn, khó chịu</option>
+            <option value="in_other">Trường hợp khác</option>
+        `)
+
+        // Nghe máy
+        session.on("accepted", function () {
+            incomingCallAudio.autoplay = false;
+            incomingCallAudio.pause();
+            $(document).prop('title', 'Đang gọi...');
+        });
+    }
+
+    /************  HANDLE ENDED  ************/
+    // Kết thúc khi ĐÃ kết nối
+    session.on("ended", function () {
         incomingCallAudio.autoplay = false;
         incomingCallAudio.pause();
         $(document).prop('title', TITLE_PAGE);
+
+        // Close notification
         closeNotification();
+
         stopTimer();
         handleButtons('completed');
+
         $('.voiceip-content__client').slideDown();
         $('.calc-dtmf__wrap').slideUp();
         $(".voiceip-modal-transfer").hide();
-        logCallEvent(thisSession, SIP_USER, ua_status, call_flow);
+
+        // SAVE LOG
+        logCallEvent(session, SIP_USER, ua_status, call_flow);
         saveCallLog();
         call_flow = '';
+        session = null;
     });
 
-    /************  HANDLE FAILED (outgoing)  ************/
-    thisSession.on("failed", function () {
-        console.warn('thisSession failed outbound');
-
-        delete sessions[outCallId];
-        if (activeSession === thisSession) activeSession = null;
+    /************  HANDLE FAILED  ************/
+    // Kết thúc khi CHƯA kết nối
+    session.on("failed", function (e) {
         incomingCallAudio.autoplay = false;
         incomingCallAudio.pause();
-        stopTimer();
-        handleButtons('completed');
+
+        if (session.direction === "incoming") {
+            let INVITE = session._request.data;
+            let call_id = extract_call_id(INVITE);
+            let phone = session._request.from._uri._user.length < 12 ? session._request.from._uri._user : '';
+            let zalo_id = session._request.from._uri._user.length > 18 ? session._request.from._uri._user : '';
+
+            setTimeout(function () {
+                $.ajax({
+                    url: "index.php?entryPoint=entryPointCallContact",
+                    data: {
+                        type: "check_missed_call",
+                        call_id: call_id
+                    },
+                    type: "POST",
+                    cache: false,
+                    success: function (response) {
+                        $('#popup-voiceip').removeClass('show');
+                        $('#popup__voiceip--wrap').removeClass('show');
+
+                        $('#call-overlay').removeClass('opened');
+                        $(`.toast__main[type="incoming__call"][call_id="${call_id}"]`).parent().remove();
+
+                        if (response == 1) {
+                            extract_hotline(INVITE).then(hotline => {
+                                showToastCall('missed__call', call_id, zalo_id, phone, hotline);
+                            });
+                        }
+                    }
+                });
+            }, 1000);
+        } else if (session.direction === "outgoing") {
+            stopTimer();
+            handleButtons('completed');
+        }
+
         $(document).prop('title', TITLE_PAGE);
-        logCallEvent(thisSession, SIP_USER, ua_status, '');
+
+        // SAVE LOG
+        logCallEvent(session, SIP_USER, ua_status, '');
         saveCallLog();
         call_flow = '';
+        session = null;
     });
 
     /************ OUTGOING CALL SOUND ************/
-    if (thisSession._connection && thisSession.direction === "outgoing") {
+    if (session._connection && session.direction === "outgoing") {
+        // ADD template-notes CHO cuộc gọi ĐI
+        // $('#template-notes').html(`
+        //     <option value="">--Trống--</option>
+        //     <option value="out_no_need">Khách chưa có nhu cầu</option>
+        //     <option value="out_question_ticket">Khách hỏi vé</option>
+        //     <option value="out_interest">Đang quan tâm sơ bộ</option>
+        //     <option value="out_no_response">Không nghe máy</option>
+        //     <option value="out_no_uncomfortable">Khách khó chịu, không hài lòng, cảm thấy phiền...</option>
+        //     <option value="out_no_subscriber_unreachable">Số thuê bao, không liên lạc được</option>
+        //     <option value="out_remind">Nhắc ngày bay</option>
+        //     <option value="out_other">Khác</option>
+        // `)
         $('#template-notes').html(`
             <option value="">--Trống--</option>
             <option value="out_price">Hỏi giá vé máy bay</option>
@@ -413,36 +389,42 @@ ua.on('newRTCSession', function (ev) {
             <option value="out_no_subscriber_unreachable">Số thuê bao, không liên lạc</option>
             <option value="out_no_response">Không nghe máy, chưa nghe</option>
             <option value="out_other">Trường hợp khác</option>
-        `);
+        `)
 
-        if (thisSession._connection.addEventListener) {
-            thisSession._connection.addEventListener('track', (e) => {
+        if (session._connection.addEventListener) {
+            session._connection.addEventListener('track', (e) => {
                 if (e.streams && e.streams[0]) {
                     audio_jssip.srcObject = e.streams[0];
-                } else {
+                }
+                else {
                     let stream = new MediaStream(e.track);
                     audio_jssip.srcObject = stream;
                     stream.addTrack(e.track);
                     alert("Lỗi âm thanh cuộc gọi");
                 }
+
+                // Đặt `muted = true` trước khi play để bypass chính sách autoplay của trình duyệt
                 audio_jssip.muted = true;
                 audio_jssip.play().then(() => {
-                    audio_jssip.muted = false;
+                    audio_jssip.muted = false; // Sau khi phát, bật lại âm thanh
                 }).catch(error => console.warn("Không thể tự động phát âm thanh:", error));
             });
         } else {
-            thisSession._connection.ontrack = (e) => {
+            session._connection.ontrack = (e) => {
                 if (e.streams && e.streams[0]) {
                     audio_jssip.srcObject = e.streams[0];
-                } else {
+                }
+                else {
                     let stream = new MediaStream(e.track);
                     audio_jssip.srcObject = stream;
                     stream.addTrack(e.track);
                     alert("Lỗi âm thanh cuộc gọi");
                 }
+
+                // Đặt `muted = true` trước khi play để bypass chính sách autoplay của trình duyệt
                 audio_jssip.muted = true;
                 audio_jssip.play().then(() => {
-                    audio_jssip.muted = false;
+                    audio_jssip.muted = false; // Sau khi phát, bật lại âm thanh
                 }).catch(error => console.warn("Không thể tự động phát âm thanh:", error));
             };
         }
@@ -505,7 +487,7 @@ $(document).ready(function () {
         // Gọi bằng numpad
         if (id == 'btn-voiceip-main-calling' || id == 'btn-voiceip-main-zalo') {
             phone = $('#call_voiceip_main_number').val().trim();
-        } else if (['btnCalled', 'btnRecall', 'btnRemind'].includes(id)) {
+        } else if (['btnCalled','btnRecall','btnRemind'].includes(id)) {
             phone = $(this).attr('phone');
             booking_id = $(this).attr('booking_id');
             booking_name = $(this).attr('booking_name');
@@ -553,7 +535,7 @@ $(document).ready(function () {
                         let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
 
                         let activity_contact = (data?.info_booking || '') + (data?.info_refund_ticket || '') + (data?.info_call || '');
-
+                        
                         $('#popup-inforbooking').html(activity_contact);
                         $('input[name="voiceip-contact-id"]').val(contact_id);
 
@@ -564,7 +546,7 @@ $(document).ready(function () {
                             $('#voiceip-email').val(email);
                         }
                         $('#voiceip-info-phone').html(phone);
-                        $('#voiceip-phone').val(phone || zaloid);
+                        $('#voiceip-phone').val(phone);
                         $('#voiceip-phone').prop('readonly', true);
 
                         if (zaloid && zaloid.length > 0) {
@@ -582,7 +564,7 @@ $(document).ready(function () {
                                 $sel.val('').trigger('change');
                             }
                         }, 500);
-
+                        
                         if (is_uncomfortable) {
                             $('#is_uncomfortable').prop('checked', is_uncomfortable);
                             $('#notes-uncomfortable').html('Chú ý: Khách khó tính, khó chịu, khó ở, khó chiều.');
@@ -598,7 +580,7 @@ $(document).ready(function () {
                         }
 
                         let phone_call = phone;
-                        if (is_call_direction_zalo && zaloid && zaloid.length > 0 && is_call_zalo) {
+                        if(is_call_direction_zalo && zaloid && zaloid.length > 0 && is_call_zalo){
                             phone_call = zaloid;
                         }
 
@@ -616,8 +598,10 @@ $(document).ready(function () {
                     if (id === undefined || id.length == '') $(`.toast__main[type="missed__call"][call_id="${call_id}"]`).parent().remove();
                     $('.voiceip-header__title').html('Đang gọi...');
                     $('.voiceip-timer').hide();
-                    if (activeSession) $('#popup-voiceip').attr('call_id', activeSession._request.call_id); // New call id
-                    togglePopupCall(true);
+                    $('#popup-voiceip').attr('call_id', session._request.call_id); // New call id
+                    $('#popup-voiceip').addClass('show');
+                    $('#popup__voiceip--wrap').addClass('show');
+                    $('#call-overlay').addClass('opened');
                     return true;
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -644,9 +628,9 @@ $(document).ready(function () {
         }
 
         if (e.key === "Escape") {
-            if (activeSession) {
-                activeSession.terminate();
-                activeSession = null;
+            if (session) {
+                session.terminate();
+                session = null;
             }
             handleButtons('completed');
         }
@@ -654,15 +638,15 @@ $(document).ready(function () {
 
     // Nút nghe máy
     $(document).on('click', '.voiceip-accept', function () {
-        if (!activeSession) return;
-        activeSession.answer(callOptions);
-        if (activeSession._connection.addEventListener) {
-            activeSession._connection.addEventListener('track', (e) => {
+        session.answer(callOptions);
+        if (session._connection.addEventListener) {
+            session._connection.addEventListener('track', (e) => {
                 audio_jssip.srcObject = e.streams[0];
                 audio_jssip.play();
             });
-        } else {
-            activeSession._connection.ontrack = (e) => {
+        }
+        else {
+            session._connection.ontrack = (e) => {
                 audio_jssip.srcObject = e.streams[0];
                 audio_jssip.play();
             };
@@ -671,11 +655,12 @@ $(document).ready(function () {
 
     // Nút từ chối - Nút gác máy
     $(document).on('click', '.voiceip-end', function () {
-        if (activeSession) {
-            logCallEvent(activeSession, SIP_USER, ua_status, '(voiceip-end)');
+        if (session) {
+            logCallEvent(session, SIP_USER, ua_status, '(voiceip-end)');
             saveCallLog();
-            activeSession.terminate();
-            activeSession = null;
+
+            session.terminate();
+            session = null;
         }
         handleButtons('completed');
     });
@@ -783,8 +768,8 @@ $(document).ready(function () {
                 type_call_booking: type_call_booking,
                 journey_id: journey_id,
                 is_send_zbs_after_cal: checkboxZBS.checked ? 1 : 0,
-                data_zbs_after_call_code: codeZBS,
-                data_zbs_after_call_datetime: datetimeZBS,
+                data_zbs_after_call_code :codeZBS,
+                data_zbs_after_call_datetime :datetimeZBS,
             },
             dataType: 'json',
             cache: false,
@@ -796,8 +781,9 @@ $(document).ready(function () {
 
                 if ('status' in response && response.status == 1) {
                     $(".voiceip-update").css("pointer-events", "");
-                    togglePopupCall(false);
-
+                    $('#popup-voiceip').removeClass('show');
+                    $('#popup__voiceip--wrap').removeClass('show');
+                    $('#call-overlay').removeClass('opened');
                     showModalNotify('success', 'Cập nhật thông tin thành công.');
                     if (booking_id.length > 0) $('.btn-modal-close').addClass('reload');
                 }
@@ -826,24 +812,26 @@ $(document).ready(function () {
 
     // Nút tắt âm
     $(document).on('click', '.voiceip-mute', function () {
-        if (!activeSession || activeSession.isMuted().audio) return;
-        activeSession.mute({ audio: true });
-        $(this).addClass('voiceip-unmute');
-        $(this).removeClass('voiceip-mute');
-        $(this).find('.i-mute').hide();
-        $(this).find('.i-unmute').show();
-        $(this).find('.voiceip-button__desc').text("Mở âm");
+        if (!session.isMuted().audio) {
+            session.mute({ audio: true });
+            $(this).addClass('voiceip-unmute');
+            $(this).removeClass('voiceip-mute');
+            $(this).find('.i-mute').hide();
+            $(this).find('.i-unmute').show();
+            $(this).find('.voiceip-button__desc').text("Mở âm");
+        }
     });
 
     // Nút mở âm
     $(document).on('click', '.voiceip-unmute', function () {
-        if (!activeSession || !activeSession.isMuted().audio) return;
-        activeSession.unmute({ audio: true });
-        $(this).addClass('voiceip-mute');
-        $(this).removeClass('voiceip-unmute');
-        $(this).find('.i-mute').show();
-        $(this).find('.i-unmute').hide();
-        $(this).find('.voiceip-button__desc').text("Tắt âm");
+        if (session.isMuted().audio) {
+            session.unmute({ audio: true });
+            $(this).addClass('voiceip-mute');
+            $(this).removeClass('voiceip-unmute');
+            $(this).find('.i-mute').show();
+            $(this).find('.i-unmute').hide();
+            $(this).find('.voiceip-button__desc').text("Tắt âm");
+        }
     });
 
     $(document).on('click', '.load-data__transfer', function (event) {
@@ -905,7 +893,7 @@ $(document).ready(function () {
             return false;
         }
 
-        if (activeSession) activeSession.refer(phone_transfer);
+        session.refer(phone_transfer)
     });
 
     // Nút Bàn phím dtmf
@@ -917,11 +905,6 @@ $(document).ready(function () {
             $('.voiceip-content__client').slideDown();
             $('.calc-dtmf__wrap').slideUp();
         }
-    });
-
-    // Nút đóng popup
-    $(document).on('click', '.voiceip-close', function (event) {
-        togglePopupCall(false);
     });
 
     // Stop and unregister ua when reload
@@ -980,16 +963,12 @@ $(document).ready(function () {
                         $('input[name="voiceip-contact-id"]').val(contact_id);
 
                         $('#voiceip-info-name').html(name);
-                        $('#voiceip-name').val(name);
-
                         $('#voiceip-info-phone').html(phone);
-                        $('#voiceip-phone').val(phone || zaloid);
 
                         if (zaloid.length > 0) {
                             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zaloid}`);
                             $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
                             $('#voiceip-info-zaloid').html(zaloid);
-                            $('#voiceip-zalo-id').val(zaloid);
                             display_avatar_zalo(avatar);
                         }
 
@@ -1015,13 +994,12 @@ $(document).ready(function () {
                         }
                     }
 
-                    // Gán activeSession để các nút nghe/gác hoạt động đúng call này
-                    activeSession = sessions[call_id] || null;
                     handleButtons('incomming');
                     $('#popup-voiceip .voiceip-header__title').html(switchboard);
                     $('#popup-voiceip').attr('call_id', call_id);
-
-                    togglePopupCall(true);
+                    $('#popup__voiceip--wrap').addClass('show');
+                    $('#popup-voiceip').addClass('show');
+                    $('#call-overlay').addClass('opened');
                 }
             });
 
@@ -1033,7 +1011,6 @@ $(document).ready(function () {
     $(document).on('click', '.voiceip-viewbooking', function () {
         $("#popup-inforbooking").toggle("slide");
     });
-
 });
 
 // CALL LOG ===============================
@@ -1160,15 +1137,10 @@ window.addEventListener('load', () => {
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', function (event) {
         if (event.data.type === 'ACCEPT_CALL') {
-            // Tìm session incoming đang chờ (chưa kết nối)
-            var swSession = Object.values(sessions).find(function (s) { return s.direction === 'incoming' && !s.isEstablished(); });
-            if (!swSession) return;
-            activeSession = swSession;
-
-            let INVITE = swSession._request.data;
+            let INVITE = session._request.data;
             let call_id = extract_call_id(INVITE);
-            let call_from = swSession._request.from._uri._user.length < 12 ? swSession._request.from._uri._user : '';
-            let zalo_id = swSession._request.from._uri._user.length > 18 ? swSession._request.from._uri._user : '';
+            let call_from = session._request.from._uri._user.length < 12 ? session._request.from._uri._user : '';
+            let zalo_id = session._request.from._uri._user.length > 18 ? session._request.from._uri._user : '';
 
             resetPopupVoiceip();
             $.ajax({
@@ -1199,7 +1171,7 @@ if ('serviceWorker' in navigator) {
                         $('#voiceip-name').val(name);
 
                         $('#voiceip-info-phone').html(phone);
-                        $('#voiceip-phone').val(phone || zaloid);
+                        $('#voiceip-phone').val(phone);
                         $('#voiceip-phone').prop('readonly', true);
 
                         if (zaloid.length > 0) {
@@ -1224,32 +1196,36 @@ if ('serviceWorker' in navigator) {
 
                     handleButtons('processing');
                     $('#popup-voiceip').attr('call_id', call_id); // New call id
-                    togglePopupCall(true);
-
+                    $('#popup__voiceip--wrap').addClass('show');
+                    $('#popup-voiceip').addClass('show');
+                    $('#call-overlay').addClass('opened');
                     $("#" + event.data.id).remove();
                 }
             });
 
-            swSession.answer(callOptions);
-            if (swSession._connection.addEventListener) {
-                swSession._connection.addEventListener('track', (e) => {
+            session.answer(callOptions);
+            if (session._connection.addEventListener) {
+                session._connection.addEventListener('track', (e) => {
                     audio_jssip.srcObject = e.streams[0];
                     audio_jssip.play();
                 });
-            } else {
-                swSession._connection.ontrack = (e) => {
+            }
+            else {
+                session._connection.ontrack = (e) => {
                     audio_jssip.srcObject = e.streams[0];
                     audio_jssip.play();
                 };
             }
         } else if (event.data.type === 'REJECT_CALL') {
-            if (activeSession) {
-                activeSession.terminate();
-                activeSession = null;
+            if (session) {
+                session.terminate();
+                session = null;
+
                 incomingCallAudio.autoplay = false;
                 incomingCallAudio.pause();
+                return;
             } else {
-                console.warn('session not exist');
+                console.warn('session not exist')
             }
         }
     });
@@ -1268,8 +1244,8 @@ function toast({ call_id = "", zalo_id = "", phone = "", type = "", hotline = ""
     if (zalo_id.length > 0) {
         if (type == "incoming__call")
             call_from_display = `<span style="position:absolute; left:21px; top:60%; transform:translateY(-60%); z-index:10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="23" height="23" viewBox="0 0 48 48"> <path fill="#2962ff" d="M15,36V6.827l-1.211-0.811C8.64,8.083,5,13.112,5,19v10c0,7.732,6.268,14,14,14h10	c4.722,0,8.883-2.348,11.417-5.931V36H15z"></path><path fill="#eee" d="M29,5H19c-1.845,0-3.601,0.366-5.214,1.014C10.453,9.25,8,14.528,8,19	c0,6.771,0.936,10.735,3.712,14.607c0.216,0.301,0.357,0.653,0.376,1.022c0.043,0.835-0.129,2.365-1.634,3.742	c-0.162,0.148-0.059,0.419,0.16,0.428c0.942,0.041,2.843-0.014,4.797-0.877c0.557-0.246,1.191-0.203,1.729,0.083	C20.453,39.764,24.333,40,28,40c4.676,0,9.339-1.04,12.417-2.916C42.038,34.799,43,32.014,43,29V19C43,11.268,36.732,5,29,5z"></path><path fill="#2962ff" d="M36.75,27C34.683,27,33,25.317,33,23.25s1.683-3.75,3.75-3.75s3.75,1.683,3.75,3.75	S38.817,27,36.75,27z M36.75,21c-1.24,0-2.25,1.01-2.25,2.25s1.01,2.25,2.25,2.25S39,24.49,39,23.25S37.99,21,36.75,21z"></path><path fill="#2962ff" d="M31.5,27h-1c-0.276,0-0.5-0.224-0.5-0.5V18h1.5V27z"></path><path fill="#2962ff" d="M27,19.75v0.519c-0.629-0.476-1.403-0.769-2.25-0.769c-2.067,0-3.75,1.683-3.75,3.75	S22.683,27,24.75,27c0.847,0,1.621-0.293,2.25-0.769V26.5c0,0.276,0.224,0.5,0.5,0.5h1v-7.25H27z M24.75,25.5	c-1.24,0-2.25-1.01-2.25-2.25S23.51,21,24.75,21S27,22.01,27,23.25S25.99,25.5,24.75,25.5z"></path><path fill="#2962ff" d="M21.25,18h-8v1.5h5.321L13,26h0.026c-0.163,0.211-0.276,0.463-0.276,0.75V27h7.5	c0.276,0,0.5-0.224,0.5-0.5v-1h-5.321L21,19h-0.026c0.163-0.211,0.276-0.463,0.276-0.75V18z"></path> </svg>
-                                </span>`;
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="23" height="23" viewBox="0 0 48 48"> <path fill="#2962ff" d="M15,36V6.827l-1.211-0.811C8.64,8.083,5,13.112,5,19v10c0,7.732,6.268,14,14,14h10	c4.722,0,8.883-2.348,11.417-5.931V36H15z"></path><path fill="#eee" d="M29,5H19c-1.845,0-3.601,0.366-5.214,1.014C10.453,9.25,8,14.528,8,19	c0,6.771,0.936,10.735,3.712,14.607c0.216,0.301,0.357,0.653,0.376,1.022c0.043,0.835-0.129,2.365-1.634,3.742	c-0.162,0.148-0.059,0.419,0.16,0.428c0.942,0.041,2.843-0.014,4.797-0.877c0.557-0.246,1.191-0.203,1.729,0.083	C20.453,39.764,24.333,40,28,40c4.676,0,9.339-1.04,12.417-2.916C42.038,34.799,43,32.014,43,29V19C43,11.268,36.732,5,29,5z"></path><path fill="#2962ff" d="M36.75,27C34.683,27,33,25.317,33,23.25s1.683-3.75,3.75-3.75s3.75,1.683,3.75,3.75	S38.817,27,36.75,27z M36.75,21c-1.24,0-2.25,1.01-2.25,2.25s1.01,2.25,2.25,2.25S39,24.49,39,23.25S37.99,21,36.75,21z"></path><path fill="#2962ff" d="M31.5,27h-1c-0.276,0-0.5-0.224-0.5-0.5V18h1.5V27z"></path><path fill="#2962ff" d="M27,19.75v0.519c-0.629-0.476-1.403-0.769-2.25-0.769c-2.067,0-3.75,1.683-3.75,3.75	S22.683,27,24.75,27c0.847,0,1.621-0.293,2.25-0.769V26.5c0,0.276,0.224,0.5,0.5,0.5h1v-7.25H27z M24.75,25.5	c-1.24,0-2.25-1.01-2.25-2.25S23.51,21,24.75,21S27,22.01,27,23.25S25.99,25.5,24.75,25.5z"></path><path fill="#2962ff" d="M21.25,18h-8v1.5h5.321L13,26h0.026c-0.163,0.211-0.276,0.463-0.276,0.75V27h7.5	c0.276,0,0.5-0.224,0.5-0.5v-1h-5.321L21,19h-0.026c0.163-0.211,0.276-0.463,0.276-0.75V18z"></path> </svg>
+            </span>`;
         else {
             call_from_display = `<a href="https://zalo.me/${call_from}" target="_blank" style="color:#008fe5; text-decoration:underline;">${call_from}</a>`;
         }
@@ -1306,13 +1282,11 @@ function toast({ call_id = "", zalo_id = "", phone = "", type = "", hotline = ""
                 incomingCallAudio.muted = false;
                 incomingCallAudio.autoplay = true;
 
-                // Terminate session cụ thể của toast này (không ảnh hưởng các call khác)
-                var toastSession = sessions[call_id];
-                if (toastSession) {
-                    toastSession.terminate();
-                    delete sessions[call_id];
+                // Ignore call
+                if (session) {
+                    session.terminate();
+                    session = null;
                 }
-                if (activeSession === toastSession) activeSession = null;
             }
         };
         toast.classList.add("toast-call", `toast--${type}`);
@@ -1443,17 +1417,10 @@ function handleButtons(type) {
         $('.voiceip-button').hide();
         $('.voiceip-update').show();
         $('.voiceip-dtmf').show();
-        $('.voiceip-close').show();
 
         $('.wrap-info-voiceip').hide();
         $('.wrap-form-voiceip').show();
     }
-}
-
-function togglePopupCall(isShow) {
-    $('#popup-voiceip').toggleClass('show', isShow);
-    $('#popup__voiceip--wrap').toggleClass('show', isShow);
-    $('#call-overlay').toggleClass('opened', isShow);
 }
 
 function display_avatar_zalo(avatar) {

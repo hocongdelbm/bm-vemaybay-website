@@ -301,99 +301,42 @@ class Viewstatistics extends SugarView
           $html = $all_of_all = '';
           $i   = 1;
 
+          // Lấy agent (td_sip) + map user từ DB — cùng nguồn với custom_get_sip_number()
           $arr_user_calls = array(
-               '976a054f-370f-7945-7776-5d1c28f96e8a' => array(
-                    'name' => 'Nguyễn Ngọc Lan Phương',
-                    'agent' => '101',
-               ),
-               '2d7dfd04-2e91-8302-0c91-56d69b4cc08e' => array(
-                    'name' => 'Nguyễn Thị Đông',
-                    'agent' => '102',
-               ),
-               'a2dae06b-ca09-7b35-b1a2-5ccb9c7cab3d' => array(
-                    'name' => 'Đoàn Thị Kim Ly',
-                    'agent' => '103',
-               ),
-               'da25400e-a030-389c-4228-5c233d8cd04e' => array(
-                    'name' => 'Trần Minh Tuấn',
-                    'agent' => '104',
-               ),
-               // '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => array(
-               //      'name' => 'Trần Như Điền',
-               //      'agent' => '105',
-               // ),
-               // '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => array(
-               //      'name' => 'Trương Mỹ Nhân',
-               //      'agent' => '106',
-               // ),
-               // 'ebc40fa1-8878-1a86-000d-5b6949a87e11' => array(
-               //      'name' => 'Lê Tín Nghĩa',
-               //      'agent' => '107',
-               // ),
-               // 'cb0ad38e-3524-deea-220f-62f20cec08d5' => array(
-               //      'name' => 'Nguyễn Duy Đăng',
-               //      'agent' => '108',
-               // ),
-               'f299609a-28c0-c30e-d661-68ccb9aec236' => array(
-                    'name' => 'Nguyễn Thị Kiều Loan',
-                    'agent' => '108',
-               ),
-               // '37cd4853-721c-9808-af64-5600c8835d03' => array(
-               //      'name' => 'Đỗ Thị Kim Ngân',
-               //      'agent' => '120',
-               // ),
-               // 'b4ff32c8-8a1e-0648-b20d-63437ab44554' => array(
-               //      'name' => 'Nguyễn Trang Đài',
-               //      'agent' => '121',
-               // ),
-               'd61ac0c1-91b3-0dc8-049a-518b21d2deb9' => array(
-                    'name' => 'Chung Thanh Nhân',
-                    'agent' => '122',
-               ),
-               // '9f381038-99c2-7515-938f-558939fee19a' => array(
-               //      'name' => 'Thiều Tuấn Anh',
-               //      'agent' => '201',
-               // ),
-               // 'd14007fa-aaed-cac7-9a00-62cfccf58d5a' => array(
-               //      'name' => 'Nghiêm Xuân Đức',
-               //      'agent' => '202',
-               // ),
-               '61b537e5-6bc5-77e5-1102-5ff3dc1e40ee' => array(
-                    'name' => 'Phạm Chiến Thắng',
-                    'agent' => '203',
-               ),
-               '9ba5c5a0-a402-02f4-76d3-53ba0481ce45' => array(
-                    'name' => 'Thái Thị Yến Oanh',
-                    'agent' => '124',
-               ),
-               '72ece22c-cb25-8e30-9dea-56f2201cd359' => array(
-                    'name' => 'Bùi Thị Quỳnh Trang',
-                    'agent' => '123',
-               ),
-               'b5523dbd-b9a7-67c0-77b5-533e6ece89b1' => array(
-                    'name' => 'Nguyễn Ngọc Thu',
-                    'agent' => '125',
-               ),
-               '4ef24994-3d8e-ff0d-2784-599d0b3e56e1' => array(
-                    'name' => 'Nguyễn Lộc Danh',
-                    'agent' => '109',
-               ),
-               // '2037c237-a846-7dc4-0b76-68c7699f5a03' => array(
-               //      'name' => 'Trịnh Thị Kim Ly',
-               //      'agent' => '108',
-               // ),
-               'e692a4e4-b402-4ffa-ce78-68c904aa4086' => array(
-                    'name' => 'Mai Thị Anh Đào',
-                    'agent' => '105',
-               ),
                'empty' => array(
                     'name' => 'Không xác định',
                     'agent' => '000',
                ),
           );
+          $sipUsers = custom_get_sip_number('');
+          if (is_array($sipUsers)) {
+               foreach ($sipUsers as $uid => $sipInfo) {
+                    if (empty($sipInfo['user'])) {
+                         continue;
+                    }
+                    $arr_user_calls[$uid] = array(
+                         'name' => isset($user_list[$uid]) ? $user_list[$uid] : $uid,
+                         'agent' => trim($sipInfo['user']),
+                    );
+               }
+          }
+
+          $ensureCallsUserRow = function ($uid, $agentExt = '') use (&$arr_user_calls, $user_list) {
+               if ($uid === '' || $uid === 'empty') {
+                    return false;
+               }
+               if (!isset($arr_user_calls[$uid])) {
+                    $arr_user_calls[$uid] = array(
+                         'name' => isset($user_list[$uid]) ? $user_list[$uid] : $uid,
+                         'agent' => $agentExt !== '' ? trim($agentExt) : '',
+                    );
+               }
+               return true;
+          };
 
           while ($row = $db->fetchByAssoc($res)) {
                $userId        = (isset($row['assigned_user_id']) && !empty($row['assigned_user_id'])) ? $row['assigned_user_id'] : 'empty';
+               $ensureCallsUserRow($userId);
                $direction     = $row['direction'];
 
                if ($direction == 'inbound') {
@@ -406,7 +349,9 @@ class Viewstatistics extends SugarView
                          if (count($list_agent_inbound) > 0) {
                               foreach ($list_agent_inbound as $agent) {
                                    $user_id = custom_get_sip_number($agent);
-                                   $arr_user_calls[$user_id]['missed'][] = $row;
+                                   if ($ensureCallsUserRow($user_id, $agent)) {
+                                        $arr_user_calls[$user_id]['missed'][] = $row;
+                                   }
                               }
 
                               // inbound - elemennt_last
@@ -414,7 +359,9 @@ class Viewstatistics extends SugarView
                                    $arr_user_calls[$userId]['inbound'][] = $row;
                               } else {
                                    $user_id_last = custom_get_sip_number($element_last);
-                                   $arr_user_calls[$user_id_last]['inbound'][] = $row;
+                                   if ($ensureCallsUserRow($user_id_last, $element_last)) {
+                                        $arr_user_calls[$user_id_last]['inbound'][] = $row;
+                                   }
                               }
                          } else {
                               $arr_user_calls[$userId]['inbound'][] = $row;
@@ -428,7 +375,9 @@ class Viewstatistics extends SugarView
                          // Đỗ chuông qua agent nhưng không nghe máy
                          foreach ($list_agent_missed as $agent) {
                               $user_id = custom_get_sip_number($agent);
-                              $arr_user_calls[$user_id]['missed'][] = $row;
+                              if ($ensureCallsUserRow($user_id, $agent)) {
+                                   $arr_user_calls[$user_id]['missed'][] = $row;
+                              }
                          }
                     } else {
                          // Khách chủ động tắt máy
@@ -444,7 +393,7 @@ class Viewstatistics extends SugarView
                     $arr_user_calls[$userId]['suddenly'][] = $row;
                } else if ($direction == 'internal') {
                     $user_id = custom_get_sip_number($row['call_from']);
-                    if (isset($user_id) && !empty($user_id)) {
+                    if (!empty($user_id) && $ensureCallsUserRow($user_id, $row['call_from'])) {
                          $arr_user_calls[$user_id]['internal'][] = $row;
                     } else {
                          $arr_user_calls['empty']['internal'][] = $row;

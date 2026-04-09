@@ -246,7 +246,7 @@
                                                   <div class="d-flex flex-column gap-3">
                                                        <h2 class="m-0 fs-5 text-primary fw-bold">BM Voices</h2>
                                                        <div class="flex-start gap-3">
-                                                           <label for="select-phone-outbound" class="label text-nowrap">Số gọi ra</label>
+                                                           <label for="select-phone-outbound" class="label text-nowrap">Số gọi ra:</label>
                                                            <select name="select-phone-outbound" id="select-phone-outbound" class="box-select w-100">
                                                                 <option value=""></option>
                                                                 {if isset($list_phone_choose_outbound) && $list_phone_choose_outbound|@count > 0}
@@ -260,6 +260,19 @@
                                                                                      {/if}
                                                                                 {/foreach}
                                                                            </optgroup>
+                                                                      {/foreach}
+                                                                 {/if}
+                                                            </select>
+                                                       </div>
+                                                       <div class="flex-start gap-3">
+                                                           <label for="select-phone-support" class="label text-nowrap">Hotline hãng:</label>
+                                                           <select name="select-phone-support" id="select-phone-support" class="box-select w-100">
+                                                                <option value=""></option>
+                                                                {if isset($list_phone_airline_support) && $list_phone_airline_support|@count > 0}
+                                                                      {foreach from=$list_phone_airline_support key=phone item=label}
+                                                                           <option value="{$phone|trim}">
+                                                                                {$phone|trim} - {$label|trim}
+                                                                           </option>
                                                                       {/foreach}
                                                                  {/if}
                                                             </select>

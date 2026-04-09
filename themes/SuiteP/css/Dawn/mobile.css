@@ -1,6 +1,5 @@
 @media screen and (max-width: 575px),
 (orientation: landscape) and (max-width: 950px) {
-
   /* CUSTOM CLASS */
   .hide-mobile {
     display: none !important;

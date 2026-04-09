@@ -8,7 +8,7 @@ $module_name = 'EC_Flight_Bookings';
 $searchFields[$module_name] = array(
     'name' => [
         'query_type' => 'default',
-        'operator' => '=',
+        // 'operator' => '=',
     ],
     'current_user_only' => array(
         'query_type' => 'default',

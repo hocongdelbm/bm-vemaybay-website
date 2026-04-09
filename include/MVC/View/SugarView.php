@@ -386,13 +386,6 @@ class SugarView
         $ss->assign("SUGAR_JS", ob_get_contents() . $themeObject->getJS());
         ob_end_clean();
 
-        // get favicon
-        if (isset($GLOBALS['sugar_config']['default_module_favicon'])) {
-            $module_favicon = $GLOBALS['sugar_config']['default_module_favicon'];
-        } else {
-            $module_favicon = false;
-        }
-
         $favicon = $this->getFavicon();
         $ss->assign('FAVICON_URL', $favicon['url']);
 
@@ -550,6 +543,9 @@ class SugarView
             // List phone choose for outbound call
             $list_phone_choose_outbound = $pbx->get_list_phone_pbx(0);
             $ss->assign("list_phone_choose_outbound", $list_phone_choose_outbound ?? []);
+
+            // D/s Danh bạ liên hệ hãng hỗ trợ
+            $ss->assign("list_phone_airline_support", $app_list_strings['list_phone_airline_support'] ?? []);
         }
 
         $bakModStrings = $mod_strings;
@@ -1158,14 +1154,13 @@ EOHTML;
     public function initJSSIP()
     {
         global $current_user;
-        $arr_sip_number = custom_get_sip_number();
 
         $html = '';
         $css = $js = '';
 
-        if (isset($arr_sip_number[$current_user->id])) {
-            $html .= '<input type="hidden" name="sip_user" id="sip_user" value="' . $arr_sip_number[$current_user->id]['user'] . '" disabled />';
-            $html .= '<input type="hidden" name="sip_password" id="sip_password" value="' . $arr_sip_number[$current_user->id]['password'] . '" disabled />';
+        if (isset($current_user->td_sip) && isset($current_user->td_password) && !empty($current_user->td_sip) && !empty($current_user->td_password)) {
+            $html .= '<input type="hidden" name="sip_user" id="sip_user" value="' . $current_user->td_sip . '" disabled />';
+            $html .= '<input type="hidden" name="sip_password" id="sip_password" value="' . $current_user->td_password . '" disabled />';
             $html .= '<input type="hidden" name="agent_status" id="agent_status" value="' . $current_user->agent_status . '" disabled />';
             $html .= '<input type="hidden" name="sip_instance_id" id="sip_instance_id" value="' . $current_user->id . '" disabled />';
             $html .= '
@@ -1370,6 +1365,12 @@ EOHTML;
                                 <div class="voiceip-button voiceip-dtmf">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="2"></circle><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="6" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="6" cy="12" r="2"></circle><circle cx="18" cy="12" r="2"></circle><circle cx="12" cy="18" r="2"></circle></svg>
                                     <div class="voiceip-button__desc">Bàn phím</div>
+                                </div>
+                                <div class="voiceip-button voiceip-close">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-caret-left" viewBox="0 0 16 16">
+                                        <path d="M10 12.796V3.204L4.519 8zm-.659.753-5.48-4.796a1 1 0 0 1 0-1.506l5.48-4.796A1 1 0 0 1 11 3.204v9.592a1 1 0 0 1-1.659.753"/>
+                                    </svg>
+                                    <div class="voiceip-button__desc">Đóng</div>
                                 </div>
                             </div>
                         </div>

@@ -70,6 +70,7 @@ class CustomController extends BaseController
 
             $booking->save();
             $booking_id = $booking->id;
+            $assigned_user_id_bk = $booking->assigned_user_id;
 
             // ===== AUTO-LINK CALL → BOOKING (Case 3) =====
             // Điều kiện: booking có SĐT, không phải TEST
@@ -78,7 +79,7 @@ class CustomController extends BaseController
                 !empty($booking->phone) &&
                 !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore)
             ) {
-                // Tìm cuộc gọi inbound gần nhất
+                // Tìm cuộc gọi inbound gần nhất trong 3 ngày trở lại đây
                 $sql_call = '
                     SELECT id, name, description, assigned_user_id
                     FROM calls
@@ -86,6 +87,7 @@ class CustomController extends BaseController
                         AND direction = "inbound"
                         AND (booking_id IS NULL OR booking_id = "")
                         -- AND date_entered >= NOW() - INTERVAL 4 HOUR
+                        AND date_entered >= DATE_SUB(NOW(), INTERVAL 3 DAY)
                         AND deleted = 0
                     ORDER BY date_entered DESC
                     LIMIT 1
@@ -102,7 +104,7 @@ class CustomController extends BaseController
                             AND deleted = 0
                         ');
 
-                        $bean_note                      = new Note();
+                        $bean_note = BeanFactory::newBean("Notes");
                         $bean_note->id                  = '';
                         $bean_note->name                = $booking->name;
                         $bean_note->parent_type         = 'EC_Flight_Bookings';
@@ -112,9 +114,11 @@ class CustomController extends BaseController
                         $bean_note->assigned_user_id    = $row_call['assigned_user_id'] ?? '';
                         $bean_note->save();
 
+                        $assigned_user_id = $row_call['assigned_user_id'] ?? $assigned_user_id_bk;
+
                         $db->query('
                             UPDATE ec_flight_bookings
-                            SET booking_status = "6"
+                            SET booking_status = "6", assigned_user_id = "'.$assigned_user_id.'"
                             WHERE id = "' . $db->quote($booking_id) . '"
                             AND deleted = 0
                         ');
@@ -301,9 +305,6 @@ class CustomController extends BaseController
         $res = $db->query($contact_query);
         $row = $db->fetchByAssoc($res);
 
-        /**
-         * @var Calls $call
-         */
         $call = BeanFactory::newBean("Calls");
         if (!empty($row['id'])) { // Cập nhật thông tin liên hệ cho Call
             $call->parent_type = 'Contacts';
@@ -398,15 +399,25 @@ class CustomController extends BaseController
             // Auto mapping BK
             try {
                 if ($call->direction === 'inbound' && !empty($call_from)) {
-                    // Bước 1: Kiểm tra SĐT này có booking nào không
-                    $sql_check = '
+                    // Bước 1: Kiểm tra SĐT này có booking nào không trong vòng 3 ngày trước không?
+                    // $sql_check = '
+                    //     SELECT 
+                    //         COUNT(*) AS total,
+                    //         SUM(CASE WHEN booking_status = "8" THEN 1 ELSE 0 END) AS total_completed
+                    //     FROM ec_flight_bookings
+                    //     WHERE phone = ' . $db->quote(trim($call_from)) . '
+                    //     AND deleted = 0
+                    // ';
+                    $sql_check = "
                         SELECT 
                             COUNT(*) AS total,
-                            SUM(CASE WHEN booking_status = "8" THEN 1 ELSE 0 END) AS total_completed
+                            SUM(CASE WHEN booking_status = '8' THEN 1 ELSE 0 END) AS total_completed
                         FROM ec_flight_bookings
-                        WHERE phone = ' . $db->quote(trim($call_from)) . '
+                        WHERE phone = '" . $db->quote(trim($call_from)) . "'
+                        AND date_entered >= DATE_SUB(NOW(), INTERVAL 3 DAY)
                         AND deleted = 0
-                    ';
+                    ";
+
                     $res_check  = $db->query($sql_check);
                     $row_check  = $db->fetchByAssoc($res_check);
 

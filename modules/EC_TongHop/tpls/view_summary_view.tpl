@@ -61,6 +61,9 @@
             <div class="uat-tab" data-tab="flights">
                 Phân tích chuyến bay
             </div>
+            <div class="uat-tab" data-tab="ip_journey">
+                IP Journey
+            </div>
             <div class="uat-tab" data-tab="elements">
                 Tổng hợp hành vi
             </div>
@@ -465,7 +468,7 @@
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
                             <span
                                 style="background:#dbeafe; color:#1d4ed8; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; letter-spacing:.5px;">HOT</span>
-                            <div class="uat-card-title" style="color:#1d4ed8; margin:0;">Hành trình Phổ biến</div>
+                            <div class="uat-card-title" style="color:#1d4ed8; margin:0;">Hành trình Phổ biến-Giờ cao điểm</div>
                         </div>
                         <div class="uat-card-des">
                             Chỉ tính sessions tìm kiếm trong <strong>giờ cao điểm</strong> (top 3 giờ nhiều traffic
@@ -491,7 +494,7 @@
                             <span
                                 style="background:#ede9fe; color:#6d28d9; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; letter-spacing:.5px;">TIỀM
                                 NĂNG</span>
-                            <div class="uat-card-title" style="color:#6d28d9; margin:0;">Hành trình Khác</div>
+                            <div class="uat-card-title" style="color:#6d28d9; margin:0;">Hành trình Khác-Giờ cao điểm</div>
                         </div>
                         <div class="uat-card-des">
                             Hành trình ngoài top phổ biến — tiềm năng khai thác. Chỉ tính sessions trong <strong>giờ cao
@@ -1090,6 +1093,86 @@
             </div>
         </div>
     </div><!-- END TAB HEATMAP -->
+
+    <!-- TAB: IP JOURNEY -->
+    <div id="uat-tab-ip_journey" class="uat-tab-content">
+        <h2 class="uat-section-title">IP Journey &mdash; Hành Trình Funnel</h2>
+        <p class="uat-tab-des" style="margin-bottom:20px;">Trực quan hóa hành trình của một IP qua các bước funnel
+            chuẩn. Overlay path thực tế của từng session lên cây chuẩn.</p>
+
+        <!-- Big Card Container -->
+        <div class="uat-card" style="padding: 0; overflow: hidden;">
+
+            <!-- Search Form -->
+            <div class="ec-journey-search-card" style="border-bottom: 1px solid var(--uat-border);">
+                <div class="ec-journey-search-row">
+                    <div class="ec-journey-search-field">
+                        <label for="ec_journey_ip">Địa chỉ IP</label>
+                        <input type="text" id="ec_journey_ip" placeholder="Ví dụ: 113.160.45.12" autocomplete="off" />
+                    </div>
+                    <div class="ec-journey-search-field">
+                        <label for="ec_journey_days">Số ngày gần đây</label>
+                        <select id="ec_journey_days">
+                            <option value="7">7 ngày</option>
+                            <option value="14">14 ngày</option>
+                            <option value="30" selected>30 ngày</option>
+                            <option value="60">60 ngày</option>
+                            <option value="90">90 ngày</option>
+                        </select>
+                    </div>
+                    <div class="ec-journey-search-field ec-journey-search-btn-wrap">
+                        <label>&nbsp;</label>
+                        <button id="ec_journey_btn" class="uat-btn"
+                            style="background:#6366f1;color:#fff;border:none;padding:0 20px;height:38px;border-radius:8px;font-weight:600;cursor:pointer;">Tra
+                            cứu</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading / Error -->
+            <div id="ec_journey_loading" style="display:none;" class="ec-journey-state">
+                <div class="ec-journey-spinner"></div>
+                <span>Đang tải dữ liệu...</span>
+            </div>
+            <div id="ec_journey_error" style="display:none;" class="ec-journey-state ec-journey-error-state"></div>
+
+            <!-- Result Area -->
+            <div id="ec_journey_result" style="display:none;">
+
+                <!-- Summary Bar -->
+                <div id="ec_journey_summary" class="ec-journey-summary-bar"
+                    style="border-bottom: 1px solid var(--uat-border);"></div>
+
+                <!-- Session Selector -->
+                <div class="ec-journey-session-card" id="ec_journey_sessions_card"
+                    style="display:none; border-bottom: 1px dashed var(--uat-border);">
+                    <div class="ec-journey-sessions-header">
+                        <span class="ec-journey-sessions-title">Chọn Session để xem hành trình</span>
+                        <span id="ec_journey_session_count" class="badge"
+                            style="background:#e0e7ff;color:#4338ca;"></span>
+                    </div>
+                    <div id="ec_journey_session_list" class="ec-journey-session-list"></div>
+                </div>
+
+                <!-- Tree Chart -->
+                <div style="padding:24px;">
+                    <div class="ec-journey-tree-header">
+                        <span class="ec-journey-tree-title">Cây Funnel Chuẩn &amp; Hành Trình Thực Tế</span>
+                        <div class="ec-journey-legend">
+                            <span class="ec-legend-item ec-legend-visited">Đã đi qua</span>
+                            <span class="ec-legend-item ec-legend-dropped">Thoát tại</span>
+                            <span class="ec-legend-item ec-legend-backtrack">Quay lại</span>
+                            <span class="ec-legend-item ec-legend-converted">Hoàn tất</span>
+                            <span class="ec-legend-item ec-legend-not-visited">Chưa đến</span>
+                        </div>
+                    </div>
+                    <div id="ec_journey_tree" class="ec-journey-tree"></div>
+                    <div id="ec_journey_path_detail" class="ec-journey-path-detail" style="display:none;"></div>
+                </div>
+            </div>
+
+        </div><!-- END BIG CARD -->
+    </div><!-- END TAB IP JOURNEY -->
 
 </div><!-- END uat-wrap -->
 

@@ -435,7 +435,7 @@
     position: fixed;
     top: 32px;
     right: 32px;
-    z-index: 999999;
+    z-index: 99;
 }
 
 .toast-call {

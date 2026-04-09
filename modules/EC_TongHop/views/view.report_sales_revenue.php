@@ -177,6 +177,7 @@ class Viewreport_sales_revenue extends SugarView
         $total_points_amount = 0;
 
         $data_revenue = calculateRevenueOfDate(date('Y-m-d', strtotime($post_fdate)), date('Y-m-d', strtotime($post_tdate)), $condition_arr);
+        // pr($data_revenue);
 
         $html = '';
         if (!empty($data_revenue) && $data_revenue['count'] > 0) {
@@ -200,16 +201,6 @@ class Viewreport_sales_revenue extends SugarView
                 } else $paid_time = '';
 
                 $html .= '<tr class="' . $bg_class . '" >';
-
-                if ($this->_is_allow_recheck) {
-                    $html .= '<td class="text-center booking-ids hide-mobile">';
-                    if ($row['parent_type'] == 'EC_Flight_Bookings') {
-                        $html .= '<span style="display: none;" class="loading"></span>';
-                        $html .= '<input type="checkbox" class="booking-ids vertical-middle" data-triptype="' . $row['flight_type'] . '" data-mobile="' . $row['contact_mobile'] . '" id="' . $row['parent_id'] . '" value="' . $row['parent_id'] . '">';
-                    }
-                    $html .= '</td>';
-                }
-
                 $html .= '
                         <td class="text-center hide-mobile">' . ($i + 1) . '</td>
                         <td class="text-center"><a target="_blank" title="Xem chi tiết" href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '">' . $row['parent_name'] . '</a></td>
@@ -268,7 +259,6 @@ class Viewreport_sales_revenue extends SugarView
 
         $html .= '<tr class="footer-tr">
             <td colspan="2" class="hide-mobile">&nbsp;</td>
-            <td>&nbsp;</td>
             <td class="text-center fw-semibold color-red total_quantity">' . format_number($total_quantity) . '</td>
             <td class="notes hide-mobile">&nbsp;</td>
             <td class="text-end fw-semibold color-red subtotal_amount hide-mobile">' . format_number($subtotal_amount) . '</td>
