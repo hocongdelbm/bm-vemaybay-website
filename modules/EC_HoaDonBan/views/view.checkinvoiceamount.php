@@ -298,15 +298,15 @@ class Viewcheckinvoiceamount extends SugarView {
                         ,GROUP_CONCAT(DISTINCT CONCAT(hdb.sohoadon, '|', hdb.ngayhoadon) SEPARATOR ';') AS danh_sach_hd
                     FROM ec_chitiethoadon cthd
                         INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
-                    WHERE cthd.deleted = 0
-                        AND cthd.receipt_voucher_id IS NOT NULL
+                    WHERE cthd.receipt_voucher_id IS NOT NULL
                         AND cthd.receipt_voucher_id <> ''
+                        AND cthd.deleted = 0
                     GROUP BY cthd.receipt_voucher_id
                 ) AS hd_pt ON hd_pt.receipt_voucher_id = p.id
                 WHERE p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
                      AND DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                    AND p.deleted = 0
                     AND p.rv_status IN ('1', '2')
+                    AND p.deleted = 0
                     $sql_role_rv
                 GROUP BY p.id
 
@@ -355,9 +355,9 @@ class Viewcheckinvoiceamount extends SugarView {
                             ON bk.id = p.booking_id 
                             AND bk.deleted = 0
                             $where_bk_fields
-                    WHERE p.deleted = 0
+                    WHERE DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
                         AND p.tinhtrang = '1'
-                        AND p.ngayhachtoan BETWEEN '$from_db' AND '$to_db'
+                        AND p.deleted = 0
                         $sql_role
                     GROUP BY p.id
 
@@ -378,28 +378,50 @@ class Viewcheckinvoiceamount extends SugarView {
                             ON bk.id = p.booking_id 
                             AND bk.deleted = 0
                             $where_bk_fields
-                    WHERE p.deleted = 0
+                    WHERE DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
                         AND p.tinhtrang = '1'
-                        AND p.ngayhachtoan BETWEEN '$from_db' AND '$to_db'
+                        AND p.deleted = 0
                         $sql_role
                     GROUP BY p.id
                     HAVING SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) > 0
 
                 ) AS hv_t
                 LEFT JOIN (
-                    SELECT cthd.parent_id AS hoanve_id
-                        ,(IFNULL(SUM(IFNULL(dongia, 0) * IFNULL(soluong, 0)), 0)
-                            + IFNULL(SUM(IFNULL(tienthue, 0)), 0)
-                            + IFNULL(SUM(IFNULL(phithuho, 0) * IFNULL(soluong, 0)), 0)
-                        ) AS invoice_amount
-                        ,GROUP_CONCAT(DISTINCT CONCAT(hdb.sohoadon, '|', hdb.ngayhoadon) SEPARATOR ';') AS danh_sach_hd
-                    FROM ec_chitiethoadon cthd
-                        INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
-                    WHERE cthd.deleted = 0
-                        AND cthd.parent_type = 'EC_HoanVe'
-                    GROUP BY cthd.parent_id
-                ) AS hd_hv ON hd_hv.hoanve_id = hv_t.parent_id
-                GROUP BY hv_t.parent_id";
+                    SELECT 
+                        hv.id AS hoanve_id,
+                        bk_inv.invoice_amount,
+                        bk_inv.danh_sach_hd
+                    FROM ec_hoanve hv
+                    INNER JOIN (
+                        SELECT 
+                            cthd.booking_id,
+                            (
+                                IFNULL(SUM(IFNULL(cthd.dongia, 0) * IFNULL(cthd.soluong, 0)), 0)
+                                + IFNULL(SUM(IFNULL(cthd.tienthue, 0)), 0)
+                                + IFNULL(SUM(IFNULL(cthd.phithuho, 0) * IFNULL(cthd.soluong, 0)), 0)
+                            ) AS invoice_amount,
+                            GROUP_CONCAT(
+                                DISTINCT CONCAT(hdb.sohoadon, '|', hdb.ngayhoadon) 
+                                SEPARATOR ';'
+                            ) AS danh_sach_hd
+                        FROM ec_chitiethoadon cthd
+                            INNER JOIN ec_hoadonban hdb 
+                                ON hdb.id = cthd.parent_id 
+                                AND hdb.deleted = 0
+                        WHERE cthd.booking_id IN (
+                                SELECT DISTINCT hv2.booking_id 
+                                FROM ec_hoanve hv2
+                                WHERE hv2.tinhtrang = '1'
+                                    AND hv2.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                                    AND hv2.deleted = 0
+                            )
+                            AND cthd.deleted = 0
+                        GROUP BY cthd.booking_id
+                    ) AS bk_inv ON bk_inv.booking_id = hv.booking_id
+                    WHERE DATE(hv.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                        AND hv.tinhtrang = '1'
+                        AND hv.deleted = 0
+                ) AS hd_hv ON hd_hv.hoanve_id = hv_t.parent_id";
             }
         return $sql;
     }
