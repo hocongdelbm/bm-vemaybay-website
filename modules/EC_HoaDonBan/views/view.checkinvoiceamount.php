@@ -257,7 +257,139 @@ class Viewcheckinvoiceamount extends SugarView {
                 AND bkd.deleted = 0
             GROUP BY bk.id
             $sql_having";
-            
+
+            if ((int)($conditions['payment_stt'] ?? 0) === 0) {
+
+                // PHẦN 2: Phiếu thu phát sinh (loai_thu không phải thu booking thông thường)
+                $sql_role_rv = !$is_manager && !is_admin($current_user) 
+                    ? " AND p.assigned_user_id = '{$current_user->id}' " 
+                    : "";
+
+                $sql .= "
+
+                UNION
+
+                SELECT 
+                    p.id AS parent_id
+                    , p.id AS booking_id
+                    , p.name AS booking_name
+                    , p.name AS parent_name
+                    , 'EC_Receipt_Voucher' AS parent_type
+                    , 0 AS total_quantity
+                    , SUM(IF(p.rv_status IN ('1','2'), IFNULL(p.amount_converted, 0), 0)) AS subtotal_amount
+                    , 0 AS total_bought_price
+                    , '' AS flight_type
+                    , '' AS ticket_type
+                    , p.rv_status AS parent_status
+                    , SUM(IF(p.rv_status IN ('1','2'), IFNULL(p.amount_converted, 0), 0)) AS receipt_amount
+                    , DATE_FORMAT(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR), '%d-%m-%Y') AS date_ticket_issue
+                    , 0 AS is_telesale
+                    , 0 AS is_ctv
+                    , 0 AS is_reference
+                    , NULL AS invoice_amount
+                    , NULL AS invoice_list
+                FROM ec_receipt_voucher p
+                WHERE p.loai_thu IN ('10', '11', '12', '13', '16')
+                    AND DATE(p.ngayhachtoan) BETWEEN '$from_db' AND '$to_db'
+                    AND p.deleted = 0
+                    AND p.rv_status IN ('1', '2')
+                    $sql_role_rv
+                GROUP BY p.id
+
+                UNION
+
+               SELECT 
+                    hv_t.parent_id
+                    , hv_t.parent_id AS booking_id
+                    , hv_t.parent_name AS booking_name
+                    , hv_t.parent_name
+                    , hv_t.parent_type
+                    , SUM(hv_t.total_quantity) AS total_quantity
+                    , SUM(hv_t.subtotal_amount) AS subtotal_amount
+                    , SUM(hv_t.total_bought_price) AS total_bought_price
+                    , '' AS flight_type
+                    , '' AS ticket_type
+                    , hv_t.parent_status
+                    , SUM(hv_t.receipt_amount) AS receipt_amount
+                    , hv_t.date_ticket_issue
+                    , 0 AS is_telesale
+                    , 0 AS is_ctv
+                    , 0 AS is_reference
+                    , NULL AS invoice_amount
+                    , NULL AS invoice_list
+                FROM (
+                    -- Hoàn vé thường (tiền hàng <= tiền khách)
+                    SELECT 
+                        p.id AS parent_id
+                        , p.name AS parent_name
+                        , 'EC_HoanVe' AS parent_type
+                        , -(SELECT COUNT(id) FROM ec_chitiethoanve WHERE deleted = 0 AND hoanve_id = p.id) AS total_quantity
+                        , -IF(
+                            SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0,
+                            SUM(IFNULL(p.tongtienkhach,0)),
+                            0
+                        ) AS subtotal_amount
+                        , -IF(
+                            SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0,
+                            SUM(IFNULL(p.tongtienhang,0)),
+                            0
+                        ) AS total_bought_price
+                        , p.tinhtrang AS parent_status
+                        , DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
+                        , IFNULL((
+                            SELECT SUM(IFNULL(r.amount_converted, 0))
+                            FROM ec_receipt_voucher r
+                            WHERE r.booking_id = p.booking_id
+                                AND r.loai_thu IN ('1', '4', '5', '14')
+                                AND r.rv_status = '1'
+                                AND r.deleted = 0
+                        ), 0) AS receipt_amount
+                    FROM ec_hoanve p
+                        INNER JOIN ec_flight_bookings bk 
+                            ON bk.id = p.booking_id 
+                            AND bk.deleted = 0
+                            $where_bk_fields
+                    WHERE p.deleted = 0
+                        AND p.tinhtrang = '1'
+                        AND p.ngayhachtoan BETWEEN '$from_db' AND '$to_db'
+                        $sql_role
+                    GROUP BY p.id
+
+                    UNION
+
+                    -- Hoàn vé đặc biệt (tiền hàng > tiền khách)
+                    SELECT 
+                        p.id AS parent_id
+                        , p.name AS parent_name
+                        , 'EC_HoanVe' AS parent_type
+                        , 0 AS total_quantity
+                        , -SUM(IFNULL(p.tongtienkhach,0)) AS subtotal_amount
+                        , -SUM(IFNULL(p.tongtienhang,0)) AS total_bought_price
+                        , p.tinhtrang AS parent_status
+                        , DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
+                        , IFNULL((
+                            SELECT SUM(IFNULL(r.amount_converted, 0))
+                            FROM ec_receipt_voucher r
+                            WHERE r.booking_id = p.booking_id
+                                AND r.loai_thu IN ('1', '4', '5', '14')
+                                AND r.rv_status = '1'
+                                AND r.deleted = 0
+                        ), 0) AS receipt_amount
+                    FROM ec_hoanve p
+                        INNER JOIN ec_flight_bookings bk 
+                            ON bk.id = p.booking_id 
+                            AND bk.deleted = 0
+                            $where_bk_fields
+                    WHERE p.deleted = 0
+                        AND p.tinhtrang = '1'
+                        AND p.ngayhachtoan BETWEEN '$from_db' AND '$to_db'
+                        $sql_role
+                    GROUP BY p.id
+                    HAVING SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) > 0
+
+                ) AS hv_t
+                GROUP BY hv_t.parent_id";
+            }
         return $sql;
     }
 
