@@ -286,11 +286,25 @@ class Viewcheckinvoiceamount extends SugarView {
                     , 0 AS is_telesale
                     , 0 AS is_ctv
                     , 0 AS is_reference
-                    , NULL AS invoice_amount
-                    , NULL AS invoice_list
+                    , MAX(IFNULL(hd_pt.invoice_amount, 0)) AS invoice_amount
+                    , MAX(IFNULL(hd_pt.danh_sach_hd, '')) AS invoice_list
                 FROM ec_receipt_voucher p
-                WHERE p.loai_thu IN ('10', '11', '12', '13', '16')
-                    AND DATE(p.ngayhachtoan) BETWEEN '$from_db' AND '$to_db'
+                LEFT JOIN (
+                    SELECT cthd.receipt_voucher_id AS receipt_voucher_id
+                        ,(IFNULL(SUM(IFNULL(dongia, 0) * IFNULL(soluong, 0)), 0)
+                            + IFNULL(SUM(IFNULL(tienthue, 0)), 0)
+                            + IFNULL(SUM(IFNULL(phithuho, 0) * IFNULL(soluong, 0)), 0)
+                        ) AS invoice_amount
+                        ,GROUP_CONCAT(DISTINCT CONCAT(hdb.sohoadon, '|', hdb.ngayhoadon) SEPARATOR ';') AS danh_sach_hd
+                    FROM ec_chitiethoadon cthd
+                        INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
+                    WHERE cthd.deleted = 0
+                        AND cthd.receipt_voucher_id IS NOT NULL
+                        AND cthd.receipt_voucher_id <> ''
+                    GROUP BY cthd.receipt_voucher_id
+                ) AS hd_pt ON hd_pt.receipt_voucher_id = p.id
+                WHERE p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
+                     AND DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
                     AND p.deleted = 0
                     AND p.rv_status IN ('1', '2')
                     $sql_role_rv
@@ -298,7 +312,7 @@ class Viewcheckinvoiceamount extends SugarView {
 
                 UNION
 
-               SELECT 
+                SELECT 
                     hv_t.parent_id
                     , hv_t.parent_id AS booking_id
                     , hv_t.parent_name AS booking_name
@@ -310,13 +324,13 @@ class Viewcheckinvoiceamount extends SugarView {
                     , '' AS flight_type
                     , '' AS ticket_type
                     , hv_t.parent_status
-                    , SUM(hv_t.receipt_amount) AS receipt_amount
+                    , SUM(hv_t.subtotal_amount) AS receipt_amount
                     , hv_t.date_ticket_issue
                     , 0 AS is_telesale
                     , 0 AS is_ctv
                     , 0 AS is_reference
-                    , NULL AS invoice_amount
-                    , NULL AS invoice_list
+                    , MAX(IFNULL(hd_hv.invoice_amount, 0)) AS invoice_amount
+                    , MAX(IFNULL(hd_hv.danh_sach_hd, '')) AS invoice_list
                 FROM (
                     -- Hoàn vé thường (tiền hàng <= tiền khách)
                     SELECT 
@@ -336,14 +350,6 @@ class Viewcheckinvoiceamount extends SugarView {
                         ) AS total_bought_price
                         , p.tinhtrang AS parent_status
                         , DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
-                        , IFNULL((
-                            SELECT SUM(IFNULL(r.amount_converted, 0))
-                            FROM ec_receipt_voucher r
-                            WHERE r.booking_id = p.booking_id
-                                AND r.loai_thu IN ('1', '4', '5', '14')
-                                AND r.rv_status = '1'
-                                AND r.deleted = 0
-                        ), 0) AS receipt_amount
                     FROM ec_hoanve p
                         INNER JOIN ec_flight_bookings bk 
                             ON bk.id = p.booking_id 
@@ -367,14 +373,6 @@ class Viewcheckinvoiceamount extends SugarView {
                         , -SUM(IFNULL(p.tongtienhang,0)) AS total_bought_price
                         , p.tinhtrang AS parent_status
                         , DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
-                        , IFNULL((
-                            SELECT SUM(IFNULL(r.amount_converted, 0))
-                            FROM ec_receipt_voucher r
-                            WHERE r.booking_id = p.booking_id
-                                AND r.loai_thu IN ('1', '4', '5', '14')
-                                AND r.rv_status = '1'
-                                AND r.deleted = 0
-                        ), 0) AS receipt_amount
                     FROM ec_hoanve p
                         INNER JOIN ec_flight_bookings bk 
                             ON bk.id = p.booking_id 
@@ -388,6 +386,19 @@ class Viewcheckinvoiceamount extends SugarView {
                     HAVING SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) > 0
 
                 ) AS hv_t
+                LEFT JOIN (
+                    SELECT cthd.parent_id AS hoanve_id
+                        ,(IFNULL(SUM(IFNULL(dongia, 0) * IFNULL(soluong, 0)), 0)
+                            + IFNULL(SUM(IFNULL(tienthue, 0)), 0)
+                            + IFNULL(SUM(IFNULL(phithuho, 0) * IFNULL(soluong, 0)), 0)
+                        ) AS invoice_amount
+                        ,GROUP_CONCAT(DISTINCT CONCAT(hdb.sohoadon, '|', hdb.ngayhoadon) SEPARATOR ';') AS danh_sach_hd
+                    FROM ec_chitiethoadon cthd
+                        INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
+                    WHERE cthd.deleted = 0
+                        AND cthd.parent_type = 'EC_HoanVe'
+                    GROUP BY cthd.parent_id
+                ) AS hd_hv ON hd_hv.hoanve_id = hv_t.parent_id
                 GROUP BY hv_t.parent_id";
             }
         return $sql;
