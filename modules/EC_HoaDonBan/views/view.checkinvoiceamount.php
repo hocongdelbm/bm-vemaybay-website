@@ -265,6 +265,12 @@ class Viewcheckinvoiceamount extends SugarView {
                     ? " AND p.assigned_user_id = '{$current_user->id}' " 
                     : "";
 
+                $hv_from = date("Y-m-d", strtotime($from_date));
+                $hv_to = date("Y-m-d", strtotime($to_date));
+
+                $from_utc = date("Y-m-d H:i:s", strtotime($hv_from)  -7 * 3600);
+                $to_utc = date("Y-m-d H:i:s", strtotime($hv_to)  -7 * 3600 + 86399);
+
                 $sql .= "
 
                 UNION
@@ -304,7 +310,7 @@ class Viewcheckinvoiceamount extends SugarView {
                     GROUP BY cthd.receipt_voucher_id
                 ) AS hd_pt ON hd_pt.receipt_voucher_id = p.id
                 WHERE p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
-                     AND DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                    AND p.ngayhachtoan >= '$from_utc' AND p.ngayhachtoan <= '$to_utc'
                     AND p.rv_status IN ('1', '2')
                     AND p.deleted = 0
                     $sql_role_rv
@@ -408,20 +414,26 @@ class Viewcheckinvoiceamount extends SugarView {
                             INNER JOIN ec_hoadonban hdb 
                                 ON hdb.id = cthd.parent_id 
                                 AND hdb.deleted = 0
-                        WHERE cthd.booking_id IN (
-                                SELECT DISTINCT hv2.booking_id 
-                                FROM ec_hoanve hv2
-                                WHERE hv2.tinhtrang = '1'
-                                    AND hv2.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                                    AND hv2.deleted = 0
-                            )
-                            AND cthd.deleted = 0
+                        INNER JOIN (
+                            SELECT DISTINCT booking_id
+                            FROM ec_hoanve
+                            WHERE tinhtrang = '1'
+                                AND ngayhachtoan BETWEEN '$hv_from' AND '$hv_to'
+                                AND deleted = 0
+                        ) AS hv_filter ON hv_filter.booking_id = cthd.booking_id
+                        WHERE cthd.deleted = 0
                         GROUP BY cthd.booking_id
                     ) AS bk_inv ON bk_inv.booking_id = hv.booking_id
-                    WHERE DATE(hv.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                    WHERE hv.ngayhachtoan BETWEEN '$hv_from' AND '$hv_to'
                         AND hv.tinhtrang = '1'
                         AND hv.deleted = 0
-                ) AS hd_hv ON hd_hv.hoanve_id = hv_t.parent_id";
+                ) AS hd_hv ON hd_hv.hoanve_id = hv_t.parent_id
+                GROUP BY
+                    hv_t.parent_id
+                    , hv_t.parent_name
+                    , hv_t.parent_type
+                    , hv_t.parent_status
+                    , hv_t.date_ticket_issue";
             }
         return $sql;
     }
