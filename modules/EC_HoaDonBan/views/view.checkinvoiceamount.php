@@ -1,7 +1,8 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-class Viewcheckinvoiceamount extends SugarView {
+class Viewcheckinvoiceamount extends SugarView
+{
     /**
      * @var EC_HoaDonBan
      */
@@ -12,7 +13,8 @@ class Viewcheckinvoiceamount extends SugarView {
     public $userTimeFormat;
     public $dbDateFormat;
 
-    public function __construct() {
+    public function __construct()
+    {
         global $sugar_config, $current_user;
         $this->userTimezone = $current_user->getPreference('timezone') ?? 'Asia/Ho_Chi_Minh';
         $this->userDateFormat = $current_user->getPreference('datef') ?? $sugar_config['datef'] ?? 'd-m-Y';
@@ -20,30 +22,32 @@ class Viewcheckinvoiceamount extends SugarView {
         $this->dbDateFormat = 'Y-m-d';
     }
 
-    public function display() {
+    public function display()
+    {
         if (ACLController::checkAccess('EC_HoaDonBan', 'view', true)) {
             $this->smarty = new Sugar_Smarty();
             $this->populateContent();
             $this->smarty->display("modules/{$this->bean->object_name}/tpls/view.checkinvoiceamount.tpl");
             $this->loadScripts();
-        }
-        else {
+        } else {
             header("Location: index.php?module={$this->bean->object_name}&action=Error&error_string=" . urlencode("Bạn không được quyền truy cập vào mục này"));
             exit();
         }
     }
 
-    protected function loadScripts() {
+    protected function loadScripts()
+    {
         echo <<<HTML
             <script src="modules/{$this->bean->module_dir}/js/view.checkinvoiceamount.js?v=1.0"></script>
         HTML;
-    } 
+    }
 
     /**
      * Populate content
      * @return void
      */
-    protected function populateContent() {
+    protected function populateContent()
+    {
         global $current_user, $app_list_strings;
 
         // From date
@@ -147,7 +151,8 @@ class Viewcheckinvoiceamount extends SugarView {
      * @param array $conditions
      * @return string SQL query
      */
-    protected function generateMainQuery($from_date, $to_date, $conditions = []) {
+    protected function generateMainQuery($from_date, $to_date, $conditions = [])
+    {
         global $timedate, $current_user;
 
         $from_db = $timedate->to_db_date($from_date, false);
@@ -192,12 +197,12 @@ class Viewcheckinvoiceamount extends SugarView {
                 $sql_having = "HAVING is_telesale = 1";
             } else if ((int)$conditions['payment_stt'] === 4) {
                 $sql_having = "HAVING is_ctv = 1";
-            } else if((int)$conditions['payment_stt'] === 5) {
+            } else if ((int)$conditions['payment_stt'] === 5) {
                 $sql_having = "HAVING is_reference = 1";
             }
         }
 
-        $sql = 
+        $sql =
             "SELECT 
                 bk.id AS parent_id
                 , bk.id AS booking_id
@@ -224,7 +229,7 @@ class Viewcheckinvoiceamount extends SugarView {
                     SELECT SUM(IFNULL(r.amount_converted, 0))
                     FROM ec_receipt_voucher r
                     WHERE r.booking_id = bk.id
-                        AND r.loai_thu IN ('1', '4', '5', '14')
+                        AND r.loai_thu = '1'
                         AND r.rv_status = '1'
                         AND r.deleted = 0
                     GROUP BY r.booking_id
@@ -242,11 +247,11 @@ class Viewcheckinvoiceamount extends SugarView {
                         ,SUM(dongia * soluong) AS tong_gia_ban
                         ,SUM(tienthue) AS tong_thue
 				        ,SUM(phithuho * soluong) AS tong_thu_ho
-                        ,GROUP_CONCAT(DISTINCT CONCAT(hdb.sohoadon, '|', hdb.ngayhoadon) SEPARATOR ';') AS danh_sach_hd
-                    FROM ec_chitiethoadon cthd
+                        ,GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
+                        FROM ec_chitiethoadon cthd
                         INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
-                    WHERE cthd.deleted = 0
-                    GROUP BY cthd.booking_id
+                        WHERE cthd.deleted = 0
+                        GROUP BY cthd.booking_id
                 ) AS hd ON hd.booking_id = bk.id
 
             WHERE bk.booking_status IN ('3', '7', '8')
@@ -258,20 +263,20 @@ class Viewcheckinvoiceamount extends SugarView {
             GROUP BY bk.id
             $sql_having";
 
-            if ((int)($conditions['payment_stt'] ?? 0) === 0) {
+        if ((int)($conditions['payment_stt'] ?? 0) === 0) {
 
-                // PHẦN 2: Phiếu thu phát sinh (loai_thu không phải thu booking thông thường)
-                $sql_role_rv = !$is_manager && !is_admin($current_user) 
-                    ? " AND p.assigned_user_id = '{$current_user->id}' " 
-                    : "";
+            // PHẦN 2: Phiếu thu phát sinh (loai_thu không phải thu booking thông thường)
+            $sql_role_rv = !$is_manager && !is_admin($current_user)
+                ? " AND p.assigned_user_id = '{$current_user->id}' "
+                : "";
 
-                $hv_from = date("Y-m-d", strtotime($from_date));
-                $hv_to = date("Y-m-d", strtotime($to_date));
+            $hv_from = date("Y-m-d", strtotime($from_date));
+            $hv_to = date("Y-m-d", strtotime($to_date));
 
-                $from_utc = date("Y-m-d H:i:s", strtotime($hv_from)  -7 * 3600);
-                $to_utc = date("Y-m-d H:i:s", strtotime($hv_to)  -7 * 3600 + 86399);
+            $from_utc = date("Y-m-d H:i:s", strtotime($hv_from)  - 7 * 3600);
+            $to_utc = date("Y-m-d H:i:s", strtotime($hv_to)  - 7 * 3600 + 86399);
 
-                $sql .= "
+            $sql .= "
 
                 UNION
 
@@ -301,7 +306,7 @@ class Viewcheckinvoiceamount extends SugarView {
                             + IFNULL(SUM(IFNULL(tienthue, 0)), 0)
                             + IFNULL(SUM(IFNULL(phithuho, 0) * IFNULL(soluong, 0)), 0)
                         ) AS invoice_amount
-                        ,GROUP_CONCAT(DISTINCT CONCAT(hdb.sohoadon, '|', hdb.ngayhoadon) SEPARATOR ';') AS danh_sach_hd
+                        , GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
                     FROM ec_chitiethoadon cthd
                         INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
                     WHERE cthd.receipt_voucher_id IS NOT NULL
@@ -407,7 +412,7 @@ class Viewcheckinvoiceamount extends SugarView {
                                 + IFNULL(SUM(IFNULL(cthd.phithuho, 0) * IFNULL(cthd.soluong, 0)), 0)
                             ) AS invoice_amount,
                             GROUP_CONCAT(
-                                DISTINCT CONCAT(hdb.sohoadon, '|', hdb.ngayhoadon) 
+                                DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) 
                                 SEPARATOR ';'
                             ) AS danh_sach_hd
                         FROM ec_chitiethoadon cthd
@@ -434,7 +439,7 @@ class Viewcheckinvoiceamount extends SugarView {
                     , hv_t.parent_type
                     , hv_t.parent_status
                     , hv_t.date_ticket_issue";
-            }
+        }
         return $sql;
     }
 
@@ -444,9 +449,10 @@ class Viewcheckinvoiceamount extends SugarView {
      * @param string $main_query
      * @return string HTML
      */
-    protected function generateMainContent($main_query) {
-        if(empty($main_query)) return;
-        
+    protected function generateMainContent($main_query)
+    {
+        if (empty($main_query)) return;
+
         $i = 1;
         $total_qty = $total_subtotal_amount = $total_receipt_amount = $total_invoice_amount = 0;
         $tr = '';
@@ -460,13 +466,13 @@ class Viewcheckinvoiceamount extends SugarView {
 
             $list_inv_number = $list_inv_date = [];
             $invoice_list = explode(";", $row['invoice_list'] ?? '');
-            if(is_array($invoice_list)) {
+            if (is_array($invoice_list)) {
                 foreach ($invoice_list as $inv) {
                     $inv_attr = explode("|", $inv);
-                    if(is_array($inv_attr) && count($inv_attr) > 1) {
+                    if (is_array($inv_attr) && count($inv_attr) > 1) {
                         $list_inv_number[] = $inv_attr[0];
                         $inv_date = !empty($inv_attr[1]) ? date($this->userDateFormat, strtotime($inv_attr[1])) : '';
-                        if(array_search($inv_date, $list_inv_date) === false) $list_inv_date[] = $inv_date;
+                        if (array_search($inv_date, $list_inv_date) === false) $list_inv_date[] = $inv_date;
                     }
                 }
             }
@@ -505,7 +511,7 @@ class Viewcheckinvoiceamount extends SugarView {
             $total_subtotal_amount += $row['subtotal_amount'] ?? 0;
             $total_receipt_amount += $row['receipt_amount'] ?? 0;
             $total_invoice_amount += $row['invoice_amount'] ?? 0;
-            
+
             $i++;
         }
 
@@ -514,7 +520,7 @@ class Viewcheckinvoiceamount extends SugarView {
         $total_invoice_amount = format_number($total_invoice_amount);
 
         $row_total_html = "";
-        if(!empty($tr)) {
+        if (!empty($tr)) {
             $row_total_html = <<<HTML
                 <tr>
                     <th class="text-center" colspan="3">Tổng</th>
@@ -525,8 +531,7 @@ class Viewcheckinvoiceamount extends SugarView {
                     <th colspan="2"></th>
                 </tr>
             HTML;
-        }
-        else {
+        } else {
             $tr = <<<HTML
                 <tr>
                     <td colspan="9" class="text-center"><i>Không có dữ liệu</i></td>
