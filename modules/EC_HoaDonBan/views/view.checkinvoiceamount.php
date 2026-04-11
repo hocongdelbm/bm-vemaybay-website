@@ -208,6 +208,7 @@ class Viewcheckinvoiceamount extends SugarView
                 , bk.id AS booking_id
                 , bk.name AS booking_name
                 , bk.name AS parent_name
+                , bk.name AS invoice_search_name
                 , 'EC_Flight_Bookings' AS parent_type
                 , SUM(bkd.quantity) AS total_quantity
                 , bk.total_amount AS subtotal_amount 
@@ -285,6 +286,7 @@ class Viewcheckinvoiceamount extends SugarView
                     , p.id AS booking_id
                     , p.name AS booking_name
                     , p.name AS parent_name
+                    , p.name AS invoice_search_name
                     , 'EC_Receipt_Voucher' AS parent_type
                     , 0 AS total_quantity
                     , SUM(IF(p.rv_status IN ('1','2'), IFNULL(p.amount_converted, 0), 0)) AS subtotal_amount
@@ -328,6 +330,7 @@ class Viewcheckinvoiceamount extends SugarView
                     , hv_t.parent_id AS booking_id
                     , hv_t.parent_name AS booking_name
                     , hv_t.parent_name
+                    , hv_t.bk_name AS invoice_search_name
                     , hv_t.parent_type
                     , SUM(hv_t.total_quantity) AS total_quantity
                     , SUM(hv_t.subtotal_amount) AS subtotal_amount
@@ -348,6 +351,7 @@ class Viewcheckinvoiceamount extends SugarView
                         p.id AS parent_id
                         , p.name AS parent_name
                         , 'EC_HoanVe' AS parent_type
+                        , bk.name AS bk_name
                         , -(SELECT COUNT(id) FROM ec_chitiethoanve WHERE deleted = 0 AND hoanve_id = p.id) AS total_quantity
                         , -IF(
                             SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0,
@@ -379,6 +383,7 @@ class Viewcheckinvoiceamount extends SugarView
                         p.id AS parent_id
                         , p.name AS parent_name
                         , 'EC_HoanVe' AS parent_type
+                        , bk.name AS bk_name
                         , 0 AS total_quantity
                         , -SUM(IFNULL(p.tongtienkhach,0)) AS subtotal_amount
                         , -SUM(IFNULL(p.tongtienhang,0)) AS total_bought_price
@@ -498,7 +503,7 @@ class Viewcheckinvoiceamount extends SugarView
                         </a>
                     </td>
                     <td class="text-end invoice_amount">
-                        <a href="index.php?action=index&module=EC_HoaDonBan&action=ListView&query=true&clear_query=true&searchFormTab=basic_search&booking_basic={$row['parent_name']}" target="_blank" title="Xem chi tiết hóa đơn">
+                        <a href="index.php?action=index&module=EC_HoaDonBan&action=ListView&query=true&clear_query=true&searchFormTab=basic_search&booking_basic={$row['invoice_search_name']}" target="_blank" title="Xem chi tiết hóa đơn">
                             <b>$invoice_amount</b>
                         </a>
                     </td>
