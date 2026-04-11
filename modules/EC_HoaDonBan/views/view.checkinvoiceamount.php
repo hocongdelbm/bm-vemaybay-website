@@ -335,7 +335,7 @@ class Viewcheckinvoiceamount extends SugarView {
                     , 0 AS is_telesale
                     , 0 AS is_ctv
                     , 0 AS is_reference
-                    , MAX(IFNULL(hd_hv.invoice_amount, 0)) AS invoice_amount
+                    , SUM(hv_t.subtotal_amount) AS invoice_amount
                     , MAX(IFNULL(hd_hv.danh_sach_hd, '')) AS invoice_list
                 FROM (
                     -- Hoàn vé thường (tiền hàng <= tiền khách)
