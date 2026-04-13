@@ -24,6 +24,7 @@ class Viewreport_sales_issue extends SugarView
 
         $smartyobj->assign('MODULE_NAME', $this->bean->object_name);
         $smartyobj->assign('MODULE_ACTION', 'report_sales_issue');
+        $smartyobj->assign('CAN_EDIT_AD_COST', is_admin($current_user));
 
         $from_date          = isset($_REQUEST['from_date']) ? preg_replace('/[^0-9\-]/', '', $_REQUEST['from_date']) : date('Y-m-d');
         $to_date            = isset($_REQUEST['to_date']) ? preg_replace('/[^0-9\-]/', '', $_REQUEST['to_date']) : date('Y-m-d');
@@ -40,6 +41,9 @@ class Viewreport_sales_issue extends SugarView
         }
         $from_date_sql_yesterday = date('Y-m-d', strtotime($from_date_sql . ' -1 day'));
         $from_date_sql_daybefore = date('Y-m-d', strtotime($from_date_sql . ' -2 day'));
+        $from_date_sql_minus3 = date('Y-m-d', strtotime($from_date_sql . ' -3 day'));
+        $from_date_sql_minus4 = date('Y-m-d', strtotime($from_date_sql . ' -4 day'));
+        $from_date_sql_minus5 = date('Y-m-d', strtotime($from_date_sql . ' -5 day'));
         $smartyobj->assign('FROM_DATE_VALUE', date('d-m-Y', strtotime($from_date_value)));
 
         // To date
@@ -52,6 +56,9 @@ class Viewreport_sales_issue extends SugarView
         }
         $to_date_sql_yesterday   = date('Y-m-d', strtotime($to_date_sql . ' -1 day'));
         $to_date_sql_daybefore   = date('Y-m-d', strtotime($to_date_sql . ' -2 day'));
+        $to_date_sql_minus3      = date('Y-m-d', strtotime($to_date_sql . ' -3 day'));
+        $to_date_sql_minus4      = date('Y-m-d', strtotime($to_date_sql . ' -4 day'));
+        $to_date_sql_minus5      = date('Y-m-d', strtotime($to_date_sql . ' -5 day'));
         $smartyobj->assign('TO_DATE_VALUE', date('d-m-Y', strtotime($to_date_value)));
 
         switch (ceil(date('n') / 3)) {
@@ -139,7 +146,7 @@ class Viewreport_sales_issue extends SugarView
         };
 
         $sel = ($_POST['date_select'] ?? 'today');
-        $title_current = 'Hiện tại: mốc thời gian hôm nay, hôm qua và hôm trước';
+        $title_current = 'Hiện tại: mốc thời gian 6 ngày liên tiếp';
         $title_prev1 = 'Cùng kỳ: so sánh với mốc thời gian hiện tại ở trên (07 ngày)';
         $title_prev2 = 'Cùng kỳ kế tiếp: so sánh với mốc thời gian hiện tại ở trên (14 ngày)';
         switch ($sel) {
@@ -178,6 +185,35 @@ class Viewreport_sales_issue extends SugarView
                             $shiftDays($from_date_sql_daybefore, '-14 days'),
                             $shiftDays($to_date_sql_daybefore,   '-14 days')
                         ),
+
+                        // ===== 3 NGÀY TRƯỚC NỮA (T-3 … T-5) =====
+                        'dayminus3_current' => $mkRange($from_date_sql_minus3, $to_date_sql_minus3),
+                        'dayminus3_prev1'   => $mkRange(
+                            $shiftDays($from_date_sql_minus3, '-7 days'),
+                            $shiftDays($to_date_sql_minus3,   '-7 days')
+                        ),
+                        'dayminus3_prev2'   => $mkRange(
+                            $shiftDays($from_date_sql_minus3, '-14 days'),
+                            $shiftDays($to_date_sql_minus3,   '-14 days')
+                        ),
+                        'dayminus4_current' => $mkRange($from_date_sql_minus4, $to_date_sql_minus4),
+                        'dayminus4_prev1'   => $mkRange(
+                            $shiftDays($from_date_sql_minus4, '-7 days'),
+                            $shiftDays($to_date_sql_minus4,   '-7 days')
+                        ),
+                        'dayminus4_prev2'   => $mkRange(
+                            $shiftDays($from_date_sql_minus4, '-14 days'),
+                            $shiftDays($to_date_sql_minus4,   '-14 days')
+                        ),
+                        'dayminus5_current' => $mkRange($from_date_sql_minus5, $to_date_sql_minus5),
+                        'dayminus5_prev1'   => $mkRange(
+                            $shiftDays($from_date_sql_minus5, '-7 days'),
+                            $shiftDays($to_date_sql_minus5,   '-7 days')
+                        ),
+                        'dayminus5_prev2'   => $mkRange(
+                            $shiftDays($from_date_sql_minus5, '-14 days'),
+                            $shiftDays($to_date_sql_minus5,   '-14 days')
+                        ),
                     ];
                     break;
                 }
@@ -200,6 +236,18 @@ class Viewreport_sales_issue extends SugarView
                         'today_prev2'     => $mkWeekRange($weekAnchor, -2),
                         'yesterday_prev2' => $mkWeekRange($weekAnchor, -2),
                         'daybefore_prev2' => $mkWeekRange($weekAnchor, -2),
+
+                        'dayminus3_current' => $mkWeekRange($weekAnchor, 0),
+                        'dayminus3_prev1'   => $mkWeekRange($weekAnchor, -1),
+                        'dayminus3_prev2'   => $mkWeekRange($weekAnchor, -2),
+
+                        'dayminus4_current' => $mkWeekRange($weekAnchor, 0),
+                        'dayminus4_prev1'   => $mkWeekRange($weekAnchor, -1),
+                        'dayminus4_prev2'   => $mkWeekRange($weekAnchor, -2),
+                        
+                        'dayminus5_current' => $mkWeekRange($weekAnchor, 0),
+                        'dayminus5_prev1'   => $mkWeekRange($weekAnchor, -1),
+                        'dayminus5_prev2'   => $mkWeekRange($weekAnchor, -2),
                     ];
                     $title_current = 'Hiện tại: Tuần đang chọn';
                     $title_prev1 = 'Cùng kỳ: so sánh với tuần đang chọn hiện tại ở trên';
@@ -225,6 +273,18 @@ class Viewreport_sales_issue extends SugarView
                         'today_prev2'     => $mkMonthRange($monthAnchor, -2),
                         'yesterday_prev2' => $mkMonthRange($monthAnchor, -2),
                         'daybefore_prev2' => $mkMonthRange($monthAnchor, -2),
+
+                        'dayminus3_current' => $mkMonthRange($monthAnchor, 0),
+                        'dayminus3_prev1'   => $mkMonthRange($monthAnchor, -1),
+                        'dayminus3_prev2'   => $mkMonthRange($monthAnchor, -2),
+
+                        'dayminus4_current' => $mkMonthRange($monthAnchor, 0),
+                        'dayminus4_prev1'   => $mkMonthRange($monthAnchor, -1),
+                        'dayminus4_prev2'   => $mkMonthRange($monthAnchor, -2),
+
+                        'dayminus5_current' => $mkMonthRange($monthAnchor, 0),
+                        'dayminus5_prev1'   => $mkMonthRange($monthAnchor, -1),
+                        'dayminus5_prev2'   => $mkMonthRange($monthAnchor, -2),
                     ];
                     $title_current = 'Hiện tại: Tháng đang chọn';
                     $title_prev1 = 'Cùng kỳ: so sánh với tháng đang chọn hiện tại ở trên';
@@ -251,6 +311,18 @@ class Viewreport_sales_issue extends SugarView
                         'today_prev2'     => $mkQuarterRange($quarterAnchor, $offset - 2),
                         'yesterday_prev2' => $mkQuarterRange($quarterAnchor, $offset - 2),
                         'daybefore_prev2' => $mkQuarterRange($quarterAnchor, $offset - 2),
+
+                        'dayminus3_current' => $mkQuarterRange($quarterAnchor, $offset),
+                        'dayminus3_prev1'   => $mkQuarterRange($quarterAnchor, $offset - 1),
+                        'dayminus3_prev2'   => $mkQuarterRange($quarterAnchor, $offset - 2),
+
+                        'dayminus4_current' => $mkQuarterRange($quarterAnchor, $offset),
+                        'dayminus4_prev1'   => $mkQuarterRange($quarterAnchor, $offset - 1),
+                        'dayminus4_prev2'   => $mkQuarterRange($quarterAnchor, $offset - 2),
+
+                        'dayminus5_current' => $mkQuarterRange($quarterAnchor, $offset),
+                        'dayminus5_prev1'   => $mkQuarterRange($quarterAnchor, $offset - 1),
+                        'dayminus5_prev2'   => $mkQuarterRange($quarterAnchor, $offset - 2),
                     ];
                     $title_current = 'Hiện tại: Quý đang chọn';
                     $title_prev1 = 'Cùng kỳ: so sánh với quý đang chọn hiện tại ở trên';
@@ -277,6 +349,18 @@ class Viewreport_sales_issue extends SugarView
                         'today_prev2'     => $mkYearRange($yearAnchor, $offset - 2),
                         'yesterday_prev2' => $mkYearRange($yearAnchor, $offset - 2),
                         'daybefore_prev2' => $mkYearRange($yearAnchor, $offset - 2),
+
+                        'dayminus3_current' => $mkYearRange($yearAnchor, $offset),
+                        'dayminus3_prev1'   => $mkYearRange($yearAnchor, $offset - 1),
+                        'dayminus3_prev2'   => $mkYearRange($yearAnchor, $offset - 2),
+
+                        'dayminus4_current' => $mkYearRange($yearAnchor, $offset),
+                        'dayminus4_prev1'   => $mkYearRange($yearAnchor, $offset - 1),
+                        'dayminus4_prev2'   => $mkYearRange($yearAnchor, $offset - 2),
+
+                        'dayminus5_current' => $mkYearRange($yearAnchor, $offset),
+                        'dayminus5_prev1'   => $mkYearRange($yearAnchor, $offset - 1),
+                        'dayminus5_prev2'   => $mkYearRange($yearAnchor, $offset - 2),
                     ];
                     $title_current = 'Hiện tại: Năm đang chọn';
                     $title_prev1 = 'Cùng kỳ: so sánh với năm đang chọn hiện tại ở trên';
@@ -290,6 +374,10 @@ class Viewreport_sales_issue extends SugarView
                     $current = $mkRange($anchorFrom, $anchorTo);
                     $prev1   = $shiftRange($anchorFrom, $anchorTo, 1);
                     $prev2   = $shiftRange($anchorFrom, $anchorTo, 2);
+
+                    $d3cur = $mkRange($shiftDays($anchorFrom, '-3 days'), $shiftDays($anchorTo, '-3 days'));
+                    $d4cur = $mkRange($shiftDays($anchorFrom, '-4 days'), $shiftDays($anchorTo, '-4 days'));
+                    $d5cur = $mkRange($shiftDays($anchorFrom, '-5 days'), $shiftDays($anchorTo, '-5 days'));
 
                     $ranges = [
                         // ===== CURRENT =====
@@ -306,22 +394,43 @@ class Viewreport_sales_issue extends SugarView
                         'today_prev2'     => $prev2,
                         'yesterday_prev2' => $prev2,
                         'daybefore_prev2' => $prev2,
+
+                        'dayminus3_current' => $d3cur,
+                        'dayminus3_prev1'     => $shiftRange($shiftDays($anchorFrom, '-3 days'), $shiftDays($anchorTo, '-3 days'), 1),
+                        'dayminus3_prev2'     => $shiftRange($shiftDays($anchorFrom, '-3 days'), $shiftDays($anchorTo, '-3 days'), 2),
+                        'dayminus4_current' => $d4cur,
+                        'dayminus4_prev1'     => $shiftRange($shiftDays($anchorFrom, '-4 days'), $shiftDays($anchorTo, '-4 days'), 1),
+                        'dayminus4_prev2'     => $shiftRange($shiftDays($anchorFrom, '-4 days'), $shiftDays($anchorTo, '-4 days'), 2),
+                        'dayminus5_current' => $d5cur,
+                        'dayminus5_prev1'     => $shiftRange($shiftDays($anchorFrom, '-5 days'), $shiftDays($anchorTo, '-5 days'), 1),
+                        'dayminus5_prev2'     => $shiftRange($shiftDays($anchorFrom, '-5 days'), $shiftDays($anchorTo, '-5 days'), 2),
                     ];
                     break;
                 }
         }
         // pr($ranges);
 
+        // Thứ tự WHEN: tất cả *_current trước, rồi *_prev1, cuối *_prev2 — tránh trùng ngày
+        // (nhánh default dùng shiftRange: cùng ngày có thể khớp prev trước current nếu xét sai thứ tự).
         $select_period = "CASE
                             WHEN date_ticket_issue BETWEEN '{$ranges['today_current']['from']}' AND '{$ranges['today_current']['to']}' THEN 'today_current'
-                            WHEN date_ticket_issue BETWEEN '{$ranges['today_prev1']['from']}'   AND '{$ranges['today_prev1']['to']}'   THEN 'today_prev1'
-                            WHEN date_ticket_issue BETWEEN '{$ranges['today_prev2']['from']}'   AND '{$ranges['today_prev2']['to']}'   THEN 'today_prev2'
                             WHEN date_ticket_issue BETWEEN '{$ranges['yesterday_current']['from']}' AND '{$ranges['yesterday_current']['to']}' THEN 'yesterday_current'
-                            WHEN date_ticket_issue BETWEEN '{$ranges['yesterday_prev1']['from']}'   AND '{$ranges['yesterday_prev1']['to']}'   THEN 'yesterday_prev1'
-                            WHEN date_ticket_issue BETWEEN '{$ranges['yesterday_prev2']['from']}'   AND '{$ranges['yesterday_prev2']['to']}'   THEN 'yesterday_prev2'
                             WHEN date_ticket_issue BETWEEN '{$ranges['daybefore_current']['from']}' AND '{$ranges['daybefore_current']['to']}' THEN 'daybefore_current'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['dayminus3_current']['from']}' AND '{$ranges['dayminus3_current']['to']}' THEN 'dayminus3_current'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['dayminus4_current']['from']}' AND '{$ranges['dayminus4_current']['to']}' THEN 'dayminus4_current'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['dayminus5_current']['from']}' AND '{$ranges['dayminus5_current']['to']}' THEN 'dayminus5_current'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['today_prev1']['from']}'   AND '{$ranges['today_prev1']['to']}'   THEN 'today_prev1'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['yesterday_prev1']['from']}'   AND '{$ranges['yesterday_prev1']['to']}'   THEN 'yesterday_prev1'
                             WHEN date_ticket_issue BETWEEN '{$ranges['daybefore_prev1']['from']}'   AND '{$ranges['daybefore_prev1']['to']}'   THEN 'daybefore_prev1'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['dayminus3_prev1']['from']}'   AND '{$ranges['dayminus3_prev1']['to']}'   THEN 'dayminus3_prev1'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['dayminus4_prev1']['from']}'   AND '{$ranges['dayminus4_prev1']['to']}'   THEN 'dayminus4_prev1'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['dayminus5_prev1']['from']}'   AND '{$ranges['dayminus5_prev1']['to']}'   THEN 'dayminus5_prev1'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['today_prev2']['from']}'   AND '{$ranges['today_prev2']['to']}'   THEN 'today_prev2'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['yesterday_prev2']['from']}'   AND '{$ranges['yesterday_prev2']['to']}'   THEN 'yesterday_prev2'
                             WHEN date_ticket_issue BETWEEN '{$ranges['daybefore_prev2']['from']}'   AND '{$ranges['daybefore_prev2']['to']}'   THEN 'daybefore_prev2'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['dayminus3_prev2']['from']}'   AND '{$ranges['dayminus3_prev2']['to']}'   THEN 'dayminus3_prev2'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['dayminus4_prev2']['from']}'   AND '{$ranges['dayminus4_prev2']['to']}'   THEN 'dayminus4_prev2'
+                            WHEN date_ticket_issue BETWEEN '{$ranges['dayminus5_prev2']['from']}'   AND '{$ranges['dayminus5_prev2']['to']}'   THEN 'dayminus5_prev2'
                             ELSE 'unknown'
                         END AS period";
         $where_period = "AND (
@@ -336,18 +445,43 @@ class Viewreport_sales_issue extends SugarView
                             OR date_ticket_issue BETWEEN '{$ranges['daybefore_current']['from']}' AND '{$ranges['daybefore_current']['to']}'
                             OR date_ticket_issue BETWEEN '{$ranges['daybefore_prev1']['from']}'   AND '{$ranges['daybefore_prev1']['to']}'
                             OR date_ticket_issue BETWEEN '{$ranges['daybefore_prev2']['from']}'   AND '{$ranges['daybefore_prev2']['to']}'
+
+                            OR date_ticket_issue BETWEEN '{$ranges['dayminus3_current']['from']}' AND '{$ranges['dayminus3_current']['to']}'
+                            OR date_ticket_issue BETWEEN '{$ranges['dayminus3_prev1']['from']}'   AND '{$ranges['dayminus3_prev1']['to']}'
+                            OR date_ticket_issue BETWEEN '{$ranges['dayminus3_prev2']['from']}'   AND '{$ranges['dayminus3_prev2']['to']}'
+
+                            OR date_ticket_issue BETWEEN '{$ranges['dayminus4_current']['from']}' AND '{$ranges['dayminus4_current']['to']}'
+                            OR date_ticket_issue BETWEEN '{$ranges['dayminus4_prev1']['from']}'   AND '{$ranges['dayminus4_prev1']['to']}'
+                            OR date_ticket_issue BETWEEN '{$ranges['dayminus4_prev2']['from']}'   AND '{$ranges['dayminus4_prev2']['to']}'
+
+                            OR date_ticket_issue BETWEEN '{$ranges['dayminus5_current']['from']}' AND '{$ranges['dayminus5_current']['to']}'
+                            OR date_ticket_issue BETWEEN '{$ranges['dayminus5_prev1']['from']}'   AND '{$ranges['dayminus5_prev1']['to']}'
+                            OR date_ticket_issue BETWEEN '{$ranges['dayminus5_prev2']['from']}'   AND '{$ranges['dayminus5_prev2']['to']}'
                         )";
+
+        ad_cost_ensure_table($db);
+        $adMin = null;
+        $adMax = null;
+        foreach ($ranges as $r) {
+            if ($adMin === null || $r['from'] < $adMin) {
+                $adMin = $r['from'];
+            }
+            if ($adMax === null || $r['to'] > $adMax) {
+                $adMax = $r['to'];
+            }
+        }
+        $adCosts = ad_cost_fetch_map($db, $adMin, $adMax);
 
         try {
             // get thông tin doanh số theo ngày xuất vé
             $sql = "SELECT
                     t.period,
                     CASE
-                        WHEN t.period IN ('today_current', 'yesterday_current', 'daybefore_current')
+                        WHEN t.period IN ('today_current', 'yesterday_current', 'daybefore_current', 'dayminus3_current', 'dayminus4_current', 'dayminus5_current')
                             THEN 'current'
-                        WHEN t.period IN ('today_prev1', 'yesterday_prev1', 'daybefore_prev1')
+                        WHEN t.period IN ('today_prev1', 'yesterday_prev1', 'daybefore_prev1', 'dayminus3_prev1', 'dayminus4_prev1', 'dayminus5_prev1')
                             THEN 'prev1'
-                        WHEN t.period IN ('today_prev2', 'yesterday_prev2', 'daybefore_prev2')
+                        WHEN t.period IN ('today_prev2', 'yesterday_prev2', 'daybefore_prev2', 'dayminus3_prev2', 'dayminus4_prev2', 'dayminus5_prev2')
                             THEN 'prev2'
                     END AS period_group,
                     CASE
@@ -360,6 +494,15 @@ class Viewreport_sales_issue extends SugarView
                         WHEN t.period = 'daybefore_current' THEN '{$ranges['daybefore_current']['from']}'
                         WHEN t.period = 'daybefore_prev1'   THEN '{$ranges['daybefore_prev1']['from']}'
                         WHEN t.period = 'daybefore_prev2'   THEN '{$ranges['daybefore_prev2']['from']}'
+                        WHEN t.period = 'dayminus3_current' THEN '{$ranges['dayminus3_current']['from']}'
+                        WHEN t.period = 'dayminus3_prev1'   THEN '{$ranges['dayminus3_prev1']['from']}'
+                        WHEN t.period = 'dayminus3_prev2'   THEN '{$ranges['dayminus3_prev2']['from']}'
+                        WHEN t.period = 'dayminus4_current' THEN '{$ranges['dayminus4_current']['from']}'
+                        WHEN t.period = 'dayminus4_prev1'   THEN '{$ranges['dayminus4_prev1']['from']}'
+                        WHEN t.period = 'dayminus4_prev2'   THEN '{$ranges['dayminus4_prev2']['from']}'
+                        WHEN t.period = 'dayminus5_current' THEN '{$ranges['dayminus5_current']['from']}'
+                        WHEN t.period = 'dayminus5_prev1'   THEN '{$ranges['dayminus5_prev1']['from']}'
+                        WHEN t.period = 'dayminus5_prev2'   THEN '{$ranges['dayminus5_prev2']['from']}'
                     END AS from_date,
                     CASE
                         WHEN t.period = 'today_current' THEN '{$ranges['today_current']['to']}'
@@ -371,6 +514,15 @@ class Viewreport_sales_issue extends SugarView
                         WHEN t.period = 'daybefore_current' THEN '{$ranges['daybefore_current']['to']}'
                         WHEN t.period = 'daybefore_prev1'   THEN '{$ranges['daybefore_prev1']['to']}'
                         WHEN t.period = 'daybefore_prev2'   THEN '{$ranges['daybefore_prev2']['to']}'
+                        WHEN t.period = 'dayminus3_current' THEN '{$ranges['dayminus3_current']['to']}'
+                        WHEN t.period = 'dayminus3_prev1'   THEN '{$ranges['dayminus3_prev1']['to']}'
+                        WHEN t.period = 'dayminus3_prev2'   THEN '{$ranges['dayminus3_prev2']['to']}'
+                        WHEN t.period = 'dayminus4_current' THEN '{$ranges['dayminus4_current']['to']}'
+                        WHEN t.period = 'dayminus4_prev1'   THEN '{$ranges['dayminus4_prev1']['to']}'
+                        WHEN t.period = 'dayminus4_prev2'   THEN '{$ranges['dayminus4_prev2']['to']}'
+                        WHEN t.period = 'dayminus5_current' THEN '{$ranges['dayminus5_current']['to']}'
+                        WHEN t.period = 'dayminus5_prev1'   THEN '{$ranges['dayminus5_prev1']['to']}'
+                        WHEN t.period = 'dayminus5_prev2'   THEN '{$ranges['dayminus5_prev2']['to']}'
                     END AS to_date,
                     SUM(t.total_qty)             AS total_qty,
                     SUM(t.total_ticket_qty)      AS total_ticket_qty,
@@ -476,18 +628,22 @@ class Viewreport_sales_issue extends SugarView
                 ) t
                 GROUP BY period
                 ORDER BY
-                    CASE t.period
-                        WHEN 'today_current' THEN 1
-                        WHEN 'yesterday_current' THEN 2
-                        WHEN 'daybefore_current' THEN 3
-                        WHEN 'today_prev1'   THEN 4
-                        WHEN 'yesterday_prev1'   THEN 5
-                        WHEN 'daybefore_prev1'   THEN 6
-                        WHEN 'today_prev2'   THEN 7
-                        WHEN 'yesterday_prev2'   THEN 8
-                        WHEN 'daybefore_prev2'   THEN 9
-                        ELSE 10
-                    END;
+                    CASE SUBSTRING_INDEX(t.period, '_', -1)
+                        WHEN 'current' THEN 1
+                        WHEN 'prev1' THEN 2
+                        WHEN 'prev2' THEN 3
+                        ELSE 4
+                    END,
+                    CASE SUBSTRING_INDEX(t.period, '_', 1)
+                        WHEN 'today' THEN 1
+                        WHEN 'yesterday' THEN 2
+                        WHEN 'daybefore' THEN 3
+                        WHEN 'dayminus3' THEN 4
+                        WHEN 'dayminus4' THEN 5
+                        WHEN 'dayminus5' THEN 6
+                        ELSE 99
+                    END,
+                    t.period
             ";
 
             // if($current_user->user_name == 'hungnh'){
@@ -513,7 +669,7 @@ class Viewreport_sales_issue extends SugarView
                         $mark_current = true;
 
                         $html .= '<tr style="background-color: #fff2cc;">
-								<td colspan="30">
+								<td colspan="16">
 									<span class="form-label text-dark fw-semibold">' . $title_current . '</span> 
 								</td>
 							</tr>';
@@ -521,7 +677,7 @@ class Viewreport_sales_issue extends SugarView
                         $mark_previous1 = true;
 
                         $html .= '<tr style="background-color: #fff2cc;">
-								<td colspan="30">
+								<td colspan="16">
 									<span class="form-label text-dark fw-semibold">' . $title_prev1 . '</span> 
 								</td>
 							</tr>';
@@ -529,7 +685,7 @@ class Viewreport_sales_issue extends SugarView
                         $mark_previous2 = true;
 
                         $html .= '<tr style="background-color: #fff2cc;">
-								<td colspan="30">
+								<td colspan="16">
 									<span class="form-label text-dark fw-semibold">' . $title_prev2 . '</span> 
 								</td>
 							</tr>';
@@ -554,6 +710,7 @@ class Viewreport_sales_issue extends SugarView
                                 </td>
                                 <td align="right" data-label="Doanh số tổng">' . format_number($row['total_profit']) . '</td>
                                 <td align="right" data-label="Doanh số PThu">' . format_number($ds_pt_arr['total_profit']) . '</td>
+                                <td align="right" data-label="Chi phí Quảng cáo">' . $this->buildDailyAdCostCell($row['from_date'], $row['to_date'], $adCosts) . '</td>
                                 <td align="center" data-label="Booking">' . format_number($row['total_qty']) . '</td>
                                 <td align="center" data-label="BK 2-3 vé">' . format_number($row['total_bk_2_3']) . '</td>
                                 <td align="center" data-label="BK 4-6 vé">' . format_number($row['total_bk_4_6']) . '</td>
@@ -571,7 +728,7 @@ class Viewreport_sales_issue extends SugarView
                             </tr>';
                 }
             } else {
-                $html .= '<tr><td colspan="15">0</td></tr>';
+                $html .= '<tr><td colspan="16">0</td></tr>';
             }
 
             $smartyobj->assign('DATA', $html);
@@ -587,6 +744,52 @@ class Viewreport_sales_issue extends SugarView
         $smartyobj->assign('TONGTIENDOANHSO', format_number($paid_booking['total_ds']));
         $smartyobj->assign('TONGTIENCHUAXUAT', format_number($paid_booking['total_amt']));
         $smartyobj->assign('TONGSOVECHUAXUAT', format_number($paid_booking['total_tkt']));
+    }
+
+    /**
+     * Hiển thị chi phí QC theo ngày; 
+     * một ngày = một số tiền; 
+     * khoảng nhiều ngày = tổng các ngày.
+     *
+     * @param array<string,float> $adCosts
+     */
+    protected function buildDailyAdCostCell($from, $to, array $adCosts)
+    {
+        if ($from === $to) {
+            $d = $from;
+            $hasRecord = isset($adCosts[$d]);
+            $amt = $hasRecord ? (float) $adCosts[$d] : 0.0;
+            $display = format_number($amt);
+            $dSafe = htmlspecialchars($d, ENT_QUOTES, 'UTF-8');
+            $amtSafe = htmlspecialchars((string) $amt, ENT_QUOTES, 'UTF-8');
+
+            if (!$hasRecord) {
+                return '<span class="d-inline-flex align-items-center gap-1 justify-content-end flex-wrap">'
+                    . '<span class="ad-cost-display">0</span>'
+                    . '<button type="button" class="btn btn-sm btn-outline-success btn-edit-daily-ad-cost" data-ad-date="' . $dSafe . '" data-ad-amount="0">Thêm</button>'
+                    . '</span>';
+            }
+
+            if (ad_cost_is_editable_date($d)) {
+                // Đã có + trong 3 ngày gần nhất → nút "Sửa"
+                return '<span class="d-inline-flex align-items-center gap-1 justify-content-end flex-wrap">'
+                    . '<span class="ad-cost-display">' . $display . '</span>'
+                    . '<button type="button" class="btn btn-sm btn-outline-primary btn-edit-daily-ad-cost" data-ad-date="' . $dSafe . '" data-ad-amount="' . $amtSafe . '">Sửa</button>'
+                    . '</span>';
+            }
+
+            return $display;
+        }
+        $sum = 0;
+        $cur = strtotime($from);
+        $end = strtotime($to);
+        while ($cur <= $end) {
+            $dd = date('Y-m-d', $cur);
+            $sum += isset($adCosts[$dd]) ? (float) $adCosts[$dd] : 0;
+            $cur = strtotime('+1 day', $cur);
+        }
+
+        return '<span title="Tổng chi phí quảng cáo theo từng ngày trong khoảng">' . format_number($sum) . '</span>';
     }
 
     /**

@@ -26,8 +26,6 @@ if (ACLController::checkAccess('EC_TongHop', 'view', true)) $module_menu[] = arr
 
 if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=report_sales_revenue&return_module=EC_TongHop&return_action=report_sales_revenue", "Doanh thu trong ngày", "coinicon_16x16", 'EC_TongHop');
 
-if (is_admin($current_user)) $module_menu[] = array("index.php?module=EC_TongHop&action=addbonus&return_module=EC_TongHop&return_action=employeekpi", 'Bonus add thêm', "bonus_16", 'EC_TongHop');
-
 if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=employeekpi&return_module=EC_TongHop&return_action=employeekpi", 'KPI nhân viên', "kpi_icon_16", 'EC_TongHop');
 
 if (isAllowedUser()) {

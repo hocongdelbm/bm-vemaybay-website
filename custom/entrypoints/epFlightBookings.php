@@ -3956,3 +3956,61 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 	echo $html;
 	exit();
 }
+
+/**
+ * Lưu chi phí quảng cáo theo ngày (báo cáo DS theo ngày xuất vé). Chỉ admin; chỉnh trong 3 ngày gần nhất.
+ */
+if (isset($_POST['for']) && $_POST['for'] === 'saveDailyAdCost') {
+	if (empty($current_user->id) || !is_admin($current_user)) {
+		echo json_encode(['ok' => false, 'message' => 'Chỉ quản trị viên mới được nhập chi phí quảng cáo.']);
+		exit();
+	}
+
+	date_default_timezone_set('Asia/Ho_Chi_Minh');
+	$cost_date = isset($_POST['cost_date']) ? trim((string) $_POST['cost_date']) : '';
+	if ($cost_date !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $cost_date) !== 1) {
+		$ts = strtotime($cost_date);
+		$cost_date = $ts ? date('Y-m-d', $ts) : '';
+	}
+
+	if ($cost_date === '' || preg_match('/^\d{4}-\d{2}-\d{2}$/', $cost_date) !== 1) {
+		echo json_encode(['ok' => false, 'message' => 'Ngày không hợp lệ.']);
+		exit();
+	}
+
+	$amount = ad_cost_parse_amount($_POST['amount'] ?? '0');
+	if ($amount < 0) {
+		$amount = 0;
+	}
+
+	ad_cost_ensure_table($db);
+	$qdate = $db->quote($cost_date);
+	$res = $db->query("SELECT id FROM ec_daily_ad_cost WHERE cost_date = '{$qdate}' AND deleted = 0 LIMIT 1");
+	$row = $res ? $db->fetchByAssoc($res) : null;
+	$now = gmdate('Y-m-d H:i:s');
+	$uid = $db->quote($current_user->id);
+	$amtSql = number_format((float) $amount, 2, '.', '');
+
+	if (!empty($row['id'])) {
+		// Đã có record → chỉ cho sửa trong 3 ngày gần nhất
+		if (!ad_cost_is_editable_date($cost_date)) {
+			echo json_encode(['ok' => false, 'message' => 'Chỉ được sửa chi phí quảng cáo trong 3 ngày gần nhất (hôm nay và 2 ngày trước).']);
+			exit();
+		}
+		$rid = $db->quote($row['id']);
+		$db->query("UPDATE ec_daily_ad_cost SET amount = {$amtSql}, modified_user_id = '{$uid}', date_modified = '{$now}' WHERE id = '{$rid}'");
+	} else {
+		// Chưa có record → cho phép thêm mới không giới hạn ngày
+		$id = create_guid();
+		$qid = $db->quote($id);
+		$sql_insert = "INSERT INTO ec_daily_ad_cost (id, cost_date, amount, created_by, modified_user_id, date_entered, date_modified, deleted)
+			VALUES ('{$qid}', '{$qdate}', {$amtSql}, '{$uid}', '{$uid}', '{$now}', '{$now}', 0)";
+
+		$db->query($sql_insert);
+	}
+
+	$formatted = format_number($amount);
+	$canEdit = ad_cost_is_editable_date($cost_date);
+	echo json_encode(['ok' => true, 'message' => 'Đã lưu.', 'amount' => $amount, 'formatted' => $formatted, 'can_edit' => $canEdit]);
+	exit();
+}
