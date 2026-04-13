@@ -19,19 +19,19 @@ class Viewsummaryview extends SugarView
      * Header: Authorization: Basic base64(username:app_password)
      */
     public static $domain_list = [
-        'timchuyenbay_vn' => [
+        'timchuyenbay.vn' => [
             'label' => 'timchuyenbay.vn',
             'api_base' => 'https://timchuyenbay.vn/wp-json/uat/v1',
             'username' => 'datlnt', // ← WordPress username
             'app_password' => 'hVr3$43qSskCAg@U7Xq@PJYG', // ← Application Password
         ],
-        'timchuyenbay_com' => [
+        'timchuyenbay.com' => [
             'label' => 'timchuyenbay.com',
             'api_base' => 'https://timchuyenbay.com/wp-json/uat/v1',
             'username' => 'datlnt',
             'app_password' => 'hVr3$43qSskCAg@U7Xq@PJYG',
         ],
-        'vietjet_net' => [
+        'vietjet.net' => [
             'label' => 'vietjet.net',
             'api_base' => 'https://vietjet.net/wp-json/uat/v1',
             'username' => 'datlnt',
