@@ -95,7 +95,7 @@ class EC_HoanVeViewEdit extends ViewEdit{
 								<td data-label="Nơi đến"><input type="text" class="text-center" maxlength="3" name="ct_noiden[]" id="ct_noiden'.$i.'" value="'.$row1['noiden'].'" /></td>
 								<td data-label="Số vé"><input type="text" class="text-center" maxlength="25" name="ct_sove[]" id="ct_sove'.$i.'" value="'.$row2['sove'].'" /></td>
 								<td data-label="PNR"><input type="text" class="text-center" maxlength="25" name="ct_pnr[]" id="ct_pnr'.$i.'" value="'.$row2['pnr'].'" /></td>
-								<td data-label="NCC"><select id="ct_nhacc_id'.$i.'" name="ct_nhacc_id[]"><option value=""></option>'.myGetSelectOptionsWithDb('Accounts', $row2['nhacc_id'], 'id', " AND account_type='Supplier'").'</select></td>
+								<td data-label="NCC"><select id="ct_nhacc_id'.$i.'" name="ct_nhacc_id[]"><option value=""></option>'.myGetSelectOptionsWithDb('Accounts', $row2['nhacc_id'], 'id', " AND account_type='Supplier' AND is_stop_tracking = 0").'</select></td>
 								<td data-label="Tiền hãng hoàn"><input class="allow-number-only text-end" onblur="calculateLineTotal('.$i.')" type="text" maxlength="25" name="ct_sotienhang[]" id="ct_sotienhang'.$i.'" value="'.format_number($row2['sotienhang']).'" /></td>
 								<td data-label="Tiền hoàn khách"><input class="allow-number-only text-end" onblur="calculateLineTotal('.$i.')" type="text" maxlength="25" name="ct_sotienkhach[]" id="ct_sotienkhach'.$i.'" value="'.format_number($row2['sotienkhach']).'" /></td>
 								<td data-label="Phí DV"><input class="allow-number-only text-end" onblur="calculateLineTotal('.$i.')" type="text" maxlength="25" name="ct_phidichvu[]" id="ct_phidichvu'.$i.'" value="'.format_number($row2['phidichvu']).'" /></td>

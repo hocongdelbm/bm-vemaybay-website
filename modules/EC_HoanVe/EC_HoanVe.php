@@ -157,7 +157,10 @@ class EC_HoanVe extends Basic
 		$ret['select'] .= ", (
 			SELECT GROUP_CONCAT(DISTINCT a.name ORDER BY a.name SEPARATOR ', ')
 			FROM ec_chitiethoanve c
-			INNER JOIN accounts a ON a.id = c.nhacc_id AND a.deleted = 0
+			INNER JOIN accounts a ON a.id = c.nhacc_id
+				AND a.deleted = 0
+				AND a.account_type = 'Supplier'
+				AND a.is_stop_tracking = 0
 			WHERE c.deleted = 0 AND c.hoanve_id = {$this->table_name}.id
 		) AS NHACC_LIST";
 
