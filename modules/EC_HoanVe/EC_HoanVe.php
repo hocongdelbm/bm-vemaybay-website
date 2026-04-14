@@ -162,7 +162,7 @@ class EC_HoanVe extends Basic
 				AND a.account_type = 'Supplier'
 				AND a.is_stop_tracking = 0
 			WHERE c.deleted = 0 AND c.hoanve_id = {$this->table_name}.id
-		) AS NHACC_LIST";
+		) AS nhacc_list";
 
 		if ($return_array) {
 			return $ret;

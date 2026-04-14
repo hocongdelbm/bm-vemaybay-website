@@ -4,6 +4,11 @@ require_once('include/MVC/View/views/view.list.php');
 
 class EC_HoanVeViewList extends ViewList {
 
+	public function __construct() {
+			parent::__construct();
+			$this->loadSupplierListOptions();
+	}
+	
 	private function loadSupplierListOptions() {
 		global $app_list_strings;
 
