@@ -1185,4 +1185,4 @@
 
 </div><!-- END uat-wrap -->
 
-<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=2.0.8"></script>
+<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=2.0.9"></script>
