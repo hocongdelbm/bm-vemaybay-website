@@ -8,23 +8,25 @@ class EC_HoanVeViewList extends ViewList {
 			parent::__construct();
 			$this->loadSupplierListOptions();
 	}
-	
+
 	private function loadSupplierListOptions() {
 		global $app_list_strings;
+
+		$db = DBManagerFactory::getInstance();
 
 		$app_list_strings['hoanve_supplier_list'] = array('' => '');
 		$sql = "SELECT id, name
 				FROM accounts
 				WHERE deleted = 0
-					AND account_type = 'Supplier'
-					AND is_stop_tracking = 0
+				AND account_type = 'Supplier'
+				AND is_stop_tracking = 0
 				ORDER BY name";
-		$res = $this->bean->db->query($sql);
-		while ($row = $this->bean->db->fetchByAssoc($res)) {
+
+		$res = $db->query($sql);
+		while ($row = $db->fetchByAssoc($res)) {
 			$app_list_strings['hoanve_supplier_list'][$row['id']] = $row['name'];
 		}
 
-		// Backward-compatible alias in case cached metadata uses the old typo key.
 		$app_list_strings['hoanve_supperlier_list'] = $app_list_strings['hoanve_supplier_list'];
 	}
 
