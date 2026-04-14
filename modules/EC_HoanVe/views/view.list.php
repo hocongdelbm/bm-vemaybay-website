@@ -19,7 +19,7 @@ class EC_HoanVeViewList extends ViewList {
 				FROM accounts
 				WHERE deleted = 0
 				AND account_type = 'Supplier'
-				AND is_stop_tracking = 0
+				AND (is_stop_tracking = 0 OR is_stop_tracking IS NULL)
 				ORDER BY name";
 
 		$res = $db->query($sql);

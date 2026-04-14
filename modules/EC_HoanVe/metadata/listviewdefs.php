@@ -36,6 +36,7 @@ $listViewDefs[$module_name] = array(
     ),
     'NHACC_LIST' =>
     array(
+        'name' => 'nhacc_list',
         'type' => 'varchar',
         'label' => 'LBL_NHACC_LIST',
         'width' => '10%',

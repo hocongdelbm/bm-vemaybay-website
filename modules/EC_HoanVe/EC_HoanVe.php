@@ -160,7 +160,7 @@ class EC_HoanVe extends Basic
 			INNER JOIN accounts a ON a.id = c.nhacc_id
 				AND a.deleted = 0
 				AND a.account_type = 'Supplier'
-				AND a.is_stop_tracking = 0
+				AND (a.is_stop_tracking = 0 OR a.is_stop_tracking IS NULL)
 			WHERE c.deleted = 0 AND c.hoanve_id = {$this->table_name}.id
 		) AS nhacc_list";
 

@@ -92,6 +92,25 @@ $dictionary['EC_HoanVe'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
+        'nhacc_search' =>
+        array(
+            'source' => 'non-db',
+            'name' => 'nhacc_search',
+            'vname' => 'LBL_NHACC_SEARCH',
+            'type' => 'enum',
+            'options' => 'hoanve_supplier_list',
+            'reportable' => 0,
+            'studio' => 'visible',
+        ),
+        'nhacc_list' =>
+        array(
+            'source' => 'non-db',
+            'name' => 'nhacc_list',
+            'vname' => 'LBL_NHACC_LIST',
+            'type' => 'varchar',
+            'len' => '255',
+            'reportable' => 0,
+        ),
         'tinhtrang' =>
         array(
             'required' => false,
