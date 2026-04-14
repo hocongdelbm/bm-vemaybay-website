@@ -251,7 +251,16 @@ class Viewcheckinvoiceamount extends SugarView
                         ,GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
                         FROM ec_chitiethoadon cthd
                         INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
-                        WHERE cthd.deleted = 0
+                        WHERE cthd.deleted = 0 
+                            AND (
+                                cthd.receipt_voucher_id IS NULL
+                                OR cthd.receipt_voucher_id = ''
+                                OR EXISTS (
+                                    SELECT 1 FROM ec_receipt_voucher rv
+                                    WHERE rv.id = cthd.receipt_voucher_id
+                                    AND rv.loai_thu = '1'
+                                )
+                            )
                         GROUP BY cthd.booking_id
                 ) AS hd ON hd.booking_id = bk.id
 
