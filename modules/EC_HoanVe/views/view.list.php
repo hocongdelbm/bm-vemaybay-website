@@ -4,7 +4,28 @@ require_once('include/MVC/View/views/view.list.php');
 
 class EC_HoanVeViewList extends ViewList {
 
+	private function loadSupplierListOptions() {
+		global $app_list_strings;
+
+		$app_list_strings['hoanve_supplier_list'] = array('' => '');
+		$sql = "SELECT id, name
+				FROM accounts
+				WHERE deleted = 0
+					AND account_type = 'Supplier'
+					AND is_stop_tracking = 0
+				ORDER BY name";
+		$res = $this->bean->db->query($sql);
+		while ($row = $this->bean->db->fetchByAssoc($res)) {
+			$app_list_strings['hoanve_supplier_list'][$row['id']] = $row['name'];
+		}
+
+		// Backward-compatible alias in case cached metadata uses the old typo key.
+		$app_list_strings['hoanve_supperlier_list'] = $app_list_strings['hoanve_supplier_list'];
+	}
+
 	function listViewPrepare(){
+		$this->loadSupplierListOptions();
+
 		if (empty($_REQUEST['orderBy']) || isset($_REQUEST['query'])) {
 		  $_REQUEST['orderBy'] = 'date_entered'; 
 		  $_REQUEST['sortOrder'] = 'desc';
@@ -22,19 +43,7 @@ class EC_HoanVeViewList extends ViewList {
 	}
 
 	function preDisplay() {
-		global $app_list_strings;
-
-		$app_list_strings['hoanve_supplier_list'] = array('' => '');
-		$sql = "SELECT id, name
-				FROM accounts
-				WHERE deleted = 0
-					AND account_type = 'Supplier'
-					AND is_stop_tracking = 0
-				ORDER BY name";
-		$res = $this->bean->db->query($sql);
-		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			$app_list_strings['hoanve_supplier_list'][$row['id']] = $row['name'];
-		}
+		$this->loadSupplierListOptions();
 
 		parent::preDisplay();
 	}
