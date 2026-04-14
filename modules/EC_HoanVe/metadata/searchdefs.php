@@ -1,5 +1,7 @@
 <?php
 
+require_once 'custom/include/helpers/modules/AccountsHelper.php';
+
 $module_name = 'EC_HoanVe';
 $searchdefs[$module_name] = array(
     'templateMeta' => array(
@@ -66,7 +68,14 @@ $searchdefs[$module_name] = array(
                 'width' => '10%',
                 'default' => true,
                 'name' => 'nhacc_search',
-                'options' => 'hoanve_supplier_list',
+                'function' =>
+                array(
+                    'name' => 'AccountsHelper::get_supplier_array_search',
+                    'params' =>
+                    array(
+                        0 => true,
+                    ),
+                ),
             ),
             'hoten_search' =>
             array(
