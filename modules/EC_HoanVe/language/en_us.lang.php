@@ -46,4 +46,16 @@ $mod_strings = array (
   'LBL_THONGBAO' => 'Đã chi',
   'LNK_RETURN_BK' => 'Thống kê Booking hoàn vé',
 );
+
+if (!isset($app_list_strings) || !is_array($app_list_strings)) {
+  $app_list_strings = array();
+}
+
+if (!isset($app_list_strings['hoanve_supplier_list']) || !is_array($app_list_strings['hoanve_supplier_list'])) {
+  $app_list_strings['hoanve_supplier_list'] = array('' => '');
+}
+
+if (!isset($app_list_strings['hoanve_supperlier_list']) || !is_array($app_list_strings['hoanve_supperlier_list'])) {
+  $app_list_strings['hoanve_supperlier_list'] = $app_list_strings['hoanve_supplier_list'];
+}
 ?>
