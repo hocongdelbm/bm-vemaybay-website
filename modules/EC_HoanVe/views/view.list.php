@@ -24,7 +24,7 @@ class EC_HoanVeViewList extends ViewList {
 	}
 
 	function listViewPrepare(){
-		$this->loadSupplierListOptions(;)
+		$this->loadSupplierListOptions();
 
 		if (empty($_REQUEST['orderBy']) || isset($_REQUEST['query'])) {
 		  $_REQUEST['orderBy'] = 'date_entered'; 

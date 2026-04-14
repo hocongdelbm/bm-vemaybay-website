@@ -1,7 +1,5 @@
 <?php
 
-require_once 'custom/include/helpers/modules/AccountsHelper.php';
-
 $module_name = 'EC_HoanVe';
 $searchdefs[$module_name] = array(
     'templateMeta' => array(
@@ -26,6 +24,15 @@ $searchdefs[$module_name] = array(
                 'width' => '10%',
                 'default' => true,
                 'name' => 'booking',
+            ),
+            'nhacc_search' =>
+            array(
+                'type' => 'enum',
+                'label' => 'LBL_NHACC_SEARCH',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'nhacc_search',
+                'options' => 'hoanve_supplier_list',
             ),
             'ngaychungtu' =>
             array(
@@ -68,14 +75,7 @@ $searchdefs[$module_name] = array(
                 'width' => '10%',
                 'default' => true,
                 'name' => 'nhacc_search',
-                'function' =>
-                array(
-                    'name' => 'AccountsHelper::get_supplier_array_search',
-                    'params' =>
-                    array(
-                        0 => true,
-                    ),
-                ),
+                'options' => 'hoanve_supplier_list',
             ),
             'hoten_search' =>
             array(

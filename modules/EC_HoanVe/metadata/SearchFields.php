@@ -84,11 +84,11 @@ $searchFields[$module_name] = array(
 
 	'nhacc_search' =>
 	array(
-		'query_type' => 'default',
+		'query_type' => 'format',
 		'operator' => 'subquery',
-		'subquery' => 'SELECT c.hoanve_id AS id
+		'subquery' => "SELECT c.hoanve_id AS id
 							   FROM ec_chitiethoanve c
-							   WHERE c.deleted=0 AND c.nhacc_id = ',
+							   WHERE c.deleted=0 AND c.nhacc_id = '{0}'",
 		'db_field' => array('id'),
 	),
 
