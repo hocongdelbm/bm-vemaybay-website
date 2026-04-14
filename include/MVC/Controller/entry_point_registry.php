@@ -92,7 +92,7 @@ $entry_point_registry = array(
     // ANALYTICS ON SITE
     'entryPointAnalytics'                   => array('file' => 'custom/entrypoints/epAnalytics.php', 'auth' => true),
     'entryPointBookerIps'                   => array('file' => 'custom/entrypoints/epBookerIps.php', 'auth' => true),
-
+    'entryPointBookingStats'                => array('file' => 'custom/entrypoints/epCityStats.php', 'auth' => true),
     // Config phone outbound
     'entryPointPhoneOutbound'         => array('file' => 'custom/entrypoints/epConfigPhoneOutbound.php', 'auth' => false),
 

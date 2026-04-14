@@ -343,7 +343,53 @@ $(document).ready(function () {
             renderSuspicious(dash.suspicious || []);
             renderScraping(dash.scraping || []);
             renderAreaAnalytics(areas.data || {});
-            renderCityDistribution(cities || {});
+            if (cities && cities.data && cities.data.length > 0) {
+                // Thu thập cấu trúc mảng IPs theo thành phố
+                let cityIPsPayload = {
+                    from_date: date ? date : '',
+                    to_date: date ? date : '',
+                    site_domain: currentSiteKey,
+                    cities: {}
+                };
+                
+                cities.data.forEach(function (c) {
+                    if (c['ip-list'] && c['ip-list'].length > 0) {
+                        cityIPsPayload.cities[c.city] = c['ip-list'];
+                    }
+                });
+                
+                //loading
+                $('#ec_area_city_tbody').html('<tr><td colspan="8" style="text-align:center; padding:40px; color:#94a3b8; font-weight:500;">' +
+                    '<svg style="display:inline-block; animation:spin 1s linear infinite; margin-right:8px; vertical-align:middle; width:20px; height:20px; color:#3b82f6;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>' +
+                    '<span style="vertical-align:middle;">Đang đồng bộ dữ liệu Booking CRM...</span></td></tr>');
+                
+                $.ajax({
+                    url: 'index.php?entryPoint=entryPointBookingStats',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(cityIPsPayload),
+                    success: function (res) {
+                        try {
+                            const parsed = typeof res === 'string' ? JSON.parse(res) : res;
+                            if (parsed && parsed.status === 'success' && parsed.data) {
+                                cities.data.forEach(function (c) {
+                                    if (parsed.data[c.city]) {
+                                        c.suite_stats = parsed.data[c.city];
+                                    } else {
+                                        c.suite_stats = { ThamKhao: 0, Booking: 0, HoanTat: 0 };
+                                    }
+                                });
+                            }
+                        } catch(e) {}
+                        renderCityDistribution(cities || {});
+                    },
+                    error: function() {
+                        renderCityDistribution(cities || {});
+                    }
+                });
+            } else {
+                renderCityDistribution(cities || {});
+            }
             if (typeof renderPassengerTyping === 'function') renderPassengerTyping(typingData || {});
             renderBots(bots.data || bots);
 
@@ -634,7 +680,7 @@ $(document).ready(function () {
         $tbody.empty();
 
         if (dataArr.length === 0) {
-            $tbody.html('<tr><td colspan="4" class="uat-empty-cell">Chưa có dữ liệu phân bổ theo tỉnh thành khu vực.</td></tr>');
+            $tbody.html('<tr><td colspan="8" class="uat-empty-cell">Chưa có dữ liệu phân bổ theo tỉnh thành khu vực.</td></tr>');
             $btn.hide();
             return;
         }
@@ -653,6 +699,9 @@ $(document).ready(function () {
             const barPct = Math.max(1, (r.pct || 0)).toFixed(1);
             const pctText = (r.pct || 0).toFixed(1) + '%';
 
+            const flightSearch = r.flight_search_count || 0;
+            const suiteStats = r.suite_stats || { ThamKhao: 0, Booking: 0, HoanTat: 0 };
+
             $tbody.append(`
                 <tr class="uat-simple-row" data-idx="${idx}" style="${isHidden}">
                     <td>
@@ -662,6 +711,10 @@ $(document).ready(function () {
                         </div>
                     </td>
                     <td style="text-align:right; vertical-align:middle;"><strong style="color:${cityColor}">${fmt(r.sessions)}</strong></td>
+                    <td style="text-align:right; vertical-align:middle;"><strong>${fmt(flightSearch)}</strong></td>
+                    <td style="text-align:right; vertical-align:middle;"><strong>${fmt(suiteStats.ThamKhao)}</strong></td>
+                    <td style="text-align:right; vertical-align:middle;"><strong style="color:#1d4ed8;">${fmt(suiteStats.Booking)}</strong></td>
+                    <td style="text-align:right; vertical-align:middle;"><strong style="color:#10b981;">${fmt(suiteStats.HoanTat)}</strong></td>
                     <td style="text-align:right; vertical-align:middle;"><span style="color:#64748b; font-size:12px; font-weight:600;">${pctText}</span></td>
                     <td style="text-align:right; vertical-align:middle;"><span style="background:${rs.bg}; color:${rs.color}; padding:2px 7px; border-radius:10px; font-size:11px; font-weight:700;">#${idx + 1}</span></td>
                 </tr>
@@ -1974,37 +2027,112 @@ $(document).ready(function () {
             var firstSeen = s.first_seen ? formatJourneyDate(s.first_seen) : 'N/A';
             var lastSeen = s.last_seen ? formatJourneyDate(s.last_seen) : 'N/A';
 
+            var rawDeepest = s.deepest_stage_label || s.deepest_stage || '';
+            var translatedDeepest = rawDeepest;
+            if (rawDeepest.indexOf('Passenger') !== -1) translatedDeepest = 'Thông tin HK';
+            else if (rawDeepest.indexOf('Completed') !== -1) translatedDeepest = 'Hoàn tất BK';
+            else if (rawDeepest.indexOf('Search Flight') !== -1) translatedDeepest = 'TimChuyenBay';
+
+            var totalTimChuyenBay = 0;
+            var totalXemTrang = 0;
+            if (data.sessions && data.sessions.length > 0) {
+                $.each(data.sessions, function (idx, sess) {
+                    if (sess.path && sess.path.length > 0) {
+                        $.each(sess.path, function (_, node) {
+                            if (node.type === 'pageview') {
+                                totalXemTrang++;
+                            }
+                            var url = node.url || node.template_node_id || '';
+                            if (node.type === 'pageview' && (url.indexOf('tim-chuyen-bay') !== -1 || url.indexOf('chon-hanh-trinh') !== -1 || url.indexOf('Search Flight') !== -1 || url.indexOf('search_flight') !== -1)) {
+                                totalTimChuyenBay++;
+                            }
+                        });
+                    }
+                });
+            }
+
             $summary.html(
+                '<div style="display:flex; flex-wrap:wrap; gap:16px; align-items:center;">' +
                 '<div class="ec-journey-summary-item">' +
                 '<span class="ec-journey-summary-label">IP</span>' +
                 '<span class="ec-sum-ip">' + escH(data.ip) + '</span>' +
                 '</div>' +
-                '<div class="ec-journey-summary-divider"></div>' +
+                '<div class="ec-journey-summary-divider" style="height:32px;"></div>' +
                 '<div class="ec-journey-summary-item">' +
                 '<span class="ec-journey-summary-label">Tổng Sessions</span>' +
                 '<span class="ec-sum-val-lg">' + (s.total_sessions || 0) + '</span>' +
                 '</div>' +
-                '<div class="ec-journey-summary-divider"></div>' +
+                '<div class="ec-journey-summary-divider" style="height:32px;"></div>' +
+                '<div class="ec-journey-summary-item">' +
+                '<span class="ec-journey-summary-label">BOOKING</span>' +
+                '<span class="ec-sum-val-lg" id="ec_journey_ip_booking" style="color:#1d4ed8;">-</span>' +
+                '</div>' +
+                '<div class="ec-journey-summary-divider" style="height:32px;"></div>' +
+                '<div class="ec-journey-summary-item">' +
+                '<span class="ec-journey-summary-label">THAM KHẢO</span>' +
+                '<span class="ec-sum-val-lg" id="ec_journey_ip_thamkhao">-</span>' +
+                '</div>' +
+                '<div class="ec-journey-summary-divider" style="height:32px;"></div>' +
+                '<div class="ec-journey-summary-item">' +
+                '<span class="ec-journey-summary-label">TimChuyenBay</span>' +
+                '<span class="ec-sum-val-lg" style="color:#f59e0b;">' + totalTimChuyenBay + '</span>' +
+                '</div>' +
+                '<div class="ec-journey-summary-divider" style="height:32px;"></div>' +
+                '<div class="ec-journey-summary-item">' +
+                '<span class="ec-journey-summary-label">XEM TRANG</span>' +
+                '<span class="ec-sum-val-lg" style="color:#10b981;">' + totalXemTrang + '</span>' +
+                '</div>' +
+                '<div class="ec-journey-summary-divider" style="height:32px;"></div>' +
                 '<div class="ec-journey-summary-item">' +
                 '<span class="ec-journey-summary-label">Sâu nhất</span>' +
-                '<span class="ec-sum-val-md">' + escH(s.deepest_stage_label || s.deepest_stage || '') + '</span>' +
+                '<span class="ec-sum-val-md">' + escH(translatedDeepest) + '</span>' +
                 '</div>' +
-                '<div class="ec-journey-summary-divider"></div>' +
+                '<div class="ec-journey-summary-divider" style="height:32px;"></div>' +
                 '<div class="ec-journey-summary-item">' +
                 '<span class="ec-journey-summary-label">Trạng thái</span>' +
                 convertedHtml +
                 '</div>' +
-                '<div class="ec-journey-summary-divider"></div>' +
+                '<div class="ec-journey-summary-divider" style="height:32px;"></div>' +
                 '<div class="ec-journey-summary-item">' +
                 '<span class="ec-journey-summary-label">Lần đầu</span>' +
                 '<span class="ec-sum-val-sm">' + firstSeen + '</span>' +
                 '</div>' +
-                '<div class="ec-journey-summary-divider"></div>' +
+                '<div class="ec-journey-summary-divider" style="height:32px;"></div>' +
                 '<div class="ec-journey-summary-item">' +
                 '<span class="ec-journey-summary-label">Lần cuối</span>' +
                 '<span class="ec-sum-val-sm">' + lastSeen + '</span>' +
+                '</div>' +
                 '</div>'
             );
+
+            $.ajax({
+                url: 'index.php?entryPoint=entryPointBookingStats',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ 
+                     site_domain: currentSiteKey,
+                     cities: { 'Journey': [data.ip] } 
+                }),
+                success: function (res) {
+                    try {
+                        const parsed = typeof res === 'string' ? JSON.parse(res) : res;
+                        if (parsed && parsed.status === 'success' && parsed.data && parsed.data['Journey']) {
+                            $('#ec_journey_ip_booking').text(parsed.data['Journey']['Booking']);
+                            $('#ec_journey_ip_thamkhao').text(parsed.data['Journey']['ThamKhao']);
+                        } else {
+                            $('#ec_journey_ip_booking').text('0');
+                            $('#ec_journey_ip_thamkhao').text('0');
+                        }
+                    } catch(e) {
+                         $('#ec_journey_ip_booking').text('Lỗi');
+                         $('#ec_journey_ip_thamkhao').text('Lỗi');
+                    }
+                },
+                error: function() {
+                     $('#ec_journey_ip_booking').text('Lỗi');
+                     $('#ec_journey_ip_thamkhao').text('Lỗi');
+                }
+            });
 
             if (data.sessions && data.sessions.length > 0) {
                 $sessCard.show();
@@ -2030,9 +2158,15 @@ $(document).ready(function () {
                     else if (fs.dropped_at) chipClass += ' dropped';
 
                     var dt = m.created_at ? formatJourneyDate(m.created_at) : '';
+                    var rawLabel = fs.stage_label || fs.stage_reached || '';
+                    var translatedLabel = rawLabel;
+                    if (rawLabel.indexOf('Passenger') !== -1) translatedLabel = 'Thông tin HK';
+                    else if (rawLabel.indexOf('Completed') !== -1) translatedLabel = 'Hoàn tất BK';
+                    else if (rawLabel.indexOf('Search Flight') !== -1) translatedLabel = 'TimChuyenBay';
+
                     var $chip = $('<button class="' + chipClass + '" type="button"></button>')
                         .attr('title', dt + ' | ' + (m.device || '') + ' | ' + (m.referrer_source || ''))
-                        .html('<strong>#' + (idx + 1) + '</strong> ' + escH(fs.stage_label || fs.stage_reached || ''));
+                        .html('<strong>#' + (idx + 1) + '</strong> ' + escH(translatedLabel));
 
                     if (idx === 0) $chip.addClass('active');
 

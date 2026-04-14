@@ -1,4 +1,4 @@
-﻿<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css" />
 <link type="text/css" rel="stylesheet" href="modules/EC_TongHop/css/ec_tonghop.css?v=2.0.4">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -911,7 +911,11 @@
                             <tr>
                                 <th>KHU VỰC CHI TIẾT</th>
                                 <th style="text-align:right; width:90px;">SESS</th>
-                                <th style="text-align:right; width:100px;">TỶ LỆ</th>
+                                <th style="text-align:right; width:80px;">TÌM CB</th>
+                                <th style="text-align:right; width:90px;">THAM KHẢO</th>
+                                <th style="text-align:right; width:80px;">BOOKING</th>
+                                <th style="text-align:right; width:85px;">HOÀN TẤT</th>
+                                <th style="text-align:right; width:80px;">TỶ LỆ</th>
                                 <th style="text-align:right; width:50px;">#</th>
                             </tr>
                         </thead>
