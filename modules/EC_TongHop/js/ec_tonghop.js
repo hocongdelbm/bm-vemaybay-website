@@ -250,6 +250,20 @@ $(document).ready(function () {
             currentHourlyCompare = !currentHourlyCompare;
             renderHourlyTraffic();
         });
+
+        // dynamic sort
+        $(document).on('click', '.uat-sortable-th', function () {
+            const key = $(this).data('sort');
+            if (!key) return;
+            if (_citySortKey === key) {
+                _citySortDir = _citySortDir === 'desc' ? 'asc' : 'desc';
+            } else {
+                _citySortKey = key;
+                _citySortDir = 'desc';
+            }
+            _updateCitySortHeaders();
+            _renderCityRows();
+        });
     }
 
     // ── API Helper ──────────────────────────────────────────
@@ -362,7 +376,13 @@ $(document).ready(function () {
                 $('#ec_area_city_tbody').html('<tr><td colspan="8" style="text-align:center; padding:40px; color:#94a3b8; font-weight:500;">' +
                     '<svg style="display:inline-block; animation:spin 1s linear infinite; margin-right:8px; vertical-align:middle; width:20px; height:20px; color:#3b82f6;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>' +
                     '<span style="vertical-align:middle;">Đang đồng bộ dữ liệu Booking CRM...</span></td></tr>');
-                
+
+                // Hiện totals bar với placeholder trong khi chờ booking stats
+                $('#ec_city_totals_bar').css('display', 'flex');
+                $('#ec_city_total_thamkhao').text('—');
+                $('#ec_city_total_booking').text('—');
+                $('#ec_city_total_hoantat').text('—');
+
                 $.ajax({
                     url: 'index.php?entryPoint=entryPointBookingStats',
                     type: 'POST',
@@ -672,21 +692,85 @@ $(document).ready(function () {
     }
 
     // ── Render: City / Province Distribution ────────────────────────
+    let _cityDataCache = [];
+    let _citySortKey = 'sessions';
+    let _citySortDir = 'desc';
+
     function renderCityDistribution(cityData) {
-        const dataArr = cityData.data || [];
+        _cityDataCache = (cityData.data || []).map(function (r) {
+            const suiteStats = r.suite_stats || { ThamKhao: 0, Booking: 0, HoanTat: 0 };
+            return {
+                city: r.city || 'Chưa xác định',
+                sessions: r.sessions || 0,
+                flight_search: r.flight_search_count || 0,
+                pct: r.pct || 0,
+                thamkhao: suiteStats.ThamKhao || 0,
+                booking: suiteStats.Booking || 0,
+                hoantat: suiteStats.HoanTat || 0,
+                _raw: r
+            };
+        });
+
+        // Tính totals
+        let totalThamKhao = 0, totalBooking = 0, totalHoanTat = 0;
+        _cityDataCache.forEach(function (r) {
+            totalThamKhao += r.thamkhao;
+            totalBooking += r.booking;
+            totalHoanTat += r.hoantat;
+        });
+
+        if (_cityDataCache.length > 0) {
+            $('#ec_city_totals_bar').css('display', 'flex');
+            $('#ec_city_total_thamkhao').text(fmt(totalThamKhao));
+            $('#ec_city_total_booking').text(fmt(totalBooking));
+            $('#ec_city_total_hoantat').text(fmt(totalHoanTat));
+        } else {
+            $('#ec_city_totals_bar').hide();
+        }
+
+        // Reset sort state về mặc định khi load data mới
+        _citySortKey = 'sessions';
+        _citySortDir = 'desc';
+        _updateCitySortHeaders();
+        _renderCityRows();
+    }
+
+    function _updateCitySortHeaders() {
+        $('.uat-sortable-th').each(function () {
+            const key = $(this).data('sort');
+            const $icon = $(this).find('.sort-icon');
+            if (key === _citySortKey) {
+                $icon.text(_citySortDir === 'desc' ? '↓' : '↑');
+                $(this).css('color', '#0ea5e9');
+            } else {
+                $icon.text('↕');
+                $(this).css('color', '');
+            }
+        });
+    }
+
+    function _renderCityRows() {
         const $tbody = $('#ec_area_city_tbody');
         const $table = $tbody.closest('table');
-        const $btn = $table.next('.uat-city-toggle-btn');
+        const $btn = $table.nextAll('.uat-city-toggle-btn').first();
         $tbody.empty();
 
-        if (dataArr.length === 0) {
+        if (_cityDataCache.length === 0) {
             $tbody.html('<tr><td colspan="8" class="uat-empty-cell">Chưa có dữ liệu phân bổ theo tỉnh thành khu vực.</td></tr>');
             $btn.hide();
             return;
         }
 
+        // Sort
+        const sorted = _cityDataCache.slice().sort(function (a, b) {
+            const va = a[_citySortKey] || 0;
+            const vb = b[_citySortKey] || 0;
+            return _citySortDir === 'desc' ? vb - va : va - vb;
+        });
+
         const LIMIT = 5;
-        dataArr.forEach(function (r, idx) {
+        const cityColor = '#0ea5e9';
+        sorted.forEach(function (r, idx) {
             const rankStyles = [
                 { bg: '#fef9c3', color: '#ca8a04' },
                 { bg: '#f1f5f9', color: '#64748b' },
@@ -694,37 +778,32 @@ $(document).ready(function () {
             ];
             const rs = rankStyles[idx] || { bg: 'transparent', color: '#94a3b8' };
             const isHidden = idx >= LIMIT ? 'display:none;' : '';
-
-            const cityColor = '#0ea5e9';
-            const barPct = Math.max(1, (r.pct || 0)).toFixed(1);
-            const pctText = (r.pct || 0).toFixed(1) + '%';
-
-            const flightSearch = r.flight_search_count || 0;
-            const suiteStats = r.suite_stats || { ThamKhao: 0, Booking: 0, HoanTat: 0 };
+            const barPct = Math.max(1, r.pct).toFixed(1);
+            const pctText = r.pct.toFixed(1) + '%';
 
             $tbody.append(`
                 <tr class="uat-simple-row" data-idx="${idx}" style="${isHidden}">
                     <td>
-                        <div style="font-weight:600; color:#334155; margin-bottom:5px; font-size:13px;">${escH(r.city || 'Chưa xác định')}</div>
+                        <div style="font-weight:600; color:#334155; margin-bottom:5px; font-size:13px;">${escH(r.city)}</div>
                         <div style="height:4px; background:#f1f5f9; border-radius:4px; overflow:hidden;">
                             <div style="height:100%; width:${barPct}%; background:${cityColor}; border-radius:4px;"></div>
                         </div>
                     </td>
                     <td style="text-align:right; vertical-align:middle;"><strong style="color:${cityColor}">${fmt(r.sessions)}</strong></td>
-                    <td style="text-align:right; vertical-align:middle;"><strong>${fmt(flightSearch)}</strong></td>
-                    <td style="text-align:right; vertical-align:middle;"><strong>${fmt(suiteStats.ThamKhao)}</strong></td>
-                    <td style="text-align:right; vertical-align:middle;"><strong style="color:#1d4ed8;">${fmt(suiteStats.Booking)}</strong></td>
-                    <td style="text-align:right; vertical-align:middle;"><strong style="color:#10b981;">${fmt(suiteStats.HoanTat)}</strong></td>
+                    <td style="text-align:right; vertical-align:middle;"><strong>${fmt(r.flight_search)}</strong></td>
+                    <td style="text-align:right; vertical-align:middle;"><strong>${fmt(r.thamkhao)}</strong></td>
+                    <td style="text-align:right; vertical-align:middle;"><strong style="color:#1d4ed8;">${fmt(r.booking)}</strong></td>
+                    <td style="text-align:right; vertical-align:middle;"><strong style="color:#10b981;">${fmt(r.hoantat)}</strong></td>
                     <td style="text-align:right; vertical-align:middle;"><span style="color:#64748b; font-size:12px; font-weight:600;">${pctText}</span></td>
                     <td style="text-align:right; vertical-align:middle;"><span style="background:${rs.bg}; color:${rs.color}; padding:2px 7px; border-radius:10px; font-size:11px; font-weight:700;">#${idx + 1}</span></td>
                 </tr>
             `);
         });
 
-        if (dataArr.length <= LIMIT) {
+        if (sorted.length <= LIMIT) {
             $btn.hide();
         } else {
-            const hidden = dataArr.length - LIMIT;
+            const hidden = sorted.length - LIMIT;
             const toShow = hidden > LIMIT ? LIMIT : hidden;
             const remainText = hidden > toShow ? ` (còn ${hidden})` : '';
             $btn.show().data('expanded', 0)
