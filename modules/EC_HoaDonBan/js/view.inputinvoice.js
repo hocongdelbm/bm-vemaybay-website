@@ -502,6 +502,14 @@ function check_import_form() {
     if (!check_form('implement_invoice_frm')) {
         return false;
     } else {
+        var qtyVal = ($('#im_qty').val() || '').toString().trim();
+        var qty = Number(unformatNumber(qtyVal));
+        if (qtyVal === '' || !Number.isInteger(qty) || qty === 0) {
+            alert('Số lượng không được để trống và không được bằng 0');
+            $('#im_qty').focus();
+            return false;
+        }
+
         // kiểm tra hành trình
         var flight_type = $("#im_flight_type").val();
         var iti = $("#im_iti").val();
