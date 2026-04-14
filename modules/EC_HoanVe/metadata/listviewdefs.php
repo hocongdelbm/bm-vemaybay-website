@@ -34,6 +34,14 @@ $listViewDefs[$module_name] = array(
         'width' => '8%',
         'default' => true,
     ),
+    'NHACC_LIST' =>
+    array(
+        'type' => 'varchar',
+        'label' => 'LBL_NHACC_LIST',
+        'width' => '10%',
+        'default' => true,
+        'sortable' => false,
+    ),
     'DESCRIPTION' =>
     array(
         'type' => 'text',

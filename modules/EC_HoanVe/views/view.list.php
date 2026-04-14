@@ -21,6 +21,24 @@ class EC_HoanVeViewList extends ViewList {
 		parent::display();
 	}
 
+	function preDisplay() {
+		global $app_list_strings;
+
+		$app_list_strings['hoanve_supplier_list'] = array('' => '');
+		$sql = "SELECT id, name
+				FROM accounts
+				WHERE deleted = 0
+					AND account_type = 'Supplier'
+					AND is_stop_tracking = 0
+				ORDER BY name";
+		$res = $this->bean->db->query($sql);
+		while ($row = $this->bean->db->fetchByAssoc($res)) {
+			$app_list_strings['hoanve_supplier_list'][$row['id']] = $row['name'];
+		}
+
+		parent::preDisplay();
+	}
+
 	function displayJS() {
 		echo '<script>
 			$(document).ready(function() {

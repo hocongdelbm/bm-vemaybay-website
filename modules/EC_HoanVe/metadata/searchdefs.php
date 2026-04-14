@@ -59,6 +59,15 @@ $searchdefs[$module_name] = array(
                 'default' => true,
                 'name' => 'booking',
             ),
+            'nhacc_search' =>
+            array(
+                'type' => 'enum',
+                'label' => 'LBL_NHACC_SEARCH',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'nhacc_search',
+                'options' => 'hoanve_supplier_list',
+            ),
             'hoten_search' =>
             array(
                 'type' => 'varchar',

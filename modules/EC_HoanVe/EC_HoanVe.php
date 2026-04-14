@@ -128,4 +128,43 @@ class EC_HoanVe extends Basic
 			return true;
 		return false;
 	}
+
+	public function create_new_list_query(
+		$order_by,
+		$where,
+		$filter = array(),
+		$params = array(),
+		$show_deleted = 0,
+		$join_type = '',
+		$return_array = false,
+		$parentbean = null,
+		$singleSelect = false,
+		$ifListForExport = false
+	) {
+		$ret = parent::create_new_list_query(
+			$order_by,
+			$where,
+			$filter,
+			$params,
+			$show_deleted,
+			$join_type,
+			true,
+			$parentbean,
+			$singleSelect,
+			$ifListForExport
+		);
+
+		$ret['select'] .= ", (
+			SELECT GROUP_CONCAT(DISTINCT a.name ORDER BY a.name SEPARATOR ', ')
+			FROM ec_chitiethoanve c
+			INNER JOIN accounts a ON a.id = c.nhacc_id AND a.deleted = 0
+			WHERE c.deleted = 0 AND c.hoanve_id = {$this->table_name}.id
+		) AS NHACC_LIST";
+
+		if ($return_array) {
+			return $ret;
+		}
+
+		return $ret['select'] . $ret['from'] . $ret['where'] . $ret['order_by'];
+	}
 }
