@@ -1,7 +1,8 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-class Viewcheckinvoiceamount extends SugarView {
+class Viewcheckinvoiceamount extends SugarView
+{
     /**
      * @var EC_HoaDonBan
      */
@@ -12,7 +13,8 @@ class Viewcheckinvoiceamount extends SugarView {
     public $userTimeFormat;
     public $dbDateFormat;
 
-    public function __construct() {
+    public function __construct()
+    {
         global $sugar_config, $current_user;
         $this->userTimezone = $current_user->getPreference('timezone') ?? 'Asia/Ho_Chi_Minh';
         $this->userDateFormat = $current_user->getPreference('datef') ?? $sugar_config['datef'] ?? 'd-m-Y';
@@ -20,30 +22,32 @@ class Viewcheckinvoiceamount extends SugarView {
         $this->dbDateFormat = 'Y-m-d';
     }
 
-    public function display() {
+    public function display()
+    {
         if (ACLController::checkAccess('EC_HoaDonBan', 'view', true)) {
             $this->smarty = new Sugar_Smarty();
             $this->populateContent();
             $this->smarty->display("modules/{$this->bean->object_name}/tpls/view.checkinvoiceamount.tpl");
             $this->loadScripts();
-        }
-        else {
+        } else {
             header("Location: index.php?module={$this->bean->object_name}&action=Error&error_string=" . urlencode("Bạn không được quyền truy cập vào mục này"));
             exit();
         }
     }
 
-    protected function loadScripts() {
+    protected function loadScripts()
+    {
         echo <<<HTML
             <script src="modules/{$this->bean->module_dir}/js/view.checkinvoiceamount.js?v=1.0"></script>
         HTML;
-    } 
+    }
 
     /**
      * Populate content
      * @return void
      */
-    protected function populateContent() {
+    protected function populateContent()
+    {
         global $current_user, $app_list_strings;
 
         // From date
@@ -147,7 +151,8 @@ class Viewcheckinvoiceamount extends SugarView {
      * @param array $conditions
      * @return string SQL query
      */
-    protected function generateMainQuery($from_date, $to_date, $conditions = []) {
+    protected function generateMainQuery($from_date, $to_date, $conditions = [])
+    {
         global $timedate, $current_user;
 
         $from_db = $timedate->to_db_date($from_date, false);
@@ -192,17 +197,18 @@ class Viewcheckinvoiceamount extends SugarView {
                 $sql_having = "HAVING is_telesale = 1";
             } else if ((int)$conditions['payment_stt'] === 4) {
                 $sql_having = "HAVING is_ctv = 1";
-            } else if((int)$conditions['payment_stt'] === 5) {
+            } else if ((int)$conditions['payment_stt'] === 5) {
                 $sql_having = "HAVING is_reference = 1";
             }
         }
 
-        $sql = 
+        $sql =
             "SELECT 
                 bk.id AS parent_id
                 , bk.id AS booking_id
                 , bk.name AS booking_name
                 , bk.name AS parent_name
+                , bk.name AS invoice_search_name
                 , 'EC_Flight_Bookings' AS parent_type
                 , SUM(bkd.quantity) AS total_quantity
                 , bk.total_amount AS subtotal_amount 
@@ -224,7 +230,7 @@ class Viewcheckinvoiceamount extends SugarView {
                     SELECT SUM(IFNULL(r.amount_converted, 0))
                     FROM ec_receipt_voucher r
                     WHERE r.booking_id = bk.id
-                        AND r.loai_thu IN ('1', '4', '5', '14')
+                        AND r.loai_thu = '1'
                         AND r.rv_status = '1'
                         AND r.deleted = 0
                     GROUP BY r.booking_id
@@ -242,11 +248,20 @@ class Viewcheckinvoiceamount extends SugarView {
                         ,SUM(dongia * soluong) AS tong_gia_ban
                         ,SUM(tienthue) AS tong_thue
 				        ,SUM(phithuho * soluong) AS tong_thu_ho
-                        ,GROUP_CONCAT(DISTINCT CONCAT(hdb.sohoadon, '|', hdb.ngayhoadon) SEPARATOR ';') AS danh_sach_hd
-                    FROM ec_chitiethoadon cthd
+                        ,GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
+                        FROM ec_chitiethoadon cthd
                         INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
-                    WHERE cthd.deleted = 0
-                    GROUP BY cthd.booking_id
+                        WHERE cthd.deleted = 0 
+                            AND (
+                                cthd.receipt_voucher_id IS NULL
+                                OR cthd.receipt_voucher_id = ''
+                                OR EXISTS (
+                                    SELECT 1 FROM ec_receipt_voucher rv
+                                    WHERE rv.id = cthd.receipt_voucher_id
+                                    AND rv.loai_thu = '1'
+                                )
+                            )
+                        GROUP BY cthd.booking_id
                 ) AS hd ON hd.booking_id = bk.id
 
             WHERE bk.booking_status IN ('3', '7', '8')
@@ -257,7 +272,188 @@ class Viewcheckinvoiceamount extends SugarView {
                 AND bkd.deleted = 0
             GROUP BY bk.id
             $sql_having";
-            
+
+        if ((int)($conditions['payment_stt'] ?? 0) === 0) {
+
+            // PHẦN 2: Phiếu thu phát sinh (loai_thu không phải thu booking thông thường)
+            $sql_role_rv = !$is_manager && !is_admin($current_user)
+                ? " AND p.assigned_user_id = '{$current_user->id}' "
+                : "";
+
+            $hv_from = date("Y-m-d", strtotime($from_date));
+            $hv_to = date("Y-m-d", strtotime($to_date));
+
+            $from_utc = date("Y-m-d H:i:s", strtotime($hv_from)  - 7 * 3600);
+            $to_utc = date("Y-m-d H:i:s", strtotime($hv_to)  - 7 * 3600 + 86399);
+
+            $sql .= "
+
+                UNION
+
+                SELECT 
+                    p.id AS parent_id
+                    , p.id AS booking_id
+                    , p.name AS booking_name
+                    , p.name AS parent_name
+                    , p.name AS invoice_search_name
+                    , 'EC_Receipt_Voucher' AS parent_type
+                    , 0 AS total_quantity
+                    , SUM(IF(p.rv_status IN ('1','2'), IFNULL(p.amount_converted, 0), 0)) AS subtotal_amount
+                    , 0 AS total_bought_price
+                    , '' AS flight_type
+                    , '' AS ticket_type
+                    , p.rv_status AS parent_status
+                    , SUM(IF(p.rv_status IN ('1','2'), IFNULL(p.amount_converted, 0), 0)) AS receipt_amount
+                    , DATE_FORMAT(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR), '%d-%m-%Y') AS date_ticket_issue
+                    , 0 AS is_telesale
+                    , 0 AS is_ctv
+                    , 0 AS is_reference
+                    , MAX(IFNULL(hd_pt.invoice_amount, 0)) AS invoice_amount
+                    , MAX(IFNULL(hd_pt.danh_sach_hd, '')) AS invoice_list
+                FROM ec_receipt_voucher p
+                LEFT JOIN (
+                    SELECT cthd.receipt_voucher_id AS receipt_voucher_id
+                        ,(IFNULL(SUM(IFNULL(dongia, 0) * IFNULL(soluong, 0)), 0)
+                            + IFNULL(SUM(IFNULL(tienthue, 0)), 0)
+                            + IFNULL(SUM(IFNULL(phithuho, 0) * IFNULL(soluong, 0)), 0)
+                        ) AS invoice_amount
+                        , GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
+                    FROM ec_chitiethoadon cthd
+                        INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
+                    WHERE cthd.receipt_voucher_id IS NOT NULL
+                        AND cthd.receipt_voucher_id <> ''
+                        AND cthd.deleted = 0
+                    GROUP BY cthd.receipt_voucher_id
+                ) AS hd_pt ON hd_pt.receipt_voucher_id = p.id
+                WHERE p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
+                    AND p.ngayhachtoan >= '$from_utc' AND p.ngayhachtoan <= '$to_utc'
+                    AND p.rv_status IN ('1', '2')
+                    AND p.deleted = 0
+                    $sql_role_rv
+                GROUP BY p.id
+
+                UNION
+
+                SELECT 
+                    hv_t.parent_id
+                    , hv_t.parent_id AS booking_id
+                    , hv_t.parent_name AS booking_name
+                    , hv_t.parent_name
+                    , hv_t.bk_name AS invoice_search_name
+                    , hv_t.parent_type
+                    , SUM(hv_t.total_quantity) AS total_quantity
+                    , SUM(hv_t.subtotal_amount) AS subtotal_amount
+                    , SUM(hv_t.total_bought_price) AS total_bought_price
+                    , '' AS flight_type
+                    , '' AS ticket_type
+                    , hv_t.parent_status
+                    , SUM(hv_t.subtotal_amount) AS receipt_amount
+                    , hv_t.date_ticket_issue
+                    , 0 AS is_telesale
+                    , 0 AS is_ctv
+                    , 0 AS is_reference
+                    , SUM(hv_t.subtotal_amount) AS invoice_amount
+                    , MAX(IFNULL(hd_hv.danh_sach_hd, '')) AS invoice_list
+                FROM (
+                    -- Hoàn vé thường (tiền hàng <= tiền khách)
+                    SELECT 
+                        p.id AS parent_id
+                        , p.name AS parent_name
+                        , 'EC_HoanVe' AS parent_type
+                        , bk.name AS bk_name
+                        , -(SELECT COUNT(id) FROM ec_chitiethoanve WHERE deleted = 0 AND hoanve_id = p.id) AS total_quantity
+                        , -IF(
+                            SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0,
+                            SUM(IFNULL(p.tongtienkhach,0)),
+                            0
+                        ) AS subtotal_amount
+                        , -IF(
+                            SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0,
+                            SUM(IFNULL(p.tongtienhang,0)),
+                            0
+                        ) AS total_bought_price
+                        , p.tinhtrang AS parent_status
+                        , DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
+                    FROM ec_hoanve p
+                        INNER JOIN ec_flight_bookings bk 
+                            ON bk.id = p.booking_id 
+                            AND bk.deleted = 0
+                            $where_bk_fields
+                    WHERE DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                        AND p.tinhtrang = '1'
+                        AND p.deleted = 0
+                        $sql_role
+                    GROUP BY p.id
+
+                    UNION
+
+                    -- Hoàn vé đặc biệt (tiền hàng > tiền khách)
+                    SELECT 
+                        p.id AS parent_id
+                        , p.name AS parent_name
+                        , 'EC_HoanVe' AS parent_type
+                        , bk.name AS bk_name
+                        , 0 AS total_quantity
+                        , -SUM(IFNULL(p.tongtienkhach,0)) AS subtotal_amount
+                        , -SUM(IFNULL(p.tongtienhang,0)) AS total_bought_price
+                        , p.tinhtrang AS parent_status
+                        , DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
+                    FROM ec_hoanve p
+                        INNER JOIN ec_flight_bookings bk 
+                            ON bk.id = p.booking_id 
+                            AND bk.deleted = 0
+                            $where_bk_fields
+                    WHERE DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                        AND p.tinhtrang = '1'
+                        AND p.deleted = 0
+                        $sql_role
+                    GROUP BY p.id
+                    HAVING SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) > 0
+
+                ) AS hv_t
+                LEFT JOIN (
+                    SELECT 
+                        hv.id AS hoanve_id,
+                        bk_inv.invoice_amount,
+                        bk_inv.danh_sach_hd
+                    FROM ec_hoanve hv
+                    INNER JOIN (
+                        SELECT 
+                            cthd.booking_id,
+                            (
+                                IFNULL(SUM(IFNULL(cthd.dongia, 0) * IFNULL(cthd.soluong, 0)), 0)
+                                + IFNULL(SUM(IFNULL(cthd.tienthue, 0)), 0)
+                                + IFNULL(SUM(IFNULL(cthd.phithuho, 0) * IFNULL(cthd.soluong, 0)), 0)
+                            ) AS invoice_amount,
+                            GROUP_CONCAT(
+                                DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) 
+                                SEPARATOR ';'
+                            ) AS danh_sach_hd
+                        FROM ec_chitiethoadon cthd
+                            INNER JOIN ec_hoadonban hdb 
+                                ON hdb.id = cthd.parent_id 
+                                AND hdb.deleted = 0
+                        INNER JOIN (
+                            SELECT DISTINCT booking_id
+                            FROM ec_hoanve
+                            WHERE tinhtrang = '1'
+                                AND ngayhachtoan BETWEEN '$hv_from' AND '$hv_to'
+                                AND deleted = 0
+                        ) AS hv_filter ON hv_filter.booking_id = cthd.booking_id
+                        WHERE cthd.deleted = 0
+                        GROUP BY cthd.booking_id
+                    ) AS bk_inv ON bk_inv.booking_id = hv.booking_id
+                    WHERE hv.ngayhachtoan BETWEEN '$hv_from' AND '$hv_to'
+                        AND hv.tinhtrang = '1'
+                        AND hv.deleted = 0
+                ) AS hd_hv ON hd_hv.hoanve_id = hv_t.parent_id
+                GROUP BY
+                    hv_t.parent_id
+                    , hv_t.parent_name
+                    , hv_t.parent_type
+                    , hv_t.parent_status
+                    , hv_t.date_ticket_issue";
+        }
         return $sql;
     }
 
@@ -267,9 +463,10 @@ class Viewcheckinvoiceamount extends SugarView {
      * @param string $main_query
      * @return string HTML
      */
-    protected function generateMainContent($main_query) {
-        if(empty($main_query)) return;
-        
+    protected function generateMainContent($main_query)
+    {
+        if (empty($main_query)) return;
+
         $i = 1;
         $total_qty = $total_subtotal_amount = $total_receipt_amount = $total_invoice_amount = 0;
         $tr = '';
@@ -283,13 +480,13 @@ class Viewcheckinvoiceamount extends SugarView {
 
             $list_inv_number = $list_inv_date = [];
             $invoice_list = explode(";", $row['invoice_list'] ?? '');
-            if(is_array($invoice_list)) {
+            if (is_array($invoice_list)) {
                 foreach ($invoice_list as $inv) {
                     $inv_attr = explode("|", $inv);
-                    if(is_array($inv_attr) && count($inv_attr) > 1) {
+                    if (is_array($inv_attr) && count($inv_attr) > 1) {
                         $list_inv_number[] = $inv_attr[0];
                         $inv_date = !empty($inv_attr[1]) ? date($this->userDateFormat, strtotime($inv_attr[1])) : '';
-                        if(array_search($inv_date, $list_inv_date) === false) $list_inv_date[] = $inv_date;
+                        if (array_search($inv_date, $list_inv_date) === false) $list_inv_date[] = $inv_date;
                     }
                 }
             }
@@ -315,7 +512,7 @@ class Viewcheckinvoiceamount extends SugarView {
                         </a>
                     </td>
                     <td class="text-end invoice_amount">
-                        <a href="index.php?action=index&module=EC_HoaDonBan&action=ListView&query=true&clear_query=true&searchFormTab=basic_search&booking_basic={$row['parent_name']}" target="_blank" title="Xem chi tiết hóa đơn">
+                        <a href="index.php?action=index&module=EC_HoaDonBan&action=ListView&query=true&clear_query=true&searchFormTab=basic_search&booking_basic={$row['invoice_search_name']}" target="_blank" title="Xem chi tiết hóa đơn">
                             <b>$invoice_amount</b>
                         </a>
                     </td>
@@ -328,7 +525,7 @@ class Viewcheckinvoiceamount extends SugarView {
             $total_subtotal_amount += $row['subtotal_amount'] ?? 0;
             $total_receipt_amount += $row['receipt_amount'] ?? 0;
             $total_invoice_amount += $row['invoice_amount'] ?? 0;
-            
+
             $i++;
         }
 
@@ -337,7 +534,7 @@ class Viewcheckinvoiceamount extends SugarView {
         $total_invoice_amount = format_number($total_invoice_amount);
 
         $row_total_html = "";
-        if(!empty($tr)) {
+        if (!empty($tr)) {
             $row_total_html = <<<HTML
                 <tr>
                     <th class="text-center" colspan="3">Tổng</th>
@@ -348,8 +545,7 @@ class Viewcheckinvoiceamount extends SugarView {
                     <th colspan="2"></th>
                 </tr>
             HTML;
-        }
-        else {
+        } else {
             $tr = <<<HTML
                 <tr>
                     <td colspan="9" class="text-center"><i>Không có dữ liệu</i></td>
