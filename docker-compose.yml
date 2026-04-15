@@ -1,0 +1,33 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: suitecrm-web
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html # SuiteCRM source
+      - ./docker/php/timezone.ini:/usr/local/etc/php/conf.d/99-timezone.ini
+      # Named volume for uploads — keeps attachments off the host filesystem
+      # and avoids permission headaches for binary data. Remove if you prefer
+      # host-side access to uploaded files.
+      - suitecrm_upload:/var/www/html/upload
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+
+  # db:
+  #   image: mariadb:10.6
+  #   container_name: suitecrm-db
+  #   restart: always
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: rootpass
+  #     MYSQL_DATABASE: suitecrm
+  #     MYSQL_USER: suitecrm
+  #     MYSQL_PASSWORD: suitecrm123
+  #   volumes:
+  #     - db_data:/var/lib/mysql
+
+volumes:
+  # db_data:
+  suitecrm_upload:
