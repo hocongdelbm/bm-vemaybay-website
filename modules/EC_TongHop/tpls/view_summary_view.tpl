@@ -906,22 +906,27 @@
                         </div>
                         <div class="uat-card-divider"></div>
                     </div>
+                    <div id="ec_city_totals_bar" style="display:none; padding:10px 16px; background:#f0f9ff; border-bottom:1px solid #bae6fd; gap:24px; flex-wrap:wrap; align-items:center; margin-bottom">
+                        <span style="font-size:12px; color:#334155;">Tham khảo: <strong id="ec_city_total_thamkhao" style="color:#334155;">0</strong></span>
+                        <span style="font-size:12px; color:#1d4ed8;">Booking: <strong id="ec_city_total_booking" style="color:#1d4ed8;">0</strong></span>
+                        <span style="font-size:12px; color:#10b981;">Hoàn tất: <strong id="ec_city_total_hoantat" style="color:#10b981;">0</strong></span>
+                    </div>
                     <table class="uat-table" style="margin-top:-16px;">
                         <thead>
                             <tr>
                                 <th>KHU VỰC CHI TIẾT</th>
-                                <th style="text-align:right; width:90px;">SESS</th>
-                                <th style="text-align:right; width:80px;">TÌM CB</th>
-                                <th style="text-align:right; width:90px;">THAM KHẢO</th>
-                                <th style="text-align:right; width:80px;">BOOKING</th>
-                                <th style="text-align:right; width:85px;">HOÀN TẤT</th>
-                                <th style="text-align:right; width:80px;">TỶ LỆ</th>
+                                <th class="uat-sortable-th" data-sort="sessions" style="text-align:right; width:90px; cursor:pointer; user-select:none;">SESS <span class="sort-icon">↕</span></th>
+                                <th class="uat-sortable-th" data-sort="flight_search" style="text-align:right; width:80px; cursor:pointer; user-select:none;">TÌM CB <span class="sort-icon">↕</span></th>
+                                <th class="uat-sortable-th" data-sort="thamkhao" style="text-align:right; width:90px; cursor:pointer; user-select:none;">THAM KHẢO <span class="sort-icon">↕</span></th>
+                                <th class="uat-sortable-th" data-sort="booking" style="text-align:right; width:80px; cursor:pointer; user-select:none;">BOOKING <span class="sort-icon">↕</span></th>
+                                <th class="uat-sortable-th" data-sort="hoantat" style="text-align:right; width:85px; cursor:pointer; user-select:none;">HOÀN TẤT <span class="sort-icon">↕</span></th>
+                                <th class="uat-sortable-th" data-sort="pct" style="text-align:right; width:80px; cursor:pointer; user-select:none;">TỶ LỆ <span class="sort-icon">↕</span></th>
                                 <th style="text-align:right; width:50px;">#</th>
                             </tr>
                         </thead>
                         <tbody id="ec_area_city_tbody">
                             <tr>
-                                <td colspan="4" class="uat-empty-cell">Đang tải...</td>
+                                <td colspan="8" class="uat-empty-cell">Đang tải...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1180,4 +1185,4 @@
 
 </div><!-- END uat-wrap -->
 
-<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=2.0.8"></script>
+<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=2.0.9"></script>
