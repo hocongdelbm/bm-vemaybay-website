@@ -3,18 +3,20 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: suitecrm-web
+    container_name: bm.vemaybay
     ports:
-      - "8080:80"
+      - "8001:80"
     volumes:
       - ./:/var/www/html # SuiteCRM source
-      - ./docker/php/timezone.ini:/usr/local/etc/php/conf.d/99-timezone.ini
+      - ./docker/entrypoint.sh:/entrypoint.sh # mount so changes don't require rebuild
       # Named volume for uploads — keeps attachments off the host filesystem
       # and avoids permission headaches for binary data. Remove if you prefer
       # host-side access to uploaded files.
       - suitecrm_upload:/var/www/html/upload
     environment:
-      - TZ=Asia/Ho_Chi_Minh
+      - TZ=UTC
+      - APACHE_UID=${UID:-1000}
+      - APACHE_GID=${GID:-1000}
 
   # db:
   #   image: mariadb:10.6

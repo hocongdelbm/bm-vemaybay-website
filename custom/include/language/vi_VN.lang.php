@@ -2519,7 +2519,7 @@ $app_list_strings['booking_customer_source_list'] = [
   'system_old' => 'Hệ thống KC',
   'new'    => 'Mới',
   'agent'  => 'Đại lý CTV',
-  'reference' => 'Tham khảo',
+  'is_reference' => 'Tham khảo',
   'care'   => 'Chăm sóc KH',
   'receipt_voucher' => 'Phiếu thu',
 ];

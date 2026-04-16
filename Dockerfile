@@ -3,7 +3,7 @@ FROM php:7.4-apache
 # Install required libraries
 RUN apt-get update && apt-get install -y \
     libpng-dev libjpeg-dev libfreetype6-dev libzip-dev \
-    zip unzip git libicu-dev libxml2-dev libcurl4-openssl-dev \
+    zip unzip git libicu-dev libxml2-dev libcurl4-openssl-dev cron \
     && docker-php-ext-configure gd --with-jpeg --with-freetype \
     && docker-php-ext-install gd mysqli pdo pdo_mysql intl zip opcache xml curl \
     && a2enmod rewrite headers \
@@ -56,6 +56,9 @@ RUN cat > /etc/apache2/sites-available/000-default.conf <<'EOF'
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOF
+
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Pre-create dirs that SuiteCRM needs to write to.
 # These exist in the image so the entrypoint chown is fast (only new bind-mount content).
