@@ -910,7 +910,12 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
     // Where condition by booking fields
     $where_bk_fields = '';
     if (isset($condition_arr['customer_source']) && !empty($condition_arr['customer_source'])) {
-        $where_bk_fields .= " AND bk.customer_source = '{$condition_arr['customer_source']}' ";
+        if ($condition_arr['customer_source'] === 'reference') {
+            // Nguồn tham khảo ưu tiên theo cờ đánh dấu thay vì chỉ theo customer_source.
+            $where_bk_fields .= " AND bk.is_reference = 1";
+        } else {
+            $where_bk_fields .= " AND bk.customer_source = '{$condition_arr['customer_source']}'";
+        }
     }
 
     // Where condition by booking fields ticket_type (1/Nội địa, 2/Quốc tế)
@@ -1037,6 +1042,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
                 p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
                 AND DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
                 AND p.deleted = 0
+                $where_bk_fields
                 " . str_replace('bk.', 'p.', $sql_role) . "
                 AND IF(p.loai_thu = 10, IF(p.bought_amount IS NULL OR p.bought_amount = 0, 0, 1), 1) = 1
             GROUP BY p.id
