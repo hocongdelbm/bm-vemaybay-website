@@ -1,22 +1,23 @@
-# Ignore files
-/.htaccess
-*.html
 
-# Ignore directories 
+.htaccess
+*.html
+*.txt
+*.wav
+*.mp3
+*.log
+
 cache
 vendor
 
-# Custom
+# Ignore some files and directories from the custom directory.
 custom/history/
 custom/working/
-custom/modules/*/Ext/
+custom/modules/*/Ext/*
 custom/application/Ext/*
 !custom/application/Ext/Api
 custom/Extension/application/Ext/Language/*
-# Custom configs
 custom/configs/*
 !custom/configs/.gitkeep
-# Templates export
 custom/templates_export/*
 !custom/templates_export/.gitkeep
 # JSON config
@@ -24,39 +25,25 @@ custom/json_files/**/*.json
 custom/jssip_webrtc/blacklist.json
 
 # Custom configuration should also be ignored.
-/config.php
-/config_override.php
+config.php
+config_override.php
 
-# Logs files can safely be ignored.
-*.log
+themes/default/images
+themes/default/font
+themes/SuiteP/images
+themes/SuiteP/fonts
+
+# The silent upgrade scripts aren't needed.
+silentUpgrade*.php
 
 # Ignore the new upload directories.
 /upload/*
 !/upload/index.html
 /upload_backup/
 
-# Logs, sessions
-secure_sessions/*
-!secure_sessions/.gitkeep
-secure_sessions/logs/*
-!secure_sessions/logs/.gitkeep
-
 # Images
 themes/SuiteP/images/zalo_messages/*
 !themes/SuiteP/images/zalo_messages/.gitkeep
 
-# Modules
-modules/EC_Zalo/nohup.out
-
-# Ignore local system
-.vscode
-.DS_Store
-
-# Docker configurations
-docker
-Dockerfile
-docker-compose.yml
-
-# Claude configurations
-CLAUDE.local.md
-.claude/settings.local.json
+# Logs
+secure_sessions/*
