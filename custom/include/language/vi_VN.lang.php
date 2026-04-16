@@ -2521,6 +2521,7 @@ $app_list_strings['booking_customer_source_list'] = [
   'agent'  => 'Đại lý CTV',
   'reference' => 'Tham khảo',
   'care'   => 'Chăm sóc KH',
+  'receipt_voucher' => 'Phiếu thu',
 ];
 
 $app_list_strings['booking_checkin_status_list'] = [
