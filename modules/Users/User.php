@@ -117,8 +117,6 @@ class User extends Person implements EmailInterface
         }
     }
 
-
-
     protected function _loadUserPreferencesFocus()
     {
         $this->_userPreferenceFocus = new UserPreference($this);

@@ -87,7 +87,6 @@ class ACLRole extends SugarBean
 
         if (!$user_roles) {
             //if we don't have it loaded then lets check against the db
-            $additional_where = '';
             $query = "SELECT acl_roles.* ".
                 "FROM acl_roles ".
                 "INNER JOIN acl_roles_users ON acl_roles_users.user_id = '$user_id' ".
@@ -209,17 +208,6 @@ class ACLRole extends SugarBean
         return $role_actions;
     }
 
-    private static function langCompare($a, $b)
-    {
-        global $app_list_strings;
-        // Fallback to array key if translation is empty
-        $a = empty($app_list_strings['moduleList'][$a]) ? $a : $app_list_strings['moduleList'][$a];
-        $b = empty($app_list_strings['moduleList'][$b]) ? $b : $app_list_strings['moduleList'][$b];
-        if ($a == $b) {
-            return 0;
-        }
-        return ($a < $b) ? -1 : 1;
-    }
     /**
      * function mark_relationships_deleted($id)
      *

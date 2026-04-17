@@ -6,9 +6,12 @@ $hook_version  = 1;
 $hook_array    = array(); 
 
 // position, file, function 
-$hook_array['after_login']         = array(); 
+$hook_array['before_login']        = array();
+$hook_array['before_login'][]      = array(1, 'Check IP restriction', 'custom/modules/Users/LoginIPCheck.php', 'LoginIPCheck', 'checkIPRestriction');
 
-$hook_array['after_login'][]       = array(1, 'after_login', 'custom/modules/EC_LoginAudit/EC_LoginAuditLogicHook.php','loginActions', 'updateLoginAudit'); 
+$hook_array['after_login']         = array();
+
+$hook_array['after_login'][]       = array(1, 'after_login', 'custom/modules/EC_LoginAudit/EC_LoginAuditLogicHook.php','loginActions', 'updateLoginAudit');
 $hook_array['after_login'][]       = array(2, 'Redirect login', 'custom/modules/Users/UsersLogicHook.php','UsersLogicHook', 'RedirectUser');
 
 $hook_array['login_failed']        = array(); 
