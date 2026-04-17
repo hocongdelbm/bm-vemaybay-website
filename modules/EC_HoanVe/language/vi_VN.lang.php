@@ -42,9 +42,23 @@ $mod_strings = array (
   'LBL_NOIDEN_SEARCH' => 'Nơi đến (Vd: HAN)',
   'LBL_SOVE_SEARCH' => 'Số vé',
   'LBL_PNR_SEARCH' => 'PNR',
+  'LBL_NHACC_SEARCH' => 'Nhà cung cấp',
+  'LBL_NHACC_LIST' => 'NCC',
   'LBL_NGAYHACHTOAN' => 'Ngày ghi sổ',
   'LBL_THONGBAO' => 'Đã chi tiền',
   'LNK_RETURN_BK' => 'Booking Hoàn vé',
   'LBL_TICKET_VALIDITY' => 'Hạn bảo lưu',
 );
+
+if (!isset($app_list_strings) || !is_array($app_list_strings)) {
+  $app_list_strings = array();
+}
+
+if (!isset($app_list_strings['hoanve_supplier_list']) || !is_array($app_list_strings['hoanve_supplier_list'])) {
+  $app_list_strings['hoanve_supplier_list'] = array('' => '');
+}
+
+if (!isset($app_list_strings['hoanve_supperlier_list']) || !is_array($app_list_strings['hoanve_supperlier_list'])) {
+  $app_list_strings['hoanve_supperlier_list'] = $app_list_strings['hoanve_supplier_list'];
+}
 ?>

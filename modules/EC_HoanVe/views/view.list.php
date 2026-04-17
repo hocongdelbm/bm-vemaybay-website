@@ -4,7 +4,35 @@ require_once('include/MVC/View/views/view.list.php');
 
 class EC_HoanVeViewList extends ViewList {
 
+	public function __construct() {
+			parent::__construct();
+			$this->loadSupplierListOptions();
+	}
+
+	private function loadSupplierListOptions() {
+		global $app_list_strings;
+
+		$db = DBManagerFactory::getInstance();
+
+		$app_list_strings['hoanve_supplier_list'] = array('' => '');
+		$sql = "SELECT id, name
+				FROM accounts
+				WHERE deleted = 0
+				AND account_type = 'Supplier'
+				AND (is_stop_tracking = 0 OR is_stop_tracking IS NULL)
+				ORDER BY name";
+
+		$res = $db->query($sql);
+		while ($row = $db->fetchByAssoc($res)) {
+			$app_list_strings['hoanve_supplier_list'][$row['id']] = $row['name'];
+		}
+
+		$app_list_strings['hoanve_supperlier_list'] = $app_list_strings['hoanve_supplier_list'];
+	}
+
 	function listViewPrepare(){
+		$this->loadSupplierListOptions();
+
 		if (empty($_REQUEST['orderBy']) || isset($_REQUEST['query'])) {
 		  $_REQUEST['orderBy'] = 'date_entered'; 
 		  $_REQUEST['sortOrder'] = 'desc';
@@ -19,6 +47,18 @@ class EC_HoanVeViewList extends ViewList {
 
 		// $this->display;	
 		parent::display();
+	}
+
+	function preDisplay() {
+		$this->loadSupplierListOptions();
+
+		parent::preDisplay();
+	}
+
+	function prepareSearchForm() {
+		$this->loadSupplierListOptions();
+
+		parent::prepareSearchForm();
 	}
 
 	function displayJS() {

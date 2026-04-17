@@ -909,8 +909,28 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
 
     // Where condition by booking fields
     $where_bk_fields = '';
-    if (isset($condition_arr['customer_source']) && !empty($condition_arr['customer_source'])) {
-        $where_bk_fields .= " AND bk.customer_source = '{$condition_arr['customer_source']}' ";
+    $where_receipt_voucher_only = '';
+    $customer_source = isset($condition_arr['customer_source']) ? trim((string)$condition_arr['customer_source']) : '';
+    $customer_source_aliases = [
+        'reference' => 'is_reference',
+    ];
+
+    if ($customer_source !== '') {
+        $normalized_customer_source = isset($customer_source_aliases[$customer_source])
+            ? $customer_source_aliases[$customer_source]
+            : $customer_source;
+
+        if ($normalized_customer_source === 'receipt_voucher') {
+            // "Phiếu thu" là nguồn dữ liệu từ phân hệ phiếu thu, không phải field customer_source của booking.
+            $where_bk_fields .= " AND 1 = 0";
+        } elseif ($normalized_customer_source === 'is_reference') {
+            // Nguồn tham khảo ưu tiên theo cờ đánh dấu để đồng nhất dữ liệu cũ/mới.
+            $where_bk_fields .= " AND bk.is_reference = 1";
+            $where_receipt_voucher_only .= " AND bk.is_reference = 1";
+        } else {
+            $where_bk_fields .= " AND bk.customer_source = '{$normalized_customer_source}'";
+            $where_receipt_voucher_only .= " AND bk.customer_source = '{$normalized_customer_source}'";
+        }
     }
 
     // Where condition by booking fields ticket_type (1/Nội địa, 2/Quốc tế)
@@ -1037,6 +1057,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
                 p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
                 AND DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
                 AND p.deleted = 0
+                $where_receipt_voucher_only
                 " . str_replace('bk.', 'p.', $sql_role) . "
                 AND IF(p.loai_thu = 10, IF(p.bought_amount IS NULL OR p.bought_amount = 0, 0, 1), 1) = 1
             GROUP BY p.id
