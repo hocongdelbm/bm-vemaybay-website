@@ -1,5 +1,4 @@
 <?php
-
 $module_name = 'EC_Location';
 $viewdefs[$module_name]['EditView'] = array(
     'templateMeta' => array(
@@ -9,40 +8,44 @@ $viewdefs[$module_name]['EditView'] = array(
             array('label' => '10', 'field' => '30')
         ),
     ),
-
-    'panels' =>
-    array(
-        'default' =>
-        array(
+    'panels' => array(
+        'default' => array(
             array(
                 array(
-                    'name' => 'name',
+                    'name'  => 'name',
                     'label' => 'LBL_NAME',
                 ),
                 array(
-                    'name' => 'company',
+                    'name'   => 'company',
                     'studio' => 'visible',
-                    'label' => 'LBL_COMPANY',
+                    'label'  => 'LBL_COMPANY',
                 ),
             ),
             array(
                 array(
-                    'name' => 'is_display',
+                    'name'  => 'is_display',
                     'label' => 'LBL_IS_DISPLAY',
                 ),
                 array(
-                    'name' => 'assigned_user_name',
+                    'name'  => 'assigned_user_name',
                     'label' => 'LBL_ASSIGNED_TO_NAME',
                 ),
             ),
             array(
                 array(
-                    'name' => 'description',
-                    'comment' => 'Full text of the note',
-                    'label' => 'LBL_DESCRIPTION',
+                    'name'  => 'allowed_ips',
+                    'label' => 'LBL_ALLOWED_IPS',
                 ),
                 array()
-            )
+            ),
+            array(
+                array(
+                    'name'    => 'description',
+                    'comment' => 'Full text of the note',
+                    'label'   => 'LBL_DESCRIPTION',
+                ),
+                array()
+            ),
         ),
     ),
 );

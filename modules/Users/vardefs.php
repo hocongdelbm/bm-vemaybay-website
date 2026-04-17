@@ -1260,6 +1260,19 @@ $dictionary['User'] = array(
             'importable' => true,
             'audited'    => true,
         ),
+        'ip_restriction_enabled' => array(
+            'name'            => 'ip_restriction_enabled',
+            'vname'           => 'LBL_IP_RESTRICTION_ENABLED',
+            'type'            => 'bool',
+            'default'         => '0',
+            'required'        => false,
+            'massupdate'      => 0,
+            'audited'         => 1,
+            'reportable'      => 0,
+            'importable'      => 'true',
+            'duplicate_merge' => 'disabled',
+            'comment'         => 'Kiểm tra IP của người dùng khi đăng nhập',
+        ),
     ),
     'indices' => array(
         array(

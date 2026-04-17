@@ -1,5 +1,4 @@
 <?php
-
 $viewdefs['Users']['EditView'] = array(
     'templateMeta' => array(
         'maxColumns' => '2',
@@ -53,11 +52,10 @@ $viewdefs['Users']['EditView'] = array(
                 array(
                     'name' => 'agent_status',
                     'label' => 'LBL_AGENT_STATUS',
-
                 ),
                 array(
-                    'name' => '',
-                    'label' => '',
+                    'name' => 'ip_restriction_enabled',
+                    'label' => 'LBL_IP_RESTRICTION_ENABLED',
                 )
             ),
             array(

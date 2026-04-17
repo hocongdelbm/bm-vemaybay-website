@@ -85,6 +85,9 @@ class EC_Flight_BookingsController extends SugarController
             case "updateflight":
                 $this->action = "updateflight";
                 break;
+            case "telesaleipmgr":
+                $this->action = "telesaleipmgr";
+                break;
             default:
                 $this->action = "ListView";
                 break;
@@ -128,5 +131,7 @@ class EC_Flight_BookingsController extends SugarController
             $this->action = "issueticket";
         if ($this->return_action == "updateflight")
             $this->action = "updateflight";
+        if ($this->return_action == "telesaleipmgr")
+            $this->action = "telesaleipmgr";
     }
 }

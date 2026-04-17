@@ -30,5 +30,6 @@ $mod_strings = array (
   'LBL_NEW_FORM_TITLE' => 'Địa điểm',
   'LBL_COMPANY' => 'Công ty',
   'LBL_IS_DISPLAY' => 'Ẩn địa điểm',
+  'LBL_ALLOWED_IPS' => 'IP được phép truy cập',
 );
 ?>
