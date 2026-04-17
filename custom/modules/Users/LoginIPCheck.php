@@ -67,14 +67,22 @@ class LoginIPCheck
         $sql = "SELECT allowed_ips FROM ec_location WHERE deleted = 0 AND is_display = 0 AND allowed_ips IS NOT NULL AND allowed_ips != ''";
         $result = $db->query($sql);
 
+        $hasAnyIp = false;
         while ($row = $db->fetchByAssoc($result)) {
             $entries = preg_split('/[\r\n,]+/', $row['allowed_ips']);
             foreach ($entries as $entry) {
-                if (trim($entry) === $clientIp) {
+                $entry = trim($entry);
+                if (empty($entry)) {
+                    continue;
+                }
+                $hasAnyIp = true;
+                if ($entry === $clientIp) {
                     return true;
                 }
             }
         }
-        return false;
+
+        // Chưa cấu hình IP nào → không chặn
+        return !$hasAnyIp;
     }
 }

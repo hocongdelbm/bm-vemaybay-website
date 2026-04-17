@@ -106,7 +106,7 @@ class ViewTelesaleipmgr extends SugarView
         global $db;
         
         $sql = sprintf(
-            "SELECT u.id, u.user_name, CONCAT(u.last_name, ' ', u.first_name) AS full_name,
+            "SELECT u.id, u.user_name, CONCAT_WS(' ', u.last_name, u.first_name) AS full_name,
                     COALESCE(u.ip_restriction_enabled, 0) AS ip_restriction_enabled
              FROM users u
              INNER JOIN acl_roles_users aru ON aru.user_id = u.id AND aru.deleted = 0
