@@ -6897,11 +6897,6 @@ input[type=reset]:focus {
      background-image: none
 }
 
-.button .badge {
-     background-color: #F5F5F5;
-     color: #F08377
-}
-
 .yui-layout-hd .button,
 .yui-layout-hd input[type=submit],
 .yui-layout-hd input[type=button] {
