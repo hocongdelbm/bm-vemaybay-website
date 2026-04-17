@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "deny": [
-      "Read(config.php)",
-      "Read(config_override.php)"
-    ]
-  }
-}
