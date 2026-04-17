@@ -682,6 +682,59 @@ class CustomController extends BaseController
         }
     }
 
+    public function save_hoadonban_receipt(Request $request, Response $response, array $args)
+    {
+        try {
+            global $sugar_config;
+            $params = (array) $request->getParsedBody();
+
+            $hoadon_id = isset($params['hoadon_id']) ? global_test_input($params['hoadon_id']) : '';
+            $receipt_id = isset($params['receipt_id']) ? global_test_input($params['receipt_id']) : '';
+            $request_ip = $request->getServerParam('REMOTE_ADDR');
+
+            if (!in_array($request_ip, $sugar_config['ip_whitelist'])) {
+                return $response->withJson(['error' => true, 'message' => "Access denied"], 403);
+            }
+
+            if (strlen($hoadon_id) !== 36 || strlen($receipt_id) !== 36) {
+                return $response->withJson([
+                    'error' => true,
+                    'message' => 'Invalid hoadon_id or receipt_id'
+                ], 400);
+            }
+
+            $hoadon = BeanFactory::getBean('EC_HoaDonBan', $hoadon_id);
+            if (!$hoadon || empty($hoadon->id) || !empty($hoadon->deleted)) {
+                return $response->withJson(['error' => true, 'message' => 'HoaDonBan not found'], 404);
+            }
+
+            $receipt = BeanFactory::getBean('EC_Receipt_Voucher', $receipt_id);
+            if (!$receipt || empty($receipt->id) || !empty($receipt->deleted)) {
+                return $response->withJson(['error' => true, 'message' => 'Receipt voucher not found'], 404);
+            }
+
+            if (!$hoadon->load_relationship('receipt_vouchers')) {
+                return $response->withJson([
+                    'error' => true,
+                    'message' => 'Relationship receipt_vouchers is not available'
+                ], 500);
+            }
+
+            $hoadon->receipt_vouchers->add($receipt_id);
+
+            return $response->withJson([
+                'error' => false,
+                'message' => 'Relationship saved successfully',
+                'data' => [
+                    'hoadon_id' => $hoadon_id,
+                    'receipt_id' => $receipt_id
+                ]
+            ], 201);
+        } catch (Throwable $e) {
+            $GLOBALS['log']->fatal("Save hoadonban-receipt relationship failed: {$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}");
+            return $response->withJson(['error' => true, 'message' => $e->getMessage()], 500);
+        }
+    }
     public function save_location_booking(Request $request, Response $response, array $args) {
         global $db, $sugar_config;
         try {
@@ -726,4 +779,6 @@ class CustomController extends BaseController
             ], 500);
         }
     }
+
+
 }
