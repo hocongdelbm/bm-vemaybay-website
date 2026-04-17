@@ -147,7 +147,6 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 					$html .= "<td>
 						<input type='text' name='ct_booking[]' id='ct_booking$i' ln='$i' class='ac_booking' value='" . $row['booking'] . "' maxlength='32' size='30' autocomplete='off' fld='{\"id\":\"ct_booking_id$i\",\"name\":\"ct_booking$i\"}' style='text-align:left' />
 						<input type='hidden' name='ct_booking_id[]' id='ct_booking_id$i' value='" . $row['booking_id'] . "' />
-						<input type='$input_type_receipt' name='ct_receipt_voucher[]' class='input-receipt-voucher' value='" . $row['receipt_voucher_name'] . "' placeholder='Mã phiếu thu' style='border:1px solid #c2c2c2 !important; border-radius:4px; margin-top:5px; padding-left:5px !important;' />
 					</td>";
 
 					$html .= '
