@@ -1149,42 +1149,6 @@ $dictionary['User'] = array(
             'module' => 'Users',
             'duplicate_merge' => 'disabled',
         ),
-        // điểm kinh nghiệm (điểm khởi đầu)
-        'init_exp_mark' =>
-        array(
-            'required' => false,
-            'name' => 'init_exp_mark',
-            'vname' => 'LBL_INIT_EXP_MARK',
-            'type' => 'int',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '11',
-            'disable_num_format' => '',
-        ),
-        // điểm kinh nghiệm
-        'exp_mark' =>
-        array(
-            'required' => false,
-            'name' => 'exp_mark',
-            'vname' => 'LBL_EXP_MARK',
-            'type' => 'int',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '11',
-            'disable_num_format' => '',
-        ),
         // sl ve khi hoan tat
         'total_ticket' =>
         array(

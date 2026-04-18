@@ -56,42 +56,6 @@ $dictionary['EC_Online_Report'] = array(
             'studio' => 'visible',
             'dependency' => false,
         ),
-        // xếp hạng
-        'ranking' =>
-        array(
-            'required' => false,
-            'name' => 'ranking',
-            'vname' => 'LBL_RANKING',
-            'type' => 'int',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 0,
-            'reportable' => 0,
-            'len' => '11',
-            'disable_num_format' => '',
-        ),
-        // vòng giao booking
-        'round' =>
-        array(
-            'required' => false,
-            'name' => 'round',
-            'vname' => 'LBL_ROUND',
-            'type' => 'int',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '11',
-            'disable_num_format' => '',
-        ),
         // chức danh
         'title' =>
         array(
@@ -108,24 +72,6 @@ $dictionary['EC_Online_Report'] = array(
             'audited' => 0,
             'reportable' => 0,
             'len' => '100',
-        ),
-        // điểm kpi
-        'kpi' =>
-        array(
-            'required' => false,
-            'name' => 'kpi',
-            'vname' => 'LBL_KPI',
-            'type' => 'int',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 0,
-            'reportable' => 0,
-            'len' => '11',
-            'disable_num_format' => '',
         ),
         // booking được giao
         'booking_id' =>
@@ -159,24 +105,6 @@ $dictionary['EC_Online_Report'] = array(
             'duplicate_merge_dom_value' => '0',
             'audited' => 0,
             'reportable' => 0,
-        ),
-
-        'total_calls' =>
-        array(
-            'required' => false,
-            'name' => 'total_calls',
-            'vname' => 'LBL_TOTAL_CALLS',
-            'type' => 'int',
-            'massupdate' => 0,
-            'comments' => 'Tổng số cuộc gọi trong ngày',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 0,
-            'reportable' => 0,
-            'len' => '5',
-            'disable_num_format' => '',
         ),
     ),
     'relationships' => array(),

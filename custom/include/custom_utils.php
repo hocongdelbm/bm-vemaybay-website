@@ -1021,14 +1021,6 @@ function isAllowedUser()
         return true;
     }
 
-    // $sql = '
-    //     SELECT IF(COUNT(id) > 0, 1, 0)
-    //     FROM acl_roles_users
-    //     WHERE deleted = 0 
-    //     AND user_id = "' . $current_user->id . '" 
-    //     AND role_id = "222d9e8c-a54c-d7b8-8f75-567e493d6ea3"
-    // ';
-
     $sql = '
         SELECT IF(COUNT(id) > 0, 1, 0)
         FROM acl_roles_users
@@ -1038,6 +1030,7 @@ function isAllowedUser()
     ';
 
     $is_exist = $db->getOne($sql);
+
     if ($is_exist) {
         return true;
     }
@@ -1053,15 +1046,6 @@ function isManagerUser($user_id)
     if (is_admin($current_user)) {
         return 1;
     }
-
-    // $sql = 'SELECT COUNT(id) 
-    //         FROM acl_roles_users 
-    //         WHERE deleted = 0 
-    //         AND role_id IN (
-    //             "222d9e8c-a54c-d7b8-8f75-567e493d6ea3",
-    //             "c4ae12df-787f-5a30-5612-509b1346b649"
-    //         )
-    //         AND user_id = "' . $user_id . '"';
 
     $sql = 'SELECT COUNT(id) 
             FROM acl_roles_users 

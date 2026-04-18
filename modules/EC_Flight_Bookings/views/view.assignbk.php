@@ -22,11 +22,7 @@ class Viewassignbk extends SugarView
 		global $app_list_strings, $current_user;
 
 		$sql = '
-			SELECT *, (
-				CASE 
-					WHEN ranking < 5 THEN 0
-					WHEN ranking >= 8 THEN 2
-				ELSE 1 END) AS group_type
+			SELECT * 
 			FROM ec_online_report
 			WHERE deleted = 0 
 			AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
@@ -108,9 +104,11 @@ class Viewassignbk extends SugarView
 					// các nút thao tác
 					$cus_btn = '
 							<div class="d-flex align-items-center justify-content-center flex-wrap gap-1">
-								<input type="button" class="online_btn btn btn-primary up_btn" value="UP" change_type="up" onl_val="' . $row['id'] . '">
+								<input type="button" class="online_btn btn btn-success up_btn" value="UP" change_type="up" onl_val="' . $row['id'] . '">
 								<input type="button" class="online_btn btn btn-secondary down_btn" value="DOWN" change_type="down" onl_val="' . $row['id'] . '">
-								<input type="button" class="online_btn btn btn-danger off_btn" value="OFF" change_type="off" onl_val="' . $row['id'] . '" data-sip="' . custom_get_sip_number($row['assigned_user_id']) . '">
+								<input type="button" class="online_btn btn btn-primary busy_btn" value="BUSY" change_type="busy" onl_val="' . $row['id'] . '">
+								<input type="button" class="online_btn btn btn-dark off_btn" value="OFF" change_type="off" onl_val="' . $row['id'] . '" data-sip="' . custom_get_sip_number($row['assigned_user_id']) . '">
+								<input type="button" class="online_btn btn btn-danger del_btn" value="DEL" change_type="delete" onl_val="' . $row['id'] . '">
 							</div>
 						';
 

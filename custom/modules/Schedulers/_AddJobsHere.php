@@ -150,58 +150,21 @@ function updateOnlineReport()
 {
 	global $db;
 
-	// Cập nhật tất cả các user ngoại trừ các admin phía dưới
-	$arr_id_admin = array(
-		'1', //ducpham
-		'168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
-		'9eb0f65f-a9f6-65bb-1985-637ca8511491', //trinh
-		'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //panda
-		'622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
-		'e4a1676e-536d-b5d2-75c2-6502656a118b', //cuong
-		'493ad5e5-ffea-a84f-96d7-6577fed623d6', //booker
-		'2751ebe5-6cdc-acfc-7d70-659d08368c2e', //ancao
-
-		'c57196c6-e211-9856-43d5-6695498f39ae', //tiennguyen
-	);
-	$notInCondition = "'" . implode("', '", $arr_id_admin) . "'";
-
 	$date_check = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
+
+	// Lấy user Active, không phải Bot, không phải Admin (ngoại trừ Admin có title QuanLy)
 	$sql = '
-		SELECT id, first_name, last_name, title,
-			IFNULL(init_exp_mark, 0) AS init_exp_mark,
-			IFNULL(init_exp_mark, 0) AS kpi,
-			(
-				SELECT date_start
-				FROM ec_workhistory
-				WHERE deleted = 0 AND assigned_user_id = users.id
-				ORDER BY date_start DESC
-				LIMIT 1
-			) AS latest_date_start,
-			(
-				SELECT status
-				FROM ec_workhistory
-				WHERE deleted = 0 AND assigned_user_id = users.id
-				ORDER BY date_start DESC
-				LIMIT 1
-			) AS work_stt,
-			(
-				SELECT date_start
-				FROM ec_workhistory
-				WHERE deleted = 0 AND assigned_user_id = users.id
-				ORDER BY date_start
-				LIMIT 1
-			) AS date_begin_work
-		FROM users 
-		-- WHERE title <> "KeToan" AND is_admin = 0 AND deleted = 0
-		WHERE id NOT IN (' . $notInCondition . ') AND deleted = 0
-		GROUP BY id
-		HAVING (work_stt = "Active" OR work_stt = "Online")
-			AND latest_date_start <= "' . $date_check . '"
-		ORDER BY init_exp_mark DESC, date_begin_work
+		SELECT id, first_name, last_name, title
+		FROM users
+		WHERE deleted = 0
+			AND status = "Active"
+			AND title != "Bot"
+			AND (is_admin = 0 OR title = "QuanLy")
+			AND id NOT IN ("e3bbb3e5-6660-0bf7-8976-54869c4ee609") -- ksnb
+		ORDER BY date_entered
 	';
 
 	$res = $db->query($sql);
-	$i 	= 1;
 
 	while ($row = $db->fetchByAssoc($res)) {
 		$sql_exist = '
@@ -216,22 +179,11 @@ function updateOnlineReport()
 
 		if (!$is_exist) {
 			$online = new EC_Online_Report;
-			$online->name = trim($row['last_name']) . ' ' . trim($row['first_name']);
+			$online->name             = trim($row['last_name']) . ' ' . trim($row['first_name']);
 			$online->assigned_user_id = $row['id'];
-			$online->status = 0;
-			if ($row['title'] != 'Leader' && $row['title'] != 'Booker') {
-				$online->ranking = 0;
-			} else {
-				$online->ranking = $i;
-			}
-			$online->title 	= $row['title'];
-			$online->round 	= 0;
-			$online->kpi 	= $row['init_exp_mark'];
+			$online->status           = 0;
+			$online->title            = $row['title'];
 			$online->save();
-		}
-
-		if ($row['title'] != 'QuanLy') {
-			$i++;
 		}
 	}
 	return true;
@@ -1691,8 +1643,8 @@ function checkBookingHandle()
 	// -> Xoá thông tin đã giao trong bảng online
 	if (count($clear_bk_onl) > 0) {
 		$sql1 = '
-			UPDATE ec_online_report 
-			SET booking_id = NULL, start_assign = NULL
+			UPDATE ec_online_report
+			SET booking_id = NULL, start_assign = NULL, status = 1
 			WHERE id IN ("' . implode('","', $clear_bk_onl) . '")
 			AND deleted = 0
 		';
@@ -1762,33 +1714,12 @@ function reAssignBooking()
 						UPDATE ec_flight_bookings
 						SET assigned_user_id = "' . $assgined_user_id . '"
 						WHERE id = "' . $row['id'] . '"
-						AND deleted = 0 
+						AND deleted = 0
 					';
 					$db->query($sql_upd);
 
-					// lưu lại thông báo lên group
+					// assignBooking() đã cập nhật ec_online_report (status, booking_id, total_qty)
 					$reassign_bk[] = "Booking: " . $row['name'] . ' giao cho: ' . $user->last_name . ' ' . $user->first_name;
-
-					// UPDATE VỀ TRẠNG THÁI BẬN
-					$sql_update_busy = '
-						SELECT id, assigned_user_id
-						FROM ec_online_report 				
-						WHERE assigned_user_id = "' . $user->id . '"
-							AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
-							AND deleted = 0
-						LIMIT 1
-					';
-					$res_update_busy = $db->query($sql_update_busy);
-					$row_assign = $db->fetchByAssoc($res_update_busy);
-					$online = new EC_Online_Report;
-					$online->retrieve($row_assign['id']);
-					$online->status = 2;
-					$online->last_online 	= date('Y-m-d H:i:s');
-					$online->start_assign 	= date('Y-m-d H:i:00');
-					$online->booking_id 	= $row['id'];
-					$online->round 		= (int)$online->round + 1;
-					$online->total_qty  	= $row['total_qty'];
-					$online->save();
 				}
 			}
 

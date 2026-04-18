@@ -134,7 +134,6 @@ $mod_strings = array(
     'LBL_EMPLOYEE_TYPE'                                   => 'Loại nhân viên',
     'LBL_LEADER_NAME'                                   => 'Leader',
     'LBL_WORK_HISTORY'                                   => 'Lịch sử làm việc',
-    'LBL_INIT_EXP_MARK'                                => 'Điểm hiệu quả (khởi tạo)',
 
     'LNK_NEW_RECORD'    => 'Tạo nhân viên',
     'LNK_LIST'    => 'D/s nhân viên',
