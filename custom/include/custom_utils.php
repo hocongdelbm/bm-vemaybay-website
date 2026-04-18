@@ -1148,7 +1148,7 @@ function getNameGroupCalls($sip = "")
     $name = array();
 
     $arr_group = array(
-        '<span class="badge bg-primary">Booker</span>' => array('101', '102', '103', '104', '106', '107', '109', '201'),
+        '<span class="badge bg-primary">Booker</span>' => array('101', '102', '103', '104', '106', '107', '109', '201', '789'),
         '<span class="badge bg-warning text-dark">Kế toán</span>' => array('120', '121', '122', '123', '124', '125'),
         '<span class="badge bg-danger">Laptop</span>' => array('201', '202', '203'),
         '<span class="badge bg-dark">IT</span>' => array('010', '012', '130'),
