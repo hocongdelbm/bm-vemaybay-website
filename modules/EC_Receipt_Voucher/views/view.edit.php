@@ -44,9 +44,6 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit {
 		<input type="hidden" id="dec_seperator" name="dec_seperator" value="'.$sep[1].'" />
 		<input type="hidden" id="sig_digits" name="sig_digits" value="'.$locale->getPrecision().'" />';
 
-		// Get department id
-		$department_id = $current_user->department_id;
-
 		// Amount
 		$amount = '<span class="d-flex gap-2 align-items-center w-100">
 			<input class="flex-fill min-w-25" type="text" name="amount" id="amount" size="20" value="'.(isset($_POST['amount']) ? $_POST['amount'] : format_number($this->bean->amount)).'" tabindex="100">
@@ -88,7 +85,7 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit {
 			
 		$receipt_type = '<select name="receipt_type" id="receipt_type" title="" tabindex="104">'.get_select_options_with_id($app_list_strings['receipt_type_list'], isset($_POST['receipt_type']) ? $_POST['receipt_type'] : $this->bean->receipt_type).'</select>';
 		$receipt_type .= '<select style="'.$display.'" id="tknganhang_id" name="tknganhang_id" tabindex="104"><option value=""></option>'.myGetBankAccountList($tknganhang_id, $tknganhang_group).'</select>';
-		$receipt_type .= '<select id="com_location_id" name="com_location_id" class="w-100" style="'.$display2.'" tabindex="104">'.myGetLocationListByDepID($department_id, $this->bean->com_location_id).'</select>';
+		$receipt_type .= '<select id="com_location_id" name="com_location_id" class="w-100" style="'.$display2.'" tabindex="104">'.myGetLocationListByDepID($this->bean->com_location_id).'</select>';
 		$this->ss->assign('RECEIPT_TYPE', $receipt_type.$group_decimal);
 		
 

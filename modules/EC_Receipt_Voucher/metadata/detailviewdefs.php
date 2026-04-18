@@ -30,7 +30,7 @@ $viewdefs[$module_name]['DetailView'] = array(
         'includes' =>
         array(
             array(
-                'file' => 'modules/EC_Receipt_Voucher/js/EC_Receipt_Voucher_DV.js',
+                'file' => 'modules/EC_Receipt_Voucher/js/view.detail.js',
             ),
         ),
     ),

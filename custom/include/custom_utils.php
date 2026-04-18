@@ -605,10 +605,10 @@ function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $descrip
 }
 
 // Get location list by deparment ID
-function myGetLocationListByDepID($department_id, $select_val = '')
+function myGetLocationListByDepID($select_val = '')
 {
-    global $db, $current_user;
-    $html = '<option value=""></option>';
+    global $db;
+    $html = '<option value="">-- Trống --</option>';
     $sql = "SELECT id, name
             FROM ec_location
             WHERE deleted = 0

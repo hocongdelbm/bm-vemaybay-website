@@ -7,7 +7,6 @@ $(document).ready(function () {
 
 	$('#amount, #exchange_rate, #bought_amount, .allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
 
-	// $("#employee-select").chosen({no_results_text: "Không tìm thấy kết quả phù hợp", search_contains: true});
 	$('#employee-select').select2();
 
 	$('#amount_converted').css('background', '#f8f8f8');
@@ -71,7 +70,6 @@ $(document).ready(function () {
 	});
 
 	// xử lý sự kiện submit
-	// $('form#EditView').on('submit', function(e){
 	$('#EditView').submit(function (e) {
 		var action = $('#EditView input:hidden[name="action"]').val();
 		var amount = unformatNumber($('#amount').val());
@@ -232,12 +230,9 @@ $(document).ready(function () {
 	});
 
 	// khi thay đổi hình thức thanh toán
-	// $("#tknganhang_id").chosen({no_results_text: "Không tìm thấy kết quả phù hợp", search_contains: true});
-	// $("#tknganhang_id_chosen").css("width", "300px");
 	$('#tknganhang_id').select2();
 
 	if ($("#receipt_type").val() == 'credit_transfer') {
-		// $('#tknganhang_id_chosen').show();
 		$('#tknganhang_id').next().show();
 		$('#com_location_id').val('');
 		$('#com_location_id').hide();
@@ -245,14 +240,12 @@ $(document).ready(function () {
 	} else if ($("#receipt_type").val() == 'cash') {
 		$('#com_location_id').show();
 		$('#tknganhang_id').val('');
-		// $('#tknganhang_id, #tknganhang_id_chosen').hide();
 		$('#tknganhang_id').next().hide();
 		$('#tk_ketoan').val('');
 	}
 
 	$('#receipt_type').change(function () {
 		if ($(this).val() == 'credit_transfer') {
-			// $('#tknganhang_id_chosen').show();
 			$('#tknganhang_id').next().show();
 			$('#com_location_id').val('');
 			$('#com_location_id').hide();
@@ -260,7 +253,6 @@ $(document).ready(function () {
 		} else if ($(this).val() == 'cash') {
 			$('#com_location_id').show();
 			$('#tknganhang_id').val('');
-			// $('#tknganhang_id, #tknganhang_id_chosen').hide();
 			$('#tknganhang_id').next().hide();
 			$('#tk_ketoan').val('');
 

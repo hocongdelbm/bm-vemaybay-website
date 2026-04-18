@@ -25,6 +25,9 @@ class EC_Receipt_VoucherController extends SugarController
 			case "sokyquy":
 				$this->action = "sokyquy";
 				break;
+			case "baocaothu":
+				$this->action = "baocaothu";
+				break;
 			case "Save":
 				$this->action = "Save";
 				break;
@@ -57,5 +60,7 @@ class EC_Receipt_VoucherController extends SugarController
 			$this->action = "Delete";
 		if ($this->return_action == "sokyquy")
 			$this->action = "sokyquy";
+		if ($this->return_action == "baocaothu")
+			$this->action = "baocaothu";
 	}
 }
