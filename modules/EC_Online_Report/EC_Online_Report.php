@@ -143,6 +143,47 @@ class EC_Online_Report extends Basic
 		return $assigned_user_id;
 	}
 
+	// Tạo record ec_online_report cho hôm nay với những user chưa có
+	public function populateOnlineReport()
+	{
+		$date_check = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
+
+		$sql = '
+			SELECT id, first_name, last_name, title
+			FROM users
+			WHERE deleted = 0
+				AND status = "Active"
+				AND td_sip IS NOT NULL 
+				AND td_sip != ""
+				AND title != "Bot"
+				AND (is_admin = 0 OR title = "QuanLy")
+				AND id NOT IN ("e3bbb3e5-6660-0bf7-8976-54869c4ee609") 
+			ORDER BY date_entered
+		';
+
+		$res = $this->db->query($sql);
+
+		while ($row = $this->db->fetchByAssoc($res)) {
+			$sql_exist = '
+				SELECT IF(COUNT(id) > 0, 1, 0)
+				FROM ec_online_report
+				WHERE deleted = 0
+					AND assigned_user_id = "' . $row['id'] . '"
+					AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . $date_check . '"
+			';
+
+			if (!$this->db->getOne($sql_exist)) {
+				$online = new EC_Online_Report;
+				$online->name             = trim($row['last_name']) . ' ' . trim($row['first_name']);
+				$online->assigned_user_id = $row['id'];
+				$online->status           = 0;
+				$online->title            = $row['title'];
+				$online->save();
+			}
+		}
+		return true;
+	}
+
 	// thay đổi vị trí trong bảng Online hoặc bật / tắt chế độ ưu tiên
 	// up / down: đều chuyển trạng thái sang Online
 	// up: đưa lên đầu hàng Online, down đưa xuống cuối hàng Online

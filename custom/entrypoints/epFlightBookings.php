@@ -704,6 +704,15 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeOnlinePosition') {
 	exit;
 }
 
+// Cập nhật danh sách ec_online_report (thêm user còn thiếu trong ngày)
+if (isset($_POST['for']) && $_POST['for'] == 'updateOnlineReport') {
+	if (!isAllowedUser()) { echo 0; exit; }
+	$onl = new EC_Online_Report;
+	$onl->populateOnlineReport();
+	echo 1;
+	exit;
+}
+
 // Lấy dữ liệu bảng online cho auto-refresh dashboard assignbk
 if (isset($_GET['for']) && $_GET['for'] == 'getOnlineStatus') {
 	require_once('modules/EC_Flight_Bookings/views/view.assignbk.php');

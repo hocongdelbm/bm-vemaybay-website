@@ -148,45 +148,8 @@ function checkExpirationDateVoucher()
 
 function updateOnlineReport()
 {
-	global $db;
-
-	$date_check = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
-
-	// Lấy user Active, không phải Bot, không phải Admin (ngoại trừ Admin có title QuanLy)
-	$sql = '
-		SELECT id, first_name, last_name, title
-		FROM users
-		WHERE deleted = 0
-			AND status = "Active"
-			AND title != "Bot"
-			AND (is_admin = 0 OR title = "QuanLy")
-			AND id NOT IN ("e3bbb3e5-6660-0bf7-8976-54869c4ee609") -- ksnb
-		ORDER BY date_entered
-	';
-
-	$res = $db->query($sql);
-
-	while ($row = $db->fetchByAssoc($res)) {
-		$sql_exist = '
-			SELECT IF(COUNT(id) > 0, 1, 0)
-			FROM ec_online_report
-			WHERE deleted = 0
-				AND assigned_user_id = "' . $row['id'] . '"
-				AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . $date_check . '"
-		';
-
-		$is_exist = $db->getOne($sql_exist);
-
-		if (!$is_exist) {
-			$online = new EC_Online_Report;
-			$online->name             = trim($row['last_name']) . ' ' . trim($row['first_name']);
-			$online->assigned_user_id = $row['id'];
-			$online->status           = 0;
-			$online->title            = $row['title'];
-			$online->save();
-		}
-	}
-	return true;
+	$onl = new EC_Online_Report;
+	return $onl->populateOnlineReport();
 }
 
 

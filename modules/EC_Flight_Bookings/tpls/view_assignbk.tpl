@@ -130,6 +130,18 @@
             $.fn.outerHTML = function() {
                 return $(this).clone().wrap('<div></div>').parent().html();
             }
+
+            $("#btn_update_online").on("click", function() {
+                var $btn = $(this).prop("disabled", true).text("Đang cập nhật...");
+                $.post("index.php?entryPoint=entryPointFlightBookings", { for: "updateOnlineReport" }, function() {
+                    $.get("index.php?entryPoint=entryPointFlightBookings&for=getOnlineStatus", function(html) {
+                        if (html && html.trim().length > 0) {
+                            $("#online_report").html(html);
+                        }
+                        $btn.prop("disabled", false).text("Cập nhật");
+                    });
+                });
+            });
         });
 
         // Auto-refresh bảng online mỗi 30 giây, bỏ qua khi có action đang diễn ra
@@ -243,7 +255,12 @@
     </script>
 {/literal}
 
-<h1 class="title title-online_tbl">Danh sách Online / Offline</h1>
+<div class="d-flex align-items-center gap-3 mb-2">
+    <h1 class="title title-online_tbl mb-0">Danh sách Online / Offline</h1>
+    {if $IS_ALLOWED_USER}
+    <button id="btn_update_online" class="btn btn-outline-primary btn-sm">Cập nhật</button>
+    {/if}
+</div>
 <div id="online_report" class="box-section">
     {$ONLINE_DATA}
 </div>
