@@ -14,9 +14,6 @@ class EC_Payment_VoucherController extends SugarController{
 		case "printpv":
 			$this->action = "printpv";
 			break;
-		case "paymentreport":
-			$this->action = "paymentreport";
-			break;
 		case "index":
 			$this->action = "ListView";
 			break;

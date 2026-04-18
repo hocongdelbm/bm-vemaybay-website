@@ -19,4 +19,4 @@ if (ACLController::checkAccess('EC_Receipt_Voucher', 'view', true)) $module_menu
 
 if (ACLController::checkAccess('EC_Receipt_Voucher', 'edit', true)) $module_menu[] = array("index.php?module=EC_Receipt_Voucher&action=sokyquy&return_module=EC_Receipt_Voucher&return_action=sokyquy", "Sổ theo dõi ký quỹ", "debt_16x16", 'EC_Receipt_Voucher');
 
-if (ACLController::checkAccess('EC_Receipt_Voucher', 'list', true)) $module_menu[] = array("index.php?module=EC_Receipt_Voucher&action=baocaothu&return_module=EC_Receipt_Voucher&return_action=baocaothu", $mod_strings['LNK_BAOCAOTHU'], "icon_Reports_32", 'EC_Receipt_Voucher');
+if (ACLController::checkAccess('EC_Receipt_Voucher', 'list', true)) $module_menu[] = array("index.php?module=EC_Receipt_Voucher&action=baocaothuchi&return_module=EC_Receipt_Voucher&return_action=baocaothuchi", $mod_strings['LNK_BAOCAOTHUCHI'], "icon_Reports_32", 'EC_Receipt_Voucher');

@@ -1,15 +1,15 @@
-<link rel="stylesheet" type="text/css" href="modules/{$MODULE_NAME}/css/view.baocaothu.css?v={$STYLE_VERSION}" />
+<link rel="stylesheet" type="text/css" href="modules/{$MODULE_NAME}/css/view.baocaothuchi.css?v={$STYLE_VERSION}" />
 
 <h1 class="title d-flex align-items-center gap-2">
 	<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
 		<path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/>
 	</svg>
-	Báo cáo thu
+	Báo cáo thu chi
 </h1>
 
 <form name="frmSearchBaoCaoThu" id="frmSearchBaoCaoThu" action="index.php" method="post" class="box-section">
 	<input type="hidden" name="module" value="{$MODULE_NAME}" />
-	<input type="hidden" name="action" value="baocaothu" />
+	<input type="hidden" name="action" value="baocaothuchi" />
 	<input type="hidden" name="location_name" id="location_name" value="{$LOCATION_NAME}" />
 
 	<div id="bct_hidden_selects" style="display:none">
@@ -18,6 +18,8 @@
 		<select name="rv_status[]"    id="sel_rv_status"    multiple>{$RV_STATUS_OPTS}</select>
 		<select name="group_by"       id="sel_group_by">{$GROUP_BY_OPTS}</select>
 		<select name="location_id[]"  id="sel_location_id"  multiple>{$LOCATION_ID}</select>
+		<select name="pv_status[]"    id="sel_pv_status"    multiple>{$PV_STATUS_OPTS}</select>
+		<select name="loai_chi[]"     id="sel_loai_chi"     multiple>{$LOAI_CHI_OPTS}</select>
 	</div>
 
 	<div class="bct-chips-row" id="bct_chips_row">
@@ -137,6 +139,39 @@
 			</div>
 		</div>
 
+		<!-- Divider -->
+		<span class="bct-divider">|</span>
+
+		<!-- Chip: Loại chi -->
+		<div class="bct-chip-wrap" id="chip_loai_chi">
+			<button type="button" class="bct-chip bct-chip--chi" data-selid="sel_loai_chi" data-deflabel="Loại chi" data-filterlabel="Loại chi">
+				<span class="lbl">Loại chi</span><span class="bct-caret">&#9660;</span>
+			</button>
+			<div class="bct-dropdown">
+				<div class="bct-dd-title">Loại chi</div>
+				<div class="bct-dd-opts"></div>
+				<div class="bct-dd-footer">
+					<button type="button" class="w-50 btn btn-sm btn-light bct-btn-cancel">Đóng</button>
+					<button type="button" class="flex-fill btn btn-sm btn-primary bct-btn-xem">Xem kết quả</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Chip: Trạng thái chi -->
+		<div class="bct-chip-wrap" id="chip_pv_status">
+			<button type="button" class="bct-chip bct-chip--chi" data-selid="sel_pv_status" data-deflabel="Trạng thái chi" data-filterlabel="Trạng thái chi">
+				<span class="lbl">Trạng thái chi</span><span class="bct-caret">&#9660;</span>
+			</button>
+			<div class="bct-dropdown">
+				<div class="bct-dd-title">Trạng thái chi</div>
+				<div class="bct-dd-opts"></div>
+				<div class="bct-dd-footer">
+					<button type="button" class="w-50 btn btn-sm btn-light bct-btn-cancel">Đóng</button>
+					<button type="button" class="flex-fill btn btn-sm btn-primary bct-btn-xem">Xem kết quả</button>
+				</div>
+			</div>
+		</div>
+
 	</div><!-- end bct-chips-row -->
 
 	<!-- Active filter tags -->
@@ -156,4 +191,4 @@
 	{$REPORT_HTML}
 {/if}
 
-<script type="text/javascript" src="modules/{$MODULE_NAME}/js/view.baocaothu.js?v={$STYLE_VERSION}"></script>
+<script type="text/javascript" src="modules/{$MODULE_NAME}/js/view.baocaothuchi.js?v={$STYLE_VERSION}"></script>
