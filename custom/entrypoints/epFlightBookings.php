@@ -706,7 +706,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeOnlinePosition') {
 
 // Cập nhật danh sách ec_online_report (thêm user còn thiếu trong ngày)
 if (isset($_POST['for']) && $_POST['for'] == 'updateOnlineReport') {
-	if (!isAllowedUser()) { echo 0; exit; }
+	if (!is_admin($current_user)) { echo 0; exit; }
+
 	$onl = new EC_Online_Report;
 	$onl->populateOnlineReport();
 	echo 1;

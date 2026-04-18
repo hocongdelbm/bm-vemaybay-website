@@ -310,7 +310,7 @@ class Viewsummary extends SugarView
           ];
 
           $sql_search = "";
-          if (!isAllowedUser()) {
+          if (!is_admin($current_user)) {
                $sql_search .= " AND assigned_user_id='" . $current_user->id . "' ";
           }
 
@@ -376,7 +376,7 @@ class Viewsummary extends SugarView
           $ret = [];
 
           $sql_search = "";
-          if (!isAllowedUser()) {
+          if (!is_admin($current_user)) {
                $sql_search .= " AND c.assigned_user_id='" . $current_user->id . "' ";
           }
 
@@ -417,7 +417,7 @@ class Viewsummary extends SugarView
           global $db, $current_user;
 
           $sql_search = "";
-          if (!isAllowedUser()) {
+          if (!is_admin($current_user)) {
                $sql_search .= " AND assigned_user_id='" . $current_user->id . "' AND direction NOT IN ('missed')";
           }
 

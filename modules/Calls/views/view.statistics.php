@@ -78,7 +78,7 @@ class Viewstatistics extends SugarView
           $smartyobj->assign('FROM_DATE', $from_date);
           $smartyobj->assign('TO_DATE', $to_date);
 
-          if (isAllowedUser()) {
+          if (is_admin($current_user)) {
                $smartyobj->assign('USER_NAME', '');
           } else {
                $full_name = $current_user->last_name . ' ' . $current_user->first_name;
@@ -111,8 +111,8 @@ class Viewstatistics extends SugarView
           $this->statisticsCallSources($from_date, $to_date);
 
           // ROLE
-          $smartyobj->assign('IS_ADMIN', (isAllowedUser()));
-          $smartyobj->assign('OWNER', (!isAllowedUser() ? 1 : 0));
+          $smartyobj->assign('IS_ADMIN', (is_admin($current_user)));
+          $smartyobj->assign('OWNER', (!is_admin($current_user) ? 1 : 0));
      }
 
      function statisticsDirection($smartyobj, $from_date, $to_date)
@@ -120,7 +120,7 @@ class Viewstatistics extends SugarView
           global $db, $current_user;
 
           $sql_search = "";
-          if (!isAllowedUser()) {
+          if (!is_admin($current_user)) {
                $sql_search .= " AND assigned_user_id='" . $current_user->id . "' ";
           }
 
@@ -415,7 +415,7 @@ class Viewstatistics extends SugarView
 
           foreach ($arr_user_calls as $user_id => $user) {
                if (count($user) > 2) {
-                    if ($current_user->id == $user_id || isAllowedUser()) {
+                    if ($current_user->id == $user_id || is_admin($current_user)) {
                          // ALL OF CALL
                          foreach ($user as $key => $dir) {
                               if ($key != 'name' && $key != 'agent') {
@@ -835,7 +835,7 @@ class Viewstatistics extends SugarView
           global $db, $current_user;
 
           $sql_search = "";
-          if (!isAllowedUser()) {
+          if (!is_admin($current_user)) {
                $sql_search .= " AND assigned_user_id='" . $current_user->id . "' ";
           }
 
@@ -895,7 +895,7 @@ class Viewstatistics extends SugarView
           global $db, $current_user;
 
           $sql_search = "";
-          if (!isAllowedUser()) {
+          if (!is_admin($current_user)) {
                $sql_search .= " AND assigned_user_id='" . $current_user->id . "' ";
           }
 

@@ -5,13 +5,13 @@ class Viewbkagent extends SugarView
 
      function display()
      {
-          // global $current_user;
+          global $current_user;
           // if ($current_user->user_name != 'hungnh') {
           //      echo '<p class="alert alert-danger">Hệ thống đang bảo trì. Vui lòng quay lại sau.</p>';
           //      exit;
           // }
 
-          if (isAllowedUser()) {
+          if (is_admin($current_user)) {
                $smartyCont = new Sugar_Smarty();
                $this->populateContent($smartyCont);
                $smartyCont->display('modules/EC_Flight_Bookings/tpls/view_bkagent.tpl');

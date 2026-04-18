@@ -12,7 +12,8 @@ class Viewassignbk extends SugarView
 
 	function populateContent($smartyobj)
 	{
-		$smartyobj->assign('IS_ALLOWED_USER', isAllowedUser());
+		global $current_user;
+		$smartyobj->assign('IS_ALLOWED_USER', is_admin($current_user));
 		$smartyobj->assign('ONLINE_DATA', $this->getUserSttInf());
 		$smartyobj->assign('LIST_USER', $this->getListUsers());
 	}
@@ -59,7 +60,7 @@ class Viewassignbk extends SugarView
 							<th class="hide-mobile" width="15%">Check-in</th>
 							<th class="hide-mobile text-nowrap" width="10%">Nhận cuộc gọi</th>';
 
-		if (isAllowedUser($current_user)) {
+		if (is_admin($current_user)) {
 			$html .= '<th></th>';
 		}
 
@@ -100,7 +101,7 @@ class Viewassignbk extends SugarView
 						<td class="hide-mobile text-center start_online">' . $start_online . '</td>
 						<td class="hide-mobile text-center fw-semibold call_inbound">' . ($arr_inbound[$row['assigned_user_id']] ?? '') . '</td>';
 
-				if (isAllowedUser($current_user)) {
+				if (is_admin($current_user)) {
 					// các nút thao tác
 					$cus_btn = '
 							<div class="d-flex align-items-center justify-content-center flex-wrap gap-1">

@@ -162,7 +162,7 @@
 </div>
 
 <ul class="currentsales-note alert alert-info text-dark fw-semibold">
-	<li>- Thông kê các Booking đã <span class="fw-semibold" style="color:#0a58ca;">Hoàn tất</span></li>
+	<li>- Thống kê các Booking đã <span class="fw-semibold" style="color:#0a58ca;">Hoàn tất</span></li>
 	<li>- Doanh số lấy theo <span class="fw-semibold text-danger">ngày xuất vé</span>.</li>
 	<li>- Doanh số & Phiếu thu: Cột "tổng doanh số" bên BC <span class="fw-semibold text-danger">doanh thu trong ngày</span></li>
 	{if $CAN_EDIT_AD_COST}

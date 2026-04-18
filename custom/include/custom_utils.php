@@ -1013,7 +1013,7 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
 }
 
 // Admin hệ thống và quản lý
-function isAllowedUser()
+function isQLUser()
 {
     global $current_user, $db;
 
