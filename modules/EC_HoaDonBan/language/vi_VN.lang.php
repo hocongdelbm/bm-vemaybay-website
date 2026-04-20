@@ -79,4 +79,8 @@ $mod_strings = array(
   'LBL_LISTVIEW_SOHOADON' => 'Số HĐ',
   'LBL_LISTVIEW_NGAYHOADON' => 'Ngày HĐ',
   'LBL_LISTVIEW_KYHIEUHD' => 'Ký hiệu',
-);
+
+  'LBL_RECEIPT_VOUCHERS_PANEL' => 'Phiếu thu liên quan',
+
+  
+  );

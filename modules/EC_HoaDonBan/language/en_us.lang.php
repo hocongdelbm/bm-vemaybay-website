@@ -78,4 +78,9 @@ $mod_strings = array(
   'LBL_LISTVIEW_SOHOADON' => 'Number',
   'LBL_LISTVIEW_NGAYHOADON' => 'Date',
   'LBL_LISTVIEW_KYHIEUHD' => 'Serial',
+
+  'LBL_RECEIPT_VOUCHERS_PANEL' => 'Related Receipt Vouchers',
+  'LBL_RECEIPT_VOUCHERS' => 'Receipt Voucher',
+  // 'LBL_RECEIPT_VOUCHER_PANEL' => 'Related Receipt Vouchers',
+  // 'LBL_RECEIPT_VOUCHER' => 'Receipt Voucher',
 );
