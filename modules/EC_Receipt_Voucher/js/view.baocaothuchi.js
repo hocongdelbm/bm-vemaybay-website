@@ -258,6 +258,12 @@ $(document).ready(function () {
         var locTxt = $('#sel_location_id option:selected').first().text();
         $('#location_name').val(locTxt && locTxt.indexOf('--') === -1 ? locTxt : '');
         $form.submit();
+
+        if (excel) {
+            setTimeout(function () {
+                $('.container-waiting').hide();
+            }, 1500);
+        }
     }
 
     updateDateChip();
