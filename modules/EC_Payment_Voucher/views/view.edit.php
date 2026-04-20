@@ -22,9 +22,6 @@ class EC_Payment_VoucherViewEdit extends ViewEdit {
 		global $app_list_strings, $timedate, $current_user, $locale;
 		$date_format = $timedate->get_date_format();
 		
-		// Get department id
-		$department_id = $current_user->department_id;
-		
 		// NGAY HACH TOAN (Giờ lưu dưới DB là giờ VietNam)
 		$this->bean->ngayhachtoan = isset($this->bean->ngayhachtoan) && !empty($this->bean->ngayhachtoan)
 			? date("$date_format H:i", strtotime($this->bean->ngayhachtoan) - 7*3600)
@@ -51,7 +48,7 @@ class EC_Payment_VoucherViewEdit extends ViewEdit {
 		
 		$hinhthucchi = '<div class="d-flex align-items-center gap-1"><select class="box-select" name="hinhthucchi" id="hinhthucchi" title="" tabindex="103">'.get_select_options_with_id($app_list_strings['receipt_type_list'], isset($_POST['hinhthucchi']) ? $_POST['hinhthucchi'] : $this->bean->hinhthucchi).'</select>';
 		$hinhthucchi .= '<select class="box-select" style="'.$display.'" id="tknganhang_id" name="tknganhang_id" tabindex="103"><option value=""></option>'.myGetBankAccountList($tknganhang_id,$tknganhang_group).'</select>';
-		$hinhthucchi .= '<select class="box-select" style="'.$display2.'" id="com_location_id" name="com_location_id" tabindex="103">'.myGetLocationListByDepID($department_id, $this->bean->com_location_id).'</select></div>';
+		$hinhthucchi .= '<select class="box-select" style="'.$display2.'" id="com_location_id" name="com_location_id" tabindex="103">'.myGetLocationListByDepID($this->bean->com_location_id).'</select></div>';
 		
 		$this->ss->assign('HINHTHUCCHI', $hinhthucchi . $group_decimal);
 

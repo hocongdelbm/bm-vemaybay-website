@@ -190,7 +190,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			}
 
 			$action = "";
-			if (isAllowedUser()) {
+			if (is_admin($current_user)) {
 				$action = '<div class="action action-remove" data-toggle="tooltip" data-placement="top" title="Xóa diễn giải" data-id-note="' . $row['detail_id'] . '" ' . $data_more . ' booking-id="' . $this->bean->id . '">
 					<svg width="18px" height="18px" viewBox="0 0 24 24" stroke-width="1.76" fill="none" xmlns="http://www.w3.org/2000/svg" color="#a3a4a6">
 						<path d="M20 9l-1.995 11.346A2 2 0 0116.035 22h-8.07a2 2 0 01-1.97-1.654L4 9M21 6h-5.625M3 6h5.625m0 0V4a2 2 0 012-2h2.75a2 2 0 012 2v2m-6.75 0h6.75" stroke="#a3a4a6" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -284,7 +284,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUSTOM_TICKET_TYPE', $ticket_type);
 
 		// Nguồn khách hàng
-		$customer_source = '<div class="d-flex align-items-center flex-nowrap gap-3">';
+		$customer_source = '<div class="d-flex align-items-center flex-wrap gap-3">';
 		foreach ($app_list_strings['booking_customer_source_list'] as $value => $label) {
 			$checked = $value == $this->bean->customer_source ? 'checked' : '';
 			$customer_source .= '<div class="item small">

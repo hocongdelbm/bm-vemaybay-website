@@ -295,7 +295,7 @@ class EC_Flight_BookingsLogicHook
 					$focus->assigned_user_id = $onl->assignBooking($focus->id, $focus->total_qty);
 
 					// User admin, ksnb
-					if ($focus->assigned_user_id != '1' || $focus->assigned_user_id != 'e3bbb3e5-6660-0bf7-8976-54869c4ee609') {
+					if ($focus->assigned_user_id != '1' && $focus->assigned_user_id != 'e3bbb3e5-6660-0bf7-8976-54869c4ee609') {
 						// Cập nhật lại người giao cho
 						$sql = "UPDATE ec_flight_bookings
 							SET assigned_user_id = '$focus->assigned_user_id'

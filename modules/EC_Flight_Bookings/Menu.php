@@ -30,7 +30,7 @@ if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) $module_menu
 // Doanh số booker
 if (ACLController::checkAccess('EC_Flight_Bookings', 'view', true)) $module_menu[]	= array("index.php?module=EC_Flight_Bookings&action=bksalereport&return_module=EC_Flight_Bookings&return_action=bksalereport", $mod_strings['LNK_SALE_REPORT'],"growth", 'EC_Flight_Bookings');
 
-if(isAllowedUser()) {
+if(is_admin($current_user)) {
 	if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) $module_menu[] 	= array("index.php?module=EC_Flight_Bookings&action=bkagent&return_module=EC_Flight_Bookings&return_action=bkagent", "Thống kê vé", "bkagent", 'EC_Flight_Bookings');
 }
 

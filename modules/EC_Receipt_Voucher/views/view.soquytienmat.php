@@ -36,12 +36,8 @@ class Viewsoquytienmat extends SugarView
 		$department_info = myGetDepartmentInfo($department_id);
 		$smartyobj->assign('POST_FDATE', $post_fdate);
 		$smartyobj->assign('POST_TDATE', $post_tdate);
-
-		if ($current_user->id == '7c20e013-b0d6-e1f3-b113-53deed58f0a2') {
-			$smartyobj->assign('LOCATION_ID', get_select_options_with_id(array('bfd02e6d-ba30-d724-9937-56f4ed008b4b' => 'VP Giải Phóng')));
-		} else {
-			$smartyobj->assign('LOCATION_ID', myGetLocationListByDepID($department_id, $location_id));
-		}
+		$smartyobj->assign('LOCATION_ID', myGetLocationListByDepID($location_id));
+		
 		$location_name = '';
 		if (isset($_POST['location_id']) && !empty($_POST['location_id'])) {
 			$location_name = $_POST['location_name'];

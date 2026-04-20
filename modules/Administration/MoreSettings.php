@@ -23,13 +23,6 @@ $errors         = array();
 $focus          = BeanFactory::newBean('Administration');
 
 if (isset($_REQUEST['saveConfig']) && !empty($_REQUEST['saveConfig'])) {
-    // Misa
-    $configurator->config['misa']['app_id'] = trim($_POST['misa_app_id']);
-    $configurator->config['misa']['branch_id'] = trim($_POST['misa_branch_id']);
-    $configurator->config['misa']['base_url'] = trim($_POST['misa_base_url']);
-    $configurator->config['misa']['company_code'] = trim($_POST['misa_company_code']);
-    $configurator->config['misa']['access_code'] = trim($_POST['misa_access_code']);
-
     // PBX
     $configurator->config['webrtc']['ip'] = trim($_POST['pbx_ip']);
     $configurator->config['webrtc']['ip_old'] = trim($_POST['pbx_ip_old']);

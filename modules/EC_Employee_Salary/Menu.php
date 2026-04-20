@@ -14,7 +14,8 @@ if (ACLController::checkAccess('EC_Employee_Salary', 'view', true)) {
     $module_menu[] = array("index.php?module=EC_Employee_Salary&action=usedleaveday&return_module=EC_Employee_Salary&return_action=DetailView", "Số phép đã sử dụng", "EC_Employee_Salary", 'EC_Employee_Salary');
    
     $module_menu[] = array("index.php?module=EC_Employee_Salary&action=advance&return_module=EC_Employee_Salary&return_action=DetailView", "Báo cáo hoàn ứng", "EC_Employee_Salary", 'EC_Employee_Salary');
-    if (isAllowedUser()) {
+  
+    if (is_admin($current_user)) {
         $module_menu[] = array("index.php?module=EC_Employee_Salary&action=extramoney&return_module=EC_Employee_Salary&return_action=DetailView", "Bảng thu nhập", "EC_Employee_Salary", 'EC_Employee_Salary');
 
         if (is_admin($current_user) && $current_user->user_name == 'hungnh') {

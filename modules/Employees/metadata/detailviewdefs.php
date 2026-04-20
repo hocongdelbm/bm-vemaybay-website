@@ -161,14 +161,6 @@ $viewdefs['Employees']['DetailView'] = array(
                     'customCode' => '<span class="allow-number-only">{$fields.other_allowance2.value}</span>'
                 ),
             ),
-            array(
-                array(
-                    'name' => 'init_exp_mark',
-                    'label' => 'LBL_INIT_EXP_MARK',
-                    'customCode' => '<span class="allow-number-only">{$fields.init_exp_mark.value}</span>'
-                ),
-                ''
-            ),
         ),
         'LBL_WORK_HISTORY' => array(
             0 => array(

@@ -1,0 +1,258 @@
+.bct-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    padding-bottom: 8px;
+}
+
+.bct-chip-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.bct-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border: 1.5px solid #d0d5dd;
+    border-radius: 20px;
+    background: #fff;
+    font-size: 13.5px;
+    cursor: pointer;
+    color: #333;
+    white-space: nowrap;
+    transition: border-color .15s;
+    user-select: none;
+    line-height: 1.3;
+}
+
+.bct-chip:hover {
+    border-color: #888;
+}
+
+.bct-chip.active {
+    border-color: #2563eb;
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.bct-chip--chi.active {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: #fff5f5;
+}
+
+.bct-divider {
+    color: #d1d5db;
+    font-size: 20px;
+    line-height: 1;
+    align-self: center;
+    user-select: none;
+}
+
+.bct-chip .bct-caret {
+    font-size: 9px;
+    opacity: .55;
+    transition: transform .18s;
+    display: inline-block;
+    margin-left: 2px;
+}
+
+.bct-chip-wrap.open>.bct-chip .bct-caret {
+    transform: rotate(180deg);
+}
+
+.bct-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 350px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, .14);
+    z-index: 9999;
+    padding: 16px 16px 12px;
+}
+
+.bct-dropdown.open {
+    display: block;
+}
+
+.bct-dd-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 10px;
+}
+
+.bct-dd-opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 14px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.bct-opt {
+    padding: 5px 14px;
+    border: 1.5px solid #d0d5dd;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    background: #f7f8fa;
+    color: #444;
+    transition: all .1s;
+    white-space: nowrap;
+}
+
+.bct-opt:hover {
+    border-color: #999;
+    background: #eee;
+}
+
+.bct-opt.sel {
+    border-color: #3b82f6;
+    background: #fff;
+    color: #1a56db;
+    font-weight: 600;
+}
+
+.bct-dd-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 10px;
+}
+
+.bct-term-row {
+    margin-bottom: 12px;
+}
+
+.bct-term-row label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 4px;
+}
+
+.bct-term-row select {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.bct-date-pair {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.bct-dp {
+    flex: 1;
+    min-width: 120px;
+}
+
+.bct-dp label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 4px;
+}
+
+.bct-active-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 0 10px;
+}
+
+.bct-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px 3px 12px;
+    border-radius: 16px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    font-size: 12.5px;
+    color: #1d4ed8;
+}
+
+.bct-tag-rm {
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    opacity: .65;
+    margin-left: 2px;
+}
+
+.bct-tag-rm:hover {
+    opacity: 1;
+}
+
+.bct-clear-all {
+    font-size: 12.5px;
+    color: #6b7280;
+    cursor: pointer;
+    text-decoration: underline;
+    white-space: nowrap;
+}
+
+.bct-clear-all:hover {
+    color: #dc2626;
+}
+
+.bct-action-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 2px 0 14px;
+}
+
+.bct-btn-view {
+    padding: 8px 24px;
+    border: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.bct-btn-view:hover {
+    background: #1d4ed8;
+}
+
+.bct-btn-excel {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 6px;
+    background: #16a34a;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.bct-btn-excel:hover {
+    background: #15803d;
+}

@@ -32,12 +32,8 @@ class EC_Online_Report extends Basic
 	public $booking_id;
 	public $last_online;
 	public $start_assign;
-	public $round;
 	public $total_qty;
-	public $ranking;
 	public $title;
-	public $kpi;
-
 
 	public function bean_implements($interface)
 	{
@@ -50,9 +46,9 @@ class EC_Online_Report extends Basic
 	}
 
 	// Quy trình giao booking 
-	function assignBooking($booking_id, $total_qty, $is_test = 0)
+	public function assignBooking($booking_id, $total_qty, $is_test = 0)
 	{
-		global $db, $current_user;
+		global $db;
 
 		$arr_id_admin = array(
 			'1', //ducpham
@@ -63,136 +59,162 @@ class EC_Online_Report extends Basic
 			'e4a1676e-536d-b5d2-75c2-6502656a118b', //cuongnv
 		);
 		$time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
+		$ksnb_user_id = 'e3bbb3e5-6660-0bf7-8976-54869c4ee609';
 
-		// kt số người online
-		$sql_onl_cnt = '
-			SELECT COUNT(id)
+		// Lấy người online đầu hàng
+		$sql_assign = '
+			SELECT id, assigned_user_id
 			FROM ec_online_report
 			WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
 				AND status = 1
 				AND deleted = 0
+			ORDER BY last_online
+			LIMIT 1
 		';
+		$res_assign = $this->db->query($sql_assign);
+		$row_assign = $this->db->fetchByAssoc($res_assign);
 
-		$onl_cnt = $this->db->getOne($sql_onl_cnt);
-
-		if ($onl_cnt > 0) {
-			// giao tuần tự
-			$sql_assign = '
-				SELECT id, assigned_user_id, status
-				FROM ec_online_report
-				WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '" 
-					AND status = 1 
-					AND deleted = 0
-				ORDER BY last_online
-				LIMIT 1
-			';
-			// date_modified
-
-			$res_assign = $this->db->query($sql_assign);
-			$row_assign = $this->db->fetchByAssoc($res_assign);
+		if ($row_assign) {
 			$assigned_user_id = $row_assign['assigned_user_id'];
 
-			// chuyển trạng thái
 			if (!$is_test) {
 				$online = new EC_Online_Report;
 				$online->retrieve($row_assign['id']);
-				$online->status 		= 2;
-				$online->last_online 	= date('Y-m-d H:i:s');
-				$online->booking_id 	= $booking_id;
-				$online->start_assign 	= date('Y-m-d H:i:00');
-				$online->round 			= (int)$online->round + 1;
-				$online->total_qty 		= $total_qty;
+				$online->status      = 2;
+				$online->last_online = date('Y-m-d H:i:s');
+				$online->booking_id  = $booking_id;
+				$online->start_assign = date('Y-m-d H:i:00');
+				$online->total_qty   = $total_qty;
 				$online->save();
 
-				// Ghi lại log thời gian lúc chuyến trạng thái 
 				if (!in_array($assigned_user_id, $arr_id_admin)) {
 					content_log($assigned_user_id, $time_current, '', 1);
 				}
 			}
 		} else {
-			// kt sl người busy 
-			$sql_busy_cnt = '
-				SELECT COUNT(id)
+			// Không có ai online, thử lấy người busy
+			$sql_assign_busy = '
+				SELECT id, assigned_user_id
 				FROM ec_online_report
 				WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
 					AND status = 2
 					AND deleted = 0
+				ORDER BY last_online
+				LIMIT 1
 			';
+			$res_assign_busy = $this->db->query($sql_assign_busy);
+			$row_assign      = $this->db->fetchByAssoc($res_assign_busy);
 
-			$busy_cnt = $this->db->getOne($sql_busy_cnt);
+			if ($row_assign) {
+				$assigned_user_id = $row_assign['assigned_user_id'];
 
-			if ($busy_cnt > 0) {
-				$sql_assign = '
-					SELECT id, assigned_user_id, status
-					FROM ec_online_report
-					WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
-						AND status = 2
-						AND deleted = 0 
-					ORDER BY last_online
-					LIMIT 1
-				';
-				//date_modified
-
-				$res_assign 		= $this->db->query($sql_assign);
-				$row_assign 		= $this->db->fetchByAssoc($res_assign);
-				$assigned_user_id 	= $row_assign['assigned_user_id'];
-
-				// chuyển trạng thái
 				if (!$is_test) {
 					$online = new EC_Online_Report;
 					$online->retrieve($row_assign['id']);
-					$online->booking_id 	= $booking_id;
-					$online->start_assign 	= date('Y-m-d H:i:00');
-					$online->last_online 	= date('Y-m-d H:i:s');
-					$online->round 		= (int)$online->round + 1;
-					$online->total_qty 		= $total_qty;
+					$online->booking_id   = $booking_id;
+					$online->start_assign = date('Y-m-d H:i:00');
+					$online->last_online  = date('Y-m-d H:i:s');
+					$online->total_qty    = $total_qty;
 					$online->save();
 
-					// Ghi lại log thời gian lúc chuyến trạng thái 
 					if (!in_array($assigned_user_id, $arr_id_admin)) {
 						content_log($assigned_user_id, $time_current, '', 1);
 					}
 				}
 			} else {
-				// user NB kiemsoat
-				$assigned_user_id = 'e3bbb3e5-6660-0bf7-8976-54869c4ee609';
-				// $assigned_user_id = $current_user->id;
+				// Fallback: user ksnb
+				$assigned_user_id = $ksnb_user_id;
 			}
 		}
 
 		if ($assigned_user_id == '') {
-			$assigned_user_id = 'e3bbb3e5-6660-0bf7-8976-54869c4ee609';
-			// $assigned_user_id = $current_user->id;
+			// Fallback: user ksnb
+			$assigned_user_id = $ksnb_user_id;
 		}
 
 		// CẬP NHẬT ASSIGN BOOKING
 		$sql_assign_booking = '
 			UPDATE ec_flight_bookings
 			SET assigned_user_id = "' . $assigned_user_id . '"
-			WHERE id = "' . $booking_id . '"
+			WHERE id = "' . $booking_id . '" AND deleted = 0
 		';
 		$db->query($sql_assign_booking);
 
 		return $assigned_user_id;
 	}
 
+	// Tạo record ec_online_report cho hôm nay với những user chưa có
+	public function populateOnlineReport()
+	{
+		$date_check = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
+
+		$sql = '
+			SELECT id, first_name, last_name, title
+			FROM users
+			WHERE deleted = 0
+				AND status = "Active"
+				AND td_sip IS NOT NULL 
+				AND td_sip != ""
+				AND title != "Bot"
+				AND (is_admin = 0 OR title = "QuanLy")
+				AND id NOT IN ("e3bbb3e5-6660-0bf7-8976-54869c4ee609") 
+			ORDER BY date_entered
+		';
+
+		$res = $this->db->query($sql);
+
+		while ($row = $this->db->fetchByAssoc($res)) {
+			$sql_exist = '
+				SELECT IF(COUNT(id) > 0, 1, 0)
+				FROM ec_online_report
+				WHERE deleted = 0
+					AND assigned_user_id = "' . $row['id'] . '"
+					AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . $date_check . '"
+			';
+
+			if (!$this->db->getOne($sql_exist)) {
+				$online = new EC_Online_Report;
+				$online->name             = trim($row['last_name']) . ' ' . trim($row['first_name']);
+				$online->assigned_user_id = $row['id'];
+				$online->status           = 0;
+				$online->title            = $row['title'];
+				$online->save();
+			}
+		}
+		return true;
+	}
+
 	// thay đổi vị trí trong bảng Online hoặc bật / tắt chế độ ưu tiên
 	// up / down: đều chuyển trạng thái sang Online
 	// up: đưa lên đầu hàng Online, down đưa xuống cuối hàng Online
 	// sl người được ưu tiên mặc định tối đa 3 người
-	function changeOnlinePosition($onl_id, $change_type)
+	public function changeOnlinePosition($onl_id, $change_type)
 	{
+		$onl_id     = preg_replace('/[^a-f0-9\-]/i', '', (string)$onl_id);
+		$change_type = in_array($change_type, ['up', 'down', 'off', 'busy', 'delete']) ? $change_type : '';
+		if (empty($onl_id) || empty($change_type)) return '';
+
+		if ($change_type == 'delete') {
+			$this->db->query('UPDATE ec_online_report SET deleted = 1 WHERE id = "' . $onl_id . '"');
+			return '';
+		}
+
 		// Offline
 		if ($change_type == 'off') {
 			$onl = new EC_Online_Report;
 			$onl->retrieve($onl_id);
 			$onl->status = 0;
-			// Update time last_online 
 			$onl->last_online 	= date('Y-m-d H:i:s');
 			$onl->booking_id = '';
 			$onl->start_assign = '';
 			$onl->save();
-		} else {
+		} else if ($change_type == 'busy') {
+			$onl = new EC_Online_Report;
+			$onl->retrieve($onl_id);
+			$onl->status = 2;
+			$onl->last_online = date('Y-m-d H:i:s');
+			$onl->save();
+		} else if ($change_type == 'up' || $change_type == 'down') {
 			// kt còn người Online
 			$sql_onl_cnt = '
 				SELECT COUNT(id)
@@ -202,51 +224,34 @@ class EC_Online_Report extends Basic
 					AND deleted = 0
 			';
 			$onl_cnt = $this->db->getOne($sql_onl_cnt);
+
 			if ($change_type == 'up' && $onl_cnt > 0) {
-				// lấy thông tin người đang xếp đầu hàng Online
-				// $sql1 = '
-				// 	SELECT id, date_modified, round
-				// 	FROM ec_online_report
-				// 	WHERE deleted = 0 AND status = 1
-				// 	AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
-				// 	ORDER BY date_modified 
-				// 	LIMIT 1
-				// ';
+				// Đưa lên đầu hàng Online
 				$sql1 = '
-					SELECT id, last_online, round
+					SELECT id, last_online
 					FROM ec_online_report
 					WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
 						AND status = 1
 						AND deleted = 0
-					ORDER BY last_online 
+					ORDER BY last_online
 					LIMIT 1
 				';
 				$res1 = $this->db->query($sql1);
 				$row1 = $this->db->fetchByAssoc($res1);
 
-				// $sql2 = '
-				// 	UPDATE ec_online_report
-				// 	SET status = 1
-				// 		, date_modified = "' . date('Y-m-d H:i:s', strtotime('-1 minute', strtotime($row1['date_modified']))) . '"
-				// 		, round = ' . $row1['round'] . '
-				// 	WHERE id = "' . $onl_id . '"
-				// ';
 				$sql2 = '
 					UPDATE ec_online_report
 					SET status = 1
 						, last_online = "' . date('Y-m-d H:i:s', strtotime('-1 minute', strtotime($row1['last_online']))) . '"
-						, round = ' . $row1['round'] . '
-					WHERE id = "' . $onl_id . '"
+					WHERE id = "' . $onl_id . '" AND deleted = 0
 				';
 				$this->db->query($sql2);
-			} else if ($change_type == 'down' || $onl_cnt == 0) {
-				// chỉ cần đổi trạng thái qua Online
+			} else if ($change_type == 'down') {
+				// Đưa xuống cuối hàng Online
 				$onl = new EC_Online_Report;
 				$onl->retrieve($onl_id);
 				$onl->status = 1;
-				// Update time last_online 
-				$onl->last_online 	= date('Y-m-d H:i:s');
-				$onl->round = $this->getMaxRound();
+				$onl->last_online = date('Y-m-d H:i:s');
 				$onl->booking_id = '';
 				$onl->start_assign = '';
 				$onl->save();
@@ -254,17 +259,5 @@ class EC_Online_Report extends Basic
 		}
 
 		return '';
-	}
-
-	// lấy thông tin round cao nhất hiện có
-	function getMaxRound()
-	{
-		$sql = '
-			SELECT IFNULL(MAX(round), 1)
-			FROM ec_online_report
-			WHERE deleted = 0
-			AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-		';
-		return (int)$this->db->getOne($sql);
 	}
 }
