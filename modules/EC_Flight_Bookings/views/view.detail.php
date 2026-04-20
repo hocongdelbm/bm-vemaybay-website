@@ -1037,16 +1037,18 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 								</div>
 							</div>';
 
-			// Bổ sung thêm Chờ TT
-			$status_button .= '</form>
-				<form action="index.php" method="post" name="frmPaymentPending" id="frmPaymentPending">
-					<input type="hidden" name="module" value="EC_Flight_Bookings" />
-					<input type="hidden" name="action" value="Save" />
-					<input type="hidden" name="record" value="' . $this->bean->id . '" />
-					<input type="hidden" name="booking_status" value="2" />
-					<input type="hidden" name="assigned_user_id" value="' . $current_user->id . '" />
-					<input type="submit" name="btnPaymentPending" class="btn btn-warning button-action" id="btnPaymentPending" value="' . $app_list_strings['booking_status_list']['2'] . '" title="' . $app_list_strings['booking_status_list']['2'] . '" />
-				</form>';
+			// Bổ sung thêm Chờ TT khi tình trạng là mới tạo
+			if ((int)$this->bean->booking_status != 8) {
+				$status_button .= '</form>
+					<form action="index.php" method="post" name="frmPaymentPending" id="frmPaymentPending">
+						<input type="hidden" name="module" value="EC_Flight_Bookings" />
+						<input type="hidden" name="action" value="Save" />
+						<input type="hidden" name="record" value="' . $this->bean->id . '" />
+						<input type="hidden" name="booking_status" value="2" />
+						<input type="hidden" name="assigned_user_id" value="' . $current_user->id . '" />
+						<input type="submit" name="btnPaymentPending" class="btn btn-warning button-action" id="btnPaymentPending" value="' . $app_list_strings['booking_status_list']['2'] . '" title="' . $app_list_strings['booking_status_list']['2'] . '" />
+					</form>';
+			}
 		}
 		// Payment pending button
 		else if ($this->bean->booking_status == '6' && $this->editing_rights) {
