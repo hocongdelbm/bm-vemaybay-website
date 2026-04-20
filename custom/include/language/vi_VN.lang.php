@@ -1817,20 +1817,16 @@ $GLOBALS['app_list_strings']['loai_thu_list'] = [
   10 => 'Laptop, ĐT, phụ kiện',
   11 => 'Thuê xe',
   12 => 'Thu tiền máy ảnh',
-  13 => 'Thu tiền máy in',
   14 => 'Thu tiền khách sạn',
   15 => 'Panda Po',
   16 => 'Perspirex',
   17 => 'Vay ngân hàng',
-  // 18 => 'Thu tiền cafe Trống Đồng',
-  // 19 => 'Thu tiền bánh trung thu',
   20 => 'Bất động sản',
   21 => 'Thực phẩm',
   22 => 'Quỹ dự phòng',
   23 => 'Tiền phòng Bình Thới',
   24 => 'Tiền phòng NVC',
   25 => 'Tiền chung cư',
-  26 => 'Thu phí ghế',
 ];
 
 // Input invoice

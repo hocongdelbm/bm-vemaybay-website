@@ -91,7 +91,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			});
 		</script>';
 
-		if (!isAllowedUser()) {
+		if (!is_admin($current_user)) {
 			$js .= '<script>
 				$(document).ready(function() {
 					$("#assigned_user_name_label").css("visibility", "hidden");

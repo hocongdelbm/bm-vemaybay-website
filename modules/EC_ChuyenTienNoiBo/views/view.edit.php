@@ -22,9 +22,6 @@ class EC_ChuyenTienNoiBoViewEdit extends ViewEdit
 		global $app_strings, $app_list_strings, $mod_strings, $locale, $timedate, $current_user;
 		$date_format = $timedate->get_date_format();
 
-		// Get department id
-		$department_id = $current_user->department_id;
-
 		// Ngay hach toan
 		// $this->bean->ngayhachtoan = (isset($this->bean->ngayhachtoan) && !empty($this->bean->ngayhachtoan)) ? date($date_format.' H:i', strtotime($this->bean->ngayhachtoan)+7*3600) : date($date_format.' H:i');
 		$this->bean->ngayhachtoan = isset($this->bean->ngayhachtoan) && !empty($this->bean->ngayhachtoan) ? date($date_format . ' H:i', strtotime($this->bean->ngayhachtoan) - 7 * 3600) : date($date_format . ' H:i', strtotime(date('d-m-Y H:i')) + 7 * 3600);
@@ -36,10 +33,10 @@ class EC_ChuyenTienNoiBoViewEdit extends ViewEdit
 				  <input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />
 			      <input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />';
 
-		$tudiadiem = '<select id="tudiadiem_id" name="tudiadiem_id" class="flex-fill" style="' . ($this->bean->tutienmat == 1 ? '' : 'display:none') . '">' . myGetLocationListByDepID($department_id, $this->bean->tudiadiem_id) . '</select>';
+		$tudiadiem = '<select id="tudiadiem_id" name="tudiadiem_id" class="flex-fill" style="' . ($this->bean->tutienmat == 1 ? '' : 'display:none') . '">' . myGetLocationListByDepID($this->bean->tudiadiem_id) . '</select>';
 		$tutienmat = '<div class="d-flex align-items-center gap-2 flex-fill"><label class="w-40" for="tutienmat_chk"><span>Từ tiền mặt</span> <input ' . ($this->bean->tutienmat == 1 ? 'checked="checked"' : '') . ' type="checkbox" id="tutienmat_chk" /><input type="hidden" name="tutienmat" id="tutienmat" value="' . (isset($this->bean->tutienmat) ? $this->bean->tutienmat : 0) . '" /></label>' . $tudiadiem . '</div>';
 
-		$dendiadiem = '<select id="dendiadiem_id" name="dendiadiem_id" class="flex-fill" style="' . ($this->bean->dentienmat == 1 ? '' : 'display:none') . '">' . myGetLocationListByDepID($department_id, $this->bean->dendiadiem_id) . '</select>';
+		$dendiadiem = '<select id="dendiadiem_id" name="dendiadiem_id" class="flex-fill" style="' . ($this->bean->dentienmat == 1 ? '' : 'display:none') . '">' . myGetLocationListByDepID($this->bean->dendiadiem_id) . '</select>';
 		$dentienmat = '<div class="d-flex align-items-center gap-2 flex-fill"><label class="w-40" for="dentienmat_chk"><span>Đến tiền mặt</span> <input ' . ($this->bean->dentienmat == 1 ? 'checked="checked"' : '') . ' type="checkbox" id="dentienmat_chk" /><input type="hidden" name="dentienmat" id="dentienmat" value="' . (isset($this->bean->dentienmat) ? $this->bean->dentienmat : 0) . '" /></label>' . $dendiadiem . '</div>';
 
 		// PHAN QUYEN

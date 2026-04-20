@@ -673,5 +673,6 @@ $mod_strings = array(
     'LBL_TD_SIP' => 'Máy nhánh',
     'LBL_TD_PASSWORD' => 'Mật khẩu máy nhánh',
     'LBL_AGENT_STATUS' => 'Trạng thái Agent',
+    'LBL_IP_RESTRICTION_ENABLED' => 'Kích hoạt kiểm tra IP Login',
 
 ); // END STRINGS DEFS

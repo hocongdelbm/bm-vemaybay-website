@@ -11,7 +11,7 @@ class Viewemployeesalary extends SugarView
 		global $current_user;
 
 		$smarty = new Sugar_Smarty();
-		$is_special_user = isAllowedUser();
+		$is_special_user = is_admin($current_user);
 
 		// kiểm tra user xem lương chi tiết
 		if ($is_special_user && isset($_REQUEST['user_id'])) {

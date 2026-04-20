@@ -50,8 +50,9 @@ class EC_VouchersViewDetail extends ViewDetail {
 	}
 
 	function populateCustomButtons() {
-
-		if($this->bean->type == 'group' && $this->bean->status == 'new' && isAllowedUser()) {
+		global $current_user;
+		
+		if($this->bean->type == 'group' && $this->bean->status == 'new' && is_admin($current_user)) {
 			$btn_active = '<button type="button" id="active_pub_voucher" class="btn btn-primary" record_id="'.$this->bean->id.'">Kích hoạt</button>';
 			$this->ss->assign('ACTIVE_BUTTON', $btn_active);
 		}

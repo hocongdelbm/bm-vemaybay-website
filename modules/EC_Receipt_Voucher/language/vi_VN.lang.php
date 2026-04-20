@@ -47,6 +47,7 @@ $mod_strings = array(
     'LBL_EXCHANGE_RATE' => 'Tỷ giá',
     'LBL_IS_MARGIN' => 'Có ký quỹ',
     'LNK_SOKYQUY' => 'Sổ ký quỹ',
+    'LNK_BAOCAOTHUCHI' => 'Báo cáo thu chi',
     'LBL_SUPPLIER2' => 'Nhà cung cấp 2',
     'LBL_SUPPLIER3' => 'Nhà cung cấp 3',
     'LBL_BOUGHT_AMOUNT' => 'Giá mua (VAT) 1',

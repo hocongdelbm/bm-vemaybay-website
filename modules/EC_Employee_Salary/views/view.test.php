@@ -13,7 +13,6 @@ class Viewtest extends SugarView
 		// $this->createMonthSalary();
 		// $this->updateBKSale();
 		// $this->updateBkQty();
-		// $this->updateBKMark();
 		// $this->updateBkTicket();
 		// $this->createBKCompleted();
 		// $this->checkStatusOnlineUser();
@@ -782,30 +781,6 @@ class Viewtest extends SugarView
 				AND parent_id = "' . $row['id'] . '"
 			';
 			$db->query($sql2);
-		}
-	}
-
-	function updateBKMark()
-	{
-		global $db;
-		$sql = '
-			SELECT SUM(IFNULL(p.total_amount, 0)) AS total_amount, b.assigned_user_id 
-			FROM ec_flight_bookings b 
-			INNER JOIN ec_working_process p 
-			ON p.deleted = 0 AND p.parent_id = b.id AND p.paid > 0 
-			WHERE b.deleted = 0 
-			AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) >= "2022-09-19 00:00:00" 
-			AND b.booking_status = 8 AND p.total_amount > 0
-			GROUP BY b.assigned_user_id
-		';
-		$res = $db->query($sql);
-		while ($row = $db->fetchByAssoc($res)) {
-			$sql = '
-				UPDATE users SET total_amount = "' . $row['total_amount'] . '"
-				, exp_mark = ' . (int)($row['total_amount'] / 1000) . '
-				WHERE id = "' . $row['assigned_user_id'] . '"
-			';
-			$db->query($sql);
 		}
 	}
 

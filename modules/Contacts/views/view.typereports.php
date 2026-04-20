@@ -64,8 +64,8 @@ class Viewtypereports extends SugarView
         $smarty->assign('MODULE_NAME', $this->bean->module_dir);
 
         // ROLE
-        $smarty->assign('IS_ADMIN', (isAllowedUser()));
-        $smarty->assign('OWNER', (!isAllowedUser() ? 1 : 0));
+        $smarty->assign('IS_ADMIN', (is_admin($current_user)));
+        $smarty->assign('OWNER', (!is_admin($current_user) ? 1 : 0));
 
         $text_type_customer = isset($GLOBALS['app_list_strings']['contact_type_list'][$con['type_customer']]) ? $GLOBALS['app_list_strings']['contact_type_list'][$con['type_customer']] : '';
         $smarty->assign('TEXT_TYPE_CUSTOMER', $text_type_customer);
@@ -132,7 +132,7 @@ class Viewtypereports extends SugarView
         $end_date = date('Y-m-d 23:59:59', strtotime($params['to_date']));
 
         $sql_search = '';
-        if (!isAllowedUser()) {
+        if (!is_admin($current_user)) {
 			$sql_search .= " WHERE c.assigned_user_id='" . $current_user->id . "' ";
 		}
 
@@ -256,7 +256,7 @@ class Viewtypereports extends SugarView
                         <thead>
                                 <tr>
                                     <th width="3%">#</th>';
-                                    if(isAllowedUser()){
+                                    if(is_admin($current_user)){
                                         $html .= '<th width="3%"><input type="checkbox" id="checkall" value="0"></th>';
                                     }
                                     
@@ -282,7 +282,7 @@ class Viewtypereports extends SugarView
                 $html .= '
                     <tr>
                         <td align="center" class="fw-semibold">' . $i . '</td>';
-                        if(isAllowedUser()){
+                        if(is_admin($current_user)){
                             $html .= '<td class="text-center fw-bold">
                                         <input type="checkbox" name="contact_id[]" value="' . $row['id'] . '" />
                                     </td>';
@@ -343,7 +343,7 @@ class Viewtypereports extends SugarView
                                         </a>
                                     </li>
                                 ';
-                                if(isAllowedUser()){
+                                if(is_admin($current_user)){
                                 $html .= '<li>
                                             <a href="javascript:void(0);" class="dropdown-item cursor-pointer text-decoration-none fw-medium assign-contact" data-contact_id="' . $row['id'] . '" data-contact_name="' . $row['last_name'] . '" data-bs-toggle="modal" data-bs-target="#modalAssignContacts">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-person-add me-2" viewBox="0 0 16 16">
