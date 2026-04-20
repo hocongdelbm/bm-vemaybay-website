@@ -19,9 +19,9 @@ class Viewbaocaothuchi extends SugarView
 
 		$location_id  = array_values(array_filter((array)($_POST['location_id']  ?? []),  fn($v) => $v !== ''));
 		$receipt_type = array_values(array_filter((array)($_POST['receipt_type'] ?? []),  fn($v) => $v !== ''));
-		$rv_status    = array_values(array_filter((array)($_POST['rv_status']    ?? []),   fn($v) => $v !== ''));
+		$rv_status    = array_values(array_filter((array)($_POST['rv_status']    ?? ['1']), fn($v) => $v !== ''));
 		$loai_thu     = array_values(array_filter((array)($_POST['loai_thu']     ?? []),  fn($v) => $v !== ''));
-		$pv_status    = array_values(array_filter((array)($_POST['pv_status']    ?? []),  fn($v) => $v !== ''));
+		$pv_status    = array_values(array_filter((array)($_POST['pv_status']    ?? ['3']), fn($v) => $v !== ''));
 		$loai_chi     = array_values(array_filter((array)($_POST['loai_chi']     ?? []),  fn($v) => $v !== ''));
 		$group_by     = $_POST['group_by'] ?? 'month';
 
@@ -261,10 +261,11 @@ class Viewbaocaothuchi extends SugarView
 		$stt = 0;
 		foreach ($rowsByType as $r) {
 			$stt++;
-			$lt     = $r['loai_thu'];
-			$ltName = $loaiThuLabels[(int)$lt] ?? ($lt !== null && $lt !== '' ? '#' . htmlspecialchars($lt) : '<i>(Không phân loại)</i>');
-			$ratio  = $grandTotalThu > 0 ? ($r['total'] / $grandTotalThu * 100) : 0;
-			$html .= '<tr>
+			$lt       = $r['loai_thu'];
+			$ltName   = $loaiThuLabels[(int)$lt] ?? ($lt !== null && $lt !== '' ? '#' . htmlspecialchars($lt) : '<i>(Không phân loại)</i>');
+			$ratio    = $grandTotalThu > 0 ? ($r['total'] / $grandTotalThu * 100) : 0;
+			$drillLbl = htmlspecialchars(strip_tags($ltName), ENT_QUOTES);
+			$html .= '<tr class="bct-drill-row" data-kind="thu" data-drill="loai_thu" data-drill-val="' . htmlspecialchars((string)$lt, ENT_QUOTES) . '" data-drill-label="' . $drillLbl . '">
 						<td class="text-center">' . $stt . '</td>
 						<td>' . $ltName . '</td>
 						<td class="text-center">' . format_number($r['cnt']) . '</td>
@@ -288,7 +289,9 @@ class Viewbaocaothuchi extends SugarView
 				</tr></thead><tbody>';
 		foreach ($rowsByForm as $r) {
 			$formName = $receiptTypeLabel[$r['receipt_type']] ?? ($r['receipt_type'] ?: '<i>(Không rõ)</i>');
-			$html .= '<tr><td>' . $formName . '</td>
+			$drillLbl = htmlspecialchars(strip_tags($formName), ENT_QUOTES);
+			$html .= '<tr class="bct-drill-row" data-kind="thu" data-drill="receipt_type" data-drill-val="' . htmlspecialchars((string)$r['receipt_type'], ENT_QUOTES) . '" data-drill-label="' . $drillLbl . '">
+					<td>' . $formName . '</td>
 					<td class="text-center">' . format_number($r['cnt']) . '</td>
 					<td class="text-end">' . format_number($r['total']) . '</td></tr>';
 		}
@@ -296,7 +299,7 @@ class Viewbaocaothuchi extends SugarView
 
 		// I.3 matrix period x loai_thu
 		$html .= '<h5 class="border-start border-primary border-4 mt-3 ps-3 fs-6">3. Tổng hợp thu theo ' . $gLbl . '</h5>';
-		$html .= $this->renderMatrix($matrixThu, $periodsThu, $typesThu, $loaiThuLabels, true);
+		$html .= $this->renderMatrix($matrixThu, $periodsThu, $typesThu, $loaiThuLabels, true, 'thu');
 
 		// ======================================================
 		// PHẦN II: CHI
@@ -316,9 +319,11 @@ class Viewbaocaothuchi extends SugarView
 		$stt = 0;
 		foreach ($rowsByChi as $r) {
 			$stt++;
-			$chiName = $r['loai_chi_name'] ?: '<i>(Không phân loại)</i>';
-			$ratio   = $grandTotalChi > 0 ? ($r['total'] / $grandTotalChi * 100) : 0;
-			$html .= '<tr>
+			$chiName  = $r['loai_chi_name'] ?: '<i>(Không phân loại)</i>';
+			$ratio    = $grandTotalChi > 0 ? ($r['total'] / $grandTotalChi * 100) : 0;
+			$drillVal = (string)$r['loai_chi_id'];
+			$drillLbl = htmlspecialchars(strip_tags($chiName), ENT_QUOTES);
+			$html .= '<tr class="bct-drill-row" data-kind="chi" data-drill="loai_chi" data-drill-val="' . htmlspecialchars($drillVal, ENT_QUOTES) . '" data-drill-label="' . $drillLbl . '">
 						<td class="text-center">' . $stt . '</td>
 						<td>' . htmlspecialchars($chiName) . '</td>
 						<td class="text-center">' . format_number($r['cnt']) . '</td>
@@ -334,7 +339,7 @@ class Viewbaocaothuchi extends SugarView
 
 		// II.2 matrix period x loai_chi
 		$html .= '<h5 class="border-start border-danger border-4 mt-3 ps-3 fs-6">2. Tổng hợp chi theo ' . $gLbl . '</h5>';
-		$html .= $this->renderMatrix($matrixChi, $periodsChi, array_keys($typesChi), $typesChi, false);
+		$html .= $this->renderMatrix($matrixChi, $periodsChi, array_keys($typesChi), $typesChi, false, 'chi');
 
 		// ======================================================
 		// PHẦN III: TỔNG HỢP
@@ -354,11 +359,12 @@ class Viewbaocaothuchi extends SugarView
 		return $html;
 	}
 
-	function renderMatrix($matrix, $periods, $typeKeys, $typeLabels, $useIntKey)
+	function renderMatrix($matrix, $periods, $typeKeys, $typeLabels, $useIntKey, $kind = 'thu')
 	{
 		if (empty($periods) || empty($typeKeys)) {
 			return '<p><i>Không có dữ liệu.</i></p>';
 		}
+		$drillCol = $kind === 'thu' ? 'matrix_thu' : 'matrix_chi';
 		$html  = '<div style="overflow-x:auto"><table class="table table-bordered table-details__booking" cellpadding="5" cellspacing="0" border="1">';
 		$html .= '<thead class="align-middle"><tr><th>Kỳ</th>';
 		foreach ($typeKeys as $k) {
@@ -376,7 +382,16 @@ class Viewbaocaothuchi extends SugarView
 				$v = $matrix[$p][$k] ?? 0;
 				$rowSum        += $v;
 				$colTotals[$k] += $v;
-				$html .= '<td class="text-end">' . ($v ? format_number($v) : '&nbsp;') . '</td>';
+				if ($v) {
+					$lbl  = $useIntKey ? ($typeLabels[(int)$k] ?? ('#' . $k)) : ($typeLabels[$k] ?? $k);
+					$dlbl = htmlspecialchars(strip_tags($lbl) . ' — ' . $p, ENT_QUOTES);
+					$html .= '<td class="text-end bct-drill-cell" data-kind="' . $kind . '" data-drill="' . $drillCol
+						. '" data-drill-val="' . htmlspecialchars((string)$k, ENT_QUOTES)
+						. '" data-period="' . htmlspecialchars($p, ENT_QUOTES)
+						. '" data-drill-label="' . $dlbl . '">' . format_number($v) . '</td>';
+				} else {
+					$html .= '<td class="text-end">&nbsp;</td>';
+				}
 			}
 			$sumAll += $rowSum;
 			$html   .= '<td class="text-end fw-bold">' . format_number($rowSum) . '</td></tr>';
