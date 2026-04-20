@@ -35,19 +35,16 @@ $(document).ready(function () {
         for (var p = 0; p < perPaxData.length; p++) {
           var pax = perPaxData[p];
           var paxLabel = pax.salutation + " " + pax.passengerName;
-          var isChecked = p === 0 ? "checked" : ""; // Select first passenger by default
 
           // Passenger block
           var $paxBlock = $(
             '<div class="popup-perpax-block" style="margin-bottom:12px; border:1px solid #e8e8e8; border-radius:8px; background:#fff; overflow:hidden;">' +
               '<label style="display:flex; align-items:center; gap:8px; padding:10px 12px; cursor:pointer; background:#f5f5f5; border-bottom:1px solid #e8e8e8; font-weight:600;">' +
-              '<input type="radio" name="popup_perpax_radio" class="popup-perpax-radio" value="' +
+              '<input type="checkbox" name="popup_perpax_check" class="popup-perpax-check" value="' +
               pax.passengerId +
               '" data-type="' +
               pax.type +
-              '" ' +
-              isChecked +
-              ' style="width:16px;height:16px;cursor:pointer;" />' +
+              '" checked style="width:16px;height:16px;cursor:pointer;" />' +
               "<span>👤 " +
               paxLabel +
               "</span>" +
@@ -82,8 +79,7 @@ $(document).ready(function () {
               iti.arrival +
               " &nbsp; " +
               iti.depDate;
-            // For the selected passenger check by default, else uncheck
-            var itiChecked = p === 0 ? "checked" : "";
+
 
             $itiContainer.append(
               '<label style="display:flex; align-items:center; gap:8px; padding:5px 0; cursor:pointer; border-bottom:1px solid #f0f0f0; font-size:13px;">' +
@@ -93,9 +89,7 @@ $(document).ready(function () {
                 iti.direction +
                 '" data-pax-id="' +
                 pax.passengerId +
-                '" ' +
-                itiChecked +
-                ' style="width:14px;height:14px;cursor:pointer;" />' +
+                '" checked style="width:16px;height:16px;cursor:pointer;" />' +
                 "<span>" +
                 itiLabel +
                 "</span>" +
@@ -251,18 +245,30 @@ $(document).ready(function () {
     $(".popup-check-iti").prop("checked", $(this).is(":checked"));
   });
 
-  // Per-passenger radio: cascade select itineraries, unselect others
-  $(document).on("change", ".popup-perpax-radio", function () {
-    var $popup = $("#dlgPrintTicketNew");
+  // Per-passenger checkbox: cascade select itineraries, unselect others
+  $(document).on("change", ".popup-perpax-check", function () {
+    var isChecked = $(this).is(":checked");
 
-    // Uncheck all child itineraries
-    $popup.find(".popup-perpax-iti-check").prop("checked", false);
-
-    // Check itineraries only for the selected passenger
     $(this)
-      .closest(".popup-perpax-block")
-      .find(".popup-perpax-iti-check")
-      .prop("checked", true);
+    .closest(".popup-perpax-block")
+    .find(".popup-perpax-iti-check")
+    .prop("checked", isChecked)
+    .prop("disabled", !isChecked);
+
+    //nếu bỏ check 1 passenger thì bỏ "select all"
+    if (!isChecked) {
+      $("#popup-select-all-perpax").prop("checked", false);
+    } else{
+      //auto check "select all" nếu tất cả passenger và itinerary đều được check
+      var totalPax = $(".popup-perpax-check").length;
+      var checkedPax = $(".popup-perpax-check:checked").length;
+      var totalIti = $(".popup-perpax-iti-check").length;
+      var checkedIti = $(".popup-perpax-iti-check:checked").length;
+
+      if (totalPax > 0 && totalPax === checkedPax && totalIti === checkedIti) {
+        $("#popup-select-all-perpax").prop("checked", true);
+      }
+    }
   });
 
   // Select all per-passenger: disable radios and itinerary checkboxes
@@ -270,24 +276,16 @@ $(document).ready(function () {
     var isChecked = $(this).is(":checked");
 
     if (isChecked) {
-      // Disable all radios and itinerary checkboxes
-      $(".popup-perpax-radio").prop("disabled", true).prop("checked", false);
-      $(".popup-perpax-iti-check")
-        .prop("disabled", true)
-        .prop("checked", false);
+      //check và enable tất cả
+      $(".popup-perpax-check").prop("checked", true).prop("disabled", false);
+      $(".popup-perpax-iti-check").prop("checked", true).prop("disabled", false);
 
       // Visual feedback - grey out blocks
-      $(".popup-perpax-block").css("opacity", "0.5");
-    } else {
-      // Re-enable radios and itinerary checkboxes
-      $(".popup-perpax-radio").prop("disabled", false);
-      $(".popup-perpax-iti-check").prop("disabled", false);
-
-      // Restore visual
       $(".popup-perpax-block").css("opacity", "1");
-
-      // Auto-select first passenger
-      $(".popup-perpax-radio").first().prop("checked", true).trigger("change");
+    } else {
+      //bỏ check tất cả và enable để chọn lại
+      $(".popup-perpax-check").prop("checked", false); //giữ enable để user có thể chọn lại
+      $(".popup-perpax-iti-check").prop("checked", false).prop("disabled", true);
     }
   });
 
@@ -310,20 +308,17 @@ $(document).ready(function () {
         passengers = ["All"];
         itineraries = ["All"];
       } else {
-        // Collect from per-passenger layout (radio)
-        var $selectedPax = $(".popup-perpax-radio:checked");
-        if ($selectedPax.length > 0) {
-          passengers.push($selectedPax.val());
+          $(".popup-perpax-check:checked").each(function () {
+            passengers.push($(this).val());
 
-          // Only collect itineraries belonging to the selected passenger block
-          $selectedPax
+            $(this)
             .closest(".popup-perpax-block")
             .find(".popup-perpax-iti-check:checked")
             .each(function () {
               itineraries.push($(this).val());
             });
+          });
         }
-      }
     } else {
       // Collect from flat layout
       $(".popup-check-psg:checked").each(function () {
@@ -355,13 +350,16 @@ $(document).ready(function () {
           if (d !== undefined && d !== "") directions.push(String(d));
         });
       } else {
-        $(".popup-perpax-radio:checked")
+        $(".popup-perpax-check:checked")
+        .each(function () {
+          $(this)
           .closest(".popup-perpax-block")
           .find(".popup-perpax-iti-check:checked")
           .each(function () {
             var d = $(this).data("direction");
             if (d !== undefined && d !== "") directions.push(String(d));
-          });
+          })
+        })
       }
     } else {
       $(".popup-check-iti:checked").each(function () {
