@@ -9410,26 +9410,6 @@ tr:hover img.info {
      visibility: visible
 }
 
-.table>tbody>tr>th {
-     border-top: none
-}
-
-.table>tfoot>tr>th {
-     border-top: none
-}
-
-.table>thead>tr>td {
-     border-top: none
-}
-
-.table>tbody>tr>td {
-     border-top: none
-}
-
-.table>tfoot>tr>td {
-     border-top: none
-}
-
 #dlg {
      top: 75px;
      left: 300px

@@ -219,7 +219,7 @@ class Viewsokyquy extends SugarView {
 					'-' AS pheptoan
 				FROM ec_receipt_voucher p 
 				WHERE p.deleted=0 AND p.amount IS NOT NULL 
-					AND p.pv_status='3'
+					AND p.rv_status='3'
 					AND p.is_margin=1
 					AND p.supplier_id='" . $doituong_id . "' " . $sql_search . "
 				ORDER BY ngayghiso ";
@@ -243,7 +243,7 @@ class Viewsokyquy extends SugarView {
 					p.ngaychungtu,
 					p.name AS sochungtu,
 					p.description AS diengiai,
-					p.amount_converted AS sotien
+					p.amount_converted AS sotien,
 					'EC_Receipt_Voucher' AS parent_type,
 					p.id AS parent_id,
 					'-' AS pheptoan
@@ -275,9 +275,9 @@ class Viewsokyquy extends SugarView {
 
 				SELECT p.ngayhachtoan AS ngayghiso,
 					p.ngaychungtu,
-					p.name AS sochungtu
+					p.name AS sochungtu,
 					p.description AS diengiai,
-					p.amount AS sotien
+					p.amount AS sotien,
 					'EC_Payment_Voucher' AS parent_type,
 					p.id AS parent_id,
 					'-' AS pheptoan

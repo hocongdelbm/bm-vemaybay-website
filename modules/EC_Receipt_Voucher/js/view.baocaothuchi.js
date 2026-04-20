@@ -251,15 +251,214 @@ $(document).ready(function () {
 
     function submitForm(excel) {
         $('.container-waiting').show();
-        var $form = $('#frmSearchBaoCaoThu');
+        var $form = $('#frmSearchBaoCaoThuChi');
         $form.find('.bct-sf').remove();
         $form.append('<input type="hidden" class="bct-sf" name="btnViewDetail" value="1">');
         if (excel) $form.append('<input type="hidden" class="bct-sf" name="exportexcel" value="1">');
         var locTxt = $('#sel_location_id option:selected').first().text();
         $('#location_name').val(locTxt && locTxt.indexOf('--') === -1 ? locTxt : '');
         $form.submit();
+
+        if (excel) {
+            setTimeout(function () {
+                $('.container-waiting').hide();
+            }, 1500);
+        }
     }
 
     updateDateChip();
     refreshActiveTags();
+
+    /* =========================================================
+     *  Drill-down detail modal
+     * =======================================================*/
+    let bctDrillState = {
+        kind: '',
+        drill: '',
+        drillVal: '',
+        period: '',
+        drillLabel: '',
+        page: 1
+    };
+
+    $(document).on('click', '.bct-drill-row, .bct-drill-cell', function (e) {
+        e.preventDefault();
+        let $el = $(this);
+        bctDrillState.kind       = $el.attr('data-kind') || 'thu';
+        bctDrillState.drill      = $el.attr('data-drill') || '';
+        bctDrillState.drillVal   = $el.attr('data-drill-val') || '';
+        bctDrillState.period     = $el.attr('data-period') || '';
+        bctDrillState.drillLabel = $el.attr('data-drill-label') || '';
+        bctDrillState.page       = 1;
+        openDetailModal();
+        loadDetailPage(1);
+    });
+
+    $(document).on('click', '#bct_modal_close, .bct-modal-backdrop', closeDetailModal);
+
+    $(document).on('keydown', function (e) {
+        if (e.key === 'Escape' && $('#bct_detail_modal').hasClass('open')) closeDetailModal();
+    });
+
+    function openDetailModal() {
+        let kindLabel = bctDrillState.kind === 'chi' ? 'Chi tiết phiếu chi' : 'Chi tiết phiếu thu';
+        let subtitle  = bctDrillState.drillLabel ? '<b>' + escapeHtml(bctDrillState.drillLabel) + '</b>' : '';
+
+        $('#bct_modal_title').text(kindLabel);
+        $('#bct_modal_subtitle').html(subtitle);
+        $('#bct_modal_body').html('<div class="bct-modal-loading"><span class="bct-spinner"></span> Đang tải...</div>');
+        $('#bct_modal_summary').empty();
+        $('#bct_modal_pager').empty();
+        $('#bct_detail_modal').addClass('open');
+        $('body').addClass('bct-modal-open');
+    }
+
+    function closeDetailModal() {
+        $('#bct_detail_modal').removeClass('open');
+        $('body').removeClass('bct-modal-open');
+    }
+
+    function loadDetailPage(page) {
+        bctDrillState.page = page;
+        $('#bct_modal_body').html('<div class="bct-modal-loading"><span class="bct-spinner"></span> Đang tải...</div>');
+
+        var $form = $('#frmSearchBaoCaoThuChi');
+        var data  = $form.serializeArray().filter(function (p) {
+            return p.name !== 'action' && p.name !== 'module'
+                && p.name !== 'btnViewDetail' && p.name !== 'exportexcel';
+        });
+        data.push({ name: 'module',       value: 'EC_Receipt_Voucher' });
+        data.push({ name: 'action',       value: 'baocaothuchi_detail' });
+        data.push({ name: 'kind',         value: bctDrillState.kind });
+        data.push({ name: 'drill',        value: bctDrillState.drill });
+        data.push({ name: 'drill_val',    value: bctDrillState.drillVal });
+        if (bctDrillState.period) data.push({ name: 'drill_period', value: bctDrillState.period });
+        data.push({ name: 'page',         value: page });
+
+        $.ajax({
+            url: 'index.php',
+            type: 'POST',
+            data: data,
+            dataType: 'json'
+        }).done(renderDetailResponse).fail(function () {
+            $('#bct_modal_body').html('<div class="bct-modal-empty">Không tải được dữ liệu.</div>');
+        });
+    }
+
+    function renderDetailResponse(resp) {
+        if (!resp || !resp.ok) {
+            $('#bct_modal_body').html('<div class="bct-modal-empty">Không có dữ liệu.</div>');
+            return;
+        }
+
+        if (!resp.rows || !resp.rows.length) {
+            $('#bct_modal_body').html('<div class="bct-modal-empty">Không có phiếu nào khớp bộ lọc.</div>');
+            $('#bct_modal_summary').html('Tổng: <b>0</b> phiếu');
+            $('#bct_modal_pager').empty();
+            return;
+        }
+
+        let isThu = resp.kind === 'thu';
+        let html  = '<table class="bct-modal-table"><thead><tr>';
+            html += '<th style="width:3%">#</th>';
+            html += '<th style="width:13%">Số phiếu</th>';
+            html += '<th style="width:10%">Ngày</th>';
+            html += '<th style="width:16%">' + (isThu ? 'Loại thu' : 'Loại chi') + '</th>';
+            if (isThu) html += '<th style="width:12%">Hình thức</th>';
+            html += '<th>' + (isThu ? 'Người nộp' : 'Người nhận') + '</th>';
+            html += '<th style="width:13%" class="text-end">Số tiền (đ)</th>';
+            html += '<th style="width:10%">Trạng thái</th>';
+            html += '</tr></thead><tbody>';
+
+        let offset = (resp.page - 1) * resp.page_size;
+        $.each(resp.rows, function (i, r) {
+            html += '<tr data-id="' + escapeHtml(r.id) + '" data-module="' + escapeHtml(resp.module) + '">';
+            html += '<td>' + (offset + i + 1) + '</td>';
+            html += '<td class="bct-cell-name">' + escapeHtml(r.name || '') + '</td>';
+            html += '<td>' + escapeHtml(r.ngay || '') + '</td>';
+            html += '<td>' + escapeHtml(r.loai || '') + '</td>';
+            if (isThu) html += '<td>' + escapeHtml(r.hinh_thuc || '') + '</td>';
+            html += '<td>' + escapeHtml(r.nguoi || '') + '</td>';
+            html += '<td class="bct-cell-amount">' + formatNumber(r.amount) + '</td>';
+            html += '<td>' + escapeHtml(r.status || '') + '</td>';
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        $('#bct_modal_body').html(html);
+
+        let periodInfo = resp.period_from && resp.period_to ? ' (' + formatDateVN(resp.period_from) + ' → ' + formatDateVN(resp.period_to) + ')' : '';
+        $('#bct_modal_summary').html(
+            'Tổng: <b>' + formatNumber(resp.total) + '</b> phiếu · ' +
+            '<b>' + formatNumber(resp.sum_amount) + '</b> đ' + periodInfo
+        );
+
+        renderPager(resp.page, resp.total_pages);
+    }
+
+    function renderPager(cur, total) {
+        var $p = $('#bct_modal_pager');
+        $p.empty();
+        if (total <= 1) return;
+
+        var html  = '';
+        html += btn('«', cur - 1, cur === 1);
+        html += btn('‹', cur - 1, cur === 1);
+
+        var windowSize = 2;
+        var pages = new Set([1, total, cur]);
+        for (var i = 1; i <= windowSize; i++) {
+            pages.add(cur - i);
+            pages.add(cur + i);
+        }
+        var list = Array.from(pages).filter(function (p) { return p >= 1 && p <= total; }).sort(function (a, b) { return a - b; });
+
+        var prev = 0;
+        list.forEach(function (p) {
+            if (p - prev > 1) html += '<span class="bct-page-ellipsis">…</span>';
+            html += '<button class="bct-page-btn' + (p === cur ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+            prev = p;
+        });
+
+        html += btn('›', cur + 1, cur === total);
+        html += btn('»', total,   cur === total);
+        $p.html(html);
+
+        function btn(lbl, targetPage, disabled) {
+            return '<button class="bct-page-btn"' + (disabled ? ' disabled' : '') +
+                ' data-page="' + targetPage + '">' + lbl + '</button>';
+        }
+    }
+
+    $(document).on('click', '.bct-page-btn:not([disabled])', function () {
+        let p = parseInt($(this).attr('data-page'), 10);
+        if (p && p !== bctDrillState.page) loadDetailPage(p);
+    });
+
+    // Xem chi tiết record khi click vào row - _blank
+    $(document).on('click', '.bct-modal-table tbody tr', function () {
+        let id  = $(this).attr('data-id');
+        let mod = $(this).attr('data-module');
+
+        if (id && mod) {
+            window.open('index.php?module=' + encodeURIComponent(mod) + '&action=DetailView&record=' + encodeURIComponent(id), '_blank');
+        }
+    });
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function formatNumber(n) {
+        let x = Number(n) || 0;
+        return x.toLocaleString('vi-VN', { maximumFractionDigits: 0 });
+    }
+
+    function formatDateVN(ymd) {
+        if (!ymd) return '';
+
+        let m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+        return m ? m[3] + '/' + m[2] + '/' + m[1] : ymd;
+    }
 });
