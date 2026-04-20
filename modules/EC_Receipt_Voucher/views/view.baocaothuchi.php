@@ -28,7 +28,7 @@ class Viewbaocaothuchi extends SugarView
 		$department_id   = $current_user->department_id;
 		$department_info = myGetDepartmentInfo($department_id);
 
-		$smartyobj->assign('STYLE_VERSION', inDeveloperMode() ? time() : '1.0.0');
+		$smartyobj->assign('STYLE_VERSION', inDeveloperMode() ? time() : '1.0.1');
 		$smartyobj->assign('MODULE_NAME', $this->bean->module_dir);
 		$smartyobj->assign('POST_FDATE', $post_fdate);
 		$smartyobj->assign('POST_TDATE', $post_tdate);
