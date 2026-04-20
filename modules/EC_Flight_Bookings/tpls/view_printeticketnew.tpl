@@ -143,13 +143,13 @@
 									<table width="100%" cellpadding="0" cellspacing="0" border="0">
 										<tr>
 											<!-- Departure -->
-											<td width="40%" align="center" valign="top">
+											<td width="40%" align="center" valign="top" style="line-height: 1.3;">
 												<div style="font-size:20px; font-weight:800; letter-spacing:2px;">
 													{$iti.dep_code}</div>
 												<div style="font-size:15px; color:#333; font-weight:500;">{$iti.dep_city}</div>
 												<div style="font-size:12px; color:#666; margin-top:1px;">{$iti.dep_airport}
 												</div>
-												<div style="margin-top:2px; font-size:12px; font-weight:500; color:#555;">
+												<div style="margin-top:1px; font-size:12px; font-weight:500; color:#555;">
 													{$iti.dep_time} &nbsp;{$iti.dep_date}
 												</div>
 											</td>
@@ -163,13 +163,13 @@
 												</div>
 											</td>
 											<!-- Arrival -->
-											<td width="40%" align="center" valign="top">
+											<td width="40%" align="center" valign="top" style="line-height: 1.3;">
 												<div style="font-size:20px; font-weight:800; letter-spacing:2px;">
 													{$iti.arr_code}</div>
 												<div style="font-size:15px; color:#333; font-weight:500;">{$iti.arr_city}</div>
 												<div style="font-size:12px; color:#666; margin-top:1px;">{$iti.arr_airport}
 												</div>
-												<div style="margin-top:2px; font-size:12px; font-weight:500; color:#555;">
+												<div style="margin-top:1px; font-size:12px; font-weight:500; color:#555;">
 													{$iti.arr_time} &nbsp;{$iti.arr_date}
 												</div>
 											</td>
