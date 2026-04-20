@@ -10,7 +10,7 @@ class Viewtienguinganhang extends SugarView {
 	}
 	
 	function populateCont($smartyobj){
-		global $app_list_strings, $db, $current_user;
+		global $app_list_strings, $db;
 		
 		$sql_search = "";
 		// Từ ngày
@@ -171,11 +171,16 @@ class Viewtienguinganhang extends SugarView {
 						 	<col class=xl6615117 width=98 style='mso-width-source:userset;mso-width-alt:3584;width:74pt'>";		
 		
 		for($i = 0; $i < $tknganhang_arr_cnt; $i++) {
+			$tkId    = $_POST['tknganhang_id'][$i];
+			$tennh   = htmlspecialchars($_POST['tennh_'   . $tkId] ?? '', ENT_QUOTES, 'UTF-8');
+			$sotk    = htmlspecialchars($_POST['sotk_'    . $tkId] ?? '', ENT_QUOTES, 'UTF-8');
+			$diachi  = htmlspecialchars($_POST['diachi_'  . $tkId] ?? '', ENT_QUOTES, 'UTF-8');
+
 			// Xuất số vé
 			if(isset($_POST['btnXuatSoVe'])){
 				$xls .= "<tr height=21 style='height:15.75pt'>
 						  	<td colspan=6 height=21 class=xl6815117 width=622 style='height:15.75pt;
-						  		width:468pt'>".$_POST['tennh_'.$_POST['tknganhang_id'][$i]]."</td>
+						  		width:468pt'>" . $tennh . "</td>
 						</tr>
 						<tr height=33 style='mso-height-source:userset;height:24.75pt'>
 							<td height=33 class=xl6315117 style='height:24.75pt'>STT</td>
@@ -218,21 +223,8 @@ class Viewtienguinganhang extends SugarView {
 				}
 			}
 			
-			$voucher_arr = $this->getVoucherList('1121', $_POST['tknganhang_id'][$i], $post_tungay, $sql_search);
+			$voucher_arr = $this->getVoucherList('1121', $tkId, $post_tungay, $sql_search);
 
-            // if ($current_user->user_name == 'nponline' && $post_tungay == '01-01-2019' && $post_denngay == '31-12-2019' && !empty($voucher_arr['tongton'])) {
-            //     $cttk = new EC_ChiTietTaiKhoan();
-            //     $cttk->id = '';
-            //     $cttk->name = $_POST['tennh_' . $_POST['tknganhang_id'][$i]];
-            //     $cttk->sotaikhoan = '1121';
-            //     $cttk->dunodau = $voucher_arr['tongton'];
-            //     $cttk->parent_type = 'EC_TaiKhoanNganHang';
-            //     $cttk->parent_id = $_POST['tknganhang_id'][$i];
-            //     //$cttk->company_id = '48840c01-3a4f-c430-f703-56f32c7cd8a4';
-            //     //$cttk->location_id = $location_id;
-            //     $cttk->save();
-            // }
-			
 			$html .= '<table id="table-wrapper" cellpadding="0" cellspacing="0" border="0" width="100%">
 				<tr>
 					<td valign="top">
@@ -263,9 +255,9 @@ class Viewtienguinganhang extends SugarView {
 				<tr>
 					<td colspan="2" align="left">
 						<label style="font-weight:bold;">Tài khoản: 1121</label><br />
-						<label style="font-weight:bold;">Số tài khoản: '.$_POST['sotk_'.$_POST['tknganhang_id'][$i]].'</label><br />
-						<label style="font-weight:bold;">Tên ngân hàng: '.$_POST['tennh_'.$_POST['tknganhang_id'][$i]].'</label><br />
-						<label style="font-weight:bold;">Địa chỉ nơi mở: '.$_POST['diachi_'.$_POST['tknganhang_id'][$i]].'</label>
+						<label style="font-weight:bold;">Số tài khoản: '.$sotk.'</label><br />
+						<label style="font-weight:bold;">Tên ngân hàng: '.$tennh.'</label><br />
+						<label style="font-weight:bold;">Địa chỉ nơi mở: '.$diachi.'</label>
 						<br />
 						<br />
 					</td>
@@ -391,7 +383,7 @@ class Viewtienguinganhang extends SugarView {
 	
 	// Lấy số tồn đầu kỳ của tài khoản tiền mặt
 	function getTheOpeningAccount($sotk, $tknganhang_id, $post_tungay){
-		global $db, $current_user;
+		global $db;
 		$sodauky = 0;
 		$year = date('Y', strtotime($post_tungay));
 		
@@ -461,17 +453,11 @@ class Viewtienguinganhang extends SugarView {
 		) AS t ";
 	
 		$sodauky += $db->getOne($sql);
-
-		// if($current_user->user_name == 'hungnh'){
-		// 	pr($sql);
-		// };
-		
 		return $sodauky;
 	}
 	
-	// Lấy danh sách tất cả các chứng từ phát sinh
 	function getVoucherList($sotk, $tknganhang_id, $post_tungay, $sql_search){
-		global $db, $current_user;
+		global $db;
 		$arr = array();
 		// main query
 		$sql = "SELECT p.ngayhachtoan AS ngayghiso, p.ngaychungtu, p.name AS sochungtu, p.description AS diengiai,
@@ -526,10 +512,6 @@ class Viewtienguinganhang extends SugarView {
 					AND p.dentknganhang_id = '".$tknganhang_id."' ".$sql_search."
 	
 				ORDER BY ngayghiso ";
-
-		// if($current_user->user_name == 'hungnh'){
-		// 	pr($sql);
-		// };
 
 		$res = $db->query($sql);
 		$html = '';
