@@ -7,7 +7,7 @@
 	Báo cáo thu chi
 </h1>
 
-<form name="frmSearchBaoCaoThu" id="frmSearchBaoCaoThu" action="index.php" method="post" class="box-section">
+<form name="frmSearchBaoCaoThuChi" id="frmSearchBaoCaoThuChi" action="index.php" method="post" class="box-section">
 	<input type="hidden" name="module" value="{$MODULE_NAME}" />
 	<input type="hidden" name="action" value="baocaothuchi" />
 	<input type="hidden" name="location_name" id="location_name" value="{$LOCATION_NAME}" />
@@ -28,7 +28,11 @@
 		<div class="bct-chip-wrap" id="chip_date">
 			<button type="button" class="bct-chip" id="chip_date_btn">
 				<span class="lbl" id="chip_date_lbl">Kỳ / Ngày</span>
-				<span class="bct-caret">&#9660;</span>
+				<span class="bct-caret">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+						<path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+					</svg>
+				</span>
 			</button>
 			<div class="bct-dropdown" id="dd_date">
 				<div class="bct-dd-title">Chọn kỳ</div>
@@ -67,7 +71,11 @@
 		<!-- Chip: Địa điểm -->
 		<div class="bct-chip-wrap" id="chip_location">
 			<button type="button" class="bct-chip" data-selid="sel_location_id" data-deflabel="Địa điểm" data-filterlabel="Địa điểm">
-				<span class="lbl">Địa điểm</span><span class="bct-caret">&#9660;</span>
+				<span class="lbl">Địa điểm</span><span class="bct-caret">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+						<path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+					</svg>
+				</span>
 			</button>
 			<div class="bct-dropdown">
 				<div class="bct-dd-title">Địa điểm</div>
@@ -82,7 +90,11 @@
 		<!-- Chip: Loại thu -->
 		<div class="bct-chip-wrap" id="chip_loai_thu">
 			<button type="button" class="bct-chip" data-selid="sel_loai_thu" data-deflabel="Loại thu" data-filterlabel="Loại thu">
-				<span class="lbl">Loại thu</span><span class="bct-caret">&#9660;</span>
+				<span class="lbl">Loại thu</span><span class="bct-caret">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+						<path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+					</svg>
+				</span>
 			</button>
 			<div class="bct-dropdown">
 				<div class="bct-dd-title">Loại thu</div>
@@ -97,7 +109,11 @@
 		<!-- Chip: Hình thức -->
 		<div class="bct-chip-wrap" id="chip_receipt_type">
 			<button type="button" class="bct-chip" data-selid="sel_receipt_type" data-deflabel="Hình thức" data-filterlabel="Hình thức">
-				<span class="lbl">Hình thức</span><span class="bct-caret">&#9660;</span>
+				<span class="lbl">Hình thức</span><span class="bct-caret">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+						<path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+					</svg>
+				</span>
 			</button>
 			<div class="bct-dropdown">
 				<div class="bct-dd-title">Hình thức thu</div>
@@ -111,8 +127,12 @@
 
 		<!-- Chip: Trạng thái -->
 		<div class="bct-chip-wrap" id="chip_rv_status">
-			<button type="button" class="bct-chip" data-selid="sel_rv_status" data-deflabel="Trạng thái" data-filterlabel="Trạng thái">
-				<span class="lbl">Trạng thái</span><span class="bct-caret">&#9660;</span>
+			<button type="button" class="bct-chip" data-selid="sel_rv_status" data-deflabel="Trạng thái thu" data-filterlabel="Trạng thái thu">
+				<span class="lbl">Trạng thái</span><span class="bct-caret">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+						<path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+					</svg>
+				</span>
 			</button>
 			<div class="bct-dropdown">
 				<div class="bct-dd-title">Trạng thái</div>
@@ -127,7 +147,11 @@
 		<!-- Chip: Nhóm theo -->
 		<div class="bct-chip-wrap" id="chip_group_by">
 			<button type="button" class="bct-chip" data-selid="sel_group_by" data-deflabel="Nhóm theo" data-filterlabel="Nhóm theo">
-				<span class="lbl">Nhóm theo</span><span class="bct-caret">&#9660;</span>
+				<span class="lbl">Nhóm theo</span><span class="bct-caret">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+						<path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+					</svg>
+				</span>
 			</button>
 			<div class="bct-dropdown">
 				<div class="bct-dd-title">Nhóm theo</div>
@@ -145,7 +169,11 @@
 		<!-- Chip: Loại chi -->
 		<div class="bct-chip-wrap" id="chip_loai_chi">
 			<button type="button" class="bct-chip bct-chip--chi" data-selid="sel_loai_chi" data-deflabel="Loại chi" data-filterlabel="Loại chi">
-				<span class="lbl">Loại chi</span><span class="bct-caret">&#9660;</span>
+				<span class="lbl">Loại chi</span><span class="bct-caret">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+						<path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+					</svg>
+				</span>
 			</button>
 			<div class="bct-dropdown">
 				<div class="bct-dd-title">Loại chi</div>
@@ -160,7 +188,11 @@
 		<!-- Chip: Trạng thái chi -->
 		<div class="bct-chip-wrap" id="chip_pv_status">
 			<button type="button" class="bct-chip bct-chip--chi" data-selid="sel_pv_status" data-deflabel="Trạng thái chi" data-filterlabel="Trạng thái chi">
-				<span class="lbl">Trạng thái chi</span><span class="bct-caret">&#9660;</span>
+				<span class="lbl">Trạng thái chi</span><span class="bct-caret">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+						<path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+					</svg>
+				</span>
 			</button>
 			<div class="bct-dropdown">
 				<div class="bct-dd-title">Trạng thái chi</div>
@@ -185,10 +217,63 @@
 		{/if}
 	</div>
 
+	<!-- Guidance Notes -->
+	<div class="bct-guidance-section">
+		<div class="bct-guidance-card">
+			<div class="bct-guidance-header">
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+					<path d="m8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+					<path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+				</svg>
+				<span>Hướng dẫn sử dụng</span>
+			</div>
+			<div class="bct-guidance-content">
+				<div class="bct-guidance-item">
+					<h4>📋 Sử dụng bộ lọc</h4>
+					<ul>
+						<li>Nhấn vào các nút (Kỳ/Ngày, Địa điểm, Loại thu, v.v.) để mở các tùy chọn lọc. Có thể kết hợp nhiều bộ lọc cùng lúc</li>
+						<li>Nhấn "Xem kết quả" trong từng bộ lọc hoặc nhấn "Xem báo cáo" để áp dụng tất cả các bộ lọc đã chọn</li>
+						<li>Nhấn vào thẻ lọc (filter tag) để xóa bộ lọc đó</li>
+					</ul>
+				</div>
+				<div class="bct-guidance-item">
+					<h4>🔍 Xem chi tiết báo cáo</h4>
+					<ul>
+						<li>Nhấn vào bất kỳ số liệu hoặc hàng nào trong báo cáo để xem chi tiết</li>
+						<li>Cửa sổ chi tiết sẽ hiển thị các ghi chép liên quan</li>
+						<li>Nhấn nút "Đóng" hoặc nhấn × để quay lại báo cáo</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
 </form>
 
 {if $SHOW_REPORT}
 	{$REPORT_HTML}
 {/if}
+
+<!-- Detail drill-down modal -->
+<div class="bct-modal" id="bct_detail_modal" aria-hidden="true">
+	<div class="bct-modal-backdrop"></div>
+	<div class="bct-modal-dialog">
+		<div class="bct-modal-header">
+			<h4 class="bct-modal-title" id="bct_modal_title">Chi tiết</h4>
+			<button type="button" class="bct-modal-close" id="bct_modal_close" aria-label="Đóng">
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+					<path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+				</svg>
+			</button>
+		</div>
+		<div class="bct-modal-subtitle" id="bct_modal_subtitle"></div>
+		<div class="bct-modal-body" id="bct_modal_body">
+			<div class="bct-modal-loading"><span class="bct-spinner"></span> Đang tải...</div>
+		</div>
+		<div class="bct-modal-footer">
+			<div class="bct-modal-summary" id="bct_modal_summary"></div>
+			<div class="bct-modal-pager" id="bct_modal_pager"></div>
+		</div>
+	</div>
+</div>
 
 <script type="text/javascript" src="modules/{$MODULE_NAME}/js/view.baocaothuchi.js?v={$STYLE_VERSION}"></script>
