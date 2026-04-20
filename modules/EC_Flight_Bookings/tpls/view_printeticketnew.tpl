@@ -139,7 +139,7 @@
 
 							<!-- Flight info -->
 							<tr>
-								<td style="padding:8px 12px;">
+								<td style="padding:2px 12px;">
 									<table width="100%" cellpadding="0" cellspacing="0" border="0">
 										<tr>
 											<!-- Departure -->
@@ -200,16 +200,16 @@
 							{foreach from=$group.passengers item=pax key=pidx}
 								<!-- Passenger {$pidx+1} -->
 								<tr>
-									<td style="padding:6px 12px;{if $pidx > 0} border-top:1px dashed #ccc;{/if}">
+									<td style="padding:2px 12px;{if $pidx > 0} border-top:1px dashed #ccc;{/if}">
 										<!-- Passenger name -->
-										<div style="font-size:16px; font-weight:700; margin-bottom:4px;">
+										<div style="font-size:16px; font-weight:700; margin-bottom:2px; line-height:1.2;">
 											{$pax.salutation} {$pax.name}
 											{if $pax.type|lower != 'người lớn' && $pax.type|lower != 'adult' && $pax.type|lower != 'adt'}
 												<span style="font-size:11px; color:#555; font-weight:400;">({$pax.type})</span>
 											{/if}
 										</div>
 										<!-- Key-value rows -->
-										<table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:12px;">
+										<table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:12px; line-height:1.2;">
 											{assign var="hasCheckedBg" value=false}
 											{if $pax.baggage_outbound || $pax.baggage_inbound || $pax.baggage}
 												{assign var="hasCheckedBg" value=true}
