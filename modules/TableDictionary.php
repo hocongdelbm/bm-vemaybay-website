@@ -111,6 +111,9 @@ include('metadata/securitygroups_usersMetaData.php');
 // DucPham custom
 include('metadata/flightbookings_vouchersMetaData.php');
 
+//DahyVan custom
+include('metadata/hoadonban_receiptvouchersMetaData.php');
+
 if (file_exists('custom/application/Ext/TableDictionary/tabledictionary.ext.php')) {
     include('custom/application/Ext/TableDictionary/tabledictionary.ext.php');
 }

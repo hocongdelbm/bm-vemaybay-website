@@ -547,7 +547,7 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'studio' => 'visible',
             'dependency' => false,
         ),
-        
+
         'com_location_id' =>
         array(
             'required' => false,
@@ -627,7 +627,7 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
-        
+
         // công nợ
         'is_debt' =>
         array(
@@ -840,7 +840,7 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'default'    => '',
             'importable' => true,
             'reportable' => false,
-            
+
         ),
         'delivery_man' => array(
             'name'       => 'delivery_man',
@@ -874,6 +874,18 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'duplicate_merge_dom_value' => ' ',
             'disable_num_format' => '',
         ),
+
+        //17/4/2026 - DahyVan - Thêm relationship N-N với module Hóa đơn bán (EC_HoaDonBan)
+        'hoadonban' => array(
+            'name' => 'hoadonban',
+            'type' => 'link',
+            'relationship' => 'hoadonban_receiptvouchers',
+            'module' => 'EC_HoaDonBan',
+            'bean_name' => 'EC_HoaDonBan',
+            'source' => 'non-db',
+            'vname' => 'LBL_HOADONBAN',
+        ),
+
     ),
     'indices' => array(
         array('name' => 'idx_rv_name', 'type' => 'index', 'fields' => array('name')),
@@ -926,4 +938,4 @@ $dictionary['EC_Receipt_Voucher'] = array(
 if (!class_exists('VardefManager')) {
     require_once('include/SugarObjects/VardefManager.php');
 }
-VardefManager::createVardef('EC_Receipt_Voucher', 'EC_Receipt_Voucher', array('basic','assignable','security_groups'));
+VardefManager::createVardef('EC_Receipt_Voucher', 'EC_Receipt_Voucher', array('basic', 'assignable', 'security_groups'));
