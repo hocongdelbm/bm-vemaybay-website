@@ -64,6 +64,7 @@ class EC_Flight_Bookings extends Basic
 	public $nganluong_code;
 	public $nganluong_datepaid;
 
+	public $lydothangthua_id;
 	public $ghichuthangthua;
 	public $delivery_man_id;
 	public $delivery_man;
@@ -72,6 +73,7 @@ class EC_Flight_Bookings extends Basic
 	public $ip_address;
 	public $account_id;
 	public $account_name;
+	public $contact_id;
 	public $discount_percent;
 
 	public $is_agent;
@@ -82,6 +84,8 @@ class EC_Flight_Bookings extends Basic
 	public $is_telesale;
 	public $telesale_call_id;
 	public $is_output_invoice_checked;
+	public $is_invoice_input_export;
+	public $is_mail_confirm;
 
 	public $point_step = 50;
 	public $contact_name_ignore = ['THAM KHAO', 'TEST', 'IT', 'DEMO'];
