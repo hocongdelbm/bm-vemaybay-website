@@ -15,7 +15,7 @@ $dictionary['bookings_vouchers'] = array(
     ),
     'indices' => array(
         array('name' => 'bookings_vouchers_pk', 'type' => 'primary', 'fields' => array('id')),
-        array('name' => 'bookings_vouchers_uni', 'type' => 'alternate_key', 'fields' => array('booking_id', 'voucher_id')),
+        array('name' => 'idx_bookings_vouchers_uni', 'type' => 'unique', 'fields' => array('booking_id', 'voucher_id', 'deleted')),
     ),
     'relationships' => array(
         'bookings_vouchers' => array(
