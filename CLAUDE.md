@@ -62,7 +62,7 @@ Domain-specific modules added for this business. Key ones:
 - **EC_HoaDonBan / EC_ChiTietHoaDon** — Sales invoices and line items
 - **EC_HoanVe / EC_ChiTietHoanVe** — Ticket refunds
 - **EC_Receipt_Voucher / EC_Payment_Voucher / EC_Input_Invoices** — Accounting vouchers
-- **EC_Revenue / EC_CashFlow / EC_TongHop / EC_Commission / EC_Debts** — Financial reports
+- **EC_Revenue / EC_CashFlow / EC_TongHop / EC_Commission** — Financial reports
 - **EC_Employee_Salary / EC_Salary_Details / EC_WorkingOverTimes / EC_LeaveAbsences** — HR/payroll
 - **EC_Zalo / EC_Zalo_Apps / EC_Zalo_Contacts / EC_Zalo_Messages** — Zalo messaging integration
 - **EC_SMS_Logs / EC_Messages / EC_Outbound_Phone** — Communications

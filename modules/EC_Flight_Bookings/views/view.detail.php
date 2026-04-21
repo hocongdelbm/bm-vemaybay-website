@@ -1,9 +1,11 @@
 <?php
+
+use Codeception\PHPUnit\ResultPrinter\HTML;
+
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('modules/EC_Messages/SMS.php');
 
-class EC_Flight_BookingsViewDetail extends ViewDetail
-{
+class EC_Flight_BookingsViewDetail extends ViewDetail {
 	/**
 	 * @var EC_Flight_Bookings
 	 */
@@ -15,8 +17,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	private $_is_had_rv = 0;
 	private $editing_rights = false;
 
-	function display()
-	{
+	public function display() {
 		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 		$this->editing_rights = ACLController::checkAccess('EC_Flight_Bookings', 'edit', true);
@@ -44,8 +45,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->displayJS();
 	}
 
-	private function displayJS()
-	{
+	private function displayJS() {
 		global $app_list_strings, $current_user;
 
 		$version = '1.0.8';
@@ -61,19 +61,19 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		';
 
 		$js .= '<script>
-					var booking_status = "' . $this->bean->booking_status . '";
-					var win_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '0')) . '";
-					var lose_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '1')) . '";
-					var domestic_airport_lst = ["' . implode('","', array_keys($app_list_strings['domestic_airport_list'])) . '"];
-					let bba_ticket_class = ["Eco Saver max", "Eco Saver", "Eco Smart", "Eco Flex", "Pre smart", "Pre Flex", "Buz smart", "Buz Flex"];
-					let vja_ticket_class = ["Eco", "Eco1", "B1 Eco", "W1 Eco", "E1 Eco", "R1 Eco"];
-					let vna_ticket_class = ["Economy (EL)-Q", "Economy (EP)-A", "Economy (EL)-R", "Economy (EL)-C", "Economy (EC)-K", "Economy (EL)-T", "Economy (EL)-N", "Economy (EL)-E", "Economy (EP)-E", "Economy (EP)-P", "E", "A", "Economy (EC)-L"];
-					let vta_ticket_class = ["Dregow (D)", "Cregow (C)", "Bregow (B)", "Aregow (A)", "Eregow (E)", "Kregow (K)", "Hregow (H)", "Mregow (M)", "Nfleow (N)", "Lregow (L)", "Vfleow (V)", "Yfleow (Y)"];
-					const all_ticket_class = [].concat(bba_ticket_class, vja_ticket_class, vna_ticket_class, vta_ticket_class);
-					const current_user_title = "' . trim($current_user->title) . '";
-					const is_invoice_export = "' . $this->bean->is_invoice_export . '";
-					const is_invoice_input_export = "' . $this->bean->is_invoice_input_export . '";
-				</script>';
+			var booking_status = "' . $this->bean->booking_status . '";
+			var win_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '0')) . '";
+			var lose_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '1')) . '";
+			var domestic_airport_lst = ["' . implode('","', array_keys($app_list_strings['domestic_airport_list'])) . '"];
+			let bba_ticket_class = ["Eco Saver max", "Eco Saver", "Eco Smart", "Eco Flex", "Pre smart", "Pre Flex", "Buz smart", "Buz Flex"];
+			let vja_ticket_class = ["Eco", "Eco1", "B1 Eco", "W1 Eco", "E1 Eco", "R1 Eco"];
+			let vna_ticket_class = ["Economy (EL)-Q", "Economy (EP)-A", "Economy (EL)-R", "Economy (EL)-C", "Economy (EC)-K", "Economy (EL)-T", "Economy (EL)-N", "Economy (EL)-E", "Economy (EP)-E", "Economy (EP)-P", "E", "A", "Economy (EC)-L"];
+			let vta_ticket_class = ["Dregow (D)", "Cregow (C)", "Bregow (B)", "Aregow (A)", "Eregow (E)", "Kregow (K)", "Hregow (H)", "Mregow (M)", "Nfleow (N)", "Lregow (L)", "Vfleow (V)", "Yfleow (Y)"];
+			const all_ticket_class = [].concat(bba_ticket_class, vja_ticket_class, vna_ticket_class, vta_ticket_class);
+			const current_user_title = "' . trim($current_user->title) . '";
+			const is_invoice_export = "' . $this->bean->is_invoice_export . '";
+			const is_invoice_input_export = "' . $this->bean->is_invoice_input_export . '";
+		</script>';
 
 		// Phải tạo phiếu thu trước rồi mới nhấn đã thanh toán
 		$this->_is_had_rv = myCheckValueExist('EC_Receipt_Voucher', array('booking_id'), array($this->bean->id), '');
@@ -98,17 +98,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 	private function displayCSS()
 	{
-		echo '
+		echo <<<HTML
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.8">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0">
-		';
+		HTML;
 	}
 
 	// Line Note Message - Made by: DucPham at 28/09/2022
-	private function populateLineNotesMessage()
-	{
+	private function populateLineNotesMessage() {
 		global $current_user;
 		$actions_kpi = [];
 
@@ -271,8 +270,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('BUTTON_LINE_NOTES', $html);
 	}
 
-	private function populateCustomFields()
-	{
+	private function populateCustomFields() {
 		global $app_list_strings, $current_user;
 
 		// Thông tin hoá đơn
@@ -283,8 +281,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUSTOM_NAME', $booking_name);
 
 		// Loại vé - Chuyến bay
-		$ticket_type = $app_list_strings['booking_ticket_type_list'][$this->bean->ticket_type] . ' - Chuyến bay: ' . $app_list_strings['bk_flight_type_list'][$this->bean->flight_type];
-		$this->ss->assign('CUSTOM_TICKET_TYPE', $ticket_type);
+		$this->ss->assign('CUSTOM_TICKET_TYPE', <<<HTML
+			<span>{$app_list_strings['booking_ticket_type_list'][$this->bean->ticket_type]}</span>
+			<span class="ms-3">Chuyến bay: <b>{$app_list_strings['bk_flight_type_list'][$this->bean->flight_type]}</b></span>
+		HTML);
 
 		// Nguồn khách hàng
 		$customer_source = '<div class="d-flex align-items-center flex-wrap gap-3">';
@@ -361,54 +361,62 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// Đã giữ chỗ
 		$list_bookmark .= '<div class="item small">
-				<label for="is_hold">Đã giữ chỗ</label>
-				<input type="checkbox" name="is_hold" id="check_is_hold" ' . ($this->bean->is_hold ? 'checked' : '') . ' disabled />
-			</div>';
+			<label for="is_hold">Đã giữ chỗ</label>
+			<input type="checkbox" name="is_hold" id="check_is_hold" ' . ($this->bean->is_hold ? 'checked' : '') . ' disabled />
+		</div>';
 
 		$list_bookmark .= '</div>';
 		$this->ss->assign('CUSTOM_BOOKMARK', $list_bookmark);
 
 		// Hệ thống đánh dấu
-		$bookmark_system = '<div class="d-flex align-items-center gap-3">
-								<div class="item small"><input type="checkbox" id="is_prior" ' . ($this->bean->is_prior ? 'checked' : '') . ' disabled /> <label>Vé cận</label></div>
-								<div class="item small"><input type="checkbox" id="is_mail_confirm" ' . ($this->bean->is_mail_confirm ? 'checked' : '') . ' disabled /> <label>Mail xác nhận</label></div>
-								<div class="item small"><input type="checkbox" id="is_reference" ' . ($this->bean->is_reference ? 'checked' : '') . ' disabled /> <label>BK tham khảo</label></div>
-						</div>';
-		$this->ss->assign('CUSTOM_BOOKMARK_SYSTEM', $bookmark_system);
+		$checkedIsPrior = $this->bean->is_prior ? 'checked' : '';
+		$checkedIsMailConfirm = $this->bean->is_mail_confirm ? 'checked' : '';
+		$checkedIsReference = $this->bean->is_reference ? 'checked' : '';
+		$this->ss->assign('CUSTOM_BOOKMARK_SYSTEM', <<<HTML
+			<div class="d-flex align-items-center gap-3">
+				<div class="item small"><input type="checkbox" id="is_prior" $checkedIsPrior disabled /> <label>Vé cận</label></div>
+				<div class="item small"><input type="checkbox" id="is_mail_confirm" $checkedIsMailConfirm disabled /> <label>Mail xác nhận</label></div>
+				<div class="item small"><input type="checkbox" id="is_reference" $checkedIsReference disabled /> <label>BK tham khảo</label></div>
+		</div>
+		HTML);
 
 		// Đã xuất vé
-		$is_ticket_exported = '<span class="is_ticket_exported d-flex align-items-center">
-			<span class="w-50 d-flex gap-2 align-items-center is_ticket_exported--wrap">
-				<span>Lượt đi: </span>
-				<input disabled type="checkbox" id="is_ticket_exported" ' . ($this->bean->is_ticket_exported ? 'checked' : '') . ' />
+		$checkedOutbound = $this->bean->is_ticket_exported ? "checked" : "";
+		$checkedInbound  = $this->bean->is_ticket_inbound_exported ? "checked" : "";
+		$this->ss->assign('CUSTOM_IS_EXPORTED', <<<HTML
+			<span class="is_ticket_exported d-flex align-items-center">
+				<span class="w-50 d-flex gap-2 align-items-center is_ticket_exported--wrap">
+					<span>Lượt đi: </span>
+					<input disabled type="checkbox" id="is_ticket_exported" $checkedOutbound  />
+				</span>
+				<span class="flex-fill d-flex gap-2 align-items-center is_ticket_inbound_exported--wrap">
+					<span>Lượt về: </span>
+					<input disabled type="checkbox" id="is_ticket_inbound_exported" $checkedInbound />
+				</span>
 			</span>
-			<span class="flex-fill d-flex gap-2 align-items-center is_ticket_inbound_exported--wrap">
-				<span>Lượt về: </span>
-				<input disabled type="checkbox" id="is_ticket_inbound_exported" ' . ($this->bean->is_ticket_inbound_exported ? 'checked' : '') . ' />
-			</span>
-		</span>';
-		$is_exported = $is_ticket_exported;
-		$this->ss->assign('CUSTOM_IS_EXPORTED', $is_exported);
+		HTML);
 
 		// Date ticket issue (ngày xuất vé) - giao vé
-		$ticket_issue = '<span class="is_ticket_exported d-flex align-items-center">
-			<span class="w-50 d-flex gap-2 align-items-center is_ticket_exported--wrap">
-				<span>Lượt đi: ' . $this->bean->date_ticket_issue . '</span>
+		$this->ss->assign('CUSTOM_DATE_TICKET_ISSUE', <<<HTML
+			<span class="is_ticket_exported d-flex align-items-center">
+				<span class="w-50 d-flex gap-2 align-items-center is_ticket_exported--wrap">
+					<span>Lượt đi: {$this->bean->date_ticket_issue}</span>
+				</span>
+				<span class="flex-fill d-flex gap-2 align-items-center is_ticket_inbound_exported--wrap">
+					<span>Lượt về: {$this->bean->date_ticket_inbound_issue}</span>
+				</span>
 			</span>
-			<span class="flex-fill d-flex gap-2 align-items-center is_ticket_inbound_exported--wrap">
-				<span>Lượt về: ' . $this->bean->date_ticket_inbound_issue . '</span>
-			</span>
-		</span>';
-		$this->ss->assign('CUSTOM_DATE_TICKET_ISSUE', $ticket_issue);
+		HTML);
 
-		// Hãng bay - chiều về
-		$airline = 'Chiều đi: <b style="margin-right:20px">' . $this->bean->airline . '</b> Chiều về: <b>' . $this->bean->airline_inbound . '</b>';
-		$this->ss->assign('CUSTOM_AIRLINE', $airline);
+		// Airline code
+		$this->ss->assign('CUSTOM_AIRLINE', <<<HTML
+			Chiều đi: <b style="margin-right:20px">{$this->bean->airline}</b>
+			Chiều về: <b>{$this->bean->airline_inbound}</b>
+		HTML);
 
 		/************  CONTACT  ************/
 		$contact_title = $app_list_strings['passenger_salutation_list'][(int) $this->bean->contact_title];
 		$link_contact = $this->bean->contact_id ? "index.php?module=Contacts&action=DetailView&record=" . $this->bean->contact_id : "#";
-		// $type_contact = classifyContact($this->bean->contact_id);
 		$type_contact = classifyContactv2($this->bean->contact_id);
 
 		$contact_name_new = '<a target="_blank" href="' . $link_contact . '" class="contact_name" data="' . $this->bean->contact_name . '"><span>' . ($contact_title ? $contact_title . '. ' : '') . $this->bean->contact_name . '</span></a>';
@@ -997,79 +1005,96 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			// Ở trạng thái hoàn tất - cho phép Auto LK call
 			$item_link_call_auto = '';
 			if ((int)$this->bean->booking_status === 8) {
-				$item_link_call_auto = '<li>
-											<a class="dropdown-item btn-voiceip-mapping" id="btnAutoMapping" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . $this->bean->phone . '">
-												<svg fill="#000000" width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" d="M10.9745053,6.25438069 C11.5604671,6.90391332 11.3746817,7.63976469 10.8565778,8.33797195 C10.7337406,8.50350982 10.5921521,8.6666145 10.4211441,8.84634226 C10.3390625,8.93260918 10.2750591,8.99748744 10.141183,9.13149508 C9.83714115,9.43583583 9.58155513,9.69156272 9.37441088,9.89868984 C9.27396046,9.99913195 9.95978257,11.3696024 11.2907766,12.7019048 C12.6210476,14.0334833 13.9914431,14.7197765 14.0923663,14.6187976 L14.8586096,13.852132 C15.2805737,13.4297532 15.5040355,13.2259664 15.8111037,13.0245121 C16.4494656,12.6057102 17.1457524,12.4919023 17.7329975,13.0170075 C19.6503895,14.3885354 20.7354185,15.2301771 21.2669798,15.782495 C22.303783,16.8597835 22.1679037,18.5180455 21.2728679,19.4640525 C20.9625009,19.7920945 20.5689704,20.1858419 20.1041752,20.6339203 C17.2926326,23.4470127 11.3589665,21.7350681 6.81145433,17.1830859 C2.26291105,12.6300716 0.5518801,6.69583839 3.35753082,3.88868121 C3.86122573,3.37707043 4.02729858,3.211082 4.51785466,2.72771931 C5.43117982,1.82778693 7.16594962,1.68687606 8.22050841,2.7286095 C8.77521019,3.27656509 9.65955176,4.41440275 10.9745053,6.25438069 Z M16.2721965,15.266193 L15.5058008,16.0330112 C14.203091,17.336439 11.9845452,16.2253927 9.8770373,14.1158132 C7.76808363,12.0047866 6.65827534,9.78706944 7.96142436,8.48402821 C8.16828995,8.27717972 8.42363443,8.0216945 8.72744369,7.71758662 C8.8500234,7.59488642 8.90609452,7.5380489 8.97339653,7.46731514 C9.06509326,7.37094278 9.1404434,7.28630078 9.20077275,7.211402 C8.03540499,5.58806095 7.24320651,4.57370892 6.8161396,4.15183592 C6.59558525,3.93396391 6.1017247,3.97407893 5.9204189,4.1527261 C5.43686641,4.6291879 5.27792422,4.78804929 4.77626041,5.29755675 C2.9719475,7.10286418 4.35321008,11.8933879 8.22519368,15.7691775 C12.0959638,19.6437524 16.8857659,21.0256764 18.7038097,19.2068681 C19.161375,18.7655298 19.5342402,18.3924591 19.8212354,18.08912 C20.0286173,17.8699279 20.0656783,17.4176384 19.8271235,17.1697684 C19.4297888,16.7569185 18.4570205,15.9984643 16.777362,14.7922626 C16.6549304,14.8908077 16.5044234,15.033738 16.2721965,15.266193 Z M17.5857864,7 L13,7 L13,5 L17.5857864,5 L16.2928932,3.70710678 L17.7071068,2.29289322 L21.4142136,6 L17.7071068,9.70710678 L16.2928932,8.29289322 L17.5857864,7 Z"></path> </g></svg>
-												<span class="ms-1">Auto LK</span>
-											</a>
-										</li>';
+				$item_link_call_auto = <<<HTML
+					<li>
+						<a id="btnAutoMapping" class="dropdown-item btn-voiceip-mapping" booking_id="{$this->bean->id}" booking_name="{$this->bean->name}" phone="{$this->bean->phone}">
+							<svg fill="#000000" width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+								<g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+								<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+								<g id="SVGRepo_iconCarrier">
+									<path fill-rule="evenodd" d="M10.9745053,6.25438069 C11.5604671,6.90391332 11.3746817,7.63976469 10.8565778,8.33797195 C10.7337406,8.50350982 10.5921521,8.6666145 10.4211441,8.84634226 C10.3390625,8.93260918 10.2750591,8.99748744 10.141183,9.13149508 C9.83714115,9.43583583 9.58155513,9.69156272 9.37441088,9.89868984 C9.27396046,9.99913195 9.95978257,11.3696024 11.2907766,12.7019048 C12.6210476,14.0334833 13.9914431,14.7197765 14.0923663,14.6187976 L14.8586096,13.852132 C15.2805737,13.4297532 15.5040355,13.2259664 15.8111037,13.0245121 C16.4494656,12.6057102 17.1457524,12.4919023 17.7329975,13.0170075 C19.6503895,14.3885354 20.7354185,15.2301771 21.2669798,15.782495 C22.303783,16.8597835 22.1679037,18.5180455 21.2728679,19.4640525 C20.9625009,19.7920945 20.5689704,20.1858419 20.1041752,20.6339203 C17.2926326,23.4470127 11.3589665,21.7350681 6.81145433,17.1830859 C2.26291105,12.6300716 0.5518801,6.69583839 3.35753082,3.88868121 C3.86122573,3.37707043 4.02729858,3.211082 4.51785466,2.72771931 C5.43117982,1.82778693 7.16594962,1.68687606 8.22050841,2.7286095 C8.77521019,3.27656509 9.65955176,4.41440275 10.9745053,6.25438069 Z M16.2721965,15.266193 L15.5058008,16.0330112 C14.203091,17.336439 11.9845452,16.2253927 9.8770373,14.1158132 C7.76808363,12.0047866 6.65827534,9.78706944 7.96142436,8.48402821 C8.16828995,8.27717972 8.42363443,8.0216945 8.72744369,7.71758662 C8.8500234,7.59488642 8.90609452,7.5380489 8.97339653,7.46731514 C9.06509326,7.37094278 9.1404434,7.28630078 9.20077275,7.211402 C8.03540499,5.58806095 7.24320651,4.57370892 6.8161396,4.15183592 C6.59558525,3.93396391 6.1017247,3.97407893 5.9204189,4.1527261 C5.43686641,4.6291879 5.27792422,4.78804929 4.77626041,5.29755675 C2.9719475,7.10286418 4.35321008,11.8933879 8.22519368,15.7691775 C12.0959638,19.6437524 16.8857659,21.0256764 18.7038097,19.2068681 C19.161375,18.7655298 19.5342402,18.3924591 19.8212354,18.08912 C20.0286173,17.8699279 20.0656783,17.4176384 19.8271235,17.1697684 C19.4297888,16.7569185 18.4570205,15.9984643 16.777362,14.7922626 C16.6549304,14.8908077 16.5044234,15.033738 16.2721965,15.266193 Z M17.5857864,7 L13,7 L13,5 L17.5857864,5 L16.2928932,3.70710678 L17.7071068,2.29289322 L21.4142136,6 L17.7071068,9.70710678 L16.2928932,8.29289322 L17.5857864,7 Z"></path>
+								</g>
+							</svg>
+							<span class="ms-1">Auto LK</span>
+						</a>
+					</li>
+				HTML;
 			}
 
 			// Ở trạng thái mới tạo - cho phép Link BK thủ công
 			$item_link_call_manual = '';
 			if ((int)$this->bean->booking_status === 1) {
-				$item_link_call_manual = '<li>
-											<a class="dropdown-item btn-voiceip-mapping" data-bs-toggle="modal" data-bs-target="#manualLinkCall">
-												<svg fill="#000000" width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" d="M10.9745053,6.25438069 C11.5604671,6.90391332 11.3746817,7.63976469 10.8565778,8.33797195 C10.7337406,8.50350982 10.5921521,8.6666145 10.4211441,8.84634226 C10.3390625,8.93260918 10.2750591,8.99748744 10.141183,9.13149508 C9.83714115,9.43583583 9.58155513,9.69156272 9.37441088,9.89868984 C9.27396046,9.99913195 9.95978257,11.3696024 11.2907766,12.7019048 C12.6210476,14.0334833 13.9914431,14.7197765 14.0923663,14.6187976 L14.8586096,13.852132 C15.2805737,13.4297532 15.5040355,13.2259664 15.8111037,13.0245121 C16.4494656,12.6057102 17.1457524,12.4919023 17.7329975,13.0170075 C19.6503895,14.3885354 20.7354185,15.2301771 21.2669798,15.782495 C22.303783,16.8597835 22.1679037,18.5180455 21.2728679,19.4640525 C20.9625009,19.7920945 20.5689704,20.1858419 20.1041752,20.6339203 C17.2926326,23.4470127 11.3589665,21.7350681 6.81145433,17.1830859 C2.26291105,12.6300716 0.5518801,6.69583839 3.35753082,3.88868121 C3.86122573,3.37707043 4.02729858,3.211082 4.51785466,2.72771931 C5.43117982,1.82778693 7.16594962,1.68687606 8.22050841,2.7286095 C8.77521019,3.27656509 9.65955176,4.41440275 10.9745053,6.25438069 Z M16.2721965,15.266193 L15.5058008,16.0330112 C14.203091,17.336439 11.9845452,16.2253927 9.8770373,14.1158132 C7.76808363,12.0047866 6.65827534,9.78706944 7.96142436,8.48402821 C8.16828995,8.27717972 8.42363443,8.0216945 8.72744369,7.71758662 C8.8500234,7.59488642 8.90609452,7.5380489 8.97339653,7.46731514 C9.06509326,7.37094278 9.1404434,7.28630078 9.20077275,7.211402 C8.03540499,5.58806095 7.24320651,4.57370892 6.8161396,4.15183592 C6.59558525,3.93396391 6.1017247,3.97407893 5.9204189,4.1527261 C5.43686641,4.6291879 5.27792422,4.78804929 4.77626041,5.29755675 C2.9719475,7.10286418 4.35321008,11.8933879 8.22519368,15.7691775 C12.0959638,19.6437524 16.8857659,21.0256764 18.7038097,19.2068681 C19.161375,18.7655298 19.5342402,18.3924591 19.8212354,18.08912 C20.0286173,17.8699279 20.0656783,17.4176384 19.8271235,17.1697684 C19.4297888,16.7569185 18.4570205,15.9984643 16.777362,14.7922626 C16.6549304,14.8908077 16.5044234,15.033738 16.2721965,15.266193 Z M17,5 L17,2 L19,2 L19,5 L22,5 L22,7 L19,7 L19,10 L17,10 L17,7 L14,7 L14,5 L17,5 Z"></path> </g></svg>
-												<span class="ms-1">Liên kết</span>
-											</a>
-										</li>';
-			}
+				$item_link_call_manual = <<<HTML
+					<li>
+						<a class="dropdown-item btn-voiceip-mapping" data-bs-toggle="modal" data-bs-target="#manualLinkCall">
+							<svg fill="#882e2e" width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+								<g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+								<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+								<g id="SVGRepo_iconCarrier">
+									<path fill-rule="evenodd" d="M10.9745053,6.25438069 C11.5604671,6.90391332 11.3746817,7.63976469 10.8565778,8.33797195 C10.7337406,8.50350982 10.5921521,8.6666145 10.4211441,8.84634226 C10.3390625,8.93260918 10.2750591,8.99748744 10.141183,9.13149508 C9.83714115,9.43583583 9.58155513,9.69156272 9.37441088,9.89868984 C9.27396046,9.99913195 9.95978257,11.3696024 11.2907766,12.7019048 C12.6210476,14.0334833 13.9914431,14.7197765 14.0923663,14.6187976 L14.8586096,13.852132 C15.2805737,13.4297532 15.5040355,13.2259664 15.8111037,13.0245121 C16.4494656,12.6057102 17.1457524,12.4919023 17.7329975,13.0170075 C19.6503895,14.3885354 20.7354185,15.2301771 21.2669798,15.782495 C22.303783,16.8597835 22.1679037,18.5180455 21.2728679,19.4640525 C20.9625009,19.7920945 20.5689704,20.1858419 20.1041752,20.6339203 C17.2926326,23.4470127 11.3589665,21.7350681 6.81145433,17.1830859 C2.26291105,12.6300716 0.5518801,6.69583839 3.35753082,3.88868121 C3.86122573,3.37707043 4.02729858,3.211082 4.51785466,2.72771931 C5.43117982,1.82778693 7.16594962,1.68687606 8.22050841,2.7286095 C8.77521019,3.27656509 9.65955176,4.41440275 10.9745053,6.25438069 Z M16.2721965,15.266193 L15.5058008,16.0330112 C14.203091,17.336439 11.9845452,16.2253927 9.8770373,14.1158132 C7.76808363,12.0047866 6.65827534,9.78706944 7.96142436,8.48402821 C8.16828995,8.27717972 8.42363443,8.0216945 8.72744369,7.71758662 C8.8500234,7.59488642 8.90609452,7.5380489 8.97339653,7.46731514 C9.06509326,7.37094278 9.1404434,7.28630078 9.20077275,7.211402 C8.03540499,5.58806095 7.24320651,4.57370892 6.8161396,4.15183592 C6.59558525,3.93396391 6.1017247,3.97407893 5.9204189,4.1527261 C5.43686641,4.6291879 5.27792422,4.78804929 4.77626041,5.29755675 C2.9719475,7.10286418 4.35321008,11.8933879 8.22519368,15.7691775 C12.0959638,19.6437524 16.8857659,21.0256764 18.7038097,19.2068681 C19.161375,18.7655298 19.5342402,18.3924591 19.8212354,18.08912 C20.0286173,17.8699279 20.0656783,17.4176384 19.8271235,17.1697684 C19.4297888,16.7569185 18.4570205,15.9984643 16.777362,14.7922626 C16.6549304,14.8908077 16.5044234,15.033738 16.2721965,15.266193 Z M17,5 L17,2 L19,2 L19,5 L22,5 L22,7 L19,7 L19,10 L17,10 L17,7 L14,7 L14,5 L17,5 Z"></path>
+								</g>
+							</svg>
+							<span class="ms-1">Liên kết</span>
+						</a>
+					</li>
+				HTML;
 
-			$calls_button .= '<div class="btn-group btn-group-called">
-								<button type="button" class="btn btn-warning dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
-									Gọi
-								</button>
-								<ul class="dropdown-menu dropdown-menu-lg-end">
-									<li>
-										<a class="dropdown-item btn-voiceip-calling" id="btnCalled" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . $this->bean->phone . '">
-											<svg fill="#000000" width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" d="M10.9745053,6.25438069 C11.5604671,6.90391332 11.3746817,7.63976469 10.8565778,8.33797195 C10.7337406,8.50350982 10.5921521,8.6666145 10.4211441,8.84634226 C10.3390625,8.93260918 10.2750591,8.99748744 10.141183,9.13149508 C9.83714115,9.43583583 9.58155513,9.69156272 9.37441088,9.89868984 C9.27396046,9.99913195 9.95978257,11.3696024 11.2907766,12.7019048 C12.6210476,14.0334833 13.9914431,14.7197765 14.0923663,14.6187976 L14.8586096,13.852132 C15.2805737,13.4297532 15.5040355,13.2259664 15.8111037,13.0245121 C16.4494656,12.6057102 17.1457524,12.4919023 17.7329975,13.0170075 C19.6503895,14.3885354 20.7354185,15.2301771 21.2669798,15.782495 C22.303783,16.8597835 22.1679037,18.5180455 21.2728679,19.4640525 C20.9625009,19.7920945 20.5689704,20.1858419 20.1041752,20.6339203 C17.2926326,23.4470127 11.3589665,21.7350681 6.81145433,17.1830859 C2.26291105,12.6300716 0.5518801,6.69583839 3.35753082,3.88868121 C3.86122573,3.37707043 4.02729858,3.211082 4.51785466,2.72771931 C5.43117982,1.82778693 7.16594962,1.68687606 8.22050841,2.7286095 C8.77521019,3.27656509 9.65955176,4.41440275 10.9745053,6.25438069 Z M16.2721965,15.266193 L15.5058008,16.0330112 C14.203091,17.336439 11.9845452,16.2253927 9.8770373,14.1158132 C7.76808363,12.0047866 6.65827534,9.78706944 7.96142436,8.48402821 C8.16828995,8.27717972 8.42363443,8.0216945 8.72744369,7.71758662 C8.8500234,7.59488642 8.90609452,7.5380489 8.97339653,7.46731514 C9.06509326,7.37094278 9.1404434,7.28630078 9.20077275,7.211402 C8.03540499,5.58806095 7.24320651,4.57370892 6.8161396,4.15183592 C6.59558525,3.93396391 6.1017247,3.97407893 5.9204189,4.1527261 C5.43686641,4.6291879 5.27792422,4.78804929 4.77626041,5.29755675 C2.9719475,7.10286418 4.35321008,11.8933879 8.22519368,15.7691775 C12.0959638,19.6437524 16.8857659,21.0256764 18.7038097,19.2068681 C19.161375,18.7655298 19.5342402,18.3924591 19.8212354,18.08912 C20.0286173,17.8699279 20.0656783,17.4176384 19.8271235,17.1697684 C19.4297888,16.7569185 18.4570205,15.9984643 16.777362,14.7922626 C16.6549304,14.8908077 16.5044234,15.033738 16.2721965,15.266193 Z M17.5857864,7 L13,7 L13,5 L17.5857864,5 L16.2928932,3.70710678 L17.7071068,2.29289322 L21.4142136,6 L17.7071068,9.70710678 L16.2928932,8.29289322 L17.5857864,7 Z"></path> </g></svg>
-											<span class="ms-1">Gọi ngay</span>
-										</a>
-									</li>
-									<li>
-										<a class="dropdown-item btn-voiceip-calling btn-voiceip-calling-zalo" id="btnCalled" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . $this->bean->phone . '">
-											<svg fill="#000000" width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" d="M10.9745053,6.25438069 C11.5604671,6.90391332 11.3746817,7.63976469 10.8565778,8.33797195 C10.7337406,8.50350982 10.5921521,8.6666145 10.4211441,8.84634226 C10.3390625,8.93260918 10.2750591,8.99748744 10.141183,9.13149508 C9.83714115,9.43583583 9.58155513,9.69156272 9.37441088,9.89868984 C9.27396046,9.99913195 9.95978257,11.3696024 11.2907766,12.7019048 C12.6210476,14.0334833 13.9914431,14.7197765 14.0923663,14.6187976 L14.8586096,13.852132 C15.2805737,13.4297532 15.5040355,13.2259664 15.8111037,13.0245121 C16.4494656,12.6057102 17.1457524,12.4919023 17.7329975,13.0170075 C19.6503895,14.3885354 20.7354185,15.2301771 21.2669798,15.782495 C22.303783,16.8597835 22.1679037,18.5180455 21.2728679,19.4640525 C20.9625009,19.7920945 20.5689704,20.1858419 20.1041752,20.6339203 C17.2926326,23.4470127 11.3589665,21.7350681 6.81145433,17.1830859 C2.26291105,12.6300716 0.5518801,6.69583839 3.35753082,3.88868121 C3.86122573,3.37707043 4.02729858,3.211082 4.51785466,2.72771931 C5.43117982,1.82778693 7.16594962,1.68687606 8.22050841,2.7286095 C8.77521019,3.27656509 9.65955176,4.41440275 10.9745053,6.25438069 Z M16.2721965,15.266193 L15.5058008,16.0330112 C14.203091,17.336439 11.9845452,16.2253927 9.8770373,14.1158132 C7.76808363,12.0047866 6.65827534,9.78706944 7.96142436,8.48402821 C8.16828995,8.27717972 8.42363443,8.0216945 8.72744369,7.71758662 C8.8500234,7.59488642 8.90609452,7.5380489 8.97339653,7.46731514 C9.06509326,7.37094278 9.1404434,7.28630078 9.20077275,7.211402 C8.03540499,5.58806095 7.24320651,4.57370892 6.8161396,4.15183592 C6.59558525,3.93396391 6.1017247,3.97407893 5.9204189,4.1527261 C5.43686641,4.6291879 5.27792422,4.78804929 4.77626041,5.29755675 C2.9719475,7.10286418 4.35321008,11.8933879 8.22519368,15.7691775 C12.0959638,19.6437524 16.8857659,21.0256764 18.7038097,19.2068681 C19.161375,18.7655298 19.5342402,18.3924591 19.8212354,18.08912 C20.0286173,17.8699279 20.0656783,17.4176384 19.8271235,17.1697684 C19.4297888,16.7569185 18.4570205,15.9984643 16.777362,14.7922626 C16.6549304,14.8908077 16.5044234,15.033738 16.2721965,15.266193 Z M17.5857864,7 L13,7 L13,5 L17.5857864,5 L16.2928932,3.70710678 L17.7071068,2.29289322 L21.4142136,6 L17.7071068,9.70710678 L16.2928932,8.29289322 L17.5857864,7 Z"></path> </g></svg>
-											<span class="ms-1">Gọi Zalo</span>
-										</a>
-									</li>
-									' . $item_link_call_manual . '
-									' . $item_link_call_auto . '
-								</ul>
-								<div class="modal fade" id="manualLinkCall" tabindex="-1" aria-labelledby="manualLinkCallLabel" aria-hidden="true">
-									<div class="modal-dialog modal-dialog-centered">
-										<div class="modal-content">
-											<div class="modal-header">
-												<h6 class="modal-title" id="manualLinkCallLabel">Liên kết cuộc gọi</h6>
-											</div>
-											<div class="modal-body">
-												 <input type="text" name="call_name" class="form-control" placeholder="Nhập mã cuộc gọi" />
-												<div id="suggested-calls-container" class="mt-3" style="display:none;">
-													<p class="mb-1 fw-semibold text-muted small">Cuộc gọi đến gần đây:</p>
-													<div id="suggested-calls-list"></div>
-												</div>
-											</div>
-											<div class="modal-footer">
-												<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-												<button type="button" class="btn btn-primary" id="btn-mapping-call-booking" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . htmlspecialchars($this->bean->phone, ENT_QUOTES) . '">Liên kết</button>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>';
-
-			// Bổ sung thêm Chờ TT khi tình trạng là mới tạo
-			if ((int)$this->bean->booking_status != 8) {
-				$status_button .= '</form>
+				$status_button .= <<<HTML
+					</form>
 					<form action="index.php" method="post" name="frmPaymentPending" id="frmPaymentPending">
 						<input type="hidden" name="module" value="EC_Flight_Bookings" />
 						<input type="hidden" name="action" value="Save" />
-						<input type="hidden" name="record" value="' . $this->bean->id . '" />
+						<input type="hidden" name="record" value="{$this->bean->id}" />
 						<input type="hidden" name="booking_status" value="2" />
-						<input type="hidden" name="assigned_user_id" value="' . $current_user->id . '" />
-						<input type="submit" name="btnPaymentPending" class="btn btn-warning button-action" id="btnPaymentPending" value="' . $app_list_strings['booking_status_list']['2'] . '" title="' . $app_list_strings['booking_status_list']['2'] . '" />
-					</form>';
+						<input type="hidden" name="assigned_user_id" value="{$current_user->id}" />
+						<input type="submit" name="btnPaymentPending" class="btn btn-warning button-action" id="btnPaymentPending" value="{$app_list_strings['booking_status_list']['2']}" title="{$app_list_strings['booking_status_list']['2']}" />
+					</form>
+				HTML;
 			}
+
+			$calls_button .= <<<HTML
+				<div class="btn-group btn-group-called">
+					<button type="button" class="btn btn-warning dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+						Gọi
+					</button>
+					<ul class="dropdown-menu dropdown-menu-lg-end">
+						<li>
+							<a class="dropdown-item btn-voiceip-calling" id="btnCalled" booking_id="{$this->bean->id}" booking_name="{$this->bean->name}" phone="{$this->bean->phone}">
+								<svg fill="#000000" width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" d="M10.9745053,6.25438069 C11.5604671,6.90391332 11.3746817,7.63976469 10.8565778,8.33797195 C10.7337406,8.50350982 10.5921521,8.6666145 10.4211441,8.84634226 C10.3390625,8.93260918 10.2750591,8.99748744 10.141183,9.13149508 C9.83714115,9.43583583 9.58155513,9.69156272 9.37441088,9.89868984 C9.27396046,9.99913195 9.95978257,11.3696024 11.2907766,12.7019048 C12.6210476,14.0334833 13.9914431,14.7197765 14.0923663,14.6187976 L14.8586096,13.852132 C15.2805737,13.4297532 15.5040355,13.2259664 15.8111037,13.0245121 C16.4494656,12.6057102 17.1457524,12.4919023 17.7329975,13.0170075 C19.6503895,14.3885354 20.7354185,15.2301771 21.2669798,15.782495 C22.303783,16.8597835 22.1679037,18.5180455 21.2728679,19.4640525 C20.9625009,19.7920945 20.5689704,20.1858419 20.1041752,20.6339203 C17.2926326,23.4470127 11.3589665,21.7350681 6.81145433,17.1830859 C2.26291105,12.6300716 0.5518801,6.69583839 3.35753082,3.88868121 C3.86122573,3.37707043 4.02729858,3.211082 4.51785466,2.72771931 C5.43117982,1.82778693 7.16594962,1.68687606 8.22050841,2.7286095 C8.77521019,3.27656509 9.65955176,4.41440275 10.9745053,6.25438069 Z M16.2721965,15.266193 L15.5058008,16.0330112 C14.203091,17.336439 11.9845452,16.2253927 9.8770373,14.1158132 C7.76808363,12.0047866 6.65827534,9.78706944 7.96142436,8.48402821 C8.16828995,8.27717972 8.42363443,8.0216945 8.72744369,7.71758662 C8.8500234,7.59488642 8.90609452,7.5380489 8.97339653,7.46731514 C9.06509326,7.37094278 9.1404434,7.28630078 9.20077275,7.211402 C8.03540499,5.58806095 7.24320651,4.57370892 6.8161396,4.15183592 C6.59558525,3.93396391 6.1017247,3.97407893 5.9204189,4.1527261 C5.43686641,4.6291879 5.27792422,4.78804929 4.77626041,5.29755675 C2.9719475,7.10286418 4.35321008,11.8933879 8.22519368,15.7691775 C12.0959638,19.6437524 16.8857659,21.0256764 18.7038097,19.2068681 C19.161375,18.7655298 19.5342402,18.3924591 19.8212354,18.08912 C20.0286173,17.8699279 20.0656783,17.4176384 19.8271235,17.1697684 C19.4297888,16.7569185 18.4570205,15.9984643 16.777362,14.7922626 C16.6549304,14.8908077 16.5044234,15.033738 16.2721965,15.266193 Z M17.5857864,7 L13,7 L13,5 L17.5857864,5 L16.2928932,3.70710678 L17.7071068,2.29289322 L21.4142136,6 L17.7071068,9.70710678 L16.2928932,8.29289322 L17.5857864,7 Z"></path> </g></svg>
+								<span class="ms-1">Gọi ngay</span>
+							</a>
+						</li>
+						<li>
+							<a class="dropdown-item btn-voiceip-calling btn-voiceip-calling-zalo" id="btnCalled" booking_id="{$this->bean->id}" booking_name="{$this->bean->name}" phone="{$this->bean->phone}">
+								<svg fill="#000000" width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" d="M10.9745053,6.25438069 C11.5604671,6.90391332 11.3746817,7.63976469 10.8565778,8.33797195 C10.7337406,8.50350982 10.5921521,8.6666145 10.4211441,8.84634226 C10.3390625,8.93260918 10.2750591,8.99748744 10.141183,9.13149508 C9.83714115,9.43583583 9.58155513,9.69156272 9.37441088,9.89868984 C9.27396046,9.99913195 9.95978257,11.3696024 11.2907766,12.7019048 C12.6210476,14.0334833 13.9914431,14.7197765 14.0923663,14.6187976 L14.8586096,13.852132 C15.2805737,13.4297532 15.5040355,13.2259664 15.8111037,13.0245121 C16.4494656,12.6057102 17.1457524,12.4919023 17.7329975,13.0170075 C19.6503895,14.3885354 20.7354185,15.2301771 21.2669798,15.782495 C22.303783,16.8597835 22.1679037,18.5180455 21.2728679,19.4640525 C20.9625009,19.7920945 20.5689704,20.1858419 20.1041752,20.6339203 C17.2926326,23.4470127 11.3589665,21.7350681 6.81145433,17.1830859 C2.26291105,12.6300716 0.5518801,6.69583839 3.35753082,3.88868121 C3.86122573,3.37707043 4.02729858,3.211082 4.51785466,2.72771931 C5.43117982,1.82778693 7.16594962,1.68687606 8.22050841,2.7286095 C8.77521019,3.27656509 9.65955176,4.41440275 10.9745053,6.25438069 Z M16.2721965,15.266193 L15.5058008,16.0330112 C14.203091,17.336439 11.9845452,16.2253927 9.8770373,14.1158132 C7.76808363,12.0047866 6.65827534,9.78706944 7.96142436,8.48402821 C8.16828995,8.27717972 8.42363443,8.0216945 8.72744369,7.71758662 C8.8500234,7.59488642 8.90609452,7.5380489 8.97339653,7.46731514 C9.06509326,7.37094278 9.1404434,7.28630078 9.20077275,7.211402 C8.03540499,5.58806095 7.24320651,4.57370892 6.8161396,4.15183592 C6.59558525,3.93396391 6.1017247,3.97407893 5.9204189,4.1527261 C5.43686641,4.6291879 5.27792422,4.78804929 4.77626041,5.29755675 C2.9719475,7.10286418 4.35321008,11.8933879 8.22519368,15.7691775 C12.0959638,19.6437524 16.8857659,21.0256764 18.7038097,19.2068681 C19.161375,18.7655298 19.5342402,18.3924591 19.8212354,18.08912 C20.0286173,17.8699279 20.0656783,17.4176384 19.8271235,17.1697684 C19.4297888,16.7569185 18.4570205,15.9984643 16.777362,14.7922626 C16.6549304,14.8908077 16.5044234,15.033738 16.2721965,15.266193 Z M17.5857864,7 L13,7 L13,5 L17.5857864,5 L16.2928932,3.70710678 L17.7071068,2.29289322 L21.4142136,6 L17.7071068,9.70710678 L16.2928932,8.29289322 L17.5857864,7 Z"></path> </g></svg>
+								<span class="ms-1">Gọi Zalo</span>
+							</a>
+						</li>
+						$item_link_call_manual
+						$item_link_call_auto
+					</ul>
+					<div class="modal fade" id="manualLinkCall" tabindex="-1" aria-labelledby="manualLinkCallLabel" aria-hidden="true">
+						<div class="modal-dialog modal-dialog-centered">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h6 class="modal-title" id="manualLinkCallLabel">Liên kết cuộc gọi</h6>
+								</div>
+								<div class="modal-body">
+									<input type="text" name="call_name" class="form-control" placeholder="Nhập mã cuộc gọi" />
+									<div id="suggested-calls-container" class="mt-3" style="display:none;">
+										<p class="mb-1 fw-semibold text-muted small">Cuộc gọi đến gần đây:</p>
+										<div id="suggested-calls-list"></div>
+									</div>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+									<button type="button" class="btn btn-primary" id="btn-mapping-call-booking" booking_id="{$this->bean->id}" booking_name="{$this->bean->name}" phone="{$this->bean->phone}">Liên kết</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			HTML;
 		}
 		// Payment pending button
 		else if ($this->bean->booking_status == '6' && $this->editing_rights) {
@@ -1118,7 +1143,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// Send mail confirm button
 		if (!in_array((int)$this->bean->booking_status, [4, 7, 8]) && $use_mail_confirm) {
-			$send_mail = '</form>
+			$send_mail = '
+			</form>
 			<form action="index.php" method="post" name="frmSendMail" id="frmSendMail" class="frmSendMail">
 				<input type="hidden" name="module" value="EC_Flight_Bookings" />
 				<input type="hidden" name="action" value="sendconfirm" />
@@ -1131,7 +1157,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					<select name="form_mail" class="box-select">
 						<option value="sendmail_confirm.html">Mail xác nhận</option>
 						<option value="sendmail_closetime.html">Mail cận giờ bay</option>
-						<!-- <option value="sendmail_promo.html">Mail vé khuyến mãi</option> -->
 					</select>
 					<input type="submit" class="btn btn-primary save-popup-dialog" value="Gửi mail" title="Gửi mail" />
 					<input type="button" class="btn btn-primary" id="btnPreviewSendMail" booking_id="' . $this->bean->id . '" value="Xem trước" title="Xem trước" />

@@ -120,7 +120,13 @@ class Viewreport_sales_revenue extends SugarView
         // routing
         $data = '';
         $payment_stt = $_POST['payment_stt'] ?? 0;
-        $customer_source = $_POST['customer_source'] ?? '';
+        // Xử lý multi-select cho customer_source
+        $customer_source = isset($_POST['customer_source']) && is_array($_POST['customer_source'])
+            ? array_filter($_POST['customer_source'], function ($v) {
+                return $v !== '';
+            })
+            : (isset($_POST['customer_source']) && $_POST['customer_source'] !== '' ? [$_POST['customer_source']] : []);
+            
         $ticket_type = $_POST['ticket_type'] ?? '';
 
         $data = $this->bookingQuery($post_from_date, $post_to_date, ['payment_stt' => $payment_stt, 'customer_source' => $customer_source, 'ticket_type' => $ticket_type]);
