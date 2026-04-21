@@ -911,6 +911,8 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
     $where_bk_fields = '';
     $where_receipt_voucher_only = '';
     $customer_source = isset($condition_arr['customer_source']) ? trim((string)$condition_arr['customer_source']) : '';
+    $normalized_customer_source = $customer_source;
+    $is_booking_only_by_customer_source = false;
     $customer_source_aliases = [
         'reference' => 'is_reference',
     ];
@@ -919,6 +921,9 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
         $normalized_customer_source = isset($customer_source_aliases[$customer_source])
             ? $customer_source_aliases[$customer_source]
             : $customer_source;
+
+        // Khi lọc nguồn theo field của booking (vd: quảng cáo), chỉ hiển thị dữ liệu booking.
+        $is_booking_only_by_customer_source = ($normalized_customer_source !== 'receipt_voucher');
 
         if ($normalized_customer_source === 'receipt_voucher') {
             // "Phiếu thu" là nguồn dữ liệu từ phân hệ phiếu thu, không phải field customer_source của booking.
@@ -1020,7 +1025,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
         GROUP BY bk.id
         $sql_having";
 
-    if (empty($condition_arr['payment_stt'])) {
+    if (empty($condition_arr['payment_stt']) && !$is_booking_only_by_customer_source) {
         $sql .= "UNION
             SELECT 
                 p.id AS parent_id
@@ -1110,7 +1115,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
                     ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
                     ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS voucher_date
                 FROM ec_hoanve p
-                    INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id $where_bk_fields
+                    INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id " . ($normalized_customer_source === 'receipt_voucher' ? '' : $where_bk_fields) . "
                 WHERE p.deleted=0
                     AND p.tinhtrang='1'
                     AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
@@ -1138,7 +1143,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
                     ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
                     ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS voucher_date
                 FROM ec_hoanve p
-                    INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id $where_bk_fields
+                    INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id " . ($normalized_customer_source === 'receipt_voucher' ? '' : $where_bk_fields) . "
                 WHERE p.deleted=0
                     AND p.tinhtrang='1' 
                     AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
