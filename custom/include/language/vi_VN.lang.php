@@ -38,7 +38,6 @@ $app_list_strings['moduleList']['EC_Receipt_Voucher']     = 'Phiếu thu';
 $app_list_strings['moduleList']['Notes']                  = 'Ghi chú';
 $app_list_strings['moduleList']['EC_Payment_Voucher']     = 'Phiếu chi';
 $app_list_strings['moduleList']['EC_Payment_Types']       = 'Loại chi';
-$app_list_strings['moduleList']['EC_Debts']               = 'Công nợ';
 $app_list_strings['moduleList']['EC_SMS_Logs']            = 'Tin nhắn (cũ)';
 $app_list_strings['moduleList']['EC_Messages']            = 'Tin nhắn';
 $app_list_strings['moduleList']['Accounts']               = 'Tài khoản';
