@@ -148,6 +148,7 @@ $viewdefs[$module_name]['EditView'] = array(
                 array(
                     'name' => 'receipt_vouchers_list',
                     'customCode' => '{$RECEIPT_VOUCHERS_PANEL}',
+                    'hideLabel' => true,
                 ),
             ),
         ),
