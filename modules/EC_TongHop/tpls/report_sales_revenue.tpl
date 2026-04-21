@@ -6,6 +6,12 @@
                 location.href = location.href.replace(/&?e=([^&]$|[^&]*)/i, "");
             });
 
+            $('#customer_source').select2({
+                placeholder: 'Chọn nguồn khách hàng',
+                closeOnSelect: false,
+                width: '100%'
+            });
+
             // Check all
             $('#check-all').on('change', function () {
                 if ($(this).is(':checked')) {
@@ -18,6 +24,7 @@
             // click clear button
             $("#btnClear").click(function() {
                 $("#ec_search_form input:not([type=submit], [type=button], [type=hidden]), #ec_search_form select").val("");
+                $('#customer_source').val(null).trigger('change');
             });
 
             $('input[type=radio][name=optionRadio]').change(function() {
@@ -150,7 +157,7 @@
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <label for="customer_source" class="text-label">Nguồn KH:</label>
-                        <select class="box-select" id="customer_source" name="customer_source">{$CUSTOMER_SOURCE_OPTS}</select>
+                        <select class="box-select" id="customer_source" name="customer_source[]" multiple style="width: 100%;">{$CUSTOMER_SOURCE_OPTS}</select>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <label for="ticket_type" class="text-label">Loại vé:</label>
