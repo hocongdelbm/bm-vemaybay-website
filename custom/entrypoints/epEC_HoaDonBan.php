@@ -192,6 +192,66 @@ if (isset($_POST['for']) && $_POST['for'] == 'reasonCancelInvoice') {
     exit();
 }
 
+// Liên kết phiếu thu với hóa đơn bán
+if (isset($_REQUEST['for']) && $_REQUEST['for'] == 'save_hoadonban_receipt') {
+    $hoadon_id  = isset($_POST['hoadon_id'])  ? global_test_input($_POST['hoadon_id'])  : '';
+    $receipt_id = isset($_POST['receipt_id']) ? global_test_input($_POST['receipt_id']) : '';
+
+    if (strlen($hoadon_id) !== 36 || strlen($receipt_id) !== 36) {
+        echo json_encode(['error' => true, 'message' => 'Invalid hoadon_id or receipt_id']);
+        exit;
+    }
+
+    $hoadon = BeanFactory::getBean('EC_HoaDonBan', $hoadon_id);
+    if (!$hoadon || empty($hoadon->id)) {
+        echo json_encode(['error' => true, 'message' => 'HoaDonBan not found']);
+        exit;
+    }
+
+    $receipt = BeanFactory::getBean('EC_Receipt_Voucher', $receipt_id);
+    if (!$receipt || empty($receipt->id)) {
+        echo json_encode(['error' => true, 'message' => 'Receipt voucher not found']);
+        exit;
+    }
+
+    $new_id = create_guid();
+    $db->query("INSERT INTO hoadonban_receiptvouchers (id, hoadon_id, receipt_id, date_modified, deleted)
+                VALUES ('{$new_id}', '{$hoadon_id}', '{$receipt_id}', NOW(), 0)
+                ON DUPLICATE KEY UPDATE deleted = 0, date_modified = NOW()");
+
+    echo json_encode(['error' => false, 'message' => 'Relationship saved successfully']);
+    exit;
+}
+
+// Xóa liên kết phiếu thu khỏi hóa đơn bán
+if (isset($_REQUEST['for']) && $_REQUEST['for'] == 'remove_hoadonban_receipt') {
+    $hoadon_id  = isset($_POST['hoadon_id'])  ? global_test_input($_POST['hoadon_id'])  : '';
+    $receipt_id = isset($_POST['receipt_id']) ? global_test_input($_POST['receipt_id']) : '';
+
+    if (strlen($hoadon_id) !== 36 || strlen($receipt_id) !== 36) {
+        echo json_encode(['error' => true, 'message' => 'Invalid hoadon_id or receipt_id']);
+        exit;
+    }
+
+    $row = $db->fetchByAssoc($db->query(
+        "SELECT id FROM hoadonban_receiptvouchers
+         WHERE hoadon_id = '{$hoadon_id}' AND receipt_id = '{$receipt_id}' AND deleted = 0
+         LIMIT 1"
+    ));
+
+    if (!$row) {
+        echo json_encode(['error' => true, 'message' => 'Relationship not found']);
+        exit;
+    }
+
+    $db->query("UPDATE hoadonban_receiptvouchers
+                SET deleted = 1, date_modified = NOW()
+                WHERE id = '{$row['id']}' AND deleted = 0");
+
+    echo json_encode(['error' => false, 'message' => 'Relationship removed successfully']);
+    exit;
+}
+
 function test_input($data)
 {
     $data = trim($data);

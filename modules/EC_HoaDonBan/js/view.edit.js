@@ -4,6 +4,7 @@ $(document).ready(function () {
 	var sig_digits = $('#sig_digits').val();
 
 	$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
+	markReceiptEmptyRow();
 
 	changeInvoiceType();
 	$('#sohoadon').attr('maxlength', 8);
@@ -503,7 +504,301 @@ $(document).ready(function () {
 			$('#EditView').submit();
 		}
 	});
+
+	$('#btn-add-receipt').click(function () {
+		if (receiptPanelState.isPending) return;
+
+		var hoadonId = getCurrentHoaDonId();
+		if (!isValidGuid(hoadonId)) {
+			showReceiptNotify('warning', 'Vui lòng lưu hóa đơn trước khi liên kết phiếu thu');
+			return;
+		}
+
+		open_popup(
+			'EC_Receipt_Voucher',
+			900,
+			600,
+			'',
+			true,
+			false,
+			{
+				"call_back_function": "setReceiptVoucherReturn",
+				"form_name": "EditView",
+				"field_to_name_array": {
+					"id": "receipt_id",
+					"name": "receipt_name",
+					"amount": "receipt_amount",
+					"amount_type": "receipt_amount_type",
+					"ngaychungtu": "receipt_ngaychungtu",
+					"assigned_user_name": "receipt_assigned_user_name"
+				}
+			},
+			"single",
+			true
+		);
+	});
+
+	$(document).on('click', '.btn-remove-receipt', function () {
+		if (receiptPanelState.isPending) return;
+
+		var $btn = $(this);
+		var receiptId = ($btn.attr('data-id') || '').trim();
+		var hoadonId = getCurrentHoaDonId();
+
+		if (!isValidGuid(hoadonId) || !isValidGuid(receiptId)) {
+			showReceiptNotify('error', 'Không thể xóa liên kết phiếu thu do dữ liệu không hợp lệ');
+			return;
+		}
+
+		setReceiptPanelPending(true);
+		$.ajax({
+			url: 'index.php?entryPoint=entryPointEC_HoaDonBan&for=remove_hoadonban_receipt',
+			type: 'POST',
+			dataType: 'json',
+			data: {
+				hoadon_id: hoadonId,
+				receipt_id: receiptId
+			}
+		}).done(function (res) {
+			if (res && (res.error === true || res.error === 1 || res.error === '1')) {
+				showReceiptNotify('error', res.message || 'Xóa liên kết phiếu thu thất bại');
+				return;
+			}
+
+			$btn.closest('tr').remove();
+			refreshReceiptVoucherTable();
+			showReceiptNotify('success', 'Đã xóa liên kết phiếu thu');
+		}).fail(function (xhr) {
+			if (xhr && xhr.responseJSON && xhr.responseJSON.message == 'Relationship not found') {
+				$btn.closest('tr').remove();
+				refreshReceiptVoucherTable();
+				showReceiptNotify('success', 'Đã xóa liên kết phiếu thu');
+				return;
+			}
+
+			var message = 'Xóa liên kết phiếu thu thất bại. Vui lòng thử lại';
+			if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+				message = xhr.responseJSON.message;
+			}
+			showReceiptNotify('error', message);
+		}).always(function () {
+			setReceiptPanelPending(false);
+		});
+	});
 });
+
+var receiptPanelState = {
+	isPending: false,
+};
+
+function setReceiptVoucherReturn(resultData) {
+	if (receiptPanelState.isPending) return;
+
+	var popupData = getPopupFirstSelectedRow(resultData);
+	var hoadonId = getCurrentHoaDonId();
+	var receiptId = (popupData.id || '').trim();
+
+	if (!isValidGuid(hoadonId)) {
+		showReceiptNotify('warning', 'Vui lòng lưu hóa đơn trước khi liên kết phiếu thu');
+		return;
+	}
+
+	if (!isValidGuid(receiptId)) {
+		showReceiptNotify('warning', 'Phiếu thu được chọn không hợp lệ');
+		return;
+	}
+
+	if (isReceiptVoucherLinked(receiptId)) {
+		showReceiptNotify('warning', 'Phiếu thu này đã được liên kết với hóa đơn hiện tại');
+		return;
+	}
+
+	setReceiptPanelPending(true);
+	$.ajax({
+		url: 'index.php?entryPoint=entryPointEC_HoaDonBan&for=save_hoadonban_receipt',
+		type: 'POST',
+		dataType: 'json',
+		data: {
+			hoadon_id: hoadonId,
+			receipt_id: receiptId
+		}
+	}).done(function (res) {
+		if (res && (res.error === true || res.error === 1 || res.error === '1')) {
+			showReceiptNotify('error', res.message || 'Liên kết phiếu thu thất bại');
+			return;
+		}
+
+		appendReceiptVoucherRow({
+			id: receiptId,
+			name: popupData.name || receiptId,
+			amount: popupData.amount || 0,
+			amount_type: popupData.amount_type || 'VND',
+			ngaychungtu: popupData.ngaychungtu || '',
+			rv_status_text: popupData.rv_status || '',
+			assigned_user_name: popupData.assigned_user_name || ''
+		});
+
+		showReceiptNotify('success', 'Liên kết phiếu thu thành công');
+	}).fail(function (xhr) {
+		var message = 'Liên kết phiếu thu thất bại. Vui lòng thử lại';
+		if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+			message = xhr.responseJSON.message;
+		}
+		showReceiptNotify('error', message);
+	}).always(function () {
+		setReceiptPanelPending(false);
+	});
+}
+
+function getCurrentHoaDonId() {
+	return ($('#EditView input[name="record"]').val() || '').trim();
+}
+
+function isValidGuid(id) {
+	return typeof id === 'string' && id.length === 36;
+}
+
+function getPopupFirstSelectedRow(resultData) {
+	var fallback = {
+		id: '',
+		name: '',
+		amount: '',
+		amount_type: '',
+		ngaychungtu: '',
+		rv_status: '',
+		assigned_user_name: '',
+	};
+
+	if (!resultData || !resultData.name_to_value_array) {
+		return fallback;
+	}
+
+	var source = resultData.name_to_value_array;
+	var row = null;
+	if (Array.isArray(source)) {
+		row = source[0] || null;
+	} else if (typeof source === 'object') {
+		if (source[0]) {
+			row = source[0];
+		} else if (source.receipt_id || source.id) {
+			// ✅ flat object chính là row - dùng trực tiếp
+			row = source;
+		} else {
+			var keys = Object.keys(source);
+			if (keys.length > 0) row = source[keys[0]];
+		}
+	}
+
+	if (!row || typeof row !== 'object') {
+		return fallback;
+	}
+
+	return {
+		id: (row.receipt_id || row.id || '').trim(),
+		name: row.receipt_name || row.name || '',
+		amount: row.receipt_amount || row.amount || '',
+		amount_type: row.receipt_amount_type || row.amount_type || '',
+		ngaychungtu: row.receipt_ngaychungtu || row.ngaychungtu || '',
+		rv_status: row.receipt_status || row.rv_status || '',
+		assigned_user_name: row.receipt_assigned_user_name || row.assigned_user_name || '',
+	};
+}
+
+function isReceiptVoucherLinked(receiptId) {
+	return $(`.btn-remove-receipt[data-id="${receiptId}"]`).length > 0;
+}
+
+function setReceiptPanelPending(isPending) {
+	receiptPanelState.isPending = !!isPending;
+	$('#btn-add-receipt, .btn-remove-receipt').prop('disabled', !!isPending);
+}
+
+function appendReceiptVoucherRow(row) {
+	var $tbody = $('.panel-receipt-vouchers table tbody').first();
+	if (!$tbody.length) return;
+
+	markReceiptEmptyRow();
+	$tbody.find('.receipt-empty-row').remove();
+
+	var receiptId = (row.id || '').trim();
+	var receiptName = escapeHtml(row.name || '');
+	var amount = formatReceiptAmount(row.amount);
+	var amountType = escapeHtml(row.amount_type || 'VND');
+	var ngaychungtu = escapeHtml(row.ngaychungtu || '');
+	var statusText = escapeHtml(row.rv_status_text || '');
+	var assignedUser = escapeHtml(row.assigned_user_name || '');
+
+	var rowHtml = '';
+	rowHtml += '<tr>';
+	rowHtml += '<td class="text-center"></td>';
+	rowHtml += '<td><a href="index.php?module=EC_Receipt_Voucher&action=DetailView&record=' + receiptId + '" target="_blank">' + receiptName + '</a></td>';
+	rowHtml += '<td class="text-end">' + amount + '</td>';
+	rowHtml += '<td>' + amountType + '</td>';
+	rowHtml += '<td>' + ngaychungtu + '</td>';
+	rowHtml += '<td>' + statusText + '</td>';
+	rowHtml += '<td>' + assignedUser + '</td>';
+	rowHtml += '<td class="text-center"><button type="button" class="btn-remove-receipt" data-id="' + receiptId + '">Xóa</button></td>';
+	rowHtml += '</tr>';
+
+	$tbody.append(rowHtml);
+	refreshReceiptVoucherTable();
+}
+
+function refreshReceiptVoucherTable() {
+	var $tbody = $('.panel-receipt-vouchers table tbody').first();
+	if (!$tbody.length) return;
+
+	markReceiptEmptyRow();
+
+	var $rows = $tbody.children('tr').not('.receipt-empty-row');
+	if (!$rows.length) {
+		$tbody.html('<tr class="receipt-empty-row"><td colspan="8" class="text-center">Chưa có phiếu thu nào</td></tr>');
+		return;
+	}
+
+	$rows.each(function (idx) {
+		$(this).children('td').first().text(idx + 1);
+	});
+}
+
+function markReceiptEmptyRow() {
+	$('.panel-receipt-vouchers table tbody tr').each(function () {
+		var $td = $(this).children('td[colspan="8"]');
+		if ($td.length && $td.text().trim() == 'Chưa có phiếu thu nào') {
+			$(this).addClass('receipt-empty-row');
+		}
+	});
+}
+
+function formatReceiptAmount(value) {
+	var number = parseFloat((value || '0').toString().replace(/,/g, ''));
+	if (isNaN(number)) return '0';
+	return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function escapeHtml(value) {
+	return $('<div>').text(value || '').html();
+}
+
+function showReceiptNotify(type, message) {
+	if (typeof showModalNotify === 'function') {
+		if (type == 'success') showModalNotify(1, message);
+		else if (type == 'warning') showModalNotify(2, message);
+		else showModalNotify(0, message);
+		return;
+	}
+
+	if (typeof showToastWarning === 'function') {
+		showToastWarning(message);
+		return;
+	}
+
+	alert(message);
+}
+
+if (typeof window !== 'undefined') {
+	window.setReceiptVoucherReturn = setReceiptVoucherReturn;
+}
 
 function markRowDeleted(ln) {
 	$('#ct_line_' + ln).hide();
