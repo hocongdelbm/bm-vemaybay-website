@@ -145,5 +145,14 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
             ),
         ),
+        'LBL_RECEIPT_VOUCHERS_PANEL' => array(
+            array(
+                array(
+                    'name' => 'receipt_vouchers_list',
+                    'customCode' => '{$RECEIPT_VOUCHERS_PANEL}',
+                    'hideLabel' => true,
+                ),
+            ),
+        ),
     )
 );

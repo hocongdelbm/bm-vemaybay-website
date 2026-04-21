@@ -9,6 +9,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 	{
 		$this->getStyles();
 		$this->populateLineItems();
+		$this->populateReceiptVoucherPanel();
 
 		// Cập nhật thông tin hóa đơn mới nhất từ hệ thống Wininvoice 
 		if ($this->bean->tinhtrang == '2' && $this->bean->company_unit == 'MHV' && (!$this->bean->sohoadon || empty($this->bean->sohoadon))) {
@@ -628,5 +629,57 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 		}
 
 		return $result;
+	}
+
+	public function populateReceiptVoucherPanel()
+	{
+		global $db;
+
+		$html = '<div class="panel-receipt-vouchers">';
+		$html .= '<table class="table-details__booking" style="width:100%;" cellpadding="0" cellspacing="0" border="0">';
+		$html .= '<thead><tr>
+        <th width="5%">STT</th>
+        <th width="20%">Tên phiếu thu</th>
+        <th width="15%">Số tiền</th>
+        <th width="10%">Loại tiền</th>
+        <th width="15%">Ngày chứng từ</th>
+        <th width="15%">Trạng thái</th>
+        <th width="10%">Người phụ trách</th>
+    </tr></thead><tbody>';
+
+		$i = 1;
+		if (!empty($this->bean->id)) {
+			$sql = "SELECT rv.id, rv.name, rv.amount, rv.amount_type, rv.ngaychungtu,
+                    rv.rv_status, u.user_name as assigned_user_name
+                FROM ec_receipt_voucher rv
+                INNER JOIN hoadonban_receiptvouchers hr ON rv.id = hr.receipt_id
+                LEFT JOIN users u ON rv.assigned_user_id = u.id
+                WHERE hr.hoadon_id = '{$this->bean->id}'
+                    AND hr.deleted = 0
+                    AND rv.deleted = 0
+                ORDER BY rv.date_entered DESC";
+
+			$result = $db->query($sql);
+			while ($row = $db->fetchByAssoc($result)) {
+				$status_label = $GLOBALS['app_list_strings']['receipt_voucher_status_list'][$row['rv_status']] ?? '';
+				$html .= '<tr>
+                <td class="text-center">' . $i . '</td>
+                <td><a href="index.php?module=EC_Receipt_Voucher&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a></td>
+                <td class="text-end">' . number_format($row['amount']) . '</td>
+                <td>' . ($row['amount_type'] ?? 'VND') . '</td>
+                <td>' . ($row['ngaychungtu'] ?? '') . '</td>
+                <td>' . $status_label . '</td>
+                <td>' . ($row['assigned_user_name'] ?? '') . '</td>
+            </tr>';
+				$i++;
+			}
+		}
+
+		if ($i == 1) {
+			$html .= '<tr><td colspan="7" class="text-center">Chưa có phiếu thu nào</td></tr>';
+		}
+
+		$html .= '</tbody></table></div>';
+		$this->ss->assign('RECEIPT_VOUCHERS_PANEL', $html);
 	}
 }
