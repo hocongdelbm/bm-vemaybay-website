@@ -789,48 +789,35 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body)
     try {
         $send_ok = true;
 
-        // SUGAR SENDMAIL
         require_once('include/SugarPHPMailer.php');
         $mail = new SugarPHPMailer();
+        
+        $mail->ClearAllRecipients();
+        $mail->ClearAttachments();
+        $mail->ClearCustomHeaders();
+        
+        $mail->CharSet = 'UTF-8';
+        $mail->Encoding = 'base64'; 
+        
         $department_info = myGetDepartmentInfo("48840c01-3a4f-c430-f703-56f32c7cd8a4"); // Security travelpass 
 
         if (isset($department_info['mail_smtpserver']) && isset($department_info['mail_smtpport'])) {
-            // get email from user
             $user_email = getEmailFromUser($user_id);
             $from_mail = !empty($user_email['second_email']) ? $user_email['second_email'] : $user_email['primary_email'];
 
-            // Load from department settings
-            $mail->Host         = $department_info['mail_smtpserver'];
-            $mail->Port         = $department_info['mail_smtpport'];
-            $mail->SMTPAuth     = TRUE;
-            $mail->SMTPSecure   = $department_info['mail_smtpssl'] == 1 ? 'ssl' : 'tls';
+            $mail->Host          = $department_info['mail_smtpserver'];
+            $mail->Port          = $department_info['mail_smtpport'];
+            $mail->SMTPAuth      = TRUE;
+            $mail->SMTPSecure    = $department_info['mail_smtpssl'] == 1 ? 'ssl' : 'tls';
             $mail->SMTPKeepAlive = false;
             // $mail->SMTPDebug     = 4;
-            $mail->Mailer       = "smtp";
-            $mail->Timeout      = 300;
-            $mail->Username     = $user_email['primary_email'];
-            $mail->Password     = $user_email['primary_pwd'];
-            $mail->ContentType  = "text/html";
-            $mail->From         = $from_mail;
-            $mail->FromName     = ucwords(myRemoveUnicodeChars($user_email['primary_fullname']));
-            $mail->Subject      = $subject;
-            $mail->Body         = from_html(wordwrap('&lt;html&gt;&lt;body&gt;' . $body . '&lt;/body&gt;&lt;/html&gt;', 996));
-            $mail->AddAddress($to_email, $to_name);
-
-            // Add Bcc for current user 
-            $mail->AddReplyTo($from_mail);
-            $mail->AddReplyTo("info@timchuyenbay.com");
-            $mail->AddBCC("info@timchuyenbay.com");
-
-            // Add Bcc, ReplyTo for user admin
-            // if(isset($department_info['com_email_bcc']) && trim($department_info['com_email_bcc']) != ''){
-            //     $bcc_arr = explode(';', $department_info['com_email_bcc']);
-            //     foreach($bcc_arr as $bcc_add){ 
-            //         $mail->AddReplyTo($bcc_add); 
-            //         $mail->AddBCC($bcc_add);
-            //     }
-            // }
-
+            $mail->Mailer        = "smtp";
+            $mail->Timeout       = 300;
+            $mail->Username      = $user_email['primary_email'];
+            $mail->Password      = $user_email['primary_pwd'];
+            
+            $mail->From          = $from_mail;
+            $mail->FromName      = ucwords(myRemoveUnicodeChars($user_email['primary_fullname']));
         } else {
             // Load system settings
             require_once('modules/Administration/Administration.php');
@@ -846,41 +833,57 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body)
                     $mail->Password = $admin->settings['mail_smtppass'];
                 }
                 $mail->Mailer   = "smtp";
-                $mail->SMTPKeepAlive = false;
             } else {
                 $mail->Mailer = 'sendmail';
             }
-
             $mail->From     = $admin->settings['notify_fromaddress'];
             $mail->FromName = $admin->settings['notify_fromname'];
-
-            $mail->ContentType = "text/html";
-            $mail->Subject = $subject;
-            $mail->Body = from_html(wordwrap('&lt;html&gt;&lt;body&gt;' . $body . '&lt;/body&gt;&lt;/html&gt;', 996));
-            $mail->AddAddress($to_email, $to_name);
         }
 
+        // Cấu hình nội dung 
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        
+        // Tạo nội dung HTML sạch
+        $full_body = '<html><head><meta charset="UTF-8"></head><body>' . from_html($body) . '</body></html>';
+        $mail->Body = $full_body;
+ 
+        $mail->AltBody = strip_tags(str_replace(['<br>', '<br/>', '</p>'], "\n", from_html($body)));
+
+        $mail->AddAddress($to_email, $to_name);
+        $mail->AddReplyTo($mail->From);
+        $mail->AddReplyTo("info@timchuyenbay.com");
+        $mail->AddBCC("info@timchuyenbay.com");  
+        // Add Bcc, ReplyTo for user admin
+        // if(isset($department_info['com_email_bcc']) && trim($department_info['com_email_bcc']) != ''){
+        //     $bcc_arr = explode(';', $department_info['com_email_bcc']);
+        //     foreach($bcc_arr as $bcc_add){ 
+        //         $mail->AddReplyTo($bcc_add); 
+        //         $mail->AddBCC($bcc_add);
+        //     }
+        // }
+        
         if (!$mail->send()) {
             $send_ok = false;
             $GLOBALS['log']->fatal(json_encode([
                 "Mailer error" => $mail->ErrorInfo,
-                "Mailer full SMTP log" => $mail->fullSmtpLog,
                 "Mailer Host" => $mail->Host,
-                "Mailer Port" => $mail->Port,
                 "Mailer Username" => $mail->Username,
-                "Mailer Password" => $mail->Password,
             ]));
         }
+        
+        // save sent
+        $imapPath = '{'.$mail->Host.':993/imap/ssl}Sent Items';
+        $imap = imap_open($imapPath, $mail->Username , $mail->Password); 
+        imap_append($imap, $imapPath, $mail->getSentMIMEMessage());
+        imap_close($imap);
 
         return $send_ok;
-    } catch (RuntimeException $e) {
-        $GLOBALS['log']->fatal("Runtime Exception: {$e->getMessage()} when calling mySendMail() in custom_utils.php");
-        return false;
     } catch (Exception $e) {
-        $GLOBALS['log']->fatal("Exception: {$e->getMessage()} when calling mySendMail() in custom_utils.php");
+        $GLOBALS['log']->fatal("Exception: {$e->getMessage()} in mySendMail()");
         return false;
     } catch (Throwable $th) {
-        $GLOBALS['log']->fatal("Throwable: {$th->getMessage()} when calling mySendMail() in custom_utils.php");
+        $GLOBALS['log']->fatal("Throwable: {$th->getMessage()} in mySendMail()");
         return false;
     }
 }
