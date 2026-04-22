@@ -292,4 +292,128 @@ class entryOutputInvoiceClass extends entryClass {
             "data" => null,
         ];
     }
+
+    /**
+     * Liên kết phiếu thu với hóa đơn bán.
+     *
+     * @param array $params [hoadon_id, receipt_id]
+     * @return array
+     */
+    public function saveHoaDonReceipt($params = []) {
+        global $db;
+
+        $hoadon_id = global_test_input($params['hoadon_id'] ?? '');
+        $receipt_id = global_test_input($params['receipt_id'] ?? '');
+
+        if (strlen($hoadon_id) !== 36 || strlen($receipt_id) !== 36) {
+            return ['error' => true, 'message' => 'Invalid hoadon_id or receipt_id'];
+        }
+
+        $hoadon = BeanFactory::getBean('EC_HoaDonBan', $hoadon_id);
+        if (!$hoadon || empty($hoadon->id)) {
+            return ['error' => true, 'message' => 'HoaDonBan not found'];
+        }
+
+        $receipt = BeanFactory::getBean('EC_Receipt_Voucher', $receipt_id);
+        if (!$receipt || empty($receipt->id)) {
+            return ['error' => true, 'message' => 'Receipt voucher not found'];
+        }
+
+        $new_id = create_guid();
+        $sql = "INSERT INTO hoadonban_receiptvouchers (id, hoadon_id, receipt_id, date_modified, deleted)
+                VALUES ('{$new_id}', '{$hoadon_id}', '{$receipt_id}', NOW(), 0)
+                ON DUPLICATE KEY UPDATE deleted = 0, date_modified = NOW()";
+
+        if (!$db->query($sql)) {
+            $this->sendSQLErrorNotification($sql);
+            return ['error' => true, 'message' => 'Relationship saved failed'];
+        }
+
+        return ['error' => false, 'message' => 'Relationship saved successfully'];
+    }
+
+    /**
+     * Xóa liên kết phiếu thu khỏi hóa đơn bán.
+     *
+     * @param array $params [hoadon_id, receipt_id]
+     * @return array
+     */
+    public function removeHoaDonReceipt($params = []) {
+        global $db;
+
+        $hoadon_id = global_test_input($params['hoadon_id'] ?? '');
+        $receipt_id = global_test_input($params['receipt_id'] ?? '');
+
+        if (strlen($hoadon_id) !== 36 || strlen($receipt_id) !== 36) {
+            return ['error' => true, 'message' => 'Invalid hoadon_id or receipt_id'];
+        }
+
+        $row = $db->fetchByAssoc($db->query(
+            "SELECT id FROM hoadonban_receiptvouchers
+             WHERE hoadon_id = '{$hoadon_id}' AND receipt_id = '{$receipt_id}' AND deleted = 0
+             LIMIT 1"
+        ));
+
+        if (!$row) {
+            return ['error' => true, 'message' => 'Relationship not found'];
+        }
+
+        $sql = "UPDATE hoadonban_receiptvouchers
+                SET deleted = 1, date_modified = NOW()
+                WHERE id = '{$row['id']}' AND deleted = 0";
+
+        if (!$db->query($sql)) {
+            $this->sendSQLErrorNotification($sql);
+            return ['error' => true, 'message' => 'Relationship removed failed'];
+        }
+
+        return ['error' => false, 'message' => 'Relationship removed successfully'];
+    }
+
+    /**
+     * Lấy thông tin hiển thị phiếu thu để render ở bảng liên kết hóa đơn.
+     *
+     * @param array $params [receipt_id]
+     * @return array
+     */
+    public function getReceiptVoucherInfo($params = []) {
+        global $db, $app_list_strings;
+
+        $receipt_id = global_test_input($params['receipt_id'] ?? '');
+        if (strlen($receipt_id) !== 36) {
+            return ['error' => true, 'message' => 'Invalid receipt_id'];
+        }
+
+        $receipt_id_safe = $db->quote($receipt_id);
+        $sql = "SELECT rv.id, rv.name, rv.amount, rv.amount_type, rv.ngaychungtu, rv.rv_status,
+                       u.user_name AS assigned_user_name
+                FROM ec_receipt_voucher rv
+                LEFT JOIN users u ON u.id = rv.assigned_user_id
+                WHERE rv.id = '{$receipt_id_safe}' AND rv.deleted = 0
+                LIMIT 1";
+
+        $row = $db->fetchByAssoc($db->query($sql));
+        if (!$row) {
+            return ['error' => true, 'message' => 'Receipt voucher not found'];
+        }
+
+        $status_key = (string)($row['rv_status'] ?? '');
+        $status_text = $app_list_strings['receipt_voucher_status_list'][$status_key]
+            ?? ($app_list_strings['receipt_voucher_status_list'][(int)$status_key] ?? $status_key);
+
+        return [
+            'error' => false,
+            'message' => 'OK',
+            'data' => [
+                'id' => $row['id'] ?? '',
+                'name' => $row['name'] ?? '',
+                'amount' => $row['amount'] ?? 0,
+                'amount_type' => $row['amount_type'] ?? 'VND',
+                'ngaychungtu' => $row['ngaychungtu'] ?? '',
+                'rv_status' => $status_key,
+                'rv_status_text' => $status_text,
+                'assigned_user_name' => $row['assigned_user_name'] ?? '',
+            ]
+        ];
+    }
 }
