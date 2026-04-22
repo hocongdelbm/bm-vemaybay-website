@@ -2,6 +2,52 @@ const ENTRYPOINT = "index.php?entryPoint=entryPointGeneral";
 const ENTRYCLASS = "entryOutputInvoiceClass";
 
 $(document).ready(function () {
+
+	// === CUSTOM AUTOCOMPLETE WIDGET ===
+	$.widget('custom.autocomplete', $.ui.autocomplete, {
+		options: {
+			open: function (event, ui) {
+				$('.ui-autocomplete .ui-menu-item:first').trigger('mouseover');
+			},
+			focus: function (event, ui) {
+				event.preventDefault();
+			}
+		},
+		_create: function () {
+			this._super();
+			this.widget().menu("option", "items", ".ui-menu-item");
+		},
+		_renderMenu: function (ul, items) {
+			var self = this;
+			var $table = $('<table class="table-autocomplete table-autocomplete__hoadonban table-details__booking">'),
+				$thead = $('<thead>'),
+				$headerRow = $('<tr>'),
+				$tbody = $('<tbody>');
+			$.each(self.options.columns, function (index, columnMapping) {
+				$('<th class="text-center" style="width:' + columnMapping.width + ';">').html(columnMapping.name).appendTo($headerRow);
+			});
+			$thead.append($headerRow);
+			$table.append($thead);
+			$table.append($tbody);
+			ul.html($table);
+			$.each(items, function (index, item) {
+				self._renderItemData(ul, ul.find("table tbody"), item);
+			});
+		},
+		_renderItemData: function (ul, table, item) {
+			return this._renderItem(table, item).data("ui-autocomplete-item", item);
+		},
+		_renderItem: function (table, item) {
+			var self = this;
+			var $tr = $('<tr class="ui-menu-item" role="presentation">');
+			$.each(self.options.columns, function (index, columnMapping) {
+				var cellContent = !item[columnMapping.valueField] ? '' : item[columnMapping.valueField];
+				$('<td class="text-center">').html(cellContent).appendTo($tr);
+			});
+			return $tr.appendTo(table);
+		}
+	});
+
 	// HD hủy, đã ký chỉ được view
 	if ($("#tinhtrang").val() == '-1' || $("#tinhtrang").val() == '2') {
 		$("#edit_button").remove();
@@ -322,6 +368,137 @@ $(document).ready(function () {
 		);
 	});
 
+	$(document).on('focus.receiptAutocomplete', '#ac_receipt_search', function () {
+		initReceiptSearchAutocomplete($(this));
+	});
+
+	$(document).on('paste.receiptAutocomplete', '#ac_receipt_search', function () {
+		var $input = $(this);
+		// paste event fires TRƯỚC khi value được cập nhật, nên cần delay
+		setTimeout(function () {
+			initReceiptSearchAutocomplete($input);
+			var keyword = ($input.val() || '').trim();
+			console.log('[receipt search] paste keyword:', keyword); // debug
+			if (keyword.length >= 2) {
+				$input.autocomplete('search', keyword);
+			}
+		}, 100);
+	});
+
+
+
+	function initReceiptSearchAutocomplete($input) {
+		if (!$input || !$input.length || $input.data('receipt-autocomplete-ready')) return;
+		if (typeof $input.autocomplete !== 'function') {
+			console.warn('jQuery UI autocomplete is not available on this page');
+			return;
+		}
+		console.log('[receipt search] initializing autocomplete'); // debug
+
+		$input.autocomplete({
+			showHeader: true,
+			columns: [
+				{ name: 'Tên phiếu thu', width: '160px', valueField: 'name' },
+				{ name: 'Số tiền', width: '90px', valueField: 'amount_fmt' },
+				{ name: 'Loại tiền', width: '50px', valueField: 'amount_type' },
+				{ name: 'Ngày CT', width: '80px', valueField: 'ngaychungtu' },
+				{ name: 'Trạng thái', width: '90px', valueField: 'rv_status_text' },
+				{ name: 'Người phụ trách', width: '100px', valueField: 'assigned_user_name' },
+			],
+			source: function (request, response) {
+				console.log('[receipt search] source called, term:', request.term); // debug
+				$.ajax({
+					url: ENTRYPOINT,
+					type: 'POST',
+					contentType: 'application/json',
+					data: JSON.stringify({
+						class: ENTRYCLASS,
+						method: 'searchReceiptVouchers',
+						params: { term: request.term }
+					}),
+					success: function (res) {
+						console.log('[receipt search] raw response:', res); // debug
+						var parsed = parseAjaxJsonResponse(res);
+						console.log('[receipt search] parsed:', parsed); // debug
+						if (!parsed.error && Array.isArray(parsed.data)) {
+							var items = parsed.data
+								.sort(function (a, b) {
+									return a.name.localeCompare(b.name);
+								});
+							console.log('[receipt search] items:', items); // debug
+							response(items);
+						} else {
+							response([]);
+						}
+					},
+					error: function () {
+						console.error('[receipt search] AJAX error:', xhr.responseText);
+						response([]);
+					}
+				});
+			},
+			minLength: 2,
+			select: function (event, ui) {
+				event.preventDefault();
+				$input.val(''); // xóa input sau khi chọn
+
+				var receiptId = (ui.item.id || '').trim();
+				var hoadonId = getCurrentHoaDonId();
+
+				if (!isValidGuid(hoadonId)) {
+					showReceiptNotify('warning', 'Vui lòng lưu hóa đơn trước khi liên kết phiếu thu');
+					return false;
+				}
+				if (!isValidGuid(receiptId)) {
+					showReceiptNotify('warning', 'Phiếu thu được chọn không hợp lệ');
+					return false;
+				}
+				if (isReceiptVoucherLinked(receiptId)) {
+					showReceiptNotify('warning', 'Phiếu thu này đã được liên kết với hóa đơn hiện tại');
+					return false;
+				}
+
+				setReceiptPanelPending(true);
+				$.ajax({
+					url: ENTRYPOINT,
+					type: 'POST',
+					contentType: 'application/json',
+					data: JSON.stringify({
+						class: ENTRYCLASS,
+						method: 'saveHoaDonReceipt',
+						params: { hoadon_id: hoadonId, receipt_id: receiptId }
+					})
+				}).done(function (res) {
+					var parsed = parseAjaxJsonResponse(res);
+					if (isReceiptActionError(parsed)) {
+						showReceiptNotify('error', parsed.message || 'Liên kết phiếu thu thất bại');
+						return;
+					}
+					appendReceiptVoucherRow({
+						id: receiptId,
+						name: ui.item.name,
+						amount: ui.item.amount,
+						amount_type: ui.item.amount_type,
+						ngaychungtu: ui.item.ngaychungtu,
+						rv_status_text: ui.item.rv_status_text,
+						assigned_user_name: ui.item.assigned_user_name
+					});
+					showReceiptNotify('success', 'Liên kết phiếu thu thành công');
+				}).fail(function (xhr) {
+					var failRes = parseAjaxJsonResponse(xhr && (xhr.responseJSON || xhr.responseText));
+					showReceiptNotify('error', (failRes && failRes.message) || 'Liên kết thất bại');
+				}).always(function () {
+					setReceiptPanelPending(false);
+				});
+
+				return false;
+			}
+		});
+
+		$input.data('receipt-autocomplete-ready', true);
+		console.log('[receipt search] autocomplete ready'); // debug
+	}
+
 	$(document).on('click', '.btn-remove-receipt', function () {
 		if (receiptPanelState.isPending) return;
 
@@ -376,6 +553,8 @@ $(document).ready(function () {
 		});
 	});
 })
+
+
 
 var receiptPanelState = {
 	isPending: false,

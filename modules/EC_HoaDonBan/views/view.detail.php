@@ -631,7 +631,8 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 		return $result;
 	}
 
-	protected function populateReceiptVoucherPanel(){
+	protected function populateReceiptVoucherPanel()
+	{
 		global $db;
 
 		$html = '<div class="panel-receipt-vouchers">';
@@ -657,10 +658,10 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 					AND hr.deleted = 0 
 					AND rv.deleted = 0
 					ORDER BY rv.date_entered DESC";
-			
+
 			$result = $db->query($sql);
 
-			
+
 			while ($row = $db->fetchByAssoc($result)) {
 				$html .= '<tr>';
 				$html .= '<td class="text-center">' . $i . '</td>';
@@ -681,13 +682,18 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 		if ($i == 1) {
 			$html .= '<tr><td colspan="8" class="text-center">Chưa có phiếu thu nào</td></tr>';
 		}
-		
+
 		$html .= '</tbody></table>';
-		$html .= '<div class="mt-2">';
+		$html .= '<div class="mt-2 d-flex align-items-center gap-2 flex-wrap">';
 		$html .= '<button type="button" id="btn-add-receipt" class="btn btn-primary">Thêm phiếu thu</button>';
+		$html .= '<div style="position:relative;">';
+		$html .= '  <input type="text" id="ac_receipt_search" class="ac_receipt_search"
+                placeholder="Tìm nhanh theo tên phiếu thu..." autocomplete="off"
+                style="min-width:240px; padding:5px 8px; border:1px solid #c2c2c2;
+                       border-radius:4px; font-size:13px;" />';
 		$html .= '</div>';
 		$html .= '</div>';
-		
+
 		$this->ss->assign('RECEIPT_VOUCHERS_PANEL', $html);
 	}
 }

@@ -7,14 +7,16 @@ use custom\services\Notification\NotificationService;
 /**
  * Class entryOutputInvoiceClass
  */
-class entryOutputInvoiceClass extends entryClass {
+class entryOutputInvoiceClass extends entryClass
+{
     /**
      * Create invoice
      * 
      * @param array $params [recordId, invoiceData, buyerData, itemData]
      * @return array
      */
-    public function set($params = []) {
+    public function set($params = [])
+    {
         $recordId    = global_test_input($params['recordId'] ?? '');
         $invoiceData = $params['invoiceData'] ?? [];
         $buyerData   = $params['buyerData'] ?? [];
@@ -47,7 +49,7 @@ class entryOutputInvoiceClass extends entryClass {
                         ,modified_user_id = '{$this->currentUser->id}'
                         ,date_modified = NOW()
                     WHERE id = '$recordId' AND deleted = 0";
-                if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
+                if (!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
                 return [
                     "status" => 1,
@@ -77,11 +79,12 @@ class entryOutputInvoiceClass extends entryClass {
      * @param array $params [invRef, recordId]
      * @return array
      */
-    public function sign($params = []) {
+    public function sign($params = [])
+    {
         $invRef     = global_test_input($params['invRef'] ?? ''); // HD-250603-020
         $recordId   = global_test_input($params['recordId'] ?? ''); // Record ID in database
 
-        if(empty($invRef) || empty($recordId)) {
+        if (empty($invRef) || empty($recordId)) {
             return [
                 "status" => 0,
                 "message" => "Hóa đơn thiếu thông tin",
@@ -97,7 +100,7 @@ class entryOutputInvoiceClass extends entryClass {
             if ($winInv->checkResponse($responseSign)) {
                 $invNumber = '';
                 for ($i = 0; $i < 3; $i++) {
-                    if(!empty($invNumber)) break;
+                    if (!empty($invNumber)) break;
                     sleep(12); // Pending to get invoice number
 
                     $json = $winInv->get($invRef);
@@ -108,7 +111,7 @@ class entryOutputInvoiceClass extends entryClass {
                         $invSerial = $invoiceData['invSerial'] ?? ''; // Ký hiệu hóa đơn (C25THV)
                         $invDate   = $invoiceData['invDate'] ?? ''; // Ngày hóa đơn (Y-m-d)
 
-                        if(empty($invNumber)) continue;
+                        if (empty($invNumber)) continue;
 
                         global $db;
                         $jsonSafe       = str_replace("'", "\'", $json);
@@ -120,7 +123,7 @@ class entryOutputInvoiceClass extends entryClass {
                         $userIdSafe     = $db->quote($this->currentUser->id);
 
                         $sqlUpdate =
-                           "UPDATE ec_hoadonban
+                            "UPDATE ec_hoadonban
                             SET tinhtrang = '2',
                                 is_signed = 1,
                                 sohoadon = '$invNumberSafe',
@@ -131,7 +134,7 @@ class entryOutputInvoiceClass extends entryClass {
                                 date_modified = NOW()
                             WHERE id = '$recordIdSafe' AND name = '$invRefSafe' AND deleted = 0";
 
-                        if($db->query($sqlUpdate)) {
+                        if ($db->query($sqlUpdate)) {
                             // Save working process & note (KPI)
                             try {
                                 $arrBookingId = [];
@@ -148,7 +151,7 @@ class entryOutputInvoiceClass extends entryClass {
                                     $booking = $row['booking'] ?? '';
                                     $booking_status = $row['booking_status'] ?? '';
 
-                                    if(!empty($booking_id) && !empty($booking)) {
+                                    if (!empty($booking_id) && !empty($booking)) {
                                         $work = new EC_Working_Process();
                                         $work->id               = '';
                                         $work->name             = $booking;
@@ -159,43 +162,40 @@ class entryOutputInvoiceClass extends entryClass {
                                         $work->assigned_user_id = $this->currentUser->id;
                                         $workId = $work->save();
 
-                                        if(is_string($workId)) {
+                                        if (is_string($workId)) {
                                             $note = new Note();
                                             $note->id                   = '';
-                                            $note->name 			    = $booking;
-                                            $note->description 		    = trim("Đã xuất hoá đơn đầu ra số: $invNumber");
-                                            $note->parent_type 		    = "EC_Flight_Bookings";
-                                            $note->parent_id 		    = $booking_id;
-                                            $note->booking_status 	    = $booking_status;
+                                            $note->name                 = $booking;
+                                            $note->description             = trim("Đã xuất hoá đơn đầu ra số: $invNumber");
+                                            $note->parent_type             = "EC_Flight_Bookings";
+                                            $note->parent_id             = $booking_id;
+                                            $note->booking_status         = $booking_status;
                                             $note->working_process_id   = $workId;
                                             $note->assigned_user_id     = $this->currentUser->id;
                                             $note->save();
                                             $arrBookingId[] = $booking_id;
                                         }
-                                    }  
+                                    }
                                 }
 
-                                if(!empty($arrBookingId)) {
+                                if (!empty($arrBookingId)) {
                                     $listBookingId = "'" . implode("','", $arrBookingId) . "'";
                                     $db->query("UPDATE ec_flight_bookings
                                         SET is_invoice_export = 1
                                             ,modified_user_id = '{$this->currentUser->id}'
                                             ,date_modified = NOW()
                                         WHERE id IN ($listBookingId) AND deleted = 0");
-                                }
-                                else {
+                                } else {
                                     $message = "SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)";
                                     $message .= "\n<pre>$sql</pre>";
                                     NotificationService::sendErrorMessage($message, '', ['threadKey' => 'logs']);
                                 }
-                            }
-                            catch(Throwable $th) {
+                            } catch (Throwable $th) {
                                 $message = "SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)";
                                 $message .= "\nException error {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
                                 NotificationService::sendErrorMessage($message, '', ['threadKey' => 'logs']);
                             }
-                        }
-                        else {
+                        } else {
                             $this->sendSQLErrorNotification($sqlUpdate);
                         }
                     }
@@ -206,8 +206,7 @@ class entryOutputInvoiceClass extends entryClass {
                     "message" => "Đã ký số: $invNumber",
                     "data" => null,
                 ];
-            }
-            else {
+            } else {
                 $responseSignArr = json_decode($responseSign, true);
                 return [
                     "status" => 0,
@@ -216,8 +215,7 @@ class entryOutputInvoiceClass extends entryClass {
                     "description" => $responseSignArr
                 ];
             }
-        }
-        catch(Throwable $th) {
+        } catch (Throwable $th) {
             return [
                 "status" => 0,
                 "message" => "{$th->getMessage()} on line {$th->getLine()}",
@@ -232,7 +230,8 @@ class entryOutputInvoiceClass extends entryClass {
      * @param array $params
      * @return array
      */
-    public function delete($params = []) {
+    public function delete($params = [])
+    {
         $recordId   = global_test_input($params['recordId'] ?? '');
         $invRef     = global_test_input($params['invRef'] ?? '');
         $invSerial  = global_test_input($params['invSerial'] ?? ''); // Ký hiệu hóa đơn
@@ -243,7 +242,7 @@ class entryOutputInvoiceClass extends entryClass {
                 'invRef' => $invRef,
                 'invcSign' => $invSerial
             ], 0); // Chưa ký
-            
+
             if ($winInv->checkResponse($responseDelete)) {
                 global $db;
 
@@ -255,7 +254,7 @@ class entryOutputInvoiceClass extends entryClass {
                             ,modified_user_id = '{$this->currentUser->id}'
                             ,date_modified = NOW()
                         WHERE id = '$recordId' AND deleted = 0";
-                    if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
+                    if (!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
                     $sqlUpdate = "UPDATE ec_chitiethoadon
                         SET deleted = 1
@@ -265,9 +264,8 @@ class entryOutputInvoiceClass extends entryClass {
                         WHERE parent_id = '$recordId'
                             AND parent_type = 'EC_HoaDonBan'
                             AND deleted = 0";
-                    if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
-                }
-                catch(Throwable $th) {
+                    if (!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
+                } catch (Throwable $th) {
                     $GLOBALS['log']->fatal("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
                 }
 
@@ -299,7 +297,8 @@ class entryOutputInvoiceClass extends entryClass {
      * @param array $params [hoadon_id, receipt_id]
      * @return array
      */
-    public function saveHoaDonReceipt($params = []) {
+    public function saveHoaDonReceipt($params = [])
+    {
         global $db;
 
         $hoadon_id = global_test_input($params['hoadon_id'] ?? '');
@@ -338,7 +337,8 @@ class entryOutputInvoiceClass extends entryClass {
      * @param array $params [hoadon_id, receipt_id]
      * @return array
      */
-    public function removeHoaDonReceipt($params = []) {
+    public function removeHoaDonReceipt($params = [])
+    {
         global $db;
 
         $hoadon_id = global_test_input($params['hoadon_id'] ?? '');
@@ -376,7 +376,8 @@ class entryOutputInvoiceClass extends entryClass {
      * @param array $params [receipt_id]
      * @return array
      */
-    public function getReceiptVoucherInfo($params = []) {
+    public function getReceiptVoucherInfo($params = [])
+    {
         global $db, $app_list_strings;
 
         $receipt_id = global_test_input($params['receipt_id'] ?? '');
@@ -415,5 +416,62 @@ class entryOutputInvoiceClass extends entryClass {
                 'assigned_user_name' => $row['assigned_user_name'] ?? '',
             ]
         ];
+    }
+
+    /**
+     * Tìm kiếm phiếu thu để dùng cho autocomplete.
+     *
+     * @param array $params [term]
+     * @return array
+     */
+    public function searchReceiptVouchers($params = [])
+    {
+        global $db, $app_list_strings;
+
+        $raw_term = $params['term'] ?? '';
+        $term = global_test_input($raw_term);
+
+        // Tạm thời log để debug
+        $GLOBALS['log']->fatal("searchReceiptVouchers raw=[$raw_term] after_sanitize=[$term]");
+
+        if (mb_strlen($term) < 2) {
+            return ['error' => false, 'data' => []];
+        }
+
+        $termEscaped = $db->quote($term); // trả về: 'PT-231108-322810' (có nháy đơn)
+        $termInner = substr($termEscaped, 1, -1); // bỏ nháy đơn 2 đầu → PT-231108-322810
+        $likeSafe = "'%" . $termInner . "%'"; // → '%PT-231108-322810%'
+
+        $sql = "SELECT rv.id, rv.name, rv.amount, rv.amount_type,
+               rv.ngaychungtu, rv.rv_status,
+               u.user_name AS assigned_user_name
+        FROM ec_receipt_voucher rv
+        LEFT JOIN users u ON u.id = rv.assigned_user_id
+        WHERE rv.deleted = 0
+          AND rv.name LIKE {$likeSafe}
+        ORDER BY rv.date_entered DESC
+        LIMIT 10";
+
+        $res = $db->query($sql);
+        $data = [];
+        while ($row = $db->fetchByAssoc($res)) {
+            $status_key  = (string)($row['rv_status'] ?? '');
+            $status_text = $app_list_strings['receipt_voucher_status_list'][$status_key]
+                ?? ($app_list_strings['receipt_voucher_status_list'][(int)$status_key] ?? $status_key);
+
+            $data[] = [
+                'id'                  => $row['id'],
+                'label'               => $row['name'],
+                'name'                => $row['name'],
+                'amount'              => $row['amount'] ?? 0,
+                'amount_type'         => $row['amount_type'] ?? 'VND',
+                'ngaychungtu'         => $row['ngaychungtu'] ?? '',
+                'rv_status'           => $status_key,
+                'rv_status_text'      => $status_text,
+                'assigned_user_name'  => $row['assigned_user_name'] ?? '',
+            ];
+        }
+
+        return ['error' => false, 'data' => $data];
     }
 }
