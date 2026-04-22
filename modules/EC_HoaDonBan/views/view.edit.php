@@ -20,7 +20,7 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 
 	private function getStyles()
 	{
-		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.edit.css?v=1.0.1'>";
+		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.edit.css?v=1.0.2'>";
 	}
 
 	private function getScripts()

@@ -38,7 +38,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 
 	private function getStyles()
 	{
-		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.detail.css?v=1.0.0' />";
+		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.detail.css?v=1.0.1' />";
 	}
 
 	private function getScripts()

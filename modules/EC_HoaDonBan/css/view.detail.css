@@ -43,3 +43,17 @@
     font-weight: 500;
     font-style: italic;
 }
+
+/* SuiteP DetailView still renders an empty label block for this custom panel. */
+.detail-view-row-item[data-field="receipt_vouchers_list"] .label {
+    display: none;
+}
+
+.detail-view-row-item[data-field="receipt_vouchers_list"] .detail-view-field {
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 100%;
+    flex: 0 0 100%;
+    max-width: 100%;
+    width: 100%;
+    padding-left: 0;
+}
