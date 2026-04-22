@@ -36,7 +36,7 @@ class EC_Zalo_Messages_Helper {
         else $where_clause = "AND zm.deleted = 0";
 
         if(!empty($current_list_user)) {
-            $l = implode(',', $current_list_user);
+            $l = "'" . implode("','", $current_list_user) . "'";
             $where_clause = " AND zm.from_id NOT IN($l) AND zm.to_id NOT IN($l)";
         }
 
