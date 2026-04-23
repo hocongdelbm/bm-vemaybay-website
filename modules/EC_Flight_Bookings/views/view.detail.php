@@ -5,7 +5,8 @@ use Codeception\PHPUnit\ResultPrinter\HTML;
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('modules/EC_Messages/SMS.php');
 
-class EC_Flight_BookingsViewDetail extends ViewDetail {
+class EC_Flight_BookingsViewDetail extends ViewDetail
+{
 	/**
 	 * @var EC_Flight_Bookings
 	 */
@@ -17,7 +18,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	private $_is_had_rv = 0;
 	private $editing_rights = false;
 
-	public function display() {
+	public function display()
+	{
 		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 		$this->editing_rights = ACLController::checkAccess('EC_Flight_Bookings', 'edit', true);
@@ -45,7 +47,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$this->displayJS();
 	}
 
-	private function displayJS() {
+	private function displayJS()
+	{
 		global $app_list_strings, $current_user;
 
 		$version = '1.0.8';
@@ -107,7 +110,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	}
 
 	// Line Note Message - Made by: DucPham at 28/09/2022
-	private function populateLineNotesMessage() {
+	private function populateLineNotesMessage()
+	{
 		global $current_user;
 		$actions_kpi = [];
 
@@ -270,7 +274,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$this->ss->assign('BUTTON_LINE_NOTES', $html);
 	}
 
-	private function populateCustomFields() {
+	private function populateCustomFields()
+	{
 		global $app_list_strings, $current_user;
 
 		// Thông tin hoá đơn
@@ -2314,13 +2319,15 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 			$paxItineraries = [];
 			foreach ($allDirections as $dir) {
+				$allPaxIds   = $this->resolvePassengerIdChain($paxId);
+				$idListStr   = "'" . implode("','", $allPaxIds) . "'";
 				// Try per-passenger change (add_type=3, assigned_user_id = this passenger)
 				$sqlChanged = "SELECT i.id, i.departure_date, i.flight_number, i.departure, i.arrival, i.airline_code, i.direction
 					FROM ec_booking_itineraries i
 					WHERE i.booking_id = '$bookingId'
 						AND i.direction = $dir
 						AND i.add_type = 3
-						AND i.assigned_user_id = '$paxId'
+						AND i.assigned_user_id IN ($idListStr)
 						AND i.deleted = 0
 					ORDER BY i.sabre_logs DESC
 					LIMIT 1";
@@ -2957,5 +2964,37 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			(int)($matches[0][0] ?? 0),
 			(int)($matches[0][1] ?? 0),
 		];
+	}
+
+	/**
+	 * Walk the parent_detail_id chain upward to collect all ancestor IDs.
+	 * Needed because assigned_user_id in itinerary changes may reference
+	 * any version in the rename chain, not necessarily the latest one.
+	 */
+	private function resolvePassengerIdChain($passengerId)
+	{
+		$ids       = [];
+		$currentId = preg_replace('/[^a-zA-Z0-9\-]/', '', $passengerId);
+		$bookingId = $this->bean->db->quote($this->bean->id);
+		$maxDepth  = 10;
+
+		for ($i = 0; $i < $maxDepth; $i++) {
+			if (empty($currentId) || in_array($currentId, $ids)) break;
+			$ids[] = $currentId;
+
+			$sql = "SELECT parent_detail_id
+                FROM ec_booking_passengers
+                WHERE id = '$currentId'
+                  AND booking_id = '$bookingId'
+                  AND deleted = 0
+                LIMIT 1";
+			$res = $this->bean->db->query($sql);
+			$row = $this->bean->db->fetchByAssoc($res);
+
+			if (!$row || empty($row['parent_detail_id'])) break;
+			$currentId = preg_replace('/[^a-zA-Z0-9\-]/', '', $row['parent_detail_id']);
+		}
+
+		return $ids; // [ID_RENAME_3, ID_RENAME_1, ID_GỐC]
 	}
 }
