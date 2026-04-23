@@ -388,6 +388,16 @@ $(document).ready(function () {
 		}, 100);
 	});
 
+	function getReceiptSearchScore(item, keyword) {
+		var name = ((item && item.name) || '').toString().toLowerCase();
+		if (!keyword) return 3;
+
+		if (name === keyword) return 0;
+		if (name.indexOf(keyword) === 0) return 1;
+		if (name.indexOf(keyword) > -1) return 2;
+		return 3;
+	}
+
 
 
 	function initReceiptSearchAutocomplete($input) {
@@ -424,17 +434,24 @@ $(document).ready(function () {
 						var parsed = parseAjaxJsonResponse(res);
 						console.log('[receipt search] parsed:', parsed); // debug
 						if (!parsed.error && Array.isArray(parsed.data)) {
-							var items = parsed.data
-								.sort(function (a, b) {
-									return a.name.localeCompare(b.name);
-								});
+							var keyword = (request.term || '').toString().trim().toLowerCase();
+							var items = parsed.data.sort(function (a, b) {
+								var scoreA = getReceiptSearchScore(a, keyword);
+								var scoreB = getReceiptSearchScore(b, keyword);
+
+								if (scoreA !== scoreB) return scoreA - scoreB;
+
+								var nameA = ((a && a.name) || '').toString();
+								var nameB = ((b && b.name) || '').toString();
+								return nameA.localeCompare(nameB);
+							});
 							console.log('[receipt search] items:', items); // debug
 							response(items);
 						} else {
 							response([]);
 						}
 					},
-					error: function () {
+					error: function (xhr) {
 						console.error('[receipt search] AJAX error:', xhr.responseText);
 						response([]);
 					}
