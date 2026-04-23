@@ -365,13 +365,13 @@ $(document).ready(function () {
                     site_domain: currentSiteKey,
                     cities: {}
                 };
-                
+
                 cities.data.forEach(function (c) {
                     if (c['ip-list'] && c['ip-list'].length > 0) {
                         cityIPsPayload.cities[c.city] = c['ip-list'];
                     }
                 });
-                
+
                 //loading
                 $('#ec_area_city_tbody').html('<tr><td colspan="8" style="text-align:center; padding:40px; color:#94a3b8; font-weight:500;">' +
                     '<svg style="display:inline-block; animation:spin 1s linear infinite; margin-right:8px; vertical-align:middle; width:20px; height:20px; color:#3b82f6;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>' +
@@ -400,10 +400,10 @@ $(document).ready(function () {
                                     }
                                 });
                             }
-                        } catch(e) {}
+                        } catch (e) { }
                         renderCityDistribution(cities || {});
                     },
-                    error: function() {
+                    error: function () {
                         renderCityDistribution(cities || {});
                     }
                 });
@@ -984,6 +984,109 @@ $(document).ready(function () {
 
         // Goals
         renderGoals(ov.goals || []);
+
+        // Adaptive thresholds
+        renderThresholds(ov.adaptive_thresholds || {});
+    }
+
+    function renderThresholds(thData) {
+        const $tbody = $('#ec_thresholds_tbody');
+        const $meta = $('#ec_thresholds_meta');
+
+        if ($tbody.length === 0) return;
+
+        const rows = Array.isArray(thData.rows) ? thData.rows : [];
+        const latestDate = thData.baseline_latest_date || null;
+
+        if ($meta.length) {
+            $meta.text(latestDate ? ('Baseline cập nhật mới nhất lúc: ' + latestDate) : 'Đang chờ thu thập đủ chu kỳ Baseline 7 ngày');
+        }
+
+        if (rows.length === 0) {
+            $tbody.html('<tr><td colspan="7" class="uat-empty-cell" style="padding: 24px 0;">Hệ thống chưa đủ dữ liệu traffic 7 ngày để Build Baseline. Tạm thời sử dụng <strong>Min Floor</strong> làm mức cảnh báo tiêu chuẩn.</td></tr>');
+            return;
+        }
+
+        const metricKeyMap = {
+            'clicks_5min': 'tổng số click trong 5 phút',
+            'pageviews_5min': 'tổng số pageview trong 5 phút',
+            'unique_urls_5min': 'số URL unique trong 5 phút',
+            'events_5min': 'tổng số sự kiện trong 5 phút',
+            'search_clicks_1min': 'số click tìm kiếm trong 1 phút',
+            'depart_clicks_1min': 'số lần đổi ngày/chiều trong 1 phút',
+            'requests_1min': 'số request trong 1 phút',
+            'sessions_24h': 'tổng số session trong 24 giờ'
+        };
+
+        const tierBadgeMap = {
+            'anon': '<span class="ec-tier-badge is-anon">🔴 Anon</span>',
+            'aver': '<span class="ec-tier-badge is-aver">🟡 Aver</span>',
+            'auth': '<span class="ec-tier-badge is-auth">🟢 Auth</span>',
+            'all': '<span class="ec-tier-badge is-all">— Tất cả</span>',
+        };
+
+        $tbody.empty();
+        rows.forEach(function (r) {
+            const metric = r.metric_label || r.metric_key || 'Unknown';
+            const context = (r.context || 'all').toString().toLowerCase();
+            const p95 = Number(r.avg_p95 || 0);
+            const multiplier = Number(r.multiplier || 0);
+            const minFloor = Number(r.min_floor || 0);
+            const currentLimit = Number(r.current_limit || 0);
+            const contextInfo = getThresholdContextInfo(context);
+
+            const rawKey = r.metric_key || '';
+            const displayMetricKey = metricKeyMap[rawKey] || rawKey;
+
+            const tierKey = (r.user_tier || 'all').toLowerCase();
+            const tierBadge = tierBadgeMap[tierKey] || tierBadgeMap['all'];
+            const peakBadge = r.is_peak_hour ? '<span class="ec-peak-badge">⚡ Peak</span>' : '';
+
+            $tbody.append(`
+                <tr>
+                    <td data-label="Metric">
+                        <div class="ec-threshold-metric-label">${escH(metric)}</div>
+                        <div class="ec-threshold-metric-key">${escH(displayMetricKey)}</div>
+                    </td>
+                    <td data-label="Context">
+                        <span class="ec-threshold-context-badge ${escH(contextInfo.className)}">${escH(contextInfo.label)}</span>
+                    </td>
+                    <td data-label="Tier">${tierBadge}</td>
+                    <td data-label="P95" class="ec-threshold-cell-right ec-threshold-cell-strong">${p95.toFixed(2)}</td>
+                    <td data-label="Multiplier" class="ec-threshold-cell-right">x${multiplier.toFixed(2)}</td>
+                    <td data-label="Min Floor" class="ec-threshold-cell-right">${fmt(minFloor)}</td>
+                    <td data-label="Current Limit" class="ec-threshold-cell-right">
+                        <span class="ec-threshold-limit-badge">${fmt(currentLimit)}</span>
+                        ${peakBadge}
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    function getThresholdContextInfo(context) {
+        if (context === 'all') {
+            return {
+                label: 'Toàn site',
+                className: 'is-all'
+            };
+        }
+        if (context === 'search') {
+            return {
+                label: 'Trang tìm chuyến bay',
+                className: 'is-search'
+            };
+        }
+        if (context === 'general') {
+            return {
+                label: 'Trang chung',
+                className: 'is-general'
+            };
+        }
+        return {
+            label: 'Khác (' + context + ')',
+            className: 'is-other'
+        };
     }
 
     function renderHourlyTraffic() {
@@ -2188,9 +2291,9 @@ $(document).ready(function () {
                 url: 'index.php?entryPoint=entryPointBookingStats',
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ 
-                     site_domain: currentSiteKey,
-                     cities: { 'Journey': [data.ip] } 
+                data: JSON.stringify({
+                    site_domain: currentSiteKey,
+                    cities: { 'Journey': [data.ip] }
                 }),
                 success: function (res) {
                     try {
@@ -2202,14 +2305,14 @@ $(document).ready(function () {
                             $('#ec_journey_ip_booking').text('0');
                             $('#ec_journey_ip_thamkhao').text('0');
                         }
-                    } catch(e) {
-                         $('#ec_journey_ip_booking').text('Lỗi');
-                         $('#ec_journey_ip_thamkhao').text('Lỗi');
+                    } catch (e) {
+                        $('#ec_journey_ip_booking').text('Lỗi');
+                        $('#ec_journey_ip_thamkhao').text('Lỗi');
                     }
                 },
-                error: function() {
-                     $('#ec_journey_ip_booking').text('Lỗi');
-                     $('#ec_journey_ip_thamkhao').text('Lỗi');
+                error: function () {
+                    $('#ec_journey_ip_booking').text('Lỗi');
+                    $('#ec_journey_ip_thamkhao').text('Lỗi');
                 }
             });
 
