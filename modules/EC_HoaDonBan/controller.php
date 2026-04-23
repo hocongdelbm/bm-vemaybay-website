@@ -74,8 +74,6 @@ class EC_HoaDonBanController extends SugarController
 			$this->action = "inhoadon";
 		if ($this->return_action == "signedinvoice")
 			$this->action = "signedinvoice";
-		if ($this->return_action == "Migrate")
-			$this->action = "migrate";
 		if ($this->return_action == "migrate")
 			$this->action = "migrate";
 	}
