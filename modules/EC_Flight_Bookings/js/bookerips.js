@@ -67,7 +67,7 @@
                     btn.addEventListener('click', function () {
                         const ip = this.dataset.ip;
                         if (!confirm(`Bạn muốn xoá IP ${ip} khỏi tất cả các domain đã đồng bộ?`)) return;
-                        deleteEntry(ip);
+                        deleteEntry(ip, this);
                     });
                 });
             })
@@ -76,7 +76,11 @@
             });
     }
 
-    function deleteEntry(ip) {
+    function deleteEntry(ip, btn) {
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Đang xoá…';
+
         const formData = new FormData();
         formData.append('ip', ip);
 
@@ -86,10 +90,19 @@
         })
             .then(r => r.json())
             .then(json => {
-                if (json.deleted) loadList();
-                else alert('Xoá thất bại: ' + (json.error || 'Lỗi không xác định'));
+                if (json.deleted) {
+                    loadList();
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                    alert('Xoá thất bại: ' + (json.error || 'Lỗi không xác định'));
+                }
             })
-            .catch(err => alert('Lỗi: ' + err.message));
+            .catch(err => {
+                btn.disabled = false;
+                btn.textContent = originalText;
+                alert('Lỗi: ' + err.message);
+            });
     }
 
     document.getElementById('bip-submit').addEventListener('click', function () {
