@@ -64,6 +64,7 @@ class EC_Flight_Bookings extends Basic
 	public $nganluong_code;
 	public $nganluong_datepaid;
 
+	public $lydothangthua_id;
 	public $ghichuthangthua;
 	public $delivery_man_id;
 	public $delivery_man;
@@ -72,6 +73,7 @@ class EC_Flight_Bookings extends Basic
 	public $ip_address;
 	public $account_id;
 	public $account_name;
+	public $contact_id;
 	public $discount_percent;
 
 	public $is_agent;
@@ -82,6 +84,8 @@ class EC_Flight_Bookings extends Basic
 	public $is_telesale;
 	public $telesale_call_id;
 	public $is_output_invoice_checked;
+	public $is_invoice_input_export;
+	public $is_mail_confirm;
 
 	public $point_step = 50;
 	public $contact_name_ignore = ['THAM KHAO', 'TEST', 'IT', 'DEMO'];
@@ -816,10 +820,12 @@ class EC_Flight_Bookings extends Basic
 	 */
 	private function _updateTicketExportStatus(array $psgIds): void
 	{
+		global $current_user;
+
 		$booking = new EC_Flight_Bookings();
 		$booking->retrieve($this->id);
 
-		$isAllowedUser = isAllowedUser();
+		$isAllowedUser_acc = is_admin($current_user);
 		$isRoundTrip   = (int)$booking->flight_type === 0;
 
 		$outboundExported = false;
@@ -851,7 +857,7 @@ class EC_Flight_Bookings extends Basic
 			if (empty($booking->date_ticket_issue)) {
 				$booking->date_ticket_issue = date('Y-m-d');
 			}
-			if ($isAllowedUser && !empty($_POST['date_ticket_issue'])) {
+			if ($isAllowedUser_acc && !empty($_POST['date_ticket_issue'])) {
 				$booking->date_ticket_issue = $_POST['date_ticket_issue'];
 			}
 		} else {
@@ -863,7 +869,7 @@ class EC_Flight_Bookings extends Basic
 			if (empty($booking->date_ticket_inbound_issue)) {
 				$booking->date_ticket_inbound_issue = date('Y-m-d');
 			}
-			if ($isAllowedUser && !empty($_POST['date_ticket_inbound_issue'])) {
+			if ($isAllowedUser_acc && !empty($_POST['date_ticket_inbound_issue'])) {
 				$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
 			}
 		} else {
@@ -2208,7 +2214,7 @@ class EC_Flight_Bookings extends Basic
 	/***********  OLD FUNCTIONS (DON'T PASTE NEW CODE HERE) ***********/
 	public function saveLinePassengersOld()
 	{
-		global $app_list_strings;
+		global $app_list_strings, $current_user;
 
 		$row_count = count($_POST['psg_id']);
 		for ($i = 0; $i < $row_count; $i++) {
@@ -2287,7 +2293,7 @@ class EC_Flight_Bookings extends Basic
 		if ((int)$this->booking_status === 3) {
 			$booking = new EC_Flight_Bookings;
 			$booking->retrieve($this->id);
-			$isAllowedUser = isAllowedUser();
+			$isAllowedUser_acc = is_admin($current_user);
 
 			$is_ticket_exported = $is_ticket_inbound_exported = false;
 			$is_ticket_exported_fully = $is_ticket_inbound_exported_fully = true;
@@ -2319,7 +2325,7 @@ class EC_Flight_Bookings extends Basic
 			$booking->is_ticket_exported = $is_ticket_exported;
 			if ($is_ticket_exported) {
 				if (empty($booking->date_ticket_issue)) $booking->date_ticket_issue = date("Y-m-d");
-				if ($isAllowedUser && isset($_POST['date_ticket_issue']) && !empty($_POST['date_ticket_issue'])) $booking->date_ticket_issue = $_POST['date_ticket_issue'];
+				if ($isAllowedUser_acc && isset($_POST['date_ticket_issue']) && !empty($_POST['date_ticket_issue'])) $booking->date_ticket_issue = $_POST['date_ticket_issue'];
 			} else {
 				$booking->date_ticket_issue = '';
 			}
@@ -2328,7 +2334,7 @@ class EC_Flight_Bookings extends Basic
 			$booking->is_ticket_inbound_exported = $is_ticket_inbound_exported;
 			if ($is_ticket_inbound_exported) {
 				if (empty($booking->date_ticket_inbound_issue)) $booking->date_ticket_inbound_issue = date("Y-m-d");
-				if ($isAllowedUser && isset($_POST['date_ticket_inbound_issue']) && !empty($_POST['date_ticket_inbound_issue'])) $booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
+				if ($isAllowedUser_acc && isset($_POST['date_ticket_inbound_issue']) && !empty($_POST['date_ticket_inbound_issue'])) $booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
 			} else {
 				$booking->date_ticket_inbound_issue = '';
 			}

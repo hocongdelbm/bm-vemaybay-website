@@ -117,5 +117,4 @@ $mod_strings = array(
     'LBL_START_WORKING_DATE' => 'Ngày vào làm',
     'LBL_EMPLOYEE_TYPE' => 'Loại nhân viên', 
     'LBL_LEADER_NAME' => 'Leader',
-    'LBL_INIT_EXP_MARK' => 'Điểm kinh nghiệm (khởi tạo)',
 );

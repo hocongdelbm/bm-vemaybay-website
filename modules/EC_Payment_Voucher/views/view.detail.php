@@ -37,7 +37,7 @@ class EC_Payment_VoucherViewDetail extends ViewDetail {
 		}
 		
 		// thay đổi tình trạng phiếu chi
-		if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && (isAllowedUser() || is_admin($current_user))){
+		if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && is_admin($current_user)){
 			$change_status = '</form>
 			<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus">
 				<input type="hidden" name="module" value="EC_Payment_Voucher" />
@@ -69,7 +69,7 @@ class EC_Payment_VoucherViewDetail extends ViewDetail {
 			</form>';
 		}
 
-		if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->pv_status == '1' && ACLController::checkAccess('Bugs', 'view', true) && isAllowedUser()){
+		if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->pv_status == '1' && ACLController::checkAccess('Bugs', 'view', true) && is_admin($current_user)){
 			// đã duyệt
 			$pv_status = '</form>
 			<form action="index.php" method="post" name="frmApproved" id="frmApproved">
@@ -85,7 +85,7 @@ class EC_Payment_VoucherViewDetail extends ViewDetail {
 		} 
 
 		// Nút Đã chi
-		if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->pv_status == '2' && ACLController::checkAccess('Bugs', 'edit', true) && isAllowedUser()){
+		if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->pv_status == '2' && ACLController::checkAccess('Bugs', 'edit', true) && is_admin($current_user)){
 			$pv_status = '</form>
 			<form action="index.php" method="post" name="frmPaid" id="frmPaid">
 				<input type="hidden" name="module" value="EC_Payment_Voucher" />

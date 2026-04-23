@@ -484,7 +484,7 @@ $dictionary['EC_HoaDonBan'] = array(
         //     'quicksearch' => 'enabled',
         //     'studio' => 'visible',
         // ),
-        
+
         // 'tongthuho' => array(
         //     'required' => false,
         //     'source' => 'non-db',
@@ -619,7 +619,18 @@ $dictionary['EC_HoaDonBan'] = array(
             'name'  => 'represent_booking',
             'vname' => 'LBL_REPRESENT_BOOKING',
             'type'  => 'varchar',
-            'source'=> 'non-db',
+            'source' => 'non-db',
+        ),
+
+        //17/4/2026 - DahyVan - Thêm relationship N-N với module 
+        'receipt_vouchers' => array(
+            'name' => 'receipt_vouchers',
+            'type' => 'link',
+            'relationship' => 'hoadonban_receiptvouchers',
+            'module' => 'EC_Receipt_Voucher',
+            'bean_name' => 'EC_Receipt_Voucher',
+            'source' => 'non-db',
+            'vname' => 'LBL_RECEIPT_VOUCHERS',
         ),
     ),
     'indices' => array(
@@ -631,7 +642,7 @@ $dictionary['EC_HoaDonBan'] = array(
         array('name' => 'idx_cid', 'type' => 'index', 'fields' => array('citizen_id')),
         array('name' => 'idx_passport', 'type' => 'index', 'fields' => array('passport_number')),
     ),
-    'relationships' => array (),
+    'relationships' => array(),
     'optimistic_locking' => true,
     'unified_search' => true,
 );
@@ -639,4 +650,4 @@ $dictionary['EC_HoaDonBan'] = array(
 if (!class_exists('VardefManager')) {
     require_once('include/SugarObjects/VardefManager.php');
 }
-VardefManager::createVardef('EC_HoaDonBan', 'EC_HoaDonBan', array('basic','assignable','security_groups'));
+VardefManager::createVardef('EC_HoaDonBan', 'EC_HoaDonBan', array('basic', 'assignable', 'security_groups'));

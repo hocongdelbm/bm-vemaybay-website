@@ -38,7 +38,6 @@ $app_list_strings['moduleList']['EC_Receipt_Voucher']     = 'Phiếu thu';
 $app_list_strings['moduleList']['Notes']                  = 'Ghi chú';
 $app_list_strings['moduleList']['EC_Payment_Voucher']     = 'Phiếu chi';
 $app_list_strings['moduleList']['EC_Payment_Types']       = 'Loại chi';
-$app_list_strings['moduleList']['EC_Debts']               = 'Công nợ';
 $app_list_strings['moduleList']['EC_SMS_Logs']            = 'Tin nhắn (cũ)';
 $app_list_strings['moduleList']['EC_Messages']            = 'Tin nhắn';
 $app_list_strings['moduleList']['Accounts']               = 'Tài khoản';
@@ -1817,20 +1816,16 @@ $GLOBALS['app_list_strings']['loai_thu_list'] = [
   10 => 'Laptop, ĐT, phụ kiện',
   11 => 'Thuê xe',
   12 => 'Thu tiền máy ảnh',
-  13 => 'Thu tiền máy in',
   14 => 'Thu tiền khách sạn',
   15 => 'Panda Po',
   16 => 'Perspirex',
   17 => 'Vay ngân hàng',
-  // 18 => 'Thu tiền cafe Trống Đồng',
-  // 19 => 'Thu tiền bánh trung thu',
   20 => 'Bất động sản',
   21 => 'Thực phẩm',
   22 => 'Quỹ dự phòng',
   23 => 'Tiền phòng Bình Thới',
   24 => 'Tiền phòng NVC',
   25 => 'Tiền chung cư',
-  26 => 'Thu phí ghế',
 ];
 
 // Input invoice
@@ -2519,7 +2514,9 @@ $app_list_strings['booking_customer_source_list'] = [
   'system_old' => 'Hệ thống KC',
   'new'    => 'Mới',
   'agent'  => 'Đại lý CTV',
+  'is_reference' => 'Tham khảo',
   'care'   => 'Chăm sóc KH',
+  'receipt_voucher' => 'Phiếu thu',
 ];
 
 $app_list_strings['booking_checkin_status_list'] = [

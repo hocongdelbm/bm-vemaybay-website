@@ -1,6 +1,5 @@
 <?php
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
-require_once('include/MVC/View/views/view.edit.php');
 
 class EC_Receipt_VoucherViewEdit extends ViewEdit {
 	function __construct() {
@@ -44,9 +43,6 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit {
 		<input type="hidden" id="dec_seperator" name="dec_seperator" value="'.$sep[1].'" />
 		<input type="hidden" id="sig_digits" name="sig_digits" value="'.$locale->getPrecision().'" />';
 
-		// Get department id
-		$department_id = $current_user->department_id;
-
 		// Amount
 		$amount = '<span class="d-flex gap-2 align-items-center w-100">
 			<input class="flex-fill min-w-25" type="text" name="amount" id="amount" size="20" value="'.(isset($_POST['amount']) ? $_POST['amount'] : format_number($this->bean->amount)).'" tabindex="100">
@@ -79,16 +75,11 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit {
 		$tknganhang_id = isset($this->bean->tknganhang_id) ? $this->bean->tknganhang_id : '';
 		
 
-		// PHAN QUYEN
 		$tknganhang_group = "";
-		// if(is_admin($current_user))
-		// 	$tknganhang_group = "";
-		// else
-		// 	$tknganhang_group = " AND ".SecurityGroup::getGroupWhere("t","EC_Bank_Account",$current_user->id);
-			
+
 		$receipt_type = '<select name="receipt_type" id="receipt_type" title="" tabindex="104">'.get_select_options_with_id($app_list_strings['receipt_type_list'], isset($_POST['receipt_type']) ? $_POST['receipt_type'] : $this->bean->receipt_type).'</select>';
 		$receipt_type .= '<select style="'.$display.'" id="tknganhang_id" name="tknganhang_id" tabindex="104"><option value=""></option>'.myGetBankAccountList($tknganhang_id, $tknganhang_group).'</select>';
-		$receipt_type .= '<select id="com_location_id" name="com_location_id" class="w-100" style="'.$display2.'" tabindex="104">'.myGetLocationListByDepID($department_id, $this->bean->com_location_id).'</select>';
+		$receipt_type .= '<select id="com_location_id" name="com_location_id" class="w-100" style="'.$display2.'" tabindex="104">'.myGetLocationListByDepID($this->bean->com_location_id).'</select>';
 		$this->ss->assign('RECEIPT_TYPE', $receipt_type.$group_decimal);
 		
 
@@ -125,48 +116,18 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit {
 			<td style="width:20%; font-weight:bold; text-align:center;">Giá bán</td>
 			<td style="width:20%; font-weight:bold; text-align:center;">Giá mua</td>
 		</tr>';
-		$loaithu .= '<tr>
-			<td style="text-align:left; padding:3px;" >
-				<select id="supplier_id" name="supplier_id" tabindex="106" class="w-100">
-					<option value=""></option>
-					'.myGetSelectOptionsWithDb('Accounts', (isset($this->bean->supplier_id) ? $this->bean->supplier_id : ''), 'id', " AND account_type='Supplier' AND is_stop_tracking = 0 ").'
-				</select>
-			</td>
-			<td style="text-align:left; padding:3px;">
-				<input class="allow-number-only" type="text" id="sell_amount" name="sell_amount" value="'.format_number(isset($this->bean->sell_amount) ? $this->bean->sell_amount : 0).'" tabindex="106" style="width:100%;" />
-			</td>
-			<td style="text-align:left; padding:3px;">
-				<input class="allow-number-only" type="text" id="bought_amount" name="bought_amount" value="'.format_number(isset($this->bean->bought_amount) ? $this->bean->bought_amount : 0).'" tabindex="106" style="width:100%;" />
-			</td>
-		</tr>';
-		$loaithu .= '<tr>
-			<td style="text-align:left; padding:3px;" >
-				<select id="supplier2_id" name="supplier2_id" tabindex="106" class="w-100">
-					<option value=""></option>
-					'.myGetSelectOptionsWithDb('Accounts', (isset($this->bean->supplier2_id) ? $this->bean->supplier2_id : ''), 'id', " AND account_type='Supplier' AND is_stop_tracking = 0 ").'
-				</select>
-			</td>
-			<td style="text-align:left; padding:3px;">
-				<input class="allow-number-only" type="text" id="sell_amount2" name="sell_amount2" value="'.format_number(isset($this->bean->sell_amount2) ? $this->bean->sell_amount2 : 0).'" tabindex="106" style="width:100%;" />
-			</td>
-			<td style="text-align:left; padding:3px;">
-				<input class="allow-number-only" type="text" id="bought_amount2" name="bought_amount2" value="'.format_number(isset($this->bean->bought_amount2) ? $this->bean->bought_amount2 : 0).'" tabindex="106" style="width:100%;" />
-			</td>
-		</tr>';
-		$loaithu .= '<tr>
-			<td style="text-align:left; padding:3px;" >
-				<select id="supplier3_id" name="supplier3_id" tabindex="106" class="w-100">
-					<option value=""></option>
-					'.myGetSelectOptionsWithDb('Accounts', (isset($this->bean->supplier3_id) ? $this->bean->supplier3_id : ''), 'id', " AND account_type='Supplier' AND is_stop_tracking = 0 ").'
-				</select>
-			</td>
-			<td style="text-align:left; padding:3px;">
-				<input class="allow-number-only" type="text" id="sell_amount3" name="sell_amount3" value="'.format_number(isset($this->bean->sell_amount3) ? $this->bean->sell_amount3 : 0).'" tabindex="106" style="width:100%;" />
-			</td>
-			<td style="text-align:left; padding:3px;">
-				<input class="allow-number-only" type="text" id="bought_amount3" name="bought_amount3" value="'.format_number(isset($this->bean->bought_amount3) ? $this->bean->bought_amount3 : 0).'" tabindex="106" style="width:100%;" />
-			</td>
-		</tr>';
+		foreach ([1, 2, 3] as $n) {
+			$s     = $n > 1 ? $n : '';
+			$supId = "supplier{$s}_id";
+			$sellF = "sell_amount{$s}";
+			$buyF  = "bought_amount{$s}";
+			$loaithu .= $this->buildSupplierSelectRow(
+				$supId, $sellF, $buyF,
+				$this->bean->$supId ?? '',
+				$this->bean->$sellF ?? 0,
+				$this->bean->$buyF  ?? 0
+			);
+		}
 		$loaithu .= '</table></span></div>';
 		$this->ss->assign('LOAI_THU', $loaithu);
 
@@ -177,18 +138,36 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit {
 		$this->ss->assign('EMPLOYEE_NAME', $employee_list);
 	}
 	
-	// Lấy danh sách nhân viên
-	function getEmployeeList() {
-		$sql = 'SELECT id, CONCAT(last_name, " ", IFNULL(first_name, "")) AS full_name 
-				FROM users 
-				WHERE deleted = 0 
-				-- AND status = "Active" 
+	private function buildSupplierSelectRow($supId, $sellF, $buyF, $supplierId, $sellAmount, $boughtAmount)
+	{
+		$options = myGetSelectOptionsWithDb('Accounts', $supplierId, 'id', " AND account_type='Supplier' AND is_stop_tracking = 0 ");
+		return '<tr>
+			<td style="text-align:left; padding:3px;">
+				<select id="' . $supId . '" name="' . $supId . '" tabindex="106" class="w-100">
+					<option value=""></option>
+					' . $options . '
+				</select>
+			</td>
+			<td style="text-align:left; padding:3px;">
+				<input class="allow-number-only" type="text" id="' . $sellF . '" name="' . $sellF . '" value="' . format_number($sellAmount) . '" tabindex="106" style="width:100%;" />
+			</td>
+			<td style="text-align:left; padding:3px;">
+				<input class="allow-number-only" type="text" id="' . $buyF . '" name="' . $buyF . '" value="' . format_number($boughtAmount) . '" tabindex="106" style="width:100%;" />
+			</td>
+		</tr>';
+	}
+
+	function getEmployeeList()
+	{
+		$sql = 'SELECT id, CONCAT(last_name, " ", IFNULL(first_name, "")) AS full_name
+				FROM users
+				WHERE deleted = 0
 				AND title NOT IN ("Admin", "Bot")';
 		$res = $this->bean->db->query($sql);
-		while($row = $this->bean->db->fetchByAssoc($res)) {
+		$employee_list = [];
+		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$employee_list[$row['id']] = $row['full_name'];
 		}
-
 		return $employee_list;
 	}
 }

@@ -1,0 +1,49 @@
+
+.htaccess
+*.html
+*.txt
+*.wav
+*.mp3
+*.log
+
+cache
+vendor
+
+# Ignore some files and directories from the custom directory.
+custom/history/
+custom/working/
+custom/modules/*/Ext/*
+custom/application/Ext/*
+!custom/application/Ext/Api
+custom/Extension/application/Ext/Language/*
+custom/configs/*
+!custom/configs/.gitkeep
+custom/templates_export/*
+!custom/templates_export/.gitkeep
+# JSON config
+custom/json_files/**/*.json
+custom/jssip_webrtc/blacklist.json
+
+# Custom configuration should also be ignored.
+config.php
+config_override.php
+
+themes/default/images
+themes/default/font
+themes/SuiteP/images
+themes/SuiteP/fonts
+
+# The silent upgrade scripts aren't needed.
+silentUpgrade*.php
+
+# Ignore the new upload directories.
+/upload/*
+!/upload/index.html
+/upload_backup/
+
+# Images
+themes/SuiteP/images/zalo_messages/*
+!themes/SuiteP/images/zalo_messages/.gitkeep
+
+# Logs
+secure_sessions/*

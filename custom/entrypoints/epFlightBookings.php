@@ -659,12 +659,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'updateUsrStt') {
 	if (!is_admin($current_user)) {
 		// kiếm tra đã có online hôm nay chưa
 		$sql_exist = '
-			SELECT id, IFNULL((
-				SELECT MAX(round)
-				FROM ec_online_report
-				WHERE deleted = 0
-				AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-			), 1) AS round 
+			SELECT id 
 			FROM ec_online_report
 			WHERE deleted = 0
 			AND assigned_user_id = "' . $current_user->id . '"
@@ -677,9 +672,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'updateUsrStt') {
 
 		if (!empty($row_exist['id'])) {
 			$online->retrieve($row_exist['id']);
-
 			$online->status = $_POST['stt'];
-			$online->round = $row_exist['round'];
 			$online->save();
 			// mới bắt đầu online, lưu thêm thời gian bắt đầu online
 			// để lưu s lấy theo ngày chỉnh sửa
@@ -703,11 +696,30 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeOnlinePosition') {
 	$onl = new EC_Online_Report;
 	$onl_res = $onl->changeOnlinePosition($_POST['onl'], $_POST['type']);
 
-	if (isset($_POST['agent']) && !empty($_POST['agent'])) {
-		agent_change_status($_POST['agent'], 'Logged Out');
-	}
+	// if (isset($_POST['agent']) && !empty($_POST['agent'])) {
+	// 	agent_change_status($_POST['agent'], 'Logged Out');
+	// }
 
 	echo $onl_res;
+	exit;
+}
+
+// Cập nhật danh sách ec_online_report (thêm user còn thiếu trong ngày)
+if (isset($_POST['for']) && $_POST['for'] == 'updateOnlineReport') {
+	if (!is_admin($current_user)) { echo 0; exit; }
+
+	$onl = new EC_Online_Report;
+	$onl->populateOnlineReport();
+	echo 1;
+	exit;
+}
+
+// Lấy dữ liệu bảng online cho auto-refresh dashboard assignbk
+if (isset($_GET['for']) && $_GET['for'] == 'getOnlineStatus') {
+	require_once('modules/EC_Flight_Bookings/views/view.assignbk.php');
+	$view = new Viewassignbk();
+	$view->bean = BeanFactory::getBean('EC_Flight_Bookings');
+	echo $view->getUserSttInf();
 	exit;
 }
 

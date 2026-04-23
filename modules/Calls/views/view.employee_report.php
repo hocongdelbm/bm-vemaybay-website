@@ -176,7 +176,7 @@ class ViewEmployee_report extends SugarView
         $result     = [];
 
         $sql_search = "";
-        if (!isAllowedUser()) {
+        if (!is_admin($current_user)) {
             $sql_search .= " AND c.assigned_user_id='" . $current_user->id . "' ";
         }
 

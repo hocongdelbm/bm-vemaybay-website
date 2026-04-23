@@ -341,17 +341,6 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                                 $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
                                 $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
                                 Telegram::sendMessageData($messageData, $botToken, $chatId, $threadId);
-
-                                // $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id'], "Redirect url");
-                                // $message = Mattermost::$line_separation;
-                                // $message .= Mattermost::markdownHeading("[WARNING] Save KPI have booking failed");
-                                // $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
-                                // $message .= "\n- Call: **" . $call['name'] . " - " . $booking_name . "**";
-                                // $message .= "\n- User: **$current_user->user_name**";
-                                // $message .= "\n- Description: **" . $call['description'] . "**";
-                                // $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
-                                // $message .= "\n$link";
-                                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message, );
                             }
 
                             $bean_note                      = new Note();
@@ -367,10 +356,11 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             $bk = new EC_Flight_Bookings();
                             $bk->retrieve($booking_id);
                             if ((string)$type_call === 'called' && (int)$bk->booking_status === 1) {
-                                $sql_update = 'UPDATE ec_flight_bookings
-                                        SET booking_status = "6", assigned_user_id = "' . $current_user->id . '"
-                                        WHERE id = "' . $booking_id . '" AND deleted = 0';
-                                $db->query($sql_update);
+                                $db->query(
+                                    "UPDATE ec_flight_bookings
+                                    SET booking_status = '6', assigned_user_id = '{$current_user->id}'
+                                    WHERE id = '$booking_id'"
+                                );
                             }
 
                             // Update is_remind trong bảng ec_booking_itineraries = true nếu đã ghi nhận KPI
@@ -427,17 +417,6 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
                             $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
                             Telegram::sendMessageData($messageData, $botToken, $chatId, $threadId);
-
-                            // $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id'], "Redirect url");
-                            // $message = Mattermost::$line_separation;
-                            // $message .= Mattermost::markdownHeading("[WARNING] Save KPI failed");
-                            // $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
-                            // $message .= "\n- Call: **" . $call['name'] . "**";
-                            // $message .= "\n- User: **" . $current_user->user_name . "**";
-                            // $message .= "\n- Description: **" . $call['description'] . "**";
-                            // $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
-                            // $message .= "\n$link";
-                            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                         }
                     }
                 }
@@ -544,10 +523,10 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         else echo 0;
         exit();
     } else if ((string)$type === "map_call_booking") {
-        $call_name      = isset($_POST['call_name']) ? global_test_input($_POST['call_name']) : "";
-        $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
-        $booking_name   = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
-        $force = isset($_POST['force']) ? (int)$_POST['force'] : 0;
+        $call_name      = global_test_input($_POST['call_name'] ?? "");
+        $booking_id     = global_test_input($_POST['booking_id'] ?? "");
+        $booking_name   = global_test_input($_POST['booking_name'] ?? "");
+        $force          = (int)($_POST['force'] ?? 0);
 
         /**
          * 0 — call not found
@@ -562,13 +541,11 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 
         global $db, $current_user;
 
-        $sql_find = 'SELECT id FROM calls WHERE name = "' . trim($call_name) . '" AND deleted = 0';
-        $call_id  = $db->getOne($sql_find);
+        $call_id = $db->getOne("SELECT id FROM calls WHERE name = '$call_name' AND deleted = 0");
 
         // If found but already linked, return 3 unless force=1
         if (!empty($call_id) && $force === 0) {
-            $sql_check = 'SELECT booking_id FROM calls WHERE id = "' . $call_id . '" AND deleted = 0';
-            $existing_booking = $db->getOne($sql_check);
+            $existing_booking = $db->getOne("SELECT booking_id FROM calls WHERE id = '$call_id' AND deleted = 0");
             if (!empty($existing_booking)) {
                 echo 3;
                 exit();
@@ -589,6 +566,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             $cal->save();
 
             $assigned_user_id = (is_null($cal->assigned_user_id) || empty($cal->assigned_user_id)) ? $current_user->id : $cal->assigned_user_id;
+            
             $work                       = new EC_Working_Process();
             $work->id                   = '';
             $work->name                 = $booking_name;
@@ -615,10 +593,14 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             $bean_note->assigned_user_id    = $assigned_user_id;
             $bean_note->save();
 
-            $sql_update = 'UPDATE ec_flight_bookings
-                    SET booking_status = "6", assigned_user_id = "' . $assigned_user_id . '"
-                    WHERE id = "' . $booking_id . '" AND deleted = 0';
-            $db->query($sql_update);
+            $db->query(
+                "UPDATE ec_flight_bookings
+                SET booking_status = '6',
+                    assigned_user_id = '$assigned_user_id'
+                WHERE id = '$booking_id'
+                    AND booking_status NOT IN('3', '7', '8')
+                    AND deleted = 0"
+            );
 
             echo 1;
             exit();

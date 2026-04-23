@@ -6897,11 +6897,6 @@ input[type=reset]:focus {
      background-image: none
 }
 
-.button .badge {
-     background-color: #F5F5F5;
-     color: #F08377
-}
-
 .yui-layout-hd .button,
 .yui-layout-hd input[type=submit],
 .yui-layout-hd input[type=button] {
@@ -9413,26 +9408,6 @@ tr:hover img.info {
 .yui-layout .yui-layout-clip-left .collapse {
      display: block;
      visibility: visible
-}
-
-.table>tbody>tr>th {
-     border-top: none
-}
-
-.table>tfoot>tr>th {
-     border-top: none
-}
-
-.table>thead>tr>td {
-     border-top: none
-}
-
-.table>tbody>tr>td {
-     border-top: none
-}
-
-.table>tfoot>tr>td {
-     border-top: none
 }
 
 #dlg {

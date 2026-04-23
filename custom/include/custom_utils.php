@@ -605,10 +605,10 @@ function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $descrip
 }
 
 // Get location list by deparment ID
-function myGetLocationListByDepID($department_id, $select_val = '')
+function myGetLocationListByDepID($select_val = '')
 {
-    global $db, $current_user;
-    $html = '<option value=""></option>';
+    global $db;
+    $html = '<option value="">-- Trống --</option>';
     $sql = "SELECT id, name
             FROM ec_location
             WHERE deleted = 0
@@ -789,48 +789,35 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body)
     try {
         $send_ok = true;
 
-        // SUGAR SENDMAIL
         require_once('include/SugarPHPMailer.php');
         $mail = new SugarPHPMailer();
+        
+        $mail->ClearAllRecipients();
+        $mail->ClearAttachments();
+        $mail->ClearCustomHeaders();
+        
+        $mail->CharSet = 'UTF-8';
+        $mail->Encoding = 'base64'; 
+        
         $department_info = myGetDepartmentInfo("48840c01-3a4f-c430-f703-56f32c7cd8a4"); // Security travelpass 
 
         if (isset($department_info['mail_smtpserver']) && isset($department_info['mail_smtpport'])) {
-            // get email from user
             $user_email = getEmailFromUser($user_id);
             $from_mail = !empty($user_email['second_email']) ? $user_email['second_email'] : $user_email['primary_email'];
 
-            // Load from department settings
-            $mail->Host         = $department_info['mail_smtpserver'];
-            $mail->Port         = $department_info['mail_smtpport'];
-            $mail->SMTPAuth     = TRUE;
-            $mail->SMTPSecure   = $department_info['mail_smtpssl'] == 1 ? 'ssl' : 'tls';
+            $mail->Host          = $department_info['mail_smtpserver'];
+            $mail->Port          = $department_info['mail_smtpport'];
+            $mail->SMTPAuth      = TRUE;
+            $mail->SMTPSecure    = $department_info['mail_smtpssl'] == 1 ? 'ssl' : 'tls';
             $mail->SMTPKeepAlive = false;
             // $mail->SMTPDebug     = 4;
-            $mail->Mailer       = "smtp";
-            $mail->Timeout      = 300;
-            $mail->Username     = $user_email['primary_email'];
-            $mail->Password     = $user_email['primary_pwd'];
-            $mail->ContentType  = "text/html";
-            $mail->From         = $from_mail;
-            $mail->FromName     = ucwords(myRemoveUnicodeChars($user_email['primary_fullname']));
-            $mail->Subject      = $subject;
-            $mail->Body         = from_html(wordwrap('&lt;html&gt;&lt;body&gt;' . $body . '&lt;/body&gt;&lt;/html&gt;', 996));
-            $mail->AddAddress($to_email, $to_name);
-
-            // Add Bcc for current user 
-            $mail->AddReplyTo($from_mail);
-            $mail->AddReplyTo("info@timchuyenbay.com");
-            $mail->AddBCC("info@timchuyenbay.com");
-
-            // Add Bcc, ReplyTo for user admin
-            // if(isset($department_info['com_email_bcc']) && trim($department_info['com_email_bcc']) != ''){
-            //     $bcc_arr = explode(';', $department_info['com_email_bcc']);
-            //     foreach($bcc_arr as $bcc_add){ 
-            //         $mail->AddReplyTo($bcc_add); 
-            //         $mail->AddBCC($bcc_add);
-            //     }
-            // }
-
+            $mail->Mailer        = "smtp";
+            $mail->Timeout       = 300;
+            $mail->Username      = $user_email['primary_email'];
+            $mail->Password      = $user_email['primary_pwd'];
+            
+            $mail->From          = $from_mail;
+            $mail->FromName      = ucwords(myRemoveUnicodeChars($user_email['primary_fullname']));
         } else {
             // Load system settings
             require_once('modules/Administration/Administration.php');
@@ -846,41 +833,57 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body)
                     $mail->Password = $admin->settings['mail_smtppass'];
                 }
                 $mail->Mailer   = "smtp";
-                $mail->SMTPKeepAlive = false;
             } else {
                 $mail->Mailer = 'sendmail';
             }
-
             $mail->From     = $admin->settings['notify_fromaddress'];
             $mail->FromName = $admin->settings['notify_fromname'];
-
-            $mail->ContentType = "text/html";
-            $mail->Subject = $subject;
-            $mail->Body = from_html(wordwrap('&lt;html&gt;&lt;body&gt;' . $body . '&lt;/body&gt;&lt;/html&gt;', 996));
-            $mail->AddAddress($to_email, $to_name);
         }
 
+        // Cấu hình nội dung 
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        
+        // Tạo nội dung HTML sạch
+        $full_body = '<html><head><meta charset="UTF-8"></head><body>' . from_html($body) . '</body></html>';
+        $mail->Body = $full_body;
+ 
+        $mail->AltBody = strip_tags(str_replace(['<br>', '<br/>', '</p>'], "\n", from_html($body)));
+
+        $mail->AddAddress($to_email, $to_name);
+        $mail->AddReplyTo($mail->From);
+        $mail->AddReplyTo("info@timchuyenbay.com");
+        $mail->AddBCC("info@timchuyenbay.com");  
+        // Add Bcc, ReplyTo for user admin
+        // if(isset($department_info['com_email_bcc']) && trim($department_info['com_email_bcc']) != ''){
+        //     $bcc_arr = explode(';', $department_info['com_email_bcc']);
+        //     foreach($bcc_arr as $bcc_add){ 
+        //         $mail->AddReplyTo($bcc_add); 
+        //         $mail->AddBCC($bcc_add);
+        //     }
+        // }
+        
         if (!$mail->send()) {
             $send_ok = false;
             $GLOBALS['log']->fatal(json_encode([
                 "Mailer error" => $mail->ErrorInfo,
-                "Mailer full SMTP log" => $mail->fullSmtpLog,
                 "Mailer Host" => $mail->Host,
-                "Mailer Port" => $mail->Port,
                 "Mailer Username" => $mail->Username,
-                "Mailer Password" => $mail->Password,
             ]));
         }
+        
+        // save sent
+        $imapPath = '{'.$mail->Host.':993/imap/ssl}Sent Items';
+        $imap = imap_open($imapPath, $mail->Username , $mail->Password); 
+        imap_append($imap, $imapPath, $mail->getSentMIMEMessage());
+        imap_close($imap);
 
         return $send_ok;
-    } catch (RuntimeException $e) {
-        $GLOBALS['log']->fatal("Runtime Exception: {$e->getMessage()} when calling mySendMail() in custom_utils.php");
-        return false;
     } catch (Exception $e) {
-        $GLOBALS['log']->fatal("Exception: {$e->getMessage()} when calling mySendMail() in custom_utils.php");
+        $GLOBALS['log']->fatal("Exception: {$e->getMessage()} in mySendMail()");
         return false;
     } catch (Throwable $th) {
-        $GLOBALS['log']->fatal("Throwable: {$th->getMessage()} when calling mySendMail() in custom_utils.php");
+        $GLOBALS['log']->fatal("Throwable: {$th->getMessage()} in mySendMail()");
         return false;
     }
 }
@@ -1013,21 +1016,13 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
 }
 
 // Admin hệ thống và quản lý
-function isAllowedUser()
+function isQLUser()
 {
     global $current_user, $db;
 
     if (is_admin($current_user)) {
         return true;
     }
-
-    // $sql = '
-    //     SELECT IF(COUNT(id) > 0, 1, 0)
-    //     FROM acl_roles_users
-    //     WHERE deleted = 0 
-    //     AND user_id = "' . $current_user->id . '" 
-    //     AND role_id = "222d9e8c-a54c-d7b8-8f75-567e493d6ea3"
-    // ';
 
     $sql = '
         SELECT IF(COUNT(id) > 0, 1, 0)
@@ -1038,6 +1033,7 @@ function isAllowedUser()
     ';
 
     $is_exist = $db->getOne($sql);
+
     if ($is_exist) {
         return true;
     }
@@ -1053,15 +1049,6 @@ function isManagerUser($user_id)
     if (is_admin($current_user)) {
         return 1;
     }
-
-    // $sql = 'SELECT COUNT(id) 
-    //         FROM acl_roles_users 
-    //         WHERE deleted = 0 
-    //         AND role_id IN (
-    //             "222d9e8c-a54c-d7b8-8f75-567e493d6ea3",
-    //             "c4ae12df-787f-5a30-5612-509b1346b649"
-    //         )
-    //         AND user_id = "' . $user_id . '"';
 
     $sql = 'SELECT COUNT(id) 
             FROM acl_roles_users 
@@ -1164,7 +1151,7 @@ function getNameGroupCalls($sip = "")
     $name = array();
 
     $arr_group = array(
-        '<span class="badge bg-primary">Booker</span>' => array('101', '102', '103', '104', '106', '107', '109', '201'),
+        '<span class="badge bg-primary">Booker</span>' => array('101', '102', '103', '104', '106', '107', '109', '201', '789'),
         '<span class="badge bg-warning text-dark">Kế toán</span>' => array('120', '121', '122', '123', '124', '125'),
         '<span class="badge bg-danger">Laptop</span>' => array('201', '202', '203'),
         '<span class="badge bg-dark">IT</span>' => array('010', '012', '130'),

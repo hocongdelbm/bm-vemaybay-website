@@ -82,6 +82,16 @@ $searchFields[$module_name] = array(
 		'db_field' => array('id'),
 	),
 
+	'nhacc_search' =>
+	array(
+		'query_type' => 'format',
+		'operator' => 'subquery',
+		'subquery' => "SELECT c.hoanve_id AS id
+							   FROM ec_chitiethoanve c
+							   WHERE c.deleted=0 AND c.nhacc_id = '{0}'",
+		'db_field' => array('id'),
+	),
+
 	//Range Search Support
 	'range_date_entered' => array('query_type' => 'default', 'enable_range_search' => true, 'is_date_field' => true),
 	'start_range_date_entered' => array(

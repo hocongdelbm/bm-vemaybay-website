@@ -63,7 +63,7 @@ function populateFromRow(&$focus, $row)
 		'basic_salary', 'efficient_wage', 'gas_allowance', 'lunch_allowance', 'tele_allowance',
 		'responsible_allowance', 'seniority_allowance', 'other_allowance1', 'other_allowance2',
 		'workday', 'leaveday', 'target_month', 'target_quarter', 'target_year', 
-		'start_working_date', 'remain_leave_days', 'employee_type', 'leader_id', 'init_exp_mark'
+		'start_working_date', 'remain_leave_days', 'employee_type', 'leader_id'
 	);
     if (is_admin($GLOBALS['current_user']) || $GLOBALS['current_user']->title == 'QuanLy') {
         $e_fields = array_merge($e_fields, array('title', 'department', 'employee_status'));

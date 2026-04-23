@@ -25,13 +25,6 @@
             position: relative;
         }
 
-        #online_report .col_name .ranking {
-            position: absolute;
-            right: 10px;
-            font-weight: 600;
-            color: var(--red-vj-color);
-        }
-
         .blue_bold {
             color: var(--primary-color);
             font-weight: 600;
@@ -68,19 +61,27 @@
 
                 if($(this).attr("change_type") == 'up') {
                     moveThisToTop(
-                        $(this).closest("tr")
-                        ,$(this).closest("tr").attr("class")
-                        ,$(this).closest("tr").attr("ln")
-                        ,$(this).closest("table")
+                        $(this).closest("tr"),
+                        $(this).closest("table")
                     );
-                } 
+                }
                 else if($(this).attr("change_type") == 'down') {
                     moveThisToBottom(
-                        $(this).closest("tr")
-                        , $(this).closest("tr").attr("class")
-                        , $(this).closest("tr").attr("ln")
-                        , $(this).closest("table")
+                        $(this).closest("tr"),
+                        $(this).closest("table")
                     );
+                }
+                else if($(this).attr("change_type") == 'busy') {
+                    let tr_this = $(this).closest("tr");
+                    tr_this.find("td.status").removeClass("stt_online").addClass("stt_busy").html("Busy");
+                    tr_this.removeClass("change_pos_valid").removeClass("offline").addClass("busy");
+                }
+                else if($(this).attr("change_type") == 'delete') {
+                    if(!confirm("Xóa user này khỏi bảng hôm nay?")) {
+                        $(".online_btn").prop("disabled", false);
+                        return;
+                    }
+                    $(this).closest("tr").remove();
                 }
                 else if($(this).attr("change_type") == 'off') {
                     let tr_this = $(this).closest("tr");
@@ -110,13 +111,17 @@
                         if(response == 'is_over') {
                             alert("Không thể chuyển " + prior_full_name + " sang chế độ ưu tiên vì vượt quá sl tối đa (3 người)");
                             $(".online_btn").prop("disabled", false);
-                        } else if(change_type == 'priority') { 
-
+                        } else if(change_type == 'priority') {
                             $(".online_btn").prop("disabled", false);
                             selected_col_name.removeClass("blue_bold");
 
                             if(response == 1) {
                                 selected_col_name.addClass("blue_bold");
+                            }
+                        } else {
+                            // up/down đã có setTimeout re-enable trong animation, off/busy thì cần re-enable tại đây
+                            if(change_type == 'off' || change_type == 'busy' || change_type == 'delete') {
+                                $(".online_btn").prop("disabled", false);
                             }
                         }
                     }
@@ -125,7 +130,29 @@
             $.fn.outerHTML = function() {
                 return $(this).clone().wrap('<div></div>').parent().html();
             }
+
+            $("#btn_update_online").on("click", function() {
+                var $btn = $(this).prop("disabled", true).text("Đang cập nhật...");
+                $.post("index.php?entryPoint=entryPointFlightBookings", { for: "updateOnlineReport" }, function() {
+                    $.get("index.php?entryPoint=entryPointFlightBookings&for=getOnlineStatus", function(html) {
+                        if (html && html.trim().length > 0) {
+                            $("#online_report").html(html);
+                        }
+                        $btn.prop("disabled", false).text("Cập nhật");
+                    });
+                });
+            });
         });
+
+        // Auto-refresh bảng online mỗi 30 giây, bỏ qua khi có action đang diễn ra
+        var onlineRefreshTimer = setInterval(function() {
+            if ($(".online_btn:disabled").length > 0) return;
+            $.get("index.php?entryPoint=entryPointFlightBookings&for=getOnlineStatus", function(html) {
+                if (html && html.trim().length > 0) {
+                    $("#online_report").html(html);
+                }
+            });
+        }, 30000);
 
         function resizeCusBtn() {
             if($(this).width() < 1050) { 
@@ -137,103 +164,103 @@
             }
         }
 
-        function moveThisToTop(selected_row, row_class, row_num, table) {
+        // UP/DOWN luôn đưa user về nhóm Online (backend luôn set status=1)
+        // $anchor được capture TRƯỚC setTimeout để tránh bug "row biến mất"
+        // khi selected_row là row duy nhất trong nhóm
+
+        function moveThisToTop(selected_row, table) {
+            var $onlineRows = table.find("tr.fw-bold.change_pos_valid");
             var elemHeight  = selected_row.height();
             var elemTop     = selected_row.position().top;
-            var moveUp      = elemTop - table.position().top - elemHeight + 3;
-            var moveDown    = elemHeight;
-            var listNum     = row_num;
-            var listHtml    = selected_row.outerHTML();
 
-            var i = 1;
-            $("." + row_class).each(function() {
-                if (listNum == i) {
-                    return false;
+            // Anchor = online row đầu tiên KHÔNG phải selected_row
+            var $anchor = null;
+            $onlineRows.each(function() {
+                if (this !== selected_row[0] && $anchor === null) { $anchor = $(this); }
+            });
+
+            var firstTop = $anchor ? $anchor.position().top : elemTop;
+            var moveUp   = elemTop - firstTop;
+
+            // Các online rows khác dịch xuống để nhường chỗ
+            $onlineRows.each(function() {
+                if (this !== selected_row[0]) {
+                    $(this).css({ 'transform': 'translateY(' + elemHeight + 'px)', 'transition-duration': '0.5s' });
                 }
-                $(this).css({
-                    'transform': 'translateY(' + moveDown + 'px)'
-                    , 'transition-duration': '0.5s'
-                });
-                $(this).children('.col_no').text(i + 1);
-                $(this).attr("ln", i + 1);
-                i++;
-            });
-            
-            selected_row.css({
-                'transform': 'translateY(-' + moveUp + 'px)'
-                , 'transition-duration': '0.5s'
             });
 
-            selected_row.children('.col_no').text(1);
-            selected_row.attr("ln", 1);
+            if (moveUp > 0) {
+                selected_row.css({ 'transform': 'translateY(-' + moveUp + 'px)', 'transition-duration': '0.5s' });
+            }
+
+            // Cập nhật trạng thái visual ngay lập tức
+            selected_row.removeClass("busy offline").addClass("change_pos_valid");
+            selected_row.find("td.status").removeClass("stt_busy").addClass("stt_online").html("Online");
+
             setTimeout(function() {
                 selected_row.remove();
-                table.find("tbody").prepend(selected_row);
-                $("." + row_class).attr("style", "");
+                if ($anchor && $anchor.length) {
+                    $anchor.before(selected_row);
+                } else {
+                    table.find("tbody").prepend(selected_row);
+                }
+                table.find("tr.fw-bold.change_pos_valid").removeAttr("style");
+                selected_row.removeAttr("style");
                 $(".online_btn").prop("disabled", false);
             }, 1000);
         }
 
-        function moveThisToBottom(selected_row, row_class, row_num, table) {
+        function moveThisToBottom(selected_row, table) {
+            var $onlineRows = table.find("tr.fw-bold.change_pos_valid");
             var elemHeight  = selected_row.height();
             var elemTop     = selected_row.position().top;
-            var moveUp      = elemHeight;
-            var listNum     = row_num;
-            var listHtml    = selected_row.outerHTML();
-            var moveDown    = 0;
 
-            var i = 1;
-            $("." + row_class).each(function() {
-                if (listNum < i) {
-                    $(this).css({
-                        'transform': 'translateY(-' + moveUp + 'px)'
-                        , 'transition-duration': '0.5s'
-                    });
-                    moveDown = $(this).position().top;
-                    $(this).children('.col_no').text(i - 1);
-                    $(this).attr("ln", i - 1);
-                }
-                i++;
+            // Anchor = online row cuối cùng KHÔNG phải selected_row
+            var $anchor = null;
+            $onlineRows.each(function() {
+                if (this !== selected_row[0]) { $anchor = $(this); }
             });
-            
-            selected_row.attr("ln", i - 1);
-            selected_row.children('.col_no').text(i - 1);
-            moveDown -= elemTop;
 
-            if(moveDown > 0) {
-                selected_row.css({
-                    'transform': 'translateY(' + moveDown + 'px)'
-                    , 'transition-duration': '0.5s'
-                });
+            var lastTop    = $anchor ? $anchor.position().top : elemTop;
+            var lastHeight = $anchor ? $anchor.height() : elemHeight;
+            var moveDown   = (lastTop + lastHeight) - (elemTop + elemHeight);
+
+            // Các online rows nằm dưới selected_row dịch lên
+            $onlineRows.each(function() {
+                if (this !== selected_row[0] && $(this).position().top > elemTop) {
+                    $(this).css({ 'transform': 'translateY(-' + elemHeight + 'px)', 'transition-duration': '0.5s' });
+                }
+            });
+
+            if (moveDown !== 0) {
+                selected_row.css({ 'transform': 'translateY(' + moveDown + 'px)', 'transition-duration': '0.5s' });
             }
+
+            // Cập nhật trạng thái visual ngay lập tức
+            selected_row.removeClass("busy offline").addClass("change_pos_valid");
+            selected_row.find("td.status").removeClass("stt_busy").addClass("stt_online").html("Online");
+
             setTimeout(function() {
                 selected_row.remove();
-                table.find("." + row_class).last().after(selected_row);
-                $("." + row_class).attr("style", "");
+                if ($anchor && $anchor.length) {
+                    $anchor.after(selected_row);
+                } else {
+                    table.find("tbody").prepend(selected_row);
+                }
+                table.find("tr.fw-bold.change_pos_valid").removeAttr("style");
+                selected_row.removeAttr("style");
                 $(".online_btn").prop("disabled", false);
             }, 1000);
         }
     </script>
 {/literal}
 
-<h1 class="title title-online_tbl">Danh sách Online / Offline</h1>
+<div class="d-flex align-items-center gap-3 mb-2">
+    <h1 class="title title-online_tbl mb-0">Danh sách Online / Offline</h1>
+    {if $IS_ALLOWED_USER}
+    <button id="btn_update_online" class="btn btn-outline-primary btn-sm">Cập nhật</button>
+    {/if}
+</div>
 <div id="online_report" class="box-section">
     {$ONLINE_DATA}
 </div>
-
-{if $IS_ALLOWED_USER}
-<!-- <div class="box-section">
-    <form action="index.php" method="post" name="frmSearch" id="frmSearch" class="mb-3">
-        <input type="hidden" name="module" value="EC_Flight_Bookings" />
-        <input type="hidden" name="action" value="assignbk" />
-        <input type="hidden" name="type" value="view_report_online" />
-
-        <div class="d-flex align-items-center gap-3">
-            {$LIST_USER}
-            <h4 class="sub-admin__title title-online__report m-0">Lịch sử online {$USER_NAME} </h4>
-        </div>
-    </form>
-
-    {$VIEW_REPORT_ONLINE}
-</div> -->
-{/if}

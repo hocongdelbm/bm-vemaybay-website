@@ -22,4 +22,5 @@ $action_view_map['issueticket']         = 'issueticket';
 $action_view_map['updateflightfare']    = 'updateflightfare';
 $action_view_map['clientphonetcb']      = 'clientphonetcb';
 $action_view_map['updateflight']        = 'updateflight';
+$action_view_map['telesaleipmgr']       = 'telesaleipmgr';
 $action_view_map['bookerips']           = 'bookerips';
