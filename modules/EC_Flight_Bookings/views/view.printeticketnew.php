@@ -963,7 +963,6 @@ class Viewprinteticketnew extends SugarView
 			// Find the latest sabre_logs for this passenger + direction
 			$sqlMaxLog = "SELECT MAX(sabre_logs) as max_logs FROM ec_booking_itineraries i
 				WHERE i.booking_id = '$bookingId'
-				$idFilter
 				AND i.direction = $dir
 				AND i.add_type = 3
 				AND i.assigned_user_id = '$passengerId'
@@ -976,7 +975,6 @@ class Viewprinteticketnew extends SugarView
 				// Fetch all segments for this latest change
 				$sqlChanged = "SELECT $fields FROM ec_booking_itineraries i
 					WHERE i.booking_id = '$bookingId'
-					$idFilter
 					AND i.direction = $dir
 					AND i.add_type = 3
 					AND i.assigned_user_id = '$passengerId'
