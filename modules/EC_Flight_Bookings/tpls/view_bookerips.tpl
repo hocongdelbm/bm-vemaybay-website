@@ -1,6 +1,5 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link type="text/css" rel="stylesheet" href="modules/EC_TongHop/css/ec_tonghop.css?v=1.0.0">
-<link rel="stylesheet" href="modules/EC_TongHop/css/bookerips.css?v=1.0.0">
+<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/bookerips.css?v=1.0.0">
 
 <div class="uat-wrap">
     <div class="uat-header" style="margin-bottom: 24px;">
@@ -102,4 +101,4 @@
     </div>
 </div>
 
-<script src="modules/EC_TongHop/js/bookerips.js?v=1.0.0"></script>
+<script src="modules/EC_Flight_Bookings/js/bookerips.js?v=1.0.0"></script>
