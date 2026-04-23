@@ -42,6 +42,9 @@ $(document).ready(function () {
 			var $tr = $('<tr class="ui-menu-item" role="presentation">');
 			$.each(self.options.columns, function (index, columnMapping) {
 				var cellContent = !item[columnMapping.valueField] ? '' : item[columnMapping.valueField];
+				if (typeof columnMapping.formatter === 'function') {
+					cellContent = columnMapping.formatter(cellContent, item);
+				}
 				$('<td class="text-center">').html(cellContent).appendTo($tr);
 			});
 			return $tr.appendTo(table);
@@ -398,8 +401,8 @@ $(document).ready(function () {
 		$input.autocomplete({
 			showHeader: true,
 			columns: [
-				{ name: 'Tên phiếu thu', width: '160px', valueField: 'name' },
-				{ name: 'Số tiền', width: '90px', valueField: 'amount_fmt' },
+				{ name: 'Tên phiếu thu', width: '160px', valueField: 'name', },
+				{ name: 'Số tiền', width: '90px', valueField: 'amount', formatter: formatReceiptAmount },
 				{ name: 'Loại tiền', width: '50px', valueField: 'amount_type' },
 				{ name: 'Ngày CT', width: '80px', valueField: 'ngaychungtu' },
 				{ name: 'Trạng thái', width: '90px', valueField: 'rv_status_text' },
