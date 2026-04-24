@@ -403,6 +403,7 @@ class Viewprinteticketnew extends SugarView
 
 			$results[] = [
 				'id' => $row['id'],
+				'parent_detail_id'      => $row['parent_detail_id'] ?? null,
 				'name' => mb_strtoupper(trim($row['name']), 'UTF-8'),
 				'salutation' => $salutationText,
 				'type' => $typeLabel,
@@ -935,6 +936,9 @@ class Viewprinteticketnew extends SugarView
 		$bookingId = $db->quote($this->bookingId);
 		$passengerId = preg_replace('/[^a-zA-Z0-9\-]/', '', $passengerId);
 
+		$allIds = $this->resolvePassengerIdChain($passengerId);
+		$idListStr = "'" . implode("','", $allIds) . "'";
+
 		$fields = "i.id, i.departure_date, i.arrival_date, i.flight_number,
 				i.ticket_class, i.departure, i.arrival, i.airline_code, i.direction, i.transit_order";
 
@@ -961,13 +965,14 @@ class Viewprinteticketnew extends SugarView
 
 		foreach ($directions as $dir) {
 			// Find the latest sabre_logs for this passenger + direction
-			$sqlMaxLog = "SELECT MAX(sabre_logs) as max_logs FROM ec_booking_itineraries i
-				WHERE i.booking_id = '$bookingId'
-				$idFilter
-				AND i.direction = $dir
-				AND i.add_type = 3
-				AND i.assigned_user_id = '$passengerId'
-				AND i.deleted = 0";
+			$sqlMaxLog = "SELECT MAX(sabre_logs) as max_logs
+                      FROM ec_booking_itineraries i
+                      WHERE i.booking_id = '$bookingId'
+                        AND i.direction = $dir
+                        AND i.add_type = 3
+                        AND i.assigned_user_id IN ($idListStr)
+                        AND i.deleted = 0";
+
 			$resMaxLog = $db->query($sqlMaxLog);
 			$rowMaxLog = $db->fetchByAssoc($resMaxLog);
 			$maxLog = $rowMaxLog ? $rowMaxLog['max_logs'] : null;
@@ -976,10 +981,9 @@ class Viewprinteticketnew extends SugarView
 				// Fetch all segments for this latest change
 				$sqlChanged = "SELECT $fields FROM ec_booking_itineraries i
 					WHERE i.booking_id = '$bookingId'
-					$idFilter
 					AND i.direction = $dir
 					AND i.add_type = 3
-					AND i.assigned_user_id = '$passengerId'
+					AND i.assigned_user_id IN ($idListStr)
 					AND i.sabre_logs = '$maxLog'
 					AND i.deleted = 0
 					ORDER BY i.transit_order ASC, i.departure_date ASC";
@@ -1067,5 +1071,39 @@ class Viewprinteticketnew extends SugarView
 		}
 		sort($parts);
 		return implode('||', $parts);
+	}
+
+	/**
+	 * Walk the parent_detail_id chain upward to collect all ancestor IDs
+	 * for a passenger. This is needed because assigned_user_id in itinerary
+	 * change records may reference any version in the rename chain,
+	 * not necessarily the latest one returned by getPassengers().
+	 */
+	function resolvePassengerIdChain($passengerId)
+	{
+		global $db;
+		$ids       = [];
+		$currentId = preg_replace('/[^a-zA-Z0-9\-]/', '', $passengerId);
+		$bookingId = $db->quote($this->bookingId);
+		$maxDepth  = 10; // chống vòng lặp vô hạn
+
+		for ($i = 0; $i < $maxDepth; $i++) {
+			if (empty($currentId) || in_array($currentId, $ids)) break;
+			$ids[] = $currentId;
+
+			$sql = "SELECT parent_detail_id
+                FROM ec_booking_passengers
+                WHERE id = '$currentId'
+                  AND booking_id = '$bookingId'
+                  AND deleted = 0
+                LIMIT 1";
+			$res = $db->query($sql);
+			$row = $db->fetchByAssoc($res);
+
+			if (!$row || empty($row['parent_detail_id'])) break;
+			$currentId = preg_replace('/[^a-zA-Z0-9\-]/', '', $row['parent_detail_id']);
+		}
+
+		return $ids;
 	}
 }

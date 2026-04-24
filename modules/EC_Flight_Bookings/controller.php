@@ -88,6 +88,9 @@ class EC_Flight_BookingsController extends SugarController
             case "telesaleipmgr":
                 $this->action = "telesaleipmgr";
                 break;
+            case "bookerips":
+                $this->action = "bookerips";
+                break;
             default:
                 $this->action = "ListView";
                 break;
