@@ -726,6 +726,11 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 
 		$loai_thu_label = $loai_thu_options[(int)($row['loai_thu'] ?? 0)] ?? ($row['loai_thu'] ?? '');
 		$rv_status_label = $rv_status_options[$row['rv_status']] ?? '';
+		$rv_status_color = $GLOBALS['app_list_strings']['receipt_voucher_status_color_list'][$row['rv_status']] ?? '';
+		$rv_status_html = $rv_status_label;
+		if (!empty($rv_status_label) && !empty($rv_status_color)) {
+			$rv_status_html = '<span class="fw-bold" style="color:' . $rv_status_color . ';">' . $rv_status_label . '</span>';
+		}
 		$ngaychungtu = '';
 		if (!empty($row['ngaychungtu'])) {
 			$ngaychungtu = $timedate->to_display_date($row['ngaychungtu'], false);
@@ -737,7 +742,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 		$html .= '<td class="text-end">' . number_format($row['amount']) . '</td>';
 		$html .= '<td>' . $loai_thu_label . '</td>';
 		$html .= '<td>' . $ngaychungtu . '</td>';
-		$html .= '<td>' . $rv_status_label . '</td>';
+		$html .= '<td>' . $rv_status_html . '</td>';
 		$html .= '<td>' . ($row['assigned_user_name'] ?? '') . '</td>';
 		$html .= '<td>' . ($row['description'] ?? '') . '</td>';
 		$html .= '<td class="text-center">
