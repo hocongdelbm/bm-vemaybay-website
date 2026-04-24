@@ -643,7 +643,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 
 		$rows = $this->getReceiptVoucherRows();
 		if (empty($rows)) {
-			$html .= '<tr><td colspan="8" class="text-center">Chưa có phiếu thu nào</td></tr>';
+			$html .= '<tr><td colspan="9" class="text-center">Chưa có phiếu thu nào</td></tr>';
 		} else {
 			$html .= $this->buildReceiptVoucherRowsHtml($rows);
 		}
