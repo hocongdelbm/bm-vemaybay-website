@@ -201,6 +201,67 @@
             </div>
         </div>
 
+        <!-- Adaptive Thresholds -->
+        <div class="uat-grid-row">
+            <div class="uat-col-12">
+                <div class="uat-card ec-threshold-card">
+                    <div class="ec-threshold-header"
+                        style="flex-direction: column; align-items: flex-start; gap: 15px;">
+                        <div
+                            style="width: 100%; display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <div class="uat-card-title">Adaptive Thresholds (Ngưỡng cảnh báo tự động)</div>
+                                <div class="uat-card-des">Cơ chế bảo vệ chống Flood/Scraping thông minh dựa trên Traffic
+                                    thực.</div>
+                            </div>
+                            <div id="ec_thresholds_meta" class="ec-threshold-meta">
+                                Baseline: —
+                            </div>
+                        </div>
+                        <div
+                            style="font-size:13px; color:#475569; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; width: 100%; box-sizing: border-box;">
+                            <strong style="color:#1e293b; display:block; margin-bottom:8px; font-size:14px;">Cơ chế hoạt
+                                động của Adaptive Thresholds:</strong>
+                            <ul style="margin:0; padding-left:20px; line-height:1.6;">
+                                <li><strong>Thu thập dữ liệu (Rolling 7 ngày):</strong> Hệ thống liên tục phân tích lịch
+                                    sử traffic của toàn bộ người dùng <i>thực (không phải bot)</i> trong 7 ngày gần
+                                    nhất, lấy mốc Peak (đỉnh điểm hoạt động) của từng user.</li>
+                                <li><strong>Tính Baseline (Avg P95):</strong> Điểm trung bình của phân vị 95% (nghĩa là
+                                    mức độ tương tác mà 95% người dùng bình thường không bao giờ vượt qua) được dùng làm
+                                    vạch chuẩn. Ngưỡng cảnh báo tự động "co giãn" bám sát theo lưu lượng thực tế.</li>
+                                <li><strong>Công thức giới hạn:</strong> <code
+                                        style="font-size:12px; background:#e0e7ff; color:#3730a3; padding:2px 6px; border-radius:4px;">Current
+                                        Limit = MAX( Avg P95 &times; Multiplier, Min Floor )</code></li>
+                                <li><strong>Giải thích:</strong> Giới hạn chặn cảnh báo sẽ bằng <strong>Avg P95</strong>
+                                    nhân với <strong>Multiplier (Hệ số giới hạn)</strong>. Nếu giá trị này quá nhỏ do
+                                    một ngày traffic cực thấp, hệ thống sẽ chốt chặn ở mức <strong>Min Floor (Mức sàn
+                                        tối thiểu)</strong> để tránh tình huống khóa nhầm người dùng hợp lệ. </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="uat-card-divider"></div>
+                    <table class="uat-table uat-table-stackable">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Context</th>
+                                <th>Tier</th>
+                                <th style="text-align:right;">P95</th>
+                                <th style="text-align:right;">Multiplier</th>
+                                <th style="text-align:right;">Min Floor</th>
+                                <th style="text-align:right;">Current Limit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ec_thresholds_tbody">
+                            <tr>
+                                <td colspan="7" class="uat-empty-cell">Đang tải dữ liệu threshold...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- Geo Map + Top Pages -->
         <div class="uat-grid-row">
             <div class="uat-col-6">
@@ -468,7 +529,8 @@
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
                             <span
                                 style="background:#dbeafe; color:#1d4ed8; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; letter-spacing:.5px;">HOT</span>
-                            <div class="uat-card-title" style="color:#1d4ed8; margin:0;">Hành trình Phổ biến-Giờ cao điểm</div>
+                            <div class="uat-card-title" style="color:#1d4ed8; margin:0;">Hành trình Phổ biến-Giờ cao
+                                điểm</div>
                         </div>
                         <div class="uat-card-des">
                             Chỉ tính sessions tìm kiếm trong <strong>giờ cao điểm</strong> (top 3 giờ nhiều traffic
@@ -494,7 +556,8 @@
                             <span
                                 style="background:#ede9fe; color:#6d28d9; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; letter-spacing:.5px;">TIỀM
                                 NĂNG</span>
-                            <div class="uat-card-title" style="color:#6d28d9; margin:0;">Hành trình Khác-Giờ cao điểm</div>
+                            <div class="uat-card-title" style="color:#6d28d9; margin:0;">Hành trình Khác-Giờ cao điểm
+                            </div>
                         </div>
                         <div class="uat-card-des">
                             Hành trình ngoài top phổ biến — tiềm năng khai thác. Chỉ tính sessions trong <strong>giờ cao
@@ -906,21 +969,40 @@
                         </div>
                         <div class="uat-card-divider"></div>
                     </div>
-                    <div id="ec_city_totals_bar" style="display:none; padding:10px 16px; background:#f0f9ff; border-bottom:1px solid #bae6fd; gap:24px; flex-wrap:wrap; align-items:center; margin-bottom">
-                        <span style="font-size:12px; color:#334155;">Tham khảo: <strong id="ec_city_total_thamkhao" style="color:#334155;">0</strong></span>
-                        <span style="font-size:12px; color:#1d4ed8;">Booking: <strong id="ec_city_total_booking" style="color:#1d4ed8;">0</strong></span>
-                        <span style="font-size:12px; color:#10b981;">Hoàn tất: <strong id="ec_city_total_hoantat" style="color:#10b981;">0</strong></span>
+                    <div id="ec_city_totals_bar"
+                        style="display:none; padding:10px 16px; background:#f0f9ff; border-bottom:1px solid #bae6fd; gap:24px; flex-wrap:wrap; align-items:center; margin-bottom">
+                        <span style="font-size:12px; color:#334155;">Tham khảo: <strong id="ec_city_total_thamkhao"
+                                style="color:#334155;">0</strong></span>
+                        <span style="font-size:12px; color:#1d4ed8;">Booking: <strong id="ec_city_total_booking"
+                                style="color:#1d4ed8;">0</strong></span>
+                        <span style="font-size:12px; color:#10b981;">Hoàn tất: <strong id="ec_city_total_hoantat"
+                                style="color:#10b981;">0</strong></span>
                     </div>
                     <table class="uat-table" style="margin-top:-16px;">
                         <thead>
                             <tr>
                                 <th>KHU VỰC CHI TIẾT</th>
-                                <th class="uat-sortable-th" data-sort="sessions" style="text-align:right; width:90px; cursor:pointer; user-select:none;">SESS <span class="sort-icon">↕</span></th>
-                                <th class="uat-sortable-th" data-sort="flight_search" style="text-align:right; width:80px; cursor:pointer; user-select:none;">TÌM CB <span class="sort-icon">↕</span></th>
-                                <th class="uat-sortable-th" data-sort="thamkhao" style="text-align:right; width:90px; cursor:pointer; user-select:none;">THAM KHẢO <span class="sort-icon">↕</span></th>
-                                <th class="uat-sortable-th" data-sort="booking" style="text-align:right; width:80px; cursor:pointer; user-select:none;">BOOKING <span class="sort-icon">↕</span></th>
-                                <th class="uat-sortable-th" data-sort="hoantat" style="text-align:right; width:85px; cursor:pointer; user-select:none;">HOÀN TẤT <span class="sort-icon">↕</span></th>
-                                <th class="uat-sortable-th" data-sort="pct" style="text-align:right; width:80px; cursor:pointer; user-select:none;">TỶ LỆ <span class="sort-icon">↕</span></th>
+                                <th class="uat-sortable-th" data-sort="sessions"
+                                    style="text-align:right; width:90px; cursor:pointer; user-select:none;">SESS <span
+                                        class="sort-icon">↕</span></th>
+                                <th class="uat-sortable-th" data-sort="flight_search"
+                                    style="text-align:right; width:80px; cursor:pointer; user-select:none;">TÌM CB <span
+                                        class="sort-icon">↕</span></th>
+                                <th class="uat-sortable-th" data-sort="thamkhao"
+                                    style="text-align:right; width:90px; cursor:pointer; user-select:none;">THAM KHẢO
+                                    <span class="sort-icon">↕</span>
+                                </th>
+                                <th class="uat-sortable-th" data-sort="booking"
+                                    style="text-align:right; width:80px; cursor:pointer; user-select:none;">BOOKING
+                                    <span class="sort-icon">↕</span>
+                                </th>
+                                <th class="uat-sortable-th" data-sort="hoantat"
+                                    style="text-align:right; width:85px; cursor:pointer; user-select:none;">HOÀN TẤT
+                                    <span class="sort-icon">↕</span>
+                                </th>
+                                <th class="uat-sortable-th" data-sort="pct"
+                                    style="text-align:right; width:80px; cursor:pointer; user-select:none;">TỶ LỆ <span
+                                        class="sort-icon">↕</span></th>
                                 <th style="text-align:right; width:50px;">#</th>
                             </tr>
                         </thead>
@@ -1185,4 +1267,4 @@
 
 </div><!-- END uat-wrap -->
 
-<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=2.0.9"></script>
+<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=2.1.0"></script>
