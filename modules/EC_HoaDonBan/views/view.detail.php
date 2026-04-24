@@ -672,7 +672,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 		$html .= '<th width="15%">Loại thu</th>';
 		$html .= '<th width="10%">Ngày chứng từ</th>';
 		$html .= '<th width="10%">Trạng thái</th>';
-		$html .= '<th width="10%">Người phụ trách</th>';
+		$html .= '<th width="10%">Giao cho</th>';
 		$html .= '<th width="15%">Nội dung thu</th>';
 		$html .= '<th width="5%"></th>';
 		$html .= '</tr></thead><tbody>';
