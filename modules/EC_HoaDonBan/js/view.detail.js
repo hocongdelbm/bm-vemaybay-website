@@ -525,7 +525,7 @@ $(document).ready(function () {
 		console.log('[receipt search] autocomplete ready'); // debug
 	}
 
-	$(document).on('click', '.btn-remove-receipt', function () {
+	$(document).on('click', '.button-remove-in-edit', function () {
 		if (receiptPanelState.isPending) return;
 
 		var $btn = $(this);
@@ -780,12 +780,12 @@ function getPopupFirstSelectedRow(resultData) {
 }
 
 function isReceiptVoucherLinked(receiptId) {
-	return $(`.btn-remove-receipt[data-id="${receiptId}"]`).length > 0;
+	return $(`.button-remove-in-edit[data-id="${receiptId}"]`).length > 0;
 }
 
 function setReceiptPanelPending(isPending) {
 	receiptPanelState.isPending = !!isPending;
-	$('#btn-add-receipt, .btn-remove-receipt').prop('disabled', !!isPending);
+	$('#btn-add-receipt, .button-remove-in-edit').prop('disabled', !!isPending);
 }
 
 function appendReceiptVoucherRow(row) {
@@ -814,7 +814,7 @@ function appendReceiptVoucherRow(row) {
 	rowHtml += '<td>' + statusText + '</td>';
 	rowHtml += '<td>' + assignedUser + '</td>';
 	rowHtml += '<td>' + description + '</td>';
-	rowHtml += '<td class="text-center"><button type="button" class="btn-remove-receipt" data-id="' + receiptId + '">Xóa</button></td>';
+	rowHtml += '<td class="text-center"><button type="button" class="button-remove-in-edit" data-id="' + receiptId + '">Xóa</button></td>';
 	rowHtml += '</tr>';
 
 	$tbody.append(rowHtml);
