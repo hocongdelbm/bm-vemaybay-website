@@ -393,7 +393,7 @@ $(document).ready(function () {
 			{ name: 'Tên phiếu thu', width: '160px', valueField: 'name' },
 			{ name: 'Số tiền', width: '90px', valueField: 'amount', formatter: formatReceiptAmount },
 			{ name: 'Loại thu', width: '50px', valueField: 'loai_thu_text', formatter: formatReceiptLabelText },
-			{ name: 'Ngày chứng từ', width: '100px', valueField: 'ngaychungtu' },
+			{ name: 'Ngày chứng từ', width: '100px', valueField: 'ngaychungtu', formatter: formatReceiptDateByUserFormat },
 			{ name: 'Trạng thái', width: '90px', valueField: 'rv_status_text', formatter: formatReceiptStatusCell },
 			{ name: 'Nội dung thu', width: '100px', valueField: 'description' },
 		];
@@ -408,8 +408,6 @@ $(document).ready(function () {
 		if (name.indexOf(keyword) > -1) return 2;
 		return 3;
 	}
-
-
 
 	function initReceiptSearchAutocomplete($input) {
 		if (!$input || !$input.length || $input.data('receipt-autocomplete-ready')) return;
@@ -581,7 +579,6 @@ $(document).ready(function () {
 		});
 	});
 })
-
 
 
 var receiptPanelState = {
@@ -802,7 +799,7 @@ function appendReceiptVoucherRow(row) {
 	var receiptName = escapeHtml(row.name || '');
 	var amount = formatReceiptAmount(row.amount);
 	var loai_thu = escapeHtml(row.loai_thu_text || row.loai_thu || '');
-	var ngaychungtu = escapeHtml(row.ngaychungtu || '');
+	var ngaychungtu = formatReceiptDateByUserFormat(row.ngaychungtu || '');
 	var statusText = buildReceiptStatusHtml(row.rv_status_text || row.rv_status || '', row.rv_status_color || '');
 	var assignedUser = escapeHtml(row.assigned_user_name || '');
 	var description = escapeHtml(row.description || '');
@@ -858,6 +855,27 @@ function formatReceiptAmount(value) {
 
 function formatReceiptLabelText(value) {
 	return escapeHtml(value || '');
+}
+
+function formatReceiptDateByUserFormat(value) {
+	var raw = (value || '').toString().trim();
+	if (!raw) return '';
+
+	var dateParts = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s|T|$)/);
+	if (!dateParts) {
+		return escapeHtml(raw);
+	}
+
+	var year = dateParts[1];
+	var month = ('0' + dateParts[2]).slice(-2);
+	var day = ('0' + dateParts[3]).slice(-2);
+	var userFormat = (typeof cal_date_format !== 'undefined' && cal_date_format) ? cal_date_format : '%d-%m-%Y';
+	var displayDate = String(userFormat)
+		.replace('%Y', year)
+		.replace('%m', month)
+		.replace('%d', day);
+
+	return escapeHtml(displayDate);
 }
 
 function formatReceiptStatusCell(value, item) {
