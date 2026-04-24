@@ -685,7 +685,7 @@ class CustomController extends BaseController
     public function save_hoadonban_receipt(Request $request, Response $response, array $args)
     {
         try {
-            global $sugar_config;
+            global $db, $sugar_config;
             $params = (array) $request->getParsedBody();
 
             $hoadon_id = isset($params['hoadon_id']) ? global_test_input($params['hoadon_id']) : '';
@@ -713,14 +713,15 @@ class CustomController extends BaseController
                 return $response->withJson(['error' => true, 'message' => 'Receipt voucher not found'], 404);
             }
 
-            if (!$hoadon->load_relationship('receipt_vouchers')) {
-                return $response->withJson([
-                    'error' => true,
-                    'message' => 'Relationship receipt_vouchers is not available'
-                ], 500);
-            }
+            $hoadon_id_safe = $db->quote($hoadon_id);
+            $receipt_id_safe = $db->quote($receipt_id);
+            $new_id = create_guid();
+            $new_id_safe = $db->quote($new_id);
 
-            $hoadon->receipt_vouchers->add($receipt_id);
+            $sql = "INSERT INTO hoadonban_receiptvouchers (id, hoadon_id, receipt_id, date_modified, deleted)
+                VALUES ('{$new_id_safe}', '{$hoadon_id_safe}', '{$receipt_id_safe}', NOW(), 0)
+                ON DUPLICATE KEY UPDATE deleted = 0, date_modified = NOW()";
+            $db->query($sql);
 
             return $response->withJson([
                 'error' => false,
@@ -732,6 +733,79 @@ class CustomController extends BaseController
             ], 201);
         } catch (Throwable $e) {
             $GLOBALS['log']->fatal("Save hoadonban-receipt relationship failed: {$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}");
+            return $response->withJson(['error' => true, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function remove_hoadonban_receipt(Request $request, Response $response, array $args)
+    {
+        try {
+            global $db, $sugar_config;
+            $params = (array) $request->getParsedBody();
+
+            $hoadon_id = isset($params['hoadon_id']) ? global_test_input($params['hoadon_id']) : '';
+            $receipt_id = isset($params['receipt_id']) ? global_test_input($params['receipt_id']) : '';
+            $request_ip = $request->getServerParam('REMOTE_ADDR');
+
+            if (!in_array($request_ip, $sugar_config['ip_whitelist'])) {
+                return $response->withJson(['error' => true, 'message' => "Access denied"], 403);
+            }
+
+            if (strlen($hoadon_id) !== 36 || strlen($receipt_id) !== 36) {
+                return $response->withJson([
+                    'error' => true,
+                    'message' => 'Invalid hoadon_id or receipt_id'
+                ], 400);
+            }
+
+            $hoadon = BeanFactory::getBean('EC_HoaDonBan', $hoadon_id);
+            if (!$hoadon || empty($hoadon->id) || !empty($hoadon->deleted)) {
+                return $response->withJson(['error' => true, 'message' => 'HoaDonBan not found'], 404);
+            }
+
+            $receipt = BeanFactory::getBean('EC_Receipt_Voucher', $receipt_id);
+            if (!$receipt || empty($receipt->id) || !empty($receipt->deleted)) {
+                return $response->withJson(['error' => true, 'message' => 'Receipt voucher not found'], 404);
+            }
+
+            $hoadon_id_safe = $db->quote($hoadon_id);
+            $receipt_id_safe = $db->quote($receipt_id);
+
+            $sqlCheck = "SELECT id
+                FROM hoadonban_receiptvouchers
+                WHERE hoadon_id = '{$hoadon_id_safe}'
+                    AND receipt_id = '{$receipt_id_safe}'
+                    AND deleted = 0
+                LIMIT 1";
+            $resCheck = $db->query($sqlCheck);
+            $rowCheck = $db->fetchByAssoc($resCheck);
+
+            if (!$rowCheck || empty($rowCheck['id'])) {
+                return $response->withJson([
+                    'error' => true,
+                    'message' => 'Relationship not found'
+                ], 404);
+            }
+
+            $relationship_id_safe = $db->quote($rowCheck['id']);
+
+            $sqlDelete = "UPDATE hoadonban_receiptvouchers
+                SET deleted = 1,
+                    date_modified = NOW()
+                WHERE id = '{$relationship_id_safe}'
+                    AND deleted = 0";
+            $db->query($sqlDelete);
+
+            return $response->withJson([
+                'error' => false,
+                'message' => 'Relationship removed successfully',
+                'data' => [
+                    'hoadon_id' => $hoadon_id,
+                    'receipt_id' => $receipt_id
+                ]
+            ], 200);
+        } catch (Throwable $e) {
+            $GLOBALS['log']->fatal("Remove hoadonban-receipt relationship failed: {$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}");
             return $response->withJson(['error' => true, 'message' => $e->getMessage()], 500);
         }
     }

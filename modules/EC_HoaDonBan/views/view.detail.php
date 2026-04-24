@@ -9,6 +9,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 	{
 		$this->getStyles();
 		$this->populateLineItems();
+		$this->populateReceiptVoucherPanel();
 
 		// Cập nhật thông tin hóa đơn mới nhất từ hệ thống Wininvoice 
 		if ($this->bean->tinhtrang == '2' && $this->bean->company_unit == 'MHV' && (!$this->bean->sohoadon || empty($this->bean->sohoadon))) {
@@ -37,12 +38,12 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 
 	private function getStyles()
 	{
-		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.detail.css?v=1.0.0' />";
+		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.detail.css?v=1.0.1' />";
 	}
 
 	private function getScripts()
 	{
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.6'></script>";
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.10'></script>";
 	}
 
 	public function populateLineItems()
@@ -628,5 +629,71 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 		}
 
 		return $result;
+	}
+
+	protected function populateReceiptVoucherPanel()
+	{
+		global $db;
+
+		$html = '<div class="panel-receipt-vouchers">';
+		$html .= '<table class="table-edit-hoadonban table-details__booking" style="width: 100%;" cellpadding="0" cellspacing="0" border="0">';
+		$html .= '<thead><tr>';
+		$html .= '<th width="5%">STT</th>';
+		$html .= '<th width="20%">Tên phiếu thu</th>';
+		$html .= '<th width="15%">Số tiền</th>';
+		$html .= '<th width="10%">Loại tiền</th>';
+		$html .= '<th width="15%">Ngày chứng từ</th>';
+		$html .= '<th width="15%">Trạng thái</th>';
+		$html .= '<th width="10%">Người phụ trách</th>';
+		$html .= '<th width="10%">Thao tác</th>';
+		$html .= '</tr></thead><tbody>';
+		$i = 1;
+		if (!empty($this->bean->id)) {
+			$sql = "SELECT rv.id, rv.name, rv.amount, rv.amount_type, rv.ngaychungtu, 
+						rv.rv_status, u.user_name as assigned_user_name
+					FROM ec_receipt_voucher rv
+					INNER JOIN hoadonban_receiptvouchers hr ON rv.id = hr.receipt_id
+					LEFT JOIN users u ON rv.assigned_user_id = u.id
+					WHERE hr.hoadon_id = '" . $this->bean->id . "' 
+					AND hr.deleted = 0 
+					AND rv.deleted = 0
+					ORDER BY rv.date_entered DESC";
+
+			$result = $db->query($sql);
+
+
+			while ($row = $db->fetchByAssoc($result)) {
+				$html .= '<tr>';
+				$html .= '<td class="text-center">' . $i . '</td>';
+				$html .= '<td><a href="index.php?module=EC_Receipt_Voucher&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a></td>';
+				$html .= '<td class="text-end">' . number_format($row['amount']) . '</td>';
+				$html .= '<td>' . ($row['amount_type'] ?? 'VND') . '</td>';
+				$html .= '<td>' . ($row['ngaychungtu'] ?? '') . '</td>';
+				$html .= '<td>' . ($GLOBALS['app_list_strings']['receipt_voucher_status_list'][$row['rv_status']] ?? '') . '</td>';
+				$html .= '<td>' . ($row['assigned_user_name'] ?? '') . '</td>';
+				$html .= '<td class="text-center">
+							<button type="button" class="btn-remove-receipt" data-id="' . $row['id'] . '">Xóa</button>
+						</td>';
+				$html .= '</tr>';
+				$i++;
+			}
+		}
+
+		if ($i == 1) {
+			$html .= '<tr><td colspan="8" class="text-center">Chưa có phiếu thu nào</td></tr>';
+		}
+
+		$html .= '</tbody></table>';
+		$html .= '<div class="mt-2 d-flex align-items-center gap-2 flex-wrap">';
+		$html .= '<button type="button" id="btn-add-receipt" class="btn btn-primary">Thêm phiếu thu</button>';
+		$html .= '<div style="position:relative;">';
+		$html .= '  <input type="text" id="ac_receipt_search" class="ac_receipt_search"
+                placeholder="Tìm nhanh theo tên phiếu thu..." autocomplete="off"
+                style="min-width:240px; padding:5px 8px; border:1px solid #c2c2c2;
+                       border-radius:4px; font-size:13px;" />';
+		$html .= '</div>';
+		$html .= '</div>';
+
+		$this->ss->assign('RECEIPT_VOUCHERS_PANEL', $html);
 	}
 }
