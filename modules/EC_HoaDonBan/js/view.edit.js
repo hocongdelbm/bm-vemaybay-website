@@ -393,7 +393,7 @@ $(document).ready(function () {
 		}
 
 		let masothue = $('#masothue').val().trim();
-		if (masothue.length < 1 || masothue.length > 15) {
+		if (masothue.length > 15) {
 			showToastWarning('Mã số thuế không hợp lệ!');
 			preventSubmit();
 			return false;

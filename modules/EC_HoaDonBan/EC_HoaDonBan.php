@@ -76,8 +76,6 @@ class EC_HoaDonBan extends Basic
 		if (!isset($_POST['kyhieuhd']) || empty($_POST['kyhieuhd'])) $this->kyhieuhd = $this->genInvSerial();
 		else $this->kyhieuhd = trim($_POST['kyhieuhd']);
 
-		$this->masothue = $this->checkTaxCode($this->masothue) ? $this->masothue : '';
-
 		$identity_number = trim($_POST['identity_number'] ?? '');
 		if (!empty($identity_number)) {
 			if (strlen($identity_number) == 12) $this->citizen_id = $identity_number;
@@ -273,7 +271,7 @@ class EC_HoaDonBan extends Basic
 					$outInv->tencongty 		= $bookingInfo['iv_company_name'];
 					// Check tax code
 					$bookingInfo['iv_tax_code'] = trim($bookingInfo['iv_tax_code']);
-					$outInv->masothue 		= $this->checkTaxCode($bookingInfo['iv_tax_code']) ? $bookingInfo['iv_tax_code'] : '';
+					$outInv->masothue 		= $bookingInfo['iv_tax_code'] ?? '';
 					$outInv->email			= $bookingInfo['iv_email'];
 					$outInv->citizen_id 	= $citizen_id;
 					$outInv->passport_number = $passport_number;
@@ -447,18 +445,6 @@ class EC_HoaDonBan extends Basic
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * Check tax code is invalid
-	 * 
-	 * @param string $tax_code
-	 * @return bool
-	 */
-	public function checkTaxCode($tax_code)
-	{
-		if (strlen($tax_code) == 10 || (strlen($tax_code) == 14 && $tax_code[10] === '-')) return true;
-		return false;
 	}
 
 	/**
