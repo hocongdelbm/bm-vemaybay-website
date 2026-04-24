@@ -888,48 +888,69 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
         $sql_role .= " AND bk.assigned_user_id = '{$current_user->id}' ";
     }
 
-    // Tìm theo tình trạng phiếu thu của booking: chưa thu / chưa thu đủ
+    // ========== XỬ LÝ PAYMENT_STT (MULTI-SELECT) ==========
     $sql_having = '';
-    if (isset($condition_arr['payment_stt'])) {
-        if ((int)$condition_arr['payment_stt'] === 1) {
-            // Chưa thu
-            $sql_having = ' HAVING receipt_amount = 0';
-        } else if ((int)$condition_arr['payment_stt'] === 2) {
-            // Chưa thu đủ
-            $sql_having = ' HAVING receipt_amount < subtotal_amount AND receipt_amount > 0';
-        } else if ((int)$condition_arr['payment_stt'] === 3) {
-            // Booking telesale
-            $sql_having = ' HAVING is_telesale = 1';
-        } else if ((int)$condition_arr['payment_stt'] === 4) {
-            $sql_having = ' HAVING is_ctv = 1';
-        } else if((int)$condition_arr['payment_stt'] === 5) {
-            $sql_having = ' HAVING is_reference = 1';
+    if (!empty($condition_arr['payment_stt']) && is_array($condition_arr['payment_stt'])) {
+        $having_conditions = [];
+        foreach ($condition_arr['payment_stt'] as $stt) {
+            $stt_val = (int)$stt;
+            if ($stt_val === 1) {
+                $having_conditions[] = 'receipt_amount = 0';
+            } else if ($stt_val === 2) {
+                $having_conditions[] = '(receipt_amount < subtotal_amount AND receipt_amount > 0)';
+            } else if ($stt_val === 3) {
+                $having_conditions[] = 'is_telesale = 1';
+            } else if ($stt_val === 4) {
+                $having_conditions[] = 'is_ctv = 1';
+            } else if ($stt_val === 5) {
+                $having_conditions[] = 'is_reference = 1';
+            }
+        }
+        if (!empty($having_conditions)) {
+            $sql_having = ' HAVING (' . implode(' OR ', $having_conditions) . ')';
         }
     }
 
-    // Where condition by booking fields
+// ========== XỬ LÝ CUSTOMER_SOURCE (MULTI-SELECT) ==========
     $where_bk_fields = '';
     $where_receipt_voucher_only = '';
-    $customer_source = isset($condition_arr['customer_source']) ? trim((string)$condition_arr['customer_source']) : '';
-    $customer_source_aliases = [
-        'reference' => 'is_reference',
-    ];
-
-    if ($customer_source !== '') {
-        $normalized_customer_source = isset($customer_source_aliases[$customer_source])
-            ? $customer_source_aliases[$customer_source]
-            : $customer_source;
-
-        if ($normalized_customer_source === 'receipt_voucher') {
-            // "Phiếu thu" là nguồn dữ liệu từ phân hệ phiếu thu, không phải field customer_source của booking.
+    $is_booking_only_by_customer_source = false;
+    
+    if (!empty($condition_arr['customer_source']) && is_array($condition_arr['customer_source'])) {
+        $customer_source_conditions = [];
+        $has_receipt_voucher = false;
+        $has_reference = false;
+        
+        foreach ($condition_arr['customer_source'] as $source) {
+            $source = trim((string)$source);
+            if ($source === '') continue;
+            
+            if ($source === 'receipt_voucher') {
+                $has_receipt_voucher = true;
+            } elseif ($source === 'is_reference') {
+                $has_reference = true;
+                $customer_source_conditions[] = 'bk.is_reference = 1';
+            } else {
+                $customer_source_conditions[] = "bk.customer_source = '" . $db->quote($source) . "'";
+            }
+        }
+        
+        // Nếu chỉ chọn receipt_voucher, không lấy dữ liệu booking
+        if ($has_receipt_voucher && empty($customer_source_conditions)) {
             $where_bk_fields .= " AND 1 = 0";
-        } elseif ($normalized_customer_source === 'is_reference') {
-            // Nguồn tham khảo ưu tiên theo cờ đánh dấu để đồng nhất dữ liệu cũ/mới.
-            $where_bk_fields .= " AND bk.is_reference = 1";
-            $where_receipt_voucher_only .= " AND bk.is_reference = 1";
-        } else {
-            $where_bk_fields .= " AND bk.customer_source = '{$normalized_customer_source}'";
-            $where_receipt_voucher_only .= " AND bk.customer_source = '{$normalized_customer_source}'";
+            $is_booking_only_by_customer_source = false;
+        }
+        // Nếu có cả receipt_voucher và các nguồn khác, cho phép lấy cả hai
+        elseif ($has_receipt_voucher && !empty($customer_source_conditions)) {
+            $where_bk_fields .= " AND (" . implode(' OR ', $customer_source_conditions) . ")";
+            // $where_receipt_voucher_only .= " AND (" . implode(' OR ', $customer_source_conditions) . ")";
+            $is_booking_only_by_customer_source = false;
+        }
+        // Nếu không có receipt_voucher, chỉ lấy dữ liệu booking
+        elseif (!empty($customer_source_conditions)) {
+            $where_bk_fields .= " AND (" . implode(' OR ', $customer_source_conditions) . ")";
+            $where_receipt_voucher_only .= " AND (" . implode(' OR ', $customer_source_conditions) . ")";
+            $is_booking_only_by_customer_source = true;
         }
     }
 
@@ -1020,7 +1041,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
         GROUP BY bk.id
         $sql_having";
 
-    if (empty($condition_arr['payment_stt'])) {
+    if (empty($condition_arr['payment_stt']) && !$is_booking_only_by_customer_source) {
         $sql .= "UNION
             SELECT 
                 p.id AS parent_id
@@ -1110,7 +1131,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
                     ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
                     ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS voucher_date
                 FROM ec_hoanve p
-                    INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id $where_bk_fields
+                    INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id " . (empty($where_receipt_voucher_only) ? '' : $where_bk_fields) . "
                 WHERE p.deleted=0
                     AND p.tinhtrang='1'
                     AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
@@ -1138,7 +1159,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
                     ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
                     ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS voucher_date
                 FROM ec_hoanve p
-                    INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id $where_bk_fields
+                    INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id " . (empty($where_receipt_voucher_only) ? '' : $where_bk_fields) . "
                 WHERE p.deleted=0
                     AND p.tinhtrang='1' 
                     AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'

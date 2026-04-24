@@ -28,6 +28,9 @@ class EC_Receipt_VoucherController extends SugarController
 			case "baocaothuchi":
 				$this->action = "baocaothuchi";
 				break;
+			case "baocaothuchi_detail":
+				$this->action = "baocaothuchi_detail";
+				break;
 			case "Save":
 				$this->action = "Save";
 				break;

@@ -1970,3 +1970,89 @@
         line-height: 1.4;
     }
 }
+
+/* ── Adaptive Thresholds Panel ───────────────────────────── */
+.ec-threshold-card {
+    border-top: 4px solid #f59e0b;
+}
+
+.ec-threshold-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ec-threshold-meta {
+    font-size: 12px;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 5px 12px;
+}
+
+.ec-threshold-metric-label {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.ec-threshold-metric-key {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.ec-threshold-context-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.ec-threshold-context-badge.is-all {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.ec-threshold-context-badge.is-search {
+    background: #ecfdf5;
+    color: #047857;
+    border-color: #a7f3d0;
+}
+
+.ec-threshold-context-badge.is-general {
+    background: #fffbeb;
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+.ec-threshold-context-badge.is-other {
+    background: #f8fafc;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+.ec-threshold-cell-right {
+    text-align: right;
+}
+
+.ec-threshold-cell-strong {
+    font-weight: 600;
+}
+
+.ec-threshold-limit-badge {
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-weight: 700;
+}

@@ -1,6 +1,5 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
-require_once('include/MVC/View/views/view.detail.php');
 
 class EC_Receipt_VoucherViewDetail extends ViewDetail
 {
@@ -50,31 +49,14 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail
 						</tr>
 					</thead>';
 
-			if ($this->bean->supplier_id != '') {
-				$loai_thu .= '
-					<tr>
-						<td class="text-start">' . $this->bean->supplier . '</td>
-						<td class="text-end">' . format_number($this->bean->sell_amount) . '</td>
-						<td class="text-end">' . format_number($this->bean->bought_amount) . '</td>
-					</tr>';
-			}
-
-			if ($this->bean->supplier2_id != '') {
-				$loai_thu .= '
-					<tr>
-						<td class="text-start">' . $this->bean->supplier2 . '</td>
-						<td class="text-end">' . format_number($this->bean->sell_amount2) . '</td>
-						<td class="text-end">' . format_number($this->bean->bought_amount2) . '</td>
-					</tr>';
-			}
-
-			if ($this->bean->supplier3_id != '') {
-				$loai_thu .= '
-					<tr>
-						<td class="text-start">' . $this->bean->supplier3 . '</td>
-						<td class="text-end">' . format_number($this->bean->sell_amount3) . '</td>
-						<td class="text-end">' . format_number($this->bean->bought_amount3) . '</td>
-					</tr>';
+			foreach ([
+				[$this->bean->supplier_id,  $this->bean->supplier,  $this->bean->sell_amount,  $this->bean->bought_amount],
+				[$this->bean->supplier2_id, $this->bean->supplier2, $this->bean->sell_amount2, $this->bean->bought_amount2],
+				[$this->bean->supplier3_id, $this->bean->supplier3, $this->bean->sell_amount3, $this->bean->bought_amount3],
+			] as [$id, $name, $sell, $buy]) {
+				if ($id !== '') {
+					$loai_thu .= $this->buildSupplierRow($name, $sell, $buy);
+				}
 			}
 			$loai_thu .= '</table>';
 		} else if (!empty($this->bean->customer)) {
@@ -218,15 +200,12 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail
 		}
 	}
 
-	// Module ec_hoadonban không có field phieuthu_id
-
-	// Kiểm tra xem đã có hóa đơn bán nào thuộc phiếu thu này?
-	// function isSalesInvoiceExist($phieuthu_id){
-	// 	$sql = "SELECT COUNT(id) FROM ec_hoadonban
-	// 			WHERE phieuthu_id='".$phieuthu_id."' AND deleted=0 ";
-	// 	$rowcount = $this->bean->db->getOne($sql);
-	// 	if($rowcount > 0)
-	// 		return true;
-	// 	return false;
-	// }
+	private function buildSupplierRow($name, $sellAmount, $boughtAmount)
+	{
+		return '<tr>
+				<td class="text-start">' . $name . '</td>
+				<td class="text-end">' . format_number($sellAmount) . '</td>
+				<td class="text-end">' . format_number($boughtAmount) . '</td>
+			</tr>';
+	}
 }

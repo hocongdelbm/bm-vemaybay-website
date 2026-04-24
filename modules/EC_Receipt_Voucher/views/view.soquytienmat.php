@@ -46,7 +46,7 @@ class Viewsoquytienmat extends SugarView
 		if (isset($_POST['btnViewDetail'])) {
 			$accounting_code = '1111';
 			$opening_year = date('Y', strtotime($post_fdate));
-			$data = $this->getVoucherList($department_info, $opening_year, $accounting_code, $post_fdate, $post_tdate, $location_id);
+			$data = $this->getVoucherList($department_info, $opening_year, $accounting_code, $post_fdate, $post_tdate, $location_id, $location_name);
 			$smartyobj->assign('VOUCHER_LIST', $data['html']);
 
 			$smartyobj->assign('POST_FROM_DATE', $post_fdate);
@@ -69,7 +69,7 @@ class Viewsoquytienmat extends SugarView
 		}
 	}
 
-	function getVoucherList($department_info, $opening_year, $accounting_code, $post_fdate, $post_tdate, $location_id = '')
+	function getVoucherList($department_info, $opening_year, $accounting_code, $post_fdate, $post_tdate, $location_id = '', $location_name = '')
 	{
 		global $db, $app_list_strings;
 
@@ -248,11 +248,6 @@ class Viewsoquytienmat extends SugarView
 		$total_receipt = 0;
 		$total_payment = 0;
 		$total_remain = 0;
-
-		$location_name = '';
-		if (isset($_POST['location_id']) && !empty($_POST['location_id'])) {
-			$location_name = $_POST['location_name'];
-		}
 
 		// HEADER
 		$html .= '<table id="table-wrapper" class="table-soquytienmat" cellpadding="0" cellspacing="0" border="0" width="100%">

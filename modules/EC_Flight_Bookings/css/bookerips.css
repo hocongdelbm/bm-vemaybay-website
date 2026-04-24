@@ -1,0 +1,408 @@
+/* ==========================================================
+   Booker IP Whitelist — Standalone Styles
+   (All CSS needed for view_bookerips, extracted from ec_tonghop)
+   ========================================================== */
+
+/* ── 1. CSS Variables ───────────────────────────────────── */
+:root {
+    --uat-primary: #3b82f6;
+    --uat-primary-dark: #1d4ed8;
+    --uat-primary-light: #eff6ff;
+    --uat-secondary: #8b5cf6;
+    --uat-success: #10b981;
+    --uat-success-light: #d1fae5;
+    --uat-danger: #ef4444;
+    --uat-danger-light: #fee2e2;
+    --uat-warning: #f59e0b;
+    --uat-warning-light: #fef3c7;
+    --uat-info: #0ea5e9;
+    --uat-text: #1e293b;
+    --uat-text-muted: #64748b;
+    --uat-bg: #f8fafc;
+    --uat-card-bg: #ffffff;
+    --uat-border: #e2e8f0;
+    --uat-radius: 12px;
+    --uat-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --uat-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --uat-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --uat-font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ── 2. Base Wrap ────────────────────────────────────────── */
+.uat-wrap {
+    margin: 10px 20px 20px 2px;
+    padding: 24px;
+    font-family: var(--uat-font);
+    color: var(--uat-text);
+    box-sizing: border-box;
+    background: var(--uat-bg);
+    min-height: 100vh;
+    position: relative;
+}
+
+.uat-wrap * {
+    box-sizing: border-box;
+}
+
+/* ── 3. Typography ──────────────────────────────────────── */
+.uat-wrap h1 {
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.025em;
+    color: #0f172a;
+}
+
+.uat-header-desc {
+    font-size: 13px;
+    color: var(--uat-text-muted);
+    margin: 0;
+}
+
+/* ── 4. Layout Grid ─────────────────────────────────────── */
+.uat-grid-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.uat-col-8 {
+    flex: 0 0 calc(66.666% - 14px);
+    width: calc(66.666% - 14px);
+}
+
+.uat-col-4 {
+    flex: 0 0 calc(33.333% - 14px);
+    width: calc(33.333% - 14px);
+}
+
+@media (max-width: 1200px) {
+
+    .uat-col-8,
+    .uat-col-4 {
+        flex: 0 0 calc(50% - 10px);
+        width: calc(50% - 10px);
+    }
+}
+
+@media (max-width: 782px) {
+    .uat-wrap {
+        margin: 0;
+        padding: 15px;
+        width: 100%;
+    }
+
+    .uat-col-8,
+    .uat-col-4 {
+        flex: 0 0 100%;
+        width: 100%;
+    }
+
+    .uat-grid-row {
+        gap: 16px;
+    }
+}
+
+/* ── 5. Header ──────────────────────────────────────────── */
+.uat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.uat-header-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+@media (max-width: 640px) {
+    .uat-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* ── 6. Cards ───────────────────────────────────────────── */
+.uat-card {
+    background: var(--uat-card-bg);
+    border: 1px solid var(--uat-border);
+    border-radius: var(--uat-radius);
+    padding: 24px;
+    box-shadow: var(--uat-shadow-sm);
+    transition: all 0.2s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.uat-card:hover {
+    box-shadow: var(--uat-shadow);
+    border-color: #cbd5e1;
+}
+
+.uat-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--uat-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.uat-card-des {
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.5;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-weight: 400;
+}
+
+.uat-card-divider {
+    border-top: 1px dashed var(--uat-border);
+    margin: 12px 0 16px 0;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .uat-card {
+        padding: 16px;
+    }
+}
+
+/* ── 7. Tables ──────────────────────────────────────────── */
+.uat-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    font-size: 13px;
+}
+
+.uat-table th {
+    background: #f8fafc;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--uat-text-muted);
+    border-bottom: 1px solid var(--uat-border);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.uat-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.uat-table tr:last-child td {
+    border-bottom: none;
+}
+
+.uat-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+.uat-empty-cell {
+    text-align: center;
+    color: #94a3b8;
+    padding: 30px 0 !important;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .uat-table {
+        font-size: 12px;
+    }
+}
+
+/* ── 8. Badges ──────────────────────────────────────────── */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.badge-blue {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-green {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-red {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ── 9. Form Fields ─────────────────────────────────────── */
+.uat-booker-field {
+    margin-bottom: 20px;
+}
+
+.uat-booker-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--uat-text);
+    margin-bottom: 8px;
+}
+
+.uat-booker-field label .required {
+    color: var(--uat-danger);
+    margin-left: 2px;
+}
+
+.uat-booker-field textarea,
+.uat-booker-field input[type="text"],
+.uat-booker-field input[type="date"] {
+    width: 100%;
+    border: 1px solid var(--uat-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--uat-text);
+    background: #fff;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.uat-booker-field textarea:focus,
+.uat-booker-field input:focus {
+    border-color: var(--uat-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--uat-primary-light);
+}
+
+.field-hint {
+    font-size: 11px;
+    color: var(--uat-text-muted);
+    margin: 6px 0 0;
+}
+
+/* ── 10. Buttons ─────────────────────────────────────────── */
+.uat-btn-form {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: var(--uat-primary);
+    color: #fff;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.uat-btn-form:hover {
+    background: var(--uat-primary-dark);
+}
+
+.uat-btn-form:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+.uat-btn-ghost {
+    background: transparent;
+    color: var(--uat-primary);
+    border: 1px solid var(--uat-border);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.uat-btn-ghost:hover {
+    background: var(--uat-primary-light);
+    border-color: var(--uat-primary);
+}
+
+.uat-btn-delete {
+    background: var(--uat-danger-light);
+    color: var(--uat-danger);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.uat-btn-delete:hover {
+    background: var(--uat-danger);
+    color: #fff;
+}
+
+/* ── 11. Result Box ─────────────────────────────────────── */
+.uat-booker-result {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.uat-booker-result.success {
+    background: var(--uat-success-light);
+    border: 1px solid #10b981;
+    color: #065f46;
+}
+
+.uat-booker-result.error {
+    background: var(--uat-danger-light);
+    border: 1px solid #ef4444;
+    color: #991b1b;
+}
+
+.uat-booker-result.partial {
+    background: var(--uat-warning-light);
+    border: 1px solid #f59e0b;
+    color: #92400e;
+}
+
+/* ── 12. IP & Note Cell ─────────────────────────────────── */
+.bip-ip-cell {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-weight: 600;
+    color: var(--uat-text);
+    font-size: 13px;
+}
+
+.bip-note-cell {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--uat-text-muted);
+}
