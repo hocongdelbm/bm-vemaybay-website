@@ -55,18 +55,6 @@ $(document).ready(function () {
 		});
 	});
 
-	$(document).on('change', 'select[name="ct_code[]"]', function () {
-		const index = $('select[name="ct_code[]"]').index(this);
-		const value = $(this).val();
-
-		if (value == 'PHL' || value == 'PD' || value == 'PMG') {
-			$(`input[name="ct_receipt_voucher[]"]`).eq(index).attr('type', 'text');
-		}
-		else {
-			$(`input[name="ct_receipt_voucher[]"]`).eq(index).attr('type', 'hidden');
-		}
-	});
-
 	$("#loaihoadon").change(function () {
 		$("#first-row").parent().children().not("#first-row").not("#last-row").remove();
 		changeInvoiceType();
@@ -535,7 +523,6 @@ function insertRow(ln, invoice_type) {
 		html += `<td>
 			<input type="text" name="ct_booking[]" id="ct_booking${ln}" ln="${ln}" class="ac_booking text-start" maxlength="32" size="30" autocomplete="off" fld='{\"id\":\"ct_booking_id" + ln + "\",\"name\":\"ct_booking" + ln + "\"}' value="${booking_bef}" />
 			<input type="hidden" name="ct_booking_id[]" id="ct_booking_id${ln}" value="${booking_id_bef}" />
-			<input type="hidden" name="ct_receipt_voucher[]" class="input-receipt-voucher" value="" placeholder="Mã phiếu thu" style="border:1px solid #c2c2c2 !important; border-radius:4px; margin-top:5px; padding-left:5px !important;" />
 		</td>`;
 
 		html += `<td>

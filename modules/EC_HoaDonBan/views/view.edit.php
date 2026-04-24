@@ -122,10 +122,8 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 				SELECT ct.*
 					,(SELECT qty FROM ec_input_invoices WHERE id = ct.ticket_number_id) AS max_qty
 					,in_iv.ticket_code
-					,IFNULL(re.name, "") AS receipt_voucher_name
 				FROM ec_chitiethoadon ct 
 					LEFT JOIN ec_input_invoices in_iv ON in_iv.id = ct.ticket_number_id
-					LEFT JOIN ec_receipt_voucher re ON re.id = ct.receipt_voucher_id
 				WHERE ct.parent_id = "' . $this->bean->id . '" AND ct.deleted = 0
 				ORDER BY ct.order_by_no';
 
@@ -143,7 +141,6 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 						'</select>
 					</td>';
 
-					$input_type_receipt = !empty($row['receipt_voucher_name']) ? 'text' : 'hidden';
 					$html .= "<td>
 						<input type='text' name='ct_booking[]' id='ct_booking$i' ln='$i' class='ac_booking' value='" . $row['booking'] . "' maxlength='32' size='30' autocomplete='off' fld='{\"id\":\"ct_booking_id$i\",\"name\":\"ct_booking$i\"}' style='text-align:left' />
 						<input type='hidden' name='ct_booking_id[]' id='ct_booking_id$i' value='" . $row['booking_id'] . "' />

@@ -158,15 +158,7 @@ class EC_HoaDonBan extends Basic
 				if ($this->loaihoadon == '0') { // HĐ GTGT
 					$cthd->name = trim(stripslashes($_POST['ct_ticket_number'][$i]));
 
-					if ($cthd->mahang == 'PHL' || $cthd->mahang == 'PD') {
-						// Lưu thông tin phiếu thu
-						$receipt_voucher_name = trim($_POST['ct_receipt_voucher'][$i] ?? '');
-						$receipt_voucher_id = '';
-						if (!empty($receipt_voucher_name)) {
-							$receipt_voucher_id = $this->db->getOne("SELECT id FROM ec_receipt_voucher WHERE name='$receipt_voucher_name' AND deleted=0 ORDER BY date_entered DESC LIMIT 1");
-						}
-						$cthd->receipt_voucher_id = $receipt_voucher_id;
-					} else if ($cthd->mahang == 'PK') {
+					if ($cthd->mahang == 'PK') {
 						$cthd->name = 'PK';
 					}
 
