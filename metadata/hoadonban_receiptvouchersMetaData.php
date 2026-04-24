@@ -15,7 +15,7 @@ $dictionary['hoadonban_receiptvouchers'] = array(
     ),
     'indices' => array(
         array('name' => 'hoadonban_receiptvouchers_pk', 'type' => 'primary', 'fields' => array('id')),
-        array('name' => 'idx_hoadonban_receiptvouchers_ak', 'type' => 'unique', 'fields' => array('hoadon_id', 'receipt_id')),
+        array('name' => 'idx_hoadonban_receiptvouchers_uni', 'type' => 'unique', 'fields' => array('hoadon_id', 'receipt_id', 'deleted')),
     ),
     'relationships' => array(
         'hoadonban_receiptvouchers' => array(
