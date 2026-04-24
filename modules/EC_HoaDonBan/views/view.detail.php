@@ -43,7 +43,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 
 	private function getScripts()
 	{
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.10'></script>";
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.11'></script>";
 	}
 
 	public function populateLineItems()
@@ -631,7 +631,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 		return $result;
 	}
 
-//====== PHIẾU THU ======
+ //====== PHIẾU THU ======
 	/** 
 	 * Hiển thị panel quản lý phiếu thu
 	 * @author dahyvan

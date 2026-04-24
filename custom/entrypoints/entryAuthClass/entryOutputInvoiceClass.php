@@ -386,7 +386,8 @@ class entryOutputInvoiceClass extends entryClass
         }
 
         $receipt_id_safe = $db->quote($receipt_id);
-        $sql = "SELECT rv.id, rv.name, rv.amount, rv.amount_type, rv.ngaychungtu, rv.rv_status,
+        $sql = "SELECT rv.id, rv.name, rv.amount, rv.amount_type, rv.loai_thu, rv.description,
+                   rv.ngaychungtu, rv.rv_status,
                        u.user_name AS assigned_user_name
                 FROM ec_receipt_voucher rv
                 LEFT JOIN users u ON u.id = rv.assigned_user_id
@@ -398,9 +399,15 @@ class entryOutputInvoiceClass extends entryClass
             return ['error' => true, 'message' => 'Receipt voucher not found'];
         }
 
+        $loai_thu_key = (string)($row['loai_thu'] ?? '');
+        $loai_thu_text = $app_list_strings['loai_thu_list'][$loai_thu_key]
+            ?? ($app_list_strings['loai_thu_list'][(int)$loai_thu_key] ?? $loai_thu_key);
+
         $status_key = (string)($row['rv_status'] ?? '');
         $status_text = $app_list_strings['receipt_voucher_status_list'][$status_key]
             ?? ($app_list_strings['receipt_voucher_status_list'][(int)$status_key] ?? $status_key);
+        $status_color = $app_list_strings['receipt_voucher_status_color_list'][$status_key]
+            ?? ($app_list_strings['receipt_voucher_status_color_list'][(int)$status_key] ?? '');
 
         return [
             'error' => false,
@@ -411,9 +418,13 @@ class entryOutputInvoiceClass extends entryClass
                 'amount' => $row['amount'] ?? 0,
                 'amount_type' => $row['amount_type'] ?? 'VND',
                 'ngaychungtu' => $row['ngaychungtu'] ?? '',
+                'loai_thu' => $loai_thu_key,
+                'loai_thu_text' => $loai_thu_text,
                 'rv_status' => $status_key,
                 'rv_status_text' => $status_text,
+                'rv_status_color' => $status_color,
                 'assigned_user_name' => $row['assigned_user_name'] ?? '',
+                'description' => $row['description'] ?? '',
             ]
         ];
     }
@@ -442,8 +453,8 @@ class entryOutputInvoiceClass extends entryClass
         $termInner = substr($termEscaped, 1, -1); // bỏ nháy đơn 2 đầu → PT-231108-322810
         $likeSafe = "'%" . $termInner . "%'"; // → '%PT-231108-322810%'
 
-        $sql = "SELECT rv.id, rv.name, rv.amount, rv.amount_type,
-               rv.ngaychungtu, rv.rv_status,
+        $sql = "SELECT rv.id, rv.name, rv.amount, rv.loai_thu,
+               rv.ngaychungtu, rv.rv_status, rv.description,
                u.user_name AS assigned_user_name
         FROM ec_receipt_voucher rv
         LEFT JOIN users u ON u.id = rv.assigned_user_id
@@ -455,20 +466,29 @@ class entryOutputInvoiceClass extends entryClass
         $res = $db->query($sql);
         $data = [];
         while ($row = $db->fetchByAssoc($res)) {
+            $loai_thu_key = (string)($row['loai_thu'] ?? '');
+            $loai_thu_text = $app_list_strings['loai_thu_list'][$loai_thu_key]
+                ?? ($app_list_strings['loai_thu_list'][(int)$loai_thu_key] ?? $loai_thu_key);
+
             $status_key  = (string)($row['rv_status'] ?? '');
             $status_text = $app_list_strings['receipt_voucher_status_list'][$status_key]
                 ?? ($app_list_strings['receipt_voucher_status_list'][(int)$status_key] ?? $status_key);
+            $status_color = $app_list_strings['receipt_voucher_status_color_list'][$status_key]
+                ?? ($app_list_strings['receipt_voucher_status_color_list'][(int)$status_key] ?? '');
 
             $data[] = [
                 'id'                  => $row['id'],
                 'label'               => $row['name'],
                 'name'                => $row['name'],
                 'amount'              => $row['amount'] ?? 0,
-                'amount_type'         => $row['amount_type'] ?? 'VND',
+                'loai_thu'            => $row['loai_thu'] ?? '',
+                'loai_thu_text'       => $loai_thu_text,
                 'ngaychungtu'         => $row['ngaychungtu'] ?? '',
                 'rv_status'           => $status_key,
                 'rv_status_text'      => $status_text,
+                'rv_status_color'     => $status_color,
                 'assigned_user_name'  => $row['assigned_user_name'] ?? '',
+                'description'         => $row['description'] ?? '',
             ];
         }
 

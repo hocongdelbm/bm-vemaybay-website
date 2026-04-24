@@ -388,6 +388,17 @@ $(document).ready(function () {
 		}, 100);
 	});
 
+	function getReceiptAutocompleteColumns() {
+		return [
+			{ name: 'Tên phiếu thu', width: '160px', valueField: 'name' },
+			{ name: 'Số tiền', width: '90px', valueField: 'amount', formatter: formatReceiptAmount },
+			{ name: 'Loại thu', width: '50px', valueField: 'loai_thu_text', formatter: formatReceiptLabelText },
+			{ name: 'Ngày chứng từ', width: '100px', valueField: 'ngaychungtu' },
+			{ name: 'Trạng thái', width: '90px', valueField: 'rv_status_text', formatter: formatReceiptStatusCell },
+			{ name: 'Nội dung thu', width: '100px', valueField: 'description' },
+		];
+	}
+
 	function getReceiptSearchScore(item, keyword) {
 		var name = ((item && item.name) || '').toString().toLowerCase();
 		if (!keyword) return 3;
@@ -410,14 +421,7 @@ $(document).ready(function () {
 
 		$input.autocomplete({
 			showHeader: true,
-			columns: [
-				{ name: 'Tên phiếu thu', width: '160px', valueField: 'name', },
-				{ name: 'Số tiền', width: '90px', valueField: 'amount', formatter: formatReceiptAmount },
-				{ name: 'Loại tiền', width: '50px', valueField: 'amount_type' },
-				{ name: 'Ngày CT', width: '80px', valueField: 'ngaychungtu' },
-				{ name: 'Trạng thái', width: '90px', valueField: 'rv_status_text' },
-				{ name: 'Người phụ trách', width: '100px', valueField: 'assigned_user_name' },
-			],
+			columns: getReceiptAutocompleteColumns(),
 			source: function (request, response) {
 				console.log('[receipt search] source called, term:', request.term); // debug
 				$.ajax({
@@ -498,10 +502,14 @@ $(document).ready(function () {
 						id: receiptId,
 						name: ui.item.name,
 						amount: ui.item.amount,
-						amount_type: ui.item.amount_type,
+						loai_thu: ui.item.loai_thu,
+						loai_thu_text: ui.item.loai_thu_text,
 						ngaychungtu: ui.item.ngaychungtu,
+						rv_status: ui.item.rv_status,
 						rv_status_text: ui.item.rv_status_text,
-						assigned_user_name: ui.item.assigned_user_name
+						rv_status_color: ui.item.rv_status_color,
+						assigned_user_name: ui.item.assigned_user_name,
+						description: ui.item.description || ''
 					});
 					showReceiptNotify('success', 'Liên kết phiếu thu thành công');
 				}).fail(function (xhr) {
@@ -627,10 +635,14 @@ function setReceiptVoucherReturn(resultData) {
 				id: receiptId,
 				name: info.name || popupData.name || receiptId,
 				amount: info.amount || popupData.amount || 0,
-				amount_type: info.amount_type || popupData.amount_type || 'VND',
+				loai_thu: info.loai_thu || popupData.loai_thu || '',
+				loai_thu_text: info.loai_thu_text || popupData.loai_thu_text || popupData.loai_thu || '',
 				ngaychungtu: info.ngaychungtu || popupData.ngaychungtu || '',
+				rv_status: info.rv_status || popupData.rv_status || '',
 				rv_status_text: info.rv_status_text || popupData.rv_status_text || popupData.rv_status || '',
-				assigned_user_name: info.assigned_user_name || popupData.assigned_user_name || ''
+				rv_status_color: info.rv_status_color || popupData.rv_status_color || '',
+				assigned_user_name: info.assigned_user_name || popupData.assigned_user_name || '',
+				description: info.description || popupData.description || ''
 			});
 
 			showReceiptNotify('success', 'Liên kết phiếu thu thành công');
@@ -722,10 +734,13 @@ function getPopupFirstSelectedRow(resultData) {
 		id: '',
 		name: '',
 		amount: '',
-		amount_type: '',
+		loai_thu: '',
+		loai_thu_text: '',
 		ngaychungtu: '',
 		rv_status: '',
+		rv_status_color: '',
 		assigned_user_name: '',
+		description: '',
 	};
 
 	if (!resultData || !resultData.name_to_value_array) {
@@ -756,11 +771,14 @@ function getPopupFirstSelectedRow(resultData) {
 		id: (row.receipt_id || row.id || '').trim(),
 		name: row.receipt_name || row.name || '',
 		amount: row.receipt_amount || row.amount || '',
-		amount_type: row.receipt_amount_type || row.amount_type || '',
+		loai_thu: row.receipt_loai_thu || row.loai_thu || '',
+		loai_thu_text: row.receipt_loai_thu_text || row.loai_thu_text || row.receipt_loai_thu || row.loai_thu || '',
 		ngaychungtu: row.receipt_ngaychungtu || row.ngaychungtu || '',
 		rv_status: row.receipt_status || row.rv_status || '',
 		rv_status_text: row.receipt_status_text || row.rv_status_text || row.receipt_status || row.rv_status || '',
+		rv_status_color: row.receipt_status_color || row.rv_status_color || '',
 		assigned_user_name: row.receipt_assigned_user_name || row.assigned_user_name || '',
+		description: row.receipt_description || row.description || '',
 	};
 }
 
@@ -783,20 +801,22 @@ function appendReceiptVoucherRow(row) {
 	var receiptId = (row.id || '').trim();
 	var receiptName = escapeHtml(row.name || '');
 	var amount = formatReceiptAmount(row.amount);
-	var amountType = escapeHtml(row.amount_type || 'VND');
+	var loai_thu = escapeHtml(row.loai_thu_text || row.loai_thu || '');
 	var ngaychungtu = escapeHtml(row.ngaychungtu || '');
-	var statusText = normalizeStatusText(row.rv_status_text || row.rv_status || '');
+	var statusText = buildReceiptStatusHtml(row.rv_status_text || row.rv_status || '', row.rv_status_color || '');
 	var assignedUser = escapeHtml(row.assigned_user_name || '');
+	var description = escapeHtml(row.description || '');
 
 	var rowHtml = '';
 	rowHtml += '<tr>';
 	rowHtml += '<td class="text-center"></td>';
 	rowHtml += '<td><a href="index.php?module=EC_Receipt_Voucher&action=DetailView&record=' + receiptId + '" target="_blank">' + receiptName + '</a></td>';
 	rowHtml += '<td class="text-end">' + amount + '</td>';
-	rowHtml += '<td>' + amountType + '</td>';
+	rowHtml += '<td>' + loai_thu + '</td>';
 	rowHtml += '<td>' + ngaychungtu + '</td>';
 	rowHtml += '<td>' + statusText + '</td>';
 	rowHtml += '<td>' + assignedUser + '</td>';
+	rowHtml += '<td>' + description + '</td>';
 	rowHtml += '<td class="text-center"><button type="button" class="btn-remove-receipt" data-id="' + receiptId + '">Xóa</button></td>';
 	rowHtml += '</tr>';
 
@@ -812,7 +832,7 @@ function refreshReceiptVoucherTable() {
 
 	var $rows = $tbody.children('tr').not('.receipt-empty-row');
 	if (!$rows.length) {
-		$tbody.html('<tr class="receipt-empty-row"><td colspan="8" class="text-center">Chưa có phiếu thu nào</td></tr>');
+		$tbody.html('<tr class="receipt-empty-row"><td colspan="9" class="text-center">Chưa có phiếu thu nào</td></tr>');
 		return;
 	}
 
@@ -823,7 +843,7 @@ function refreshReceiptVoucherTable() {
 
 function markReceiptEmptyRow() {
 	$('.panel-receipt-vouchers table tbody tr').each(function () {
-		var $td = $(this).children('td[colspan="8"]');
+		var $td = $(this).children('td[colspan="8"], td[colspan="9"]');
 		if ($td.length && $td.text().trim() == 'Chưa có phiếu thu nào') {
 			$(this).addClass('receipt-empty-row');
 		}
@@ -834,6 +854,35 @@ function formatReceiptAmount(value) {
 	var number = parseFloat((value || '0').toString().replace(/,/g, ''));
 	if (isNaN(number)) return '0';
 	return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function formatReceiptLabelText(value) {
+	return escapeHtml(value || '');
+}
+
+function formatReceiptStatusCell(value, item) {
+	return buildReceiptStatusHtml(value, item && item.rv_status_color ? item.rv_status_color : '');
+}
+
+function buildReceiptStatusHtml(value, colorValue) {
+	var text = escapeHtml(value || '');
+	if (!text) return '';
+
+	var color = sanitizeCssColor(colorValue || '');
+	if (!color) return text;
+
+	return '<span class="fw-bold" style="color:' + color + ';">' + text + '</span>';
+}
+
+function sanitizeCssColor(value) {
+	var color = (value || '').toString().trim();
+	if (!color) return '';
+
+	if (/^#[0-9a-fA-F]{3,8}$/.test(color)) return color;
+	if (/^(rgb|rgba|hsl|hsla)\([0-9.,%\s-]+\)$/.test(color)) return color;
+	if (/^[a-zA-Z]{3,20}$/.test(color)) return color;
+
+	return '';
 }
 
 function normalizeStatusText(value) {
