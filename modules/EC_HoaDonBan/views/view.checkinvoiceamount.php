@@ -239,29 +239,74 @@ class Viewcheckinvoiceamount extends SugarView
                 , bk.is_telesale as is_telesale
                 , bk.is_ctv as is_ctv
                 , bk.is_reference as is_reference
-                , (hd.tong_gia_ban + hd.tong_thue + hd.tong_thu_ho) AS invoice_amount
+                , IFNULL((hd.tong_gia_ban + hd.tong_thue + hd.tong_thu_ho), 0) AS invoice_amount
                 , hd.danh_sach_hd AS invoice_list
             FROM ec_booking_details bkd 
                 LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id AND bk.deleted = 0
                 LEFT JOIN (
-                    SELECT cthd.booking_id AS booking_id
+                    SELECT COALESCE(hdb_map.booking_id, cthd.booking_id) AS booking_id
                         ,SUM(dongia * soluong) AS tong_gia_ban
                         ,SUM(tienthue) AS tong_thue
 				        ,SUM(phithuho * soluong) AS tong_thu_ho
                         ,GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
                         FROM ec_chitiethoadon cthd
                         INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
+                        LEFT JOIN (
+                            SELECT hrv_map.hoadon_id
+                                ,SUBSTRING_INDEX(
+                                    GROUP_CONCAT(rv_map.booking_id ORDER BY rv_map.date_modified DESC SEPARATOR ','),
+                                    ',',
+                                    1
+                                ) AS booking_id
+                            FROM hoadonban_receiptvouchers hrv_map
+                            INNER JOIN ec_receipt_voucher rv_map
+                                ON rv_map.id = hrv_map.receipt_id
+                                AND rv_map.deleted = 0
+                                AND rv_map.loai_thu = '1'
+                                AND rv_map.booking_id IS NOT NULL
+                                AND rv_map.booking_id <> ''
+                            WHERE hrv_map.deleted = 0
+                            GROUP BY hrv_map.hoadon_id
+                        ) AS hdb_map ON hdb_map.hoadon_id = hdb.id
                         WHERE cthd.deleted = 0 
                             AND (
-                                cthd.receipt_voucher_id IS NULL
-                                OR cthd.receipt_voucher_id = ''
-                                OR EXISTS (
-                                    SELECT 1 FROM ec_receipt_voucher rv
-                                    WHERE rv.id = cthd.receipt_voucher_id
-                                    AND rv.loai_thu = '1'
+                                -- Dữ liệu mới: hóa đơn đã liên kết junction thì chấp nhận (không bó hẹp theo loai_thu)
+                                EXISTS (
+                                    SELECT 1
+                                    FROM hoadonban_receiptvouchers hrv_bk
+                                    INNER JOIN ec_receipt_voucher rv_chk
+                                        ON rv_chk.id = hrv_bk.receipt_id
+                                        AND rv_chk.deleted = 0
+                                        AND rv_chk.loai_thu = '1'
+                                    WHERE hrv_bk.hoadon_id = hdb.id
+                                        AND hrv_bk.deleted = 0
+                                )
+                                OR (
+                                    -- Fallback dữ liệu cũ: chỉ áp dụng khi hóa đơn chưa có liên kết ở junction
+                                    NOT EXISTS (
+                                        SELECT 1
+                                        FROM hoadonban_receiptvouchers hrv_any
+                                        INNER JOIN ec_receipt_voucher rv_any
+                                            ON rv_any.id = hrv_any.receipt_id
+                                            AND rv_any.deleted = 0
+                                            AND rv_any.loai_thu = '1' 
+                                        WHERE hrv_any.hoadon_id = hdb.id
+                                            AND hrv_any.deleted = 0
+                                    )
+                                    AND (
+                                        cthd.receipt_voucher_id IS NULL
+                                        OR cthd.receipt_voucher_id = ''
+                                        OR EXISTS (
+                                            SELECT 1
+                                            FROM ec_receipt_voucher rv
+                                            WHERE rv.id = cthd.receipt_voucher_id
+                                                AND rv.deleted = 0
+                                                AND rv.loai_thu = '1'
+                                        )
+                                    )
                                 )
                             )
-                        GROUP BY cthd.booking_id
+                        GROUP BY COALESCE(hdb_map.booking_id, cthd.booking_id)
                 ) AS hd ON hd.booking_id = bk.id
 
             WHERE bk.booking_status IN ('3', '7', '8')
@@ -311,19 +356,51 @@ class Viewcheckinvoiceamount extends SugarView
                     , MAX(IFNULL(hd_pt.invoice_amount, 0)) AS invoice_amount
                     , MAX(IFNULL(hd_pt.danh_sach_hd, '')) AS invoice_list
                 FROM ec_receipt_voucher p
+                -- MỚI — ưu tiên junction table; fallback sang cthd cũ nếu chưa migrate
                 LEFT JOIN (
-                    SELECT cthd.receipt_voucher_id AS receipt_voucher_id
-                        ,(IFNULL(SUM(IFNULL(dongia, 0) * IFNULL(soluong, 0)), 0)
-                            + IFNULL(SUM(IFNULL(tienthue, 0)), 0)
-                            + IFNULL(SUM(IFNULL(phithuho, 0) * IFNULL(soluong, 0)), 0)
-                        ) AS invoice_amount
-                        , GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
-                    FROM ec_chitiethoadon cthd
-                        INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
-                    WHERE cthd.receipt_voucher_id IS NOT NULL
-                        AND cthd.receipt_voucher_id <> ''
-                        AND cthd.deleted = 0
-                    GROUP BY cthd.receipt_voucher_id
+                    SELECT receipt_voucher_id
+                        , MAX(invoice_amount) AS invoice_amount
+                        , MAX(danh_sach_hd)   AS danh_sach_hd
+                    FROM (
+
+                        -- Nguồn 1: Junction hoadonban_receiptvouchers (quan hệ N-N mới)
+                        SELECT hrv.receipt_id AS receipt_voucher_id
+                            , (IFNULL(SUM(IFNULL(cthd.dongia, 0) * IFNULL(cthd.soluong, 0)), 0)
+                                + IFNULL(SUM(IFNULL(cthd.tienthue, 0)), 0)
+                                + IFNULL(SUM(IFNULL(cthd.phithuho, 0) * IFNULL(cthd.soluong, 0)), 0)
+                            ) AS invoice_amount
+                            , GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
+                        FROM hoadonban_receiptvouchers hrv
+                            INNER JOIN ec_hoadonban hdb ON hdb.id = hrv.hoadon_id AND hdb.deleted = 0
+                            LEFT JOIN ec_chitiethoadon cthd ON cthd.parent_id = hdb.id AND cthd.deleted = 0
+                        WHERE hrv.deleted = 0
+                        GROUP BY hrv.receipt_id
+
+                        UNION ALL
+
+                        -- Nguồn 2: cthd.receipt_voucher_id cũ — CHỈ lấy cặp chưa migrate sang junction
+                        SELECT cthd.receipt_voucher_id AS receipt_voucher_id
+                            , (IFNULL(SUM(IFNULL(dongia, 0) * IFNULL(soluong, 0)), 0)
+                                + IFNULL(SUM(IFNULL(tienthue, 0)), 0)
+                                + IFNULL(SUM(IFNULL(phithuho, 0) * IFNULL(soluong, 0)), 0)
+                            ) AS invoice_amount
+                            , GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
+                        FROM ec_chitiethoadon cthd
+                            INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
+                        WHERE cthd.receipt_voucher_id IS NOT NULL
+                            AND cthd.receipt_voucher_id <> ''
+                            AND cthd.deleted = 0
+                            -- Guard: bỏ qua cặp đã migrate sang junction (theo hoadon_id + receipt_id)
+                            AND NOT EXISTS (
+                                SELECT 1 FROM hoadonban_receiptvouchers hrv2
+                                WHERE hrv2.hoadon_id = cthd.parent_id
+                                    AND hrv2.receipt_id = cthd.receipt_voucher_id
+                                    AND hrv2.deleted = 0
+                            )
+                        GROUP BY cthd.receipt_voucher_id
+
+                    ) AS _hd_pt_combined
+                    GROUP BY receipt_voucher_id
                 ) AS hd_pt ON hd_pt.receipt_voucher_id = p.id
                 WHERE p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
                     AND p.ngayhachtoan >= '$from_utc' AND p.ngayhachtoan <= '$to_utc'
