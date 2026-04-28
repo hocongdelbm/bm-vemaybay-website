@@ -76,7 +76,7 @@
                 </div>
                 <div class="uat-card-divider"></div>
 
-                <div style="width:100%; overflow-x:auto;">
+                <div class="bip-table-wrapper">
                     <table class="uat-table" id="bip-table">
                         <thead>
                             <tr>
@@ -101,4 +101,4 @@
     </div>
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/bookerips.js?v=1.0.0"></script>
+<script src="modules/EC_Flight_Bookings/js/bookerips.js?v=1.0.1"></script>

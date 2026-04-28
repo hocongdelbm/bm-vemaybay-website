@@ -2,6 +2,9 @@
     'use strict';
 
     const API_PROXY = 'index.php?entryPoint=entryPointBookerIps';
+    const AUTO_HIDE_MS = 30000;
+
+    let resultTimer = null;
 
     function esc(str) {
         return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -10,6 +13,23 @@
     function fmtDate(str) {
         if (!str) return '—';
         return str.split(' ')[0];
+    }
+
+    function showResult(cls, html) {
+        const result = document.getElementById('bip-result');
+        clearTimeout(resultTimer);
+        result.className = 'uat-booker-result ' + cls;
+        result.innerHTML = html;
+        result.style.display = 'block';
+        resultTimer = setTimeout(() => {
+            result.style.transition = 'opacity 0.4s';
+            result.style.opacity = '0';
+            setTimeout(() => {
+                result.style.display = 'none';
+                result.style.opacity = '1';
+                result.style.transition = '';
+            }, 400);
+        }, AUTO_HIDE_MS);
     }
 
     function loadList() {
@@ -40,14 +60,14 @@
 
                     const domains = (r.domains || []).map(d => `<span class="badge badge-blue" style="margin-right:4px;">${d}</span>`).join('');
                     return `<tr>
-                        <td style="color:var(--uat-text-muted); font-weight:600;">${i + 1}</td>
-                        <td class="bip-ip-cell">${esc(r.ip)}</td>
-                        <td>${domains}</td>
-                        <td class="bip-note-cell" title="${esc(r.note)}">${esc(r.note) || '<em style="color:var(--uat-border)">—</em>'}</td>
-                        <td>${esc(fmtDate(r.created_at))}</td>
-                        <td>${badge}</td>
-                        <td>
-                            <div style="display:flex; gap:8px; justify-content:flex-end; align-items:center;">
+                        <td class="bip-stt-cell" data-label="#" style="color:var(--uat-text-muted); font-weight:600; white-space:nowrap; width:40px;">${i + 1}</td>
+                        <td class="bip-ip-cell" data-label="IP">${esc(r.ip)}</td>
+                        <td data-label="Đồng bộ" style="min-width:120px;">${domains || '<em style="color:var(--uat-border)">—</em>'}</td>
+                        <td class="bip-note-cell" data-label="Ghi chú" title="${esc(r.note)}">${esc(r.note) || '<em style="color:var(--uat-border)">—</em>'}</td>
+                        <td data-label="Khai báo" style="white-space:nowrap;">${esc(fmtDate(r.created_at))}</td>
+                        <td data-label="Trạng thái">${badge}</td>
+                        <td class="bip-action-cell">
+                            <div style="display:flex; gap:8px; justify-content:flex-end; align-items:center; white-space:nowrap;">
                                 ${editBtn}${delBtn}
                             </div>
                         </td>
@@ -56,10 +76,12 @@
 
                 tbody.querySelectorAll('.bip-edit-btn').forEach(btn => {
                     btn.addEventListener('click', function () {
-                        document.getElementById('bip-ips').value = this.dataset.ip;
+                        const ip = this.dataset.ip;
+                        document.getElementById('bip-ips').value = ip;
                         document.getElementById('bip-note').value = this.dataset.note;
                         document.getElementById('bip-note').focus();
                         window.scrollTo({ top: 0, behavior: 'smooth' });
+                        showResult('partial', `Đã chọn <strong>${esc(ip)}</strong> để chỉnh sửa — cập nhật Ghi chú rồi nhấn Khai báo IP.`);
                     });
                 });
 
@@ -91,31 +113,29 @@
             .then(r => r.json())
             .then(json => {
                 if (json.deleted) {
+                    showResult('success', `Đã xoá IP <strong>${esc(ip)}</strong> khỏi tất cả domain thành công.`);
                     loadList();
                 } else {
                     btn.disabled = false;
                     btn.textContent = originalText;
-                    alert('Xoá thất bại: ' + (json.error || 'Lỗi không xác định'));
+                    showResult('error', `Xoá thất bại IP <strong>${esc(ip)}</strong>: ${esc(json.error || 'Lỗi không xác định')}`);
                 }
             })
             .catch(err => {
                 btn.disabled = false;
                 btn.textContent = originalText;
-                alert('Lỗi: ' + err.message);
+                showResult('error', `Lỗi kết nối khi xoá IP <strong>${esc(ip)}</strong>: ${esc(err.message)}`);
             });
     }
 
     document.getElementById('bip-submit').addEventListener('click', function () {
         const rawIps = document.getElementById('bip-ips').value.trim();
         const note = document.getElementById('bip-note').value.trim();
-        const result = document.getElementById('bip-result');
         const btnText = this.querySelector('.btn-text');
         const btnLoad = this.querySelector('.btn-loader');
 
         if (!rawIps) {
-            result.className = 'uat-booker-result error';
-            result.textContent = 'Vui lòng nhập ít nhất một IP.';
-            result.style.display = 'block';
+            showResult('error', 'Vui lòng nhập ít nhất một IP.');
             return;
         }
 
@@ -124,7 +144,6 @@
         this.disabled = true;
         btnText.style.display = 'none';
         btnLoad.style.display = 'inline';
-        result.style.display = 'none';
 
         const body = { ips: ips };
         if (note) body.note = note;
@@ -156,9 +175,7 @@
                 }
                 if (!ins.length && (inv.length || skipped.length)) cls = 'error';
 
-                result.className = 'uat-booker-result ' + cls;
-                result.innerHTML = lines.map(l => esc(l)).join('<br>');
-                result.style.display = 'block';
+                showResult(cls, lines.map(l => esc(l)).join('<br>'));
 
                 if (ins.length) {
                     document.getElementById('bip-ips').value = '';
@@ -170,9 +187,7 @@
                 this.disabled = false;
                 btnText.style.display = 'inline';
                 btnLoad.style.display = 'none';
-                result.className = 'uat-booker-result error';
-                result.textContent = 'Lỗi kết nối proxy: ' + err.message;
-                result.style.display = 'block';
+                showResult('error', `Lỗi kết nối proxy: ${esc(err.message)}`);
             });
     });
 
