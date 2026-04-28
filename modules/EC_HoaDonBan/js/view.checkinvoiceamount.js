@@ -1,7 +1,8 @@
 $(document).ready(function () {
+    // use global cal_date_format so frontend follows user date format
     Calendar.setup({
         inputField: "from_date",
-        daFormat: "%d-%m-%Y",
+        daFormat: typeof cal_date_format !== 'undefined' ? cal_date_format : "%d-%m-%Y",
         button: "fdate_trigger",
         singleClick: true,
         dateStr: "",
@@ -10,7 +11,7 @@ $(document).ready(function () {
     });
     Calendar.setup({
         inputField: "to_date",
-        daFormat: "%d-%m-%Y",
+        daFormat: typeof cal_date_format !== 'undefined' ? cal_date_format : "%d-%m-%Y",
         button: "tdate_trigger",
         singleClick: true,
         dateStr: "",
