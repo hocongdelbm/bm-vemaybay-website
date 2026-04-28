@@ -58,11 +58,12 @@
                     const delBtn = r.is_deleted ? '' : `<button class="uat-btn-delete bip-del-btn" data-ip="${esc(r.ip)}">Xoá</button>`;
                     const editBtn = r.is_deleted ? '' : `<button class="uat-btn-ghost bip-edit-btn" data-ip="${esc(r.ip)}" data-note="${esc(r.note)}" style="margin-right:6px">Sửa</button>`;
 
-                    const domains = (r.domains || []).map(d => `<span class="badge badge-blue" style="margin-right:4px;">${d}</span>`).join('');
+                    const domainsHtml = (r.domains || []).map(d => `<span class="badge badge-blue">${esc(d)}</span>`).join('');
+                    const domainsCell = domainsHtml ? `<div class="bip-domains">${domainsHtml}</div>` : '<em style="color:var(--uat-border)">—</em>';
                     return `<tr>
                         <td class="bip-stt-cell" data-label="#" style="color:var(--uat-text-muted); font-weight:600; white-space:nowrap; width:40px;">${i + 1}</td>
                         <td class="bip-ip-cell" data-label="IP">${esc(r.ip)}</td>
-                        <td data-label="Đồng bộ" style="min-width:120px;">${domains || '<em style="color:var(--uat-border)">—</em>'}</td>
+                        <td class="bip-domain-cell" data-label="Đồng bộ">${domainsCell}</td>
                         <td class="bip-note-cell" data-label="Ghi chú" title="${esc(r.note)}">${esc(r.note) || '<em style="color:var(--uat-border)">—</em>'}</td>
                         <td data-label="Khai báo" style="white-space:nowrap;">${esc(fmtDate(r.created_at))}</td>
                         <td data-label="Trạng thái">${badge}</td>

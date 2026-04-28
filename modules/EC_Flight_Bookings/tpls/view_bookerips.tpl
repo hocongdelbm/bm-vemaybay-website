@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/bookerips.css?v=1.0.0">
+<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/bookerips.css?v=1.0.3">
 
 <div class="uat-wrap">
     <div class="uat-header" style="margin-bottom: 24px;">
@@ -101,4 +101,4 @@
     </div>
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/bookerips.js?v=1.0.1"></script>
+<script src="modules/EC_Flight_Bookings/js/bookerips.js?v=1.0.2"></script>
