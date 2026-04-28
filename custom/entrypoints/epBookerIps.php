@@ -106,29 +106,62 @@ if ($method === 'POST') {
         echo $last_res;
         exit;
     } else {
-        // Thực hiện Khai báo IP trên TẤT CẢ các domain
-        $input = file_get_contents('php://input'); // JSON payload
-        $last_res = null;
-        $last_status = 200;
+        // Khai báo nhiều IP trên TẤT CẢ các domain
+        $input = file_get_contents('php://input');
+        $data  = json_decode($input, true);
+        $ips   = isset($data['ips']) && is_array($data['ips']) ? $data['ips'] : [];
+        $note  = isset($data['note']) ? trim($data['note']) : '';
 
-        foreach ($domains as $domain) {
-            $url = "https://{$domain}/wp-json/uat/v1/booker-ips";
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $input);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-            $last_res = curl_exec($ch);
-            $last_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+        $inserted = [];
+        $invalid  = [];
+        $skipped  = [];
+
+        foreach ($ips as $raw_ip) {
+            $ip = trim($raw_ip);
+            if ($ip === '') continue;
+
+            if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+                $invalid[] = $ip;
+                continue;
+            }
+
+            $data = ['ips' => [$ip]];
+            if ($note !== '') $data['note'] = $note;
+            $payload = json_encode($data);
+            $ok_on_any    = false;
+            $failed_on_any = false;
+
+            foreach ($domains as $domain) {
+                $url = "https://{$domain}/wp-json/uat/v1/booker-ips";
+                $ch  = curl_init($url);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                curl_exec($ch);
+                $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($status === 200 || $status === 201) {
+                    $ok_on_any = true;
+                } else {
+                    $failed_on_any = true;
+                }
+            }
+
+            if ($ok_on_any) {
+                $inserted[] = $ip;
+            } elseif ($failed_on_any) {
+                $skipped[] = ['ip' => $ip];
+            }
         }
 
-        http_response_code($last_status ?: 500);
+        http_response_code(200);
         header('Content-Type: application/json');
-        echo $last_res;
+        echo json_encode(['inserted' => $inserted, 'invalid' => $invalid, 'skipped' => $skipped]);
         exit;
     }
 }
