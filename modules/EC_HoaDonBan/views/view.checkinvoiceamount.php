@@ -48,21 +48,21 @@ class Viewcheckinvoiceamount extends SugarView
      */
     protected function populateContent()
     {
-        global $current_user, $app_list_strings;
+        global $current_user, $app_list_strings, $timedate;
 
         // From date
-        if (isset($_REQUEST['from_date']) && !empty($_REQUEST['from_date']) && strtotime($_REQUEST['from_date']) !== false) {
+        if (isset($_REQUEST['from_date']) && !empty($_REQUEST['from_date'])) {
             $req_from_date = $_REQUEST['from_date'];
         } else {
-            $req_from_date = date($this->userDateFormat);
+            $req_from_date = $timedate->to_display_date(date('Y-m-d'));
         }
         $this->smarty->assign('FROM_DATE_VALUE', $req_from_date);
 
         // To date
-        if (isset($_REQUEST['to_date']) && !empty($_REQUEST['to_date']) && strtotime($_REQUEST['to_date']) !== false) {
+        if (isset($_REQUEST['to_date']) && !empty($_REQUEST['to_date'])) {
             $req_to_date = $_REQUEST['to_date'];
         } else {
-            $req_to_date = date($this->userDateFormat);
+            $req_to_date = $timedate->to_display_date(date('Y-m-d'));
         }
         $this->smarty->assign('TO_DATE_VALUE', $req_to_date);
 
@@ -75,18 +75,18 @@ class Viewcheckinvoiceamount extends SugarView
         $end_month = $start_month + 2;
         $quarter_from_ts    = strtotime(sprintf('%d-%02d-01', $year, $start_month));
         $quarter_to_ts      = strtotime("last day of " . sprintf('%d-%02d', $year, $end_month));
-        $quater_fromdate    = date($this->userDateFormat, $quarter_from_ts);
-        $quater_todate      = date($this->userDateFormat, $quarter_to_ts);
-        $from_this_month    = date($this->userDateFormat, strtotime('first day of this month'));
-        $to_this_month      = date($this->userDateFormat, strtotime('last day of this month'));
-        $from_prev_month    = date($this->userDateFormat, strtotime('first day of last month'));
-        $to_prev_month      = date($this->userDateFormat, strtotime('last day of last month'));
-        $from_prev_quarter  = date($this->userDateFormat, strtotime('-3 months', $quarter_from_ts));
-        $to_prev_quarter    = date($this->userDateFormat, strtotime('-3 months', $quarter_to_ts));
-        $this_year_from     = date($this->userDateFormat, strtotime('first day of january this year'));
-        $this_year_to       = date($this->userDateFormat, strtotime('last day of december this year'));
-        $prev_year_from     = date($this->userDateFormat, strtotime('first day of January last year'));
-        $prev_year_to       = date($this->userDateFormat, strtotime('last day of December last year'));
+        $quater_fromdate    = $timedate->to_display_date(date('Y-m-d', $quarter_from_ts));
+        $quater_todate      = $timedate->to_display_date(date('Y-m-d', $quarter_to_ts));
+        $from_this_month    = $timedate->to_display_date(date('Y-m-d', strtotime('first day of this month')));
+        $to_this_month      = $timedate->to_display_date(date('Y-m-d', strtotime('last day of this month')));
+        $from_prev_month    = $timedate->to_display_date(date('Y-m-d', strtotime('first day of last month')));
+        $to_prev_month      = $timedate->to_display_date(date('Y-m-d', strtotime('last day of last month')));
+        $from_prev_quarter  = $timedate->to_display_date(date('Y-m-d', strtotime('-3 months', $quarter_from_ts)));
+        $to_prev_quarter    = $timedate->to_display_date(date('Y-m-d', strtotime('-3 months', $quarter_to_ts)));
+        $this_year_from     = $timedate->to_display_date(date('Y-m-d', strtotime('first day of january this year')));
+        $this_year_to       = $timedate->to_display_date(date('Y-m-d', strtotime('last day of december this year')));
+        $prev_year_from     = $timedate->to_display_date(date('Y-m-d', strtotime('first day of January last year')));
+        $prev_year_to       = $timedate->to_display_date(date('Y-m-d', strtotime('last day of December last year')));
         $selected_this_month    = $req_pick_quickly_date === 'this_month' ? 'selected' : '';
         $selected_prev_year     = $req_pick_quickly_date === 'previous_year' ? 'selected' : '';
         $selected_this_year     = $req_pick_quickly_date === 'this_year' ? 'selected' : '';
@@ -104,8 +104,10 @@ class Viewcheckinvoiceamount extends SugarView
         HTML;
         $this->smarty->assign('DATE_OPTION', $pick_quickly_date_otps);
 
-        // Check if report over 31 days
-        $days_diff = (abs(strtotime($req_to_date) - strtotime($req_from_date)) / 60 / 60 / 24) + 1;
+        // Check if report over 31 days — compute using normalized DB dates
+        $from_db_check = $timedate->to_db_date($req_from_date, false);
+        $to_db_check = $timedate->to_db_date($req_to_date, false);
+        $days_diff = (abs(strtotime($to_db_check) - strtotime($from_db_check)) / 60 / 60 / 24) + 1;
         if (!is_admin($current_user) && $days_diff > 31) {
             echo '<p class="error">Vui lòng chọn trong khoảng thời gian 31 ngày</p>';
             exit;
@@ -235,7 +237,7 @@ class Viewcheckinvoiceamount extends SugarView
                         AND r.deleted = 0
                     GROUP BY r.booking_id
                 ), 0) AS receipt_amount
-                ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
+                , bk.date_ticket_issue AS date_ticket_issue
                 , bk.is_telesale as is_telesale
                 , bk.is_ctv as is_ctv
                 , bk.is_reference as is_reference
@@ -349,7 +351,7 @@ class Viewcheckinvoiceamount extends SugarView
                     , '' AS ticket_type
                     , p.rv_status AS parent_status
                     , SUM(IF(p.rv_status IN ('1','2'), IFNULL(p.amount_converted, 0), 0)) AS receipt_amount
-                    , DATE_FORMAT(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR), '%d-%m-%Y') AS date_ticket_issue
+                    , DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS date_ticket_issue
                     , 0 AS is_telesale
                     , 0 AS is_ctv
                     , 0 AS is_reference
@@ -450,7 +452,7 @@ class Viewcheckinvoiceamount extends SugarView
                             0
                         ) AS total_bought_price
                         , p.tinhtrang AS parent_status
-                        , DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
+                        , p.ngayhachtoan AS date_ticket_issue
                     FROM ec_hoanve p
                         INNER JOIN ec_flight_bookings bk 
                             ON bk.id = p.booking_id 
@@ -474,7 +476,7 @@ class Viewcheckinvoiceamount extends SugarView
                         , -SUM(IFNULL(p.tongtienkhach,0)) AS subtotal_amount
                         , -SUM(IFNULL(p.tongtienhang,0)) AS total_bought_price
                         , p.tinhtrang AS parent_status
-                        , DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
+                        , p.ngayhachtoan AS date_ticket_issue
                     FROM ec_hoanve p
                         INNER JOIN ec_flight_bookings bk 
                             ON bk.id = p.booking_id 
@@ -542,6 +544,7 @@ class Viewcheckinvoiceamount extends SugarView
      */
     protected function generateMainContent($main_query)
     {
+        global $timedate;
         if (empty($main_query)) return;
 
         $i = 1;
@@ -553,16 +556,16 @@ class Viewcheckinvoiceamount extends SugarView
             $subtotal_amount = format_number($row['subtotal_amount']);
             $receipt_amount = format_number($row['receipt_amount']);
             $invoice_amount = format_number($row['invoice_amount']);
-            $date_ticket_issue = date($this->userDateFormat, strtotime($row['date_ticket_issue']));
+            $date_ticket_issue = $timedate->to_display_date($row['date_ticket_issue']);
 
             $list_inv_number = $list_inv_date = [];
             $invoice_list = explode(";", $row['invoice_list'] ?? '');
             if (is_array($invoice_list)) {
                 foreach ($invoice_list as $inv) {
                     $inv_attr = explode("|", $inv);
-                    if (is_array($inv_attr) && count($inv_attr) > 1) {
+                    if (is_array($inv_attr) && count($inv_attr) > 1) {  
                         $list_inv_number[] = $inv_attr[0];
-                        $inv_date = !empty($inv_attr[1]) ? date($this->userDateFormat, strtotime($inv_attr[1])) : '';
+                        $inv_date = !empty($inv_attr[1]) ? $timedate->to_display_date($inv_attr[1]) : '';
                         if (array_search($inv_date, $list_inv_date) === false) $list_inv_date[] = $inv_date;
                     }
                 }
