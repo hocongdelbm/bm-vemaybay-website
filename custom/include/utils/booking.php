@@ -25,8 +25,7 @@ function createContactsForBooking($phoneNumber, $contactName = '')
         if (empty($contact_id)) {
             // NotificationService::sendWarningMessage("Tạo liên hệ mới thất bại với SĐT: $phoneNumber", "", ["threadKey" => "system"]);
         }
-    }
-    else {
+    } else {
         $contact->retrieve($contact_id);
 
         if (empty($contact->last_name) || stripos($contact->last_name, "Khách") !== false || stripos($contact->last_name, "Khach") !== false || stripos($contact->last_name, "Tele") !== false || preg_match('/^[0-9 ]*$/', $contact->last_name)) {
@@ -869,7 +868,8 @@ function saveRevenueBooking($booking_id)
 /**
  * Tính toán doanh thu
  */
-function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
+function calculateRevenueOfDate($from_date, $to_date, $condition_arr = [])
+{
     global $db, $current_user;
 
     // Chỉ kế toán trưởng hoặc admin hệ thống mới được xem hết, còn lại xem của mình
@@ -887,7 +887,6 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
     if (!$is_manager && !is_admin($current_user)) {
         $sql_role .= " AND bk.assigned_user_id = '{$current_user->id}' ";
     }
-
     // ========== XỬ LÝ PAYMENT_STT (MULTI-SELECT) ==========
     $sql_having = '';
     if (!empty($condition_arr['payment_stt']) && is_array($condition_arr['payment_stt'])) {
@@ -910,21 +909,23 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
             $sql_having = ' HAVING (' . implode(' OR ', $having_conditions) . ')';
         }
     }
+    $from_utc = date("Y-m-d H:i:s", strtotime($from_date) - 7 * 3600);
+    $to_utc   = date("Y-m-d H:i:s", strtotime($to_date)   - 7 * 3600 + 86399);
 
-// ========== XỬ LÝ CUSTOMER_SOURCE (MULTI-SELECT) ==========
+    // ========== XỬ LÝ CUSTOMER_SOURCE (MULTI-SELECT) ==========
     $where_bk_fields = '';
     $where_receipt_voucher_only = '';
     $is_booking_only_by_customer_source = false;
-    
+
     if (!empty($condition_arr['customer_source']) && is_array($condition_arr['customer_source'])) {
         $customer_source_conditions = [];
         $has_receipt_voucher = false;
         $has_reference = false;
-        
+
         foreach ($condition_arr['customer_source'] as $source) {
             $source = trim((string)$source);
             if ($source === '') continue;
-            
+
             if ($source === 'receipt_voucher') {
                 $has_receipt_voucher = true;
             } elseif ($source === 'is_reference') {
@@ -934,7 +935,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
                 $customer_source_conditions[] = "bk.customer_source = '" . $db->quote($source) . "'";
             }
         }
-        
+
         // Nếu chỉ chọn receipt_voucher, không lấy dữ liệu booking
         if ($has_receipt_voucher && empty($customer_source_conditions)) {
             $where_bk_fields .= " AND 1 = 0";
@@ -960,7 +961,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
         $where_ticket_type .= " AND bk.ticket_type = '{$condition_arr['ticket_type']}' ";
     }
 
-    $sql = 
+    $sql =
         "SELECT 
             bk.id AS parent_id
             , bk.id AS booking_id
@@ -1076,7 +1077,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
             LEFT JOIN ec_flight_bookings bk ON bk.id = p.booking_id AND bk.deleted = 0
             WHERE 
                 p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
-                AND DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                AND p.ngayhachtoan >= '$from_utc' AND p.ngayhachtoan <= '$to_utc'
                 AND p.deleted = 0
                 $where_receipt_voucher_only
                 " . str_replace('bk.', 'p.', $sql_role) . "
