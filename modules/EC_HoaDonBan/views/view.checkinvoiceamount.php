@@ -247,9 +247,9 @@ class Viewcheckinvoiceamount extends SugarView
                 LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id AND bk.deleted = 0
                 LEFT JOIN (
                     SELECT COALESCE(hdb_map.booking_id, cthd.booking_id) AS booking_id
-                        ,SUM(dongia * soluong) AS tong_gia_ban
-                        ,SUM(tienthue) AS tong_thue
-				        ,SUM(phithuho * soluong) AS tong_thu_ho
+                        ,hdb.tongthanhtoan AS tong_gia_ban
+                        ,0 AS tong_thue
+				        ,0 AS tong_thu_ho
                         ,GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
                         FROM ec_chitiethoadon cthd
                         INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
