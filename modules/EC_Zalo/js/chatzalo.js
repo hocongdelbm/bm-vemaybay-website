@@ -553,7 +553,7 @@ $(document).ready(function () {
             handleButtons('outgoing');
             $('.voiceip-header__title').html('Đang gọi...');
             $('.voiceip-timer').hide();
-            $('#popup-voiceip').attr('call_id', session._request.call_id); // New call id
+            $('#popup-voiceip').attr('call_id', activeSession?._request?.call_id); // New call id
             $('#popup-voiceip').addClass('show');
             $('#popup__voiceip--wrap').addClass('show');
             $('#call-overlay').addClass('opened');

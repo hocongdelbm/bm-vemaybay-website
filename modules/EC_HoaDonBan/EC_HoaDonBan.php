@@ -375,7 +375,7 @@ class EC_HoaDonBan extends Basic
 						$cthd->phidv 		= $serviceFee;
 						$cthd->giamua 		= $tk['total'] / $tk['qty'];
 						$cthd->thuesuat 	= $taxRate;
-						$cthd->dongia 		= ($cthd->giamua + $serviceFee - $cthd->phithuho) / $divide;
+						$cthd->dongia 		= round(($cthd->giamua + $serviceFee - $cthd->phithuho) / $divide);
 						$cthd->tienthue 	= $cthd->dongia * $taxRate * $tk['qty'];
 						$cthd->thanhtien 	= ($cthd->dongia + $cthd->phithuho) * $cthd->soluong + $cthd->tienthue;
 						$cthd->parent_id 	= $parentId;
@@ -415,7 +415,7 @@ class EC_HoaDonBan extends Basic
 						$cthd2->phidv 		= $serviceFeeInter;
 						$cthd2->giamua 		= 0;
 						$cthd2->thuesuat 	= $svTaxRate;
-						$cthd2->dongia 		= ($cthd2->giamua + $serviceFeeInter - $cthd2->phithuho) / $svDivide;
+						$cthd2->dongia 		= round(($cthd2->giamua + $serviceFeeInter - $cthd2->phithuho) / $svDivide);
 						$cthd2->tienthue 	= $cthd2->dongia * $svTaxRate * $cthd2->soluong;
 						$cthd2->thanhtien 	= ($cthd2->dongia + $cthd2->phithuho) * $cthd2->soluong + $cthd2->tienthue;
 						$cthd2->parent_id 	= $parentId;
