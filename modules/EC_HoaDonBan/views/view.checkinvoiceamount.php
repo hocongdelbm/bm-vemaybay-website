@@ -408,6 +408,7 @@ class Viewcheckinvoiceamount extends SugarView
                     AND p.ngayhachtoan >= '$from_utc' AND p.ngayhachtoan <= '$to_utc'
                     AND p.rv_status IN ('1', '2')
                     AND p.deleted = 0
+                    AND IF(p.loai_thu = 10, IF(p.bought_amount IS NULL OR p.bought_amount = 0, 0, 1), 1) = 1
                     $sql_role_rv
                 GROUP BY p.id
 
