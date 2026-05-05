@@ -367,14 +367,10 @@ class Viewcheckinvoiceamount extends SugarView
 
                         -- Nguồn 1: Junction hoadonban_receiptvouchers (quan hệ N-N mới)
                         SELECT hrv.receipt_id AS receipt_voucher_id
-                            , (IFNULL(SUM(IFNULL(cthd.dongia, 0) * IFNULL(cthd.soluong, 0)), 0)
-                                + IFNULL(SUM(IFNULL(cthd.tienthue, 0)), 0)
-                                + IFNULL(SUM(IFNULL(cthd.phithuho, 0) * IFNULL(cthd.soluong, 0)), 0)
-                            ) AS invoice_amount
+                            , IFNULL(SUM(hdb.tongthanhtoan), 0) AS invoice_amount
                             , GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
                         FROM hoadonban_receiptvouchers hrv
                             INNER JOIN ec_hoadonban hdb ON hdb.id = hrv.hoadon_id AND hdb.deleted = 0
-                            LEFT JOIN ec_chitiethoadon cthd ON cthd.parent_id = hdb.id AND cthd.deleted = 0
                         WHERE hrv.deleted = 0
                         GROUP BY hrv.receipt_id
 
