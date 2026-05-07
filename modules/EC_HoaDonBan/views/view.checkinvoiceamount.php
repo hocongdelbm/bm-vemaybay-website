@@ -502,13 +502,14 @@ class Viewcheckinvoiceamount extends SugarView
                                 + IFNULL(SUM(IFNULL(cthd.phithuho, 0) * IFNULL(cthd.soluong, 0)), 0)
                             ) AS invoice_amount,
                             GROUP_CONCAT(
-                                DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) 
+                                DISTINCT CONCAT(IFNULL(hdb.name,''), '|',IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) 
                                 SEPARATOR ';'
                             ) AS danh_sach_hd
                         FROM ec_chitiethoadon cthd
                             INNER JOIN ec_hoadonban hdb 
                                 ON hdb.id = cthd.parent_id 
                                 AND hdb.deleted = 0
+                                AND hdb.tongthanhtoan < 0 -- Chỉ lấy hóa đơn có giá trị âm (liên quan đến hoàn vé)
                         INNER JOIN (
                             SELECT DISTINCT booking_id
                             FROM ec_hoanve
@@ -555,23 +556,68 @@ class Viewcheckinvoiceamount extends SugarView
             $invoice_amount = format_number($row['invoice_amount']);
             $date_ticket_issue = $timedate->to_display_date($row['date_ticket_issue']);
 
-            $list_inv_number = $list_inv_date = [];
+            // $list_inv_number = $list_inv_date = [];
+            // $invoice_list = explode(";", $row['invoice_list'] ?? '');
+            // if (is_array($invoice_list)) {
+            //     foreach ($invoice_list as $inv) {
+            //         $inv_attr = explode("|", $inv);
+            //         if (is_array($inv_attr) && count($inv_attr) > 1) {
+            //             $list_inv_number[] = $inv_attr[0];
+            //             $inv_date = !empty($inv_attr[1]) ? $timedate->to_display_date($inv_attr[1]) : '';
+            //             if (array_search($inv_date, $list_inv_date) === false) $list_inv_date[] = $inv_date;
+            //         }
+            //     }
+            // }
+            // $list_str_inv_number = implode("<br />", $list_inv_number);
+            // $list_str_inv_date = implode("<br />", $list_inv_date);
+
+            $tr_style = ($subtotal_amount != $receipt_amount || $subtotal_amount != $invoice_amount) ? "background:#ffebeb" : "";
+
+            $list_inv_number = $list_inv_date = $list_inv_name = [];
             $invoice_list = explode(";", $row['invoice_list'] ?? '');
-            if (is_array($invoice_list)) {
+
+            if ($row['parent_type'] === 'EC_HoanVe') {
+                // Format: name|sohoadon|ngayhoadon
                 foreach ($invoice_list as $inv) {
                     $inv_attr = explode("|", $inv);
-                    if (is_array($inv_attr) && count($inv_attr) > 1) {  
+                    if (count($inv_attr) >= 3) {
+                        $list_inv_name[]   = $inv_attr[0]; // HD-260421-009 → dùng để link
+                        $list_inv_number[] = $inv_attr[1]; // 312 → hiển thị cột Số HĐ
+                        $inv_date = !empty($inv_attr[2]) ? $timedate->to_display_date($inv_attr[2]) : '';
+                        if (array_search($inv_date, $list_inv_date) === false) $list_inv_date[] = $inv_date;
+                    }
+                }
+            } else {
+                // Format cũ: sohoadon|ngayhoadon
+                foreach ($invoice_list as $inv) {
+                    $inv_attr = explode("|", $inv);
+                    if (is_array($inv_attr) && count($inv_attr) > 1) {
                         $list_inv_number[] = $inv_attr[0];
                         $inv_date = !empty($inv_attr[1]) ? $timedate->to_display_date($inv_attr[1]) : '';
                         if (array_search($inv_date, $list_inv_date) === false) $list_inv_date[] = $inv_date;
                     }
                 }
             }
+
             $list_str_inv_number = implode("<br />", $list_inv_number);
-            $list_str_inv_date = implode("<br />", $list_inv_date);
+            $list_str_inv_date   = implode("<br />", $list_inv_date);
 
-            $tr_style = ($subtotal_amount != $receipt_amount || $subtotal_amount != $invoice_amount) ? "background:#ffebeb" : "";
-
+            if ($row['parent_type'] === 'EC_HoanVe') {
+                if (!empty($list_inv_name)) {
+                    $invoice_link = "index.php?module=EC_HoaDonBan&action=ListView"
+                        . "&searchFormTab=basic_search&query=true&clear_query=true"
+                        . "&name_basic=" . urlencode(trim($list_inv_name[0]));
+                    $invoice_cell = "<a href=\"$invoice_link\" target=\"_blank\" title=\"Xem chi tiết hóa đơn\"><b>$invoice_amount</b></a>";
+                } else {
+                    //nếu phiếu hoàn không có hoá đơn hoàn thì không link mà chỉ hiển thị số tiền
+                    $invoice_cell = "<b title=\"Phiếu hoàn chưa có hoá đơn hoàn tương ứng\">$invoice_amount</b>";
+                }
+            } else {
+                $invoice_link = "index.php?module=EC_HoaDonBan&action=ListView"
+                    . "&searchFormTab=basic_search&query=true&clear_query=true"
+                    . "&booking_basic={$row['invoice_search_name']}";
+                $invoice_cell = "<a href=\"$invoice_link\" target=\"_blank\" title=\"Xem chi tiết hóa đơn\"><b>$invoice_amount</b></a>";
+            }
             $tr .= <<<HTML
                 <tr style="$tr_style">
                     <td class="text-center hide-mobile">$i</td>
@@ -589,9 +635,7 @@ class Viewcheckinvoiceamount extends SugarView
                         </a>
                     </td>
                     <td class="text-end invoice_amount">
-                        <a href="index.php?action=index&module=EC_HoaDonBan&action=ListView&query=true&clear_query=true&searchFormTab=basic_search&booking_basic={$row['invoice_search_name']}" target="_blank" title="Xem chi tiết hóa đơn">
-                            <b>$invoice_amount</b>
-                        </a>
+                        $invoice_cell
                     </td>
                     <td class="text-center ngay_hoa_don">{$list_str_inv_date}</td>
                     <td class="text-end so_hoa_don">{$list_str_inv_number}</td>
