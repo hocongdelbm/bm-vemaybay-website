@@ -634,7 +634,17 @@ class Viewcheckinvoiceamount extends SugarView
             // $list_str_inv_number = implode("<br />", $list_inv_number);
             // $list_str_inv_date = implode("<br />", $list_inv_date);
 
-            $tr_style = ($subtotal_amount != $receipt_amount || $subtotal_amount != $invoice_amount) ? "background:#ffebeb" : "";
+            $raw_subtotal = (float)$row['subtotal_amount'];
+            $raw_receipt  = (float)$row['receipt_amount'];
+            $raw_invoice  = (float)$row['invoice_amount'];
+
+            if ($raw_invoice == 0) {
+                $tr_style = "background:#fffbe6"; // Vàng nhạt — chưa xuất HĐ
+            } elseif (abs($raw_subtotal - $raw_receipt) > 0.01 || abs($raw_subtotal - $raw_invoice) > 0.01) {
+                $tr_style = "background:#ffebeb"; // Đỏ nhạt — có HĐ nhưng lệch số
+            } else {
+                $tr_style = "";
+            }
 
             $list_inv_number = $list_inv_date = $list_inv_name = [];
             $invoice_list = explode(";", $row['invoice_list'] ?? '');
