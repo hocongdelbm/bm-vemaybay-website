@@ -393,7 +393,10 @@ class Viewcheckinvoiceamount extends SugarView
                     , 0 AS is_telesale
                     , 0 AS is_ctv
                     , 0 AS is_reference
-                    , MAX(IFNULL(hd_pt.invoice_amount, 0)) AS invoice_amount
+                    , COALESCE(
+                        MAX(hd_pt.invoice_amount),
+                        SUM(IF(p.rv_status IN ('1','2'), IFNULL(p.amount_converted, 0), 0))
+                    ) AS invoice_amount
                     , MAX(IFNULL(hd_pt.danh_sach_hd, '')) AS invoice_list
                 FROM ec_receipt_voucher p
                 -- MỚI — ưu tiên junction table; fallback sang cthd cũ nếu chưa migrate
@@ -405,7 +408,26 @@ class Viewcheckinvoiceamount extends SugarView
 
                         -- Nguồn 1: Junction hoadonban_receiptvouchers (quan hệ N-N mới)
                         SELECT hrv.receipt_id AS receipt_voucher_id
-                            , IFNULL(SUM(hdb.tongthanhtoan), 0) AS invoice_amount
+                                -- SUM() bỏ qua NULL → nếu tất cả HĐ là chung thì SUM = NULL
+                                -- → COALESCE ngoài sẽ fallback về p.amount_converted
+                                -- Nếu có HĐ riêng thì SUM = tổng tongthanhtoan của các HĐ riêng đó
+                            ,SUM(
+                                CASE 
+                                    -- HĐ chung = HĐ có chi tiết thuộc flight booking
+                                    -- → PT phát sinh chỉ gom vào, không tính riêng
+                                    WHEN EXISTS (
+                                        SELECT 1
+                                        FROM ec_chitiethoadon cthd_chk
+                                        INNER JOIN ec_flight_bookings bk_chk 
+                                            ON bk_chk.id = cthd_chk.booking_id 
+                                            AND bk_chk.deleted = 0
+                                        WHERE cthd_chk.parent_id = hdb.id
+                                            AND cthd_chk.deleted = 0
+                                    )
+                                    THEN NULL                           -- HĐ chung: bỏ qua
+                                    ELSE IFNULL(hdb.tongthanhtoan, 0)  -- HĐ riêng: lấy tongthanhtoan
+                                END
+                            ) AS invoice_amount
                             , GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
                         FROM hoadonban_receiptvouchers hrv
                             INNER JOIN ec_hoadonban hdb ON hdb.id = hrv.hoadon_id AND hdb.deleted = 0
