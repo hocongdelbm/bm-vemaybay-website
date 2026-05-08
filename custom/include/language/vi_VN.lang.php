@@ -2525,6 +2525,14 @@ $app_list_strings['booking_checkin_status_list'] = [
   2  => 'Đã checkin',
 ];
 
+$app_list_strings['invoice_check_status_list'] = [
+  '' => 'Tất cả',
+  'not_exported' => 'Chưa xuất',
+  'over_exported' => 'Xuất cao hơn',
+  'under_exported' => 'Xuất thấp hơn',
+];
+
+
 // Danh sách TK Công nợ
 $app_list_strings['debit_account_list'] = [
   '131'  => '131 - Phải thu của khách hàng',

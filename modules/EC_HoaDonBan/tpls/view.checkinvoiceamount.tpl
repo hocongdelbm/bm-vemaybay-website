@@ -57,6 +57,10 @@
                         <label for="ticket_type" class="text-label">Loại vé:</label>
                         <select name="ticket_type" id="ticket_type" class="box-select">{$TICKET_TYPE_OPTS}</select>
                     </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="invoice_check_status" class="text-label">Trạng thái hoá đơn:</label>
+                        <select name="invoice_check_status" id="invoice_check_status" class="box-select">{$INVOICE_CHECK_STATUS_OPTS}</select>
+                    </div>
                 </div>
                 <div class="function-wrap button-action--wrap mt-2">
                     <input type="submit" id="btnSearch" value="Tìm kiếm" name="btnSearch" class="btn btn-primary" title="Tìm kiếm"/>

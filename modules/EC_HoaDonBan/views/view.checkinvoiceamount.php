@@ -135,10 +135,16 @@ class Viewcheckinvoiceamount extends SugarView
         $ticket_type = $_REQUEST['ticket_type'] ?? '';
         $this->smarty->assign('TICKET_TYPE_OPTS', get_select_options_with_id($ticket_type_arr, (int)$ticket_type));
 
+        // Invoice status
+        $invoice_check_status_arr = ['' => 'Tất cả'] + $app_list_strings['invoice_check_status_list'];
+        $invoice_check_status = $_REQUEST['invoice_check_status'] ?? '';
+        $this->smarty->assign('INVOICE_CHECK_STATUS_OPTS', get_select_options_with_id($invoice_check_status_arr, $invoice_check_status));
+
         $search_conditions = [
             'payment_stt' => $payment_stt,
             'customer_source' => $customer_source,
-            'ticket_type' => $ticket_type
+            'ticket_type' => $ticket_type,
+            'invoice_check_status' => $invoice_check_status,
         ];
         $main_query = $this->generateMainQuery($req_from_date, $req_to_date, $search_conditions);
         $this->smarty->assign('MAIN_CONTENT', $this->generateMainContent($main_query));
@@ -176,6 +182,25 @@ class Viewcheckinvoiceamount extends SugarView
             $where_ticket_type .= " AND bk.ticket_type = '{$conditions['ticket_type']}' ";
         }
 
+        // Where condition by invoice status — dùng HAVING vì invoice_amount là computed column
+        $having_invoice_check_status = '';
+        if (isset($conditions['invoice_check_status']) && !empty($conditions['invoice_check_status'])) {
+            switch ($conditions['invoice_check_status']) {
+                case 'not_exported':
+                    // Chưa xuất: tiền HĐ = 0
+                    $having_invoice_check_status = 'invoice_amount = 0';
+                    break;
+                case 'over_exported':
+                    // Xuất cao hơn: tiền HĐ > doanh thu booking/phiếu thu
+                    $having_invoice_check_status = 'invoice_amount > subtotal_amount AND subtotal_amount > 0';
+                    break;
+                case 'under_exported':
+                    // Xuất thấp hơn: có xuất nhưng thấp hơn doanh thu
+                    $having_invoice_check_status = 'invoice_amount > 0 AND invoice_amount < subtotal_amount';
+                    break;
+            }
+        }
+
         // Chỉ kế toán trưởng hoặc admin hệ thống mới được xem hết, còn lại xem của mình
         $sql_manager = "SELECT COUNT(id) 
             FROM acl_roles_users 
@@ -203,6 +228,19 @@ class Viewcheckinvoiceamount extends SugarView
                 $sql_having = "HAVING is_reference = 1";
             }
         }
+
+        // Gộp 2 điều kiện HAVING: payment_stt + invoice_check_status
+        $having_parts = [];
+
+        if (!empty($sql_having)) {
+            // $sql_having đang có dạng "HAVING receipt_amount = 0", cần bỏ chữ HAVING đi để ghép
+            $having_parts[] = preg_replace('/^HAVING\s+/i', '', trim($sql_having));
+        }
+        if (!empty($having_invoice_check_status)) {
+            $having_parts[] = $having_invoice_check_status;
+        }
+
+        $final_having = !empty($having_parts) ? 'HAVING ' . implode(' AND ', $having_parts) : '';
 
         $sql =
             "SELECT 
@@ -318,7 +356,7 @@ class Viewcheckinvoiceamount extends SugarView
                 $sql_role
                 AND bkd.deleted = 0
             GROUP BY bk.id
-            $sql_having";
+            $final_having";
 
         if ((int)($conditions['payment_stt'] ?? 0) === 0) {
 
@@ -407,6 +445,7 @@ class Viewcheckinvoiceamount extends SugarView
                     AND IF(p.loai_thu = 10, IF(p.bought_amount IS NULL OR p.bought_amount = 0, 0, 1), 1) = 1
                     $sql_role_rv
                 GROUP BY p.id
+                $final_having
 
                 UNION
 
@@ -529,7 +568,9 @@ class Viewcheckinvoiceamount extends SugarView
                     , hv_t.parent_name
                     , hv_t.parent_type
                     , hv_t.parent_status
-                    , hv_t.date_ticket_issue";
+                    , hv_t.date_ticket_issue
+                    $final_having
+                ";
         }
         return $sql;
     }
