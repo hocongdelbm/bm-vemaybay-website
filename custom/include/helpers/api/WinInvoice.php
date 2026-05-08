@@ -165,8 +165,6 @@ class WinInvoice {
      * Lấy thông tin hóa đơn
      * 
      * @param string $invRef Số phiếu bán
-     * @param string $type Loại dữ liệu (json, xml, array)
-     * @param string $customerType Loại KH
      * @return string JSON
      */
     public function get($invRef) {
@@ -176,6 +174,25 @@ class WinInvoice {
 
         $path = 'invoice/get_inv';
         $requestBody = json_encode(['invRef' => $invRef]);
+        return $this->sendRequest('POST', $path, $requestBody, $this->header());
+    }
+
+    /**
+     * Lấy thông tin hóa đơn qua mã tra cứu
+     * 
+     * @param string $privateCode Mã tra cứu
+     * @return string JSON
+     */
+    public function getByPrivateCode($privateCode) {
+        if (!is_string($privateCode) || empty($privateCode)) {
+            return $this->returnError(400, "Mã tra cứu không hợp lệ");
+        }
+
+        $path = "invoice/get_by_privatecode";
+        $requestBody = json_encode([
+            'privateCode' => $privateCode,
+            'cmpnKey' => $this->TVAN_USER,
+        ]);
         return $this->sendRequest('POST', $path, $requestBody, $this->header());
     }
 
