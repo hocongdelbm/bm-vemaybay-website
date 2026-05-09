@@ -284,11 +284,16 @@ class Viewcheckinvoiceamount extends SugarView
             FROM ec_booking_details bkd 
                 LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id AND bk.deleted = 0
                 LEFT JOIN (
-                    SELECT COALESCE(hdb_map.booking_id, cthd.booking_id) AS booking_id
-                        ,hdb.tongthanhtoan AS tong_gia_ban
+                    SELECT booking_id
+                        ,SUM(tong_gia_ban) AS tong_gia_ban
                         ,0 AS tong_thue
-				        ,0 AS tong_thu_ho
-                        ,GROUP_CONCAT(DISTINCT CONCAT(IFNULL(hdb.sohoadon,''), '|', IFNULL(hdb.ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
+                        ,0 AS tong_thu_ho
+                        ,GROUP_CONCAT(DISTINCT CONCAT(IFNULL(sohoadon,''), '|', IFNULL(ngayhoadon,'')) SEPARATOR ';') AS danh_sach_hd
+                    FROM (
+                        SELECT COALESCE(hdb_map.booking_id, cthd.booking_id) AS booking_id
+                            ,hdb.tongthanhtoan AS tong_gia_ban
+                            ,hdb.sohoadon
+                            ,hdb.ngayhoadon
                         FROM ec_chitiethoadon cthd
                         INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
                         LEFT JOIN (
@@ -326,10 +331,6 @@ class Viewcheckinvoiceamount extends SugarView
                                     NOT EXISTS (
                                         SELECT 1
                                         FROM hoadonban_receiptvouchers hrv_any
-                                        INNER JOIN ec_receipt_voucher rv_any
-                                            ON rv_any.id = hrv_any.receipt_id
-                                            AND rv_any.deleted = 0
-                                            AND rv_any.loai_thu = '1' 
                                         WHERE hrv_any.hoadon_id = hdb.id
                                             AND hrv_any.deleted = 0
                                     )
@@ -346,7 +347,9 @@ class Viewcheckinvoiceamount extends SugarView
                                     )
                                 )
                             )
-                        GROUP BY COALESCE(hdb_map.booking_id, cthd.booking_id)
+                        GROUP BY COALESCE(hdb_map.booking_id, cthd.booking_id), hdb.id
+                        ) AS _ivn_dedup
+                    GROUP BY booking_id
                 ) AS hd ON hd.booking_id = bk.id
 
             WHERE bk.booking_status IN ('3', '7', '8')
