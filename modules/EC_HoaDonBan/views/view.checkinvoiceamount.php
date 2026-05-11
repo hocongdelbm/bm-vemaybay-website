@@ -295,7 +295,7 @@ class Viewcheckinvoiceamount extends SugarView
                             ,hdb.sohoadon
                             ,hdb.ngayhoadon
                         FROM ec_chitiethoadon cthd
-                        INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
+                        INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0 AND hdb.tongthanhtoan >= 0
                         LEFT JOIN (
                             SELECT hrv_map.hoadon_id
                                 ,SUBSTRING_INDEX(
