@@ -21,6 +21,15 @@ function showUploadedDocuments(booking_id) {
             hideLoadingPopup();
 
             if (response.success) {
+                // Cập nhật badge với số thực tế
+                var count = (response.documents || []).length;
+                var badge = document.getElementById('doc-count-badge');
+                if (badge) {
+                    badge.textContent = count;
+                    badge.className = count > 0
+                        ? 'doc-count-badge'
+                        : 'doc-count-badge doc-count-badge--empty';
+                }
                 renderDocumentPopup(response.documents);
             } else {
                 alert('Lỗi: ' + (response.error || 'Không thể tải dữ liệu'));

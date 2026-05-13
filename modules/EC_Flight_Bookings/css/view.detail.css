@@ -267,6 +267,32 @@
     padding: 12px 5px 0px;
 }
 
+/* DOC COUNT BADGE */
+.doc-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background: #fff;
+    color: var(--primary-color, #0d6efd);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: middle;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
+    transition: transform .15s ease;
+}
+#btn-uploaded-docs:hover .doc-count-badge {
+    transform: scale(1.15);
+}
+.doc-count-badge--empty {
+    background: rgba(255, 255, 255, .55);
+    color: #888;
+}
+
 /* ================= RESPONSIVE TABLE ============== */
 @media screen and (max-width: 600px) {
     table#tbl_pax,

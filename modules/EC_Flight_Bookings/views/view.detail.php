@@ -1230,9 +1230,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Gán vào Smarty
 		$this->ss->assign('DOC_BUTTON', $doc_button);
 
-		// --- NÚT 2: DANH SÁCH ĐÃ TẢI (Không Icon) ---
-		$doc_button_2 = '<button id="btn-uploaded-docs" class="btn btn-primary btn btn-primary-2 cursor-pointer" type="button" style="' . $common_style . '" onclick="showUploadedDocuments(\'' . $this->bean->id . '\')">';
-		$doc_button_2 .= '<span>D/s đã tải</span></button>';
+		// --- NÚT 2: DANH SÁCH ĐÃ TẢI ---
+		$doc_count = (int)$this->bean->db->getOne(
+			"SELECT COUNT(id) FROM documents WHERE booking_id = '{$this->bean->id}' AND deleted = 0"
+		);
+		$badge_class = $doc_count > 0 ? 'doc-count-badge' : 'doc-count-badge doc-count-badge--empty';
+		$doc_button_2  = '<button id="btn-uploaded-docs" class="btn btn-primary btn btn-primary-2 cursor-pointer" type="button"';
+		$doc_button_2 .= ' style="' . $common_style . '" onclick="showUploadedDocuments(\'' . $this->bean->id . '\')">';
+		$doc_button_2 .= '<span>D/s đã tải</span>';
+		$doc_button_2 .= '<span class="' . $badge_class . '" id="doc-count-badge">' . $doc_count . '</span>';
+		$doc_button_2 .= '</button>';
 		$this->ss->assign('DOC_LIST_BUTTON', $doc_button_2);
 
 		// Create receipt voucher button
