@@ -122,30 +122,32 @@ class EC_Flight_Bookings extends Basic
 
 		// Set name of booking
 		$this->_resolveBookingName();
-
+		
 		// Convert to new prefix for number with 11 digits
 		$this->_normalizePhone();
-
+		
 		$this->_normalizeContactFields();
-
+		
 		// Fix phí hành lý
 		$this->_normalizeLuggageFee();
-
+		
 		// Giao cho
 		$this->_resolveAssignedUser();
-
+		
 		// Lý do thắng thua
 		$this->_resolveDescription();
-
+		
 		// Đánh dấu đã thanh toán
 		$this->_resolveIsPaid();
-
+		
 		// City
 		$this->_normalizeCity();
-
+		
+		// date_entered will disappear after parent::save() is executed
+		$saving_date_entered = $this->date_entered;
 		$recordId = parent::save($check_notify);
+		$this->date_entered = $saving_date_entered;
 
-		// After save
 		$this->_postSave($recordId);
 
 		return $recordId;
@@ -373,13 +375,12 @@ class EC_Flight_Bookings extends Basic
 
 		// Save passengers
 		if (isset($_POST['psg_id']) && !is_null($_POST['psg_id'])) {
+			var_dump($this->date_entered);
 			if ($this->isUseNewBaggage($this->date_entered, $this->created_by)) {
 				$this->saveLinePassengers();
 			} else {
 				$this->saveLinePassengersOld();
 			}
-
-
 		}
 
 		// Change flight time
@@ -1376,8 +1377,12 @@ class EC_Flight_Bookings extends Basic
 	 * @return bool
 	 */
 	public function isUseNewBaggage($date_entered, $created_by) {
-		$date_entered = str_replace("/", "-", trim($date_entered));
-		if (strtotime($date_entered) > strtotime('2025-10-01') 
+		global $sugar_config, $current_user;
+		$dateFormat = $current_user->getPreference('datef') ?? $sugar_config['datef'] ?? 'd-m-Y';
+		$timeFormat = $current_user->getPreference('timef') ?? $sugar_config['timef'] ?? 'H:i';
+
+		// $date_entered = str_replace("/", "-", trim($date_entered));
+		if (strtotime($date_entered) > strtotime("$dateFormat $timeFormat") 
 			// || in_array($created_by, $this->list_website_new_baggage)
 		) return true;
 		return false;
