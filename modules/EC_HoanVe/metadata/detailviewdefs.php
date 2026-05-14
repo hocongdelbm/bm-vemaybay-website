@@ -10,6 +10,7 @@ $viewdefs[$module_name]['DetailView'] = array(
                 'DELETE',
                 array('customCode' => '{$PHIEUCHI}'),
                 array('customCode' => '{$DOITT}'),
+                array('customCode' => '{$THEM_PHIEUCHI}'),
             )
         ),
         'maxColumns' => '2',
