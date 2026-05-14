@@ -41,10 +41,12 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			$this->populateLineDetails();
 			$this->populateLineItineraries();
 
-			if (!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage) || substr($this->bean->name, 0, 2) === 'BK') {
+			if ($this->bean->isUseNewBaggage($this->bean->date_entered, $this->bean->created_by)) {
 				$this->populateLinePassengers();
-			} else
+			}
+			else {
 				$this->populateLinePassengersOld();
+			}
 
 			parent::display();
 		} else if (in_array($this->bean->booking_status, $status__com_arr) && (isManagerUser($current_user->id))) {
@@ -59,10 +61,12 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			$this->populateLineDetails();
 			$this->populateLineItineraries();
 
-			if (!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage) || substr($this->bean->name, 0, 2) === 'BK') {
+			if ($this->bean->isUseNewBaggage($this->bean->date_entered, $this->bean->created_by)) {
 				$this->populateLinePassengers();
-			} else
+			}
+			else {
 				$this->populateLinePassengersOld();
+			}
 
 			parent::display();
 		} else {
