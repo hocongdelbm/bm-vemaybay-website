@@ -315,7 +315,7 @@ class Viewcheckinvoiceamount extends SugarView
                         ) AS hdb_map ON hdb_map.hoadon_id = hdb.id
                         WHERE cthd.deleted = 0 
                             AND (
-                                -- Dữ liệu mới: hóa đơn đã liên kết junction thì chấp nhận (không bó hẹp theo loai_thu)
+                                -- Nhánh 1 (giữ nguyên): junction với receipt loai_thu = '1'
                                 EXISTS (
                                     SELECT 1
                                     FROM hoadonban_receiptvouchers hrv_bk
@@ -325,6 +325,22 @@ class Viewcheckinvoiceamount extends SugarView
                                         AND rv_chk.loai_thu = '1'
                                     WHERE hrv_bk.hoadon_id = hdb.id
                                         AND hrv_bk.deleted = 0
+                                )
+                                -- Nhánh 2 (THÊM MỚI): junction tồn tại NHƯNG receipt không phải loai_thu='1'
+                                -- → vẫn là hóa đơn booking vì cthd.booking_id trỏ đúng vào flight booking
+                                OR (
+                                    EXISTS (
+                                        SELECT 1
+                                        FROM hoadonban_receiptvouchers hrv_bk
+                                        WHERE hrv_bk.hoadon_id = hdb.id
+                                            AND hrv_bk.deleted = 0
+                                    )
+                                    AND cthd.booking_id IS NOT NULL
+                                    AND cthd.booking_id <> ''
+                                    AND EXISTS (
+                                        SELECT 1 FROM ec_flight_bookings bk_chk
+                                        WHERE bk_chk.id = cthd.booking_id AND bk_chk.deleted = 0
+                                    )
                                 )
                                 OR (
                                     -- Fallback dữ liệu cũ: chỉ áp dụng khi hóa đơn chưa có liên kết ở junction
