@@ -89,7 +89,13 @@ class EC_Flight_Bookings extends Basic
 
 	public $point_step = 50;
 	public $contact_name_ignore = ['THAM KHAO', 'TEST', 'IT', 'DEMO'];
-	public $list_website_new_baggage = ['557d4a5b-27ce-5cb1-4531-5800ab9ed31d', '2b2c93b3-e916-113c-29bc-5b4c6de75db4', 'dc22131a-795a-6cd3-2caa-52d40d3b5622', 'd83ad3f6-3b3b-ba7b-f046-5512bad66c66'];
+	public $list_website_new_baggage = [
+		'dc22131a-795a-6cd3-2caa-52d40d3b5622', // vietjet.net
+		'557d4a5b-27ce-5cb1-4531-5800ab9ed31d', // timchuyenbay.com
+		'2b2c93b3-e916-113c-29bc-5b4c6de75db4', // timchuyenbay.vn
+		'd83ad3f6-3b3b-ba7b-f046-5512bad66c66', // Booking android
+		'940beedb-4f03-0e00-1a16-5456ebc43fc0' // vemaybay5s.com
+	];
 
 	public $_isNewBooking = false;
 	public $_isDuplicate = false;
@@ -367,11 +373,13 @@ class EC_Flight_Bookings extends Basic
 
 		// Save passengers
 		if (isset($_POST['psg_id']) && !is_null($_POST['psg_id'])) {
-			if (in_array($this->created_by, $this->list_website_new_baggage)) {
+			if ($this->isUseNewBaggage($this->date_entered, $this->created_by)) {
 				$this->saveLinePassengers();
 			} else {
 				$this->saveLinePassengersOld();
 			}
+
+
 		}
 
 		// Change flight time
@@ -983,7 +991,10 @@ class EC_Flight_Bookings extends Basic
 	{
 		$name = $_POST['pass_name'][$i] ?? '';
 		if (empty($name)) return null;
-
+		
+		/**
+		 * @var EC_Booking_Passengers $pass 
+		 */
 		$pass = BeanFactory::newBean('EC_Booking_Passengers');
 		$pass->name             = $name;
 		$pass->salutation       = $_POST['pass_salutation'][$i]     ?? '';
@@ -1165,6 +1176,9 @@ class EC_Flight_Bookings extends Basic
 			if (empty($row['id'])) continue;
 
 			// Tạo bản ghi mới cho hành khách mới
+			/**
+			 * @var EC_Booking_Itineraries
+			 */
 			$newIti = BeanFactory::getBean('EC_Booking_Itineraries', $row['id']);
 			$newIti->id            = '';
 			$newIti->date_entered  = null;
@@ -1174,6 +1188,9 @@ class EC_Flight_Bookings extends Basic
 			$newIti->save();
 
 			// Đánh dấu bản ghi cũ là đã thay thế (add_type = 1)
+			/**
+			 * @var EC_Booking_Itineraries
+			 */
 			$oldIti = BeanFactory::getBean('EC_Booking_Itineraries', $row['id']);
 			$oldIti->departure_date = $this->_adjustTimezone($oldIti->departure_date);
 			$oldIti->arrival_date   = $this->_adjustTimezone($oldIti->arrival_date);
@@ -1248,40 +1265,38 @@ class EC_Flight_Bookings extends Basic
 	 * @param string     $pass_id     ID hành khách
 	 * @param int        $iti_order   Số thứ tự thay đổi hành trình
 	 */
-	public function saveFlightItinerary($pass_name, $direction, $post_fields, $pass_id, $iti_order)
-	{
-		$d = $direction;
+	public function saveFlightItinerary($pass_name, $direction, $post_fields, $pass_id, $iti_order) {
+		/**
+		 * @var EC_Booking_Itineraries $iti
+		 */
 		$iti = BeanFactory::newBean('EC_Booking_Itineraries');
 
 		if (!empty($post_fields['iti_id'])) {
 			$iti->retrieve($post_fields['iti_id']);
 		} else {
-			$iti->direction        = $d;
+			$iti->direction        = $direction;
 			$iti->add_type         = 3;
 			$iti->sabre_logs       = (int) $iti_order + 1;
 			$iti->assigned_user_id = $pass_id;
 			$iti->name             = $pass_name;
 		}
 
-		$iti->airline_code   = $this->_resolveAirlineCode($post_fields, $d);
-		$iti->flight_number  = $post_fields['flight_number'  . $d] ?? '';
-		$iti->ticket_class   = $post_fields['ticket_class'   . $d] ?? '';
-		$iti->departure      = $post_fields['departure'      . $d] ?? '';
-		$iti->arrival        = $post_fields['arrival'        . $d] ?? '';
-
+		$iti->airline_code   = $this->_resolveAirlineCode($post_fields, $direction);
+		$iti->flight_number  = $post_fields['flight_number'  . $direction] ?? '';
+		$iti->ticket_class   = $post_fields['ticket_class'   . $direction] ?? '';
+		$iti->departure      = $post_fields['departure'      . $direction] ?? '';
+		$iti->arrival        = $post_fields['arrival'        . $direction] ?? '';
 		$iti->departure_date = $this->_buildDatetime(
-			$post_fields['departure_date'   . $d] ?? '',
-			$post_fields['departure_hour'   . $d] ?? '00',
-			$post_fields['departure_minute' . $d] ?? '00'
+			$post_fields['departure_date'   . $direction] ?? '',
+			$post_fields['departure_hour'   . $direction] ?? '00',
+			$post_fields['departure_minute' . $direction] ?? '00'
 		);
 		$iti->arrival_date   = $this->_buildDatetime(
-			$post_fields['arrival_date'   . $d] ?? '',
-			$post_fields['arrival_hour'   . $d] ?? '00',
-			$post_fields['arrival_minute' . $d] ?? '00'
+			$post_fields['arrival_date'   . $direction] ?? '',
+			$post_fields['arrival_hour'   . $direction] ?? '00',
+			$post_fields['arrival_minute' . $direction] ?? '00'
 		);
-
 		$iti->booking_id = $post_fields['booking_id'] ?? $this->id;
-
 		$iti->save();
 	}
 
@@ -1360,10 +1375,11 @@ class EC_Flight_Bookings extends Basic
 	 * @param string $created_by
 	 * @return bool
 	 */
-	public function isUseNewBaggage($date_entered, $created_by)
-	{
+	public function isUseNewBaggage($date_entered, $created_by) {
 		$date_entered = str_replace("/", "-", trim($date_entered));
-		if (strtotime($date_entered) > strtotime('2025-10-01') && in_array($created_by, $this->list_website_new_baggage)) return true;
+		if (strtotime($date_entered) > strtotime('2025-10-01') 
+			// || in_array($created_by, $this->list_website_new_baggage)
+		) return true;
 		return false;
 	}
 
@@ -1387,7 +1403,10 @@ class EC_Flight_Bookings extends Basic
 
 			$result = ['available' => '', 'purchase' => ''];
 
-			if (in_array($createdBy, $this->list_website_new_baggage)) $result['available'] = Baggage::renderAvailableBaggage($bagIndex, $language);
+			// if (in_array($createdBy, $this->list_website_new_baggage)) {
+			if ($this->isUseNewBaggage($dateEntered, $createdBy)) {
+				$result['available'] = Baggage::renderAvailableBaggage($bagIndex, $language);
+			}
 			else {
 				$bags = generateLuggage($dateEntered, $airlineCode, $ticketClass, $passType, $bagIndex); // Array
 				if ($bags && !empty($bags)) {
