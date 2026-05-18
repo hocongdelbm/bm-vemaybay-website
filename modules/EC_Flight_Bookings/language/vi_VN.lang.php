@@ -289,6 +289,6 @@ $mod_strings = array(
   'LBL_CUSTOMER_SOURCE' => 'Nguồn KH',
   'LBL_BOOKMARK' => 'Đánh dấu',
   'LBL_BOOKMARK_SYSTEM' => 'Hệ thống đánh dấu',
-  'LBL_TRANSACTION_HISTORY' => 'Lịch sử giao dịch',
+  'LBL_TRANSACTION_HISTORY' => 'Lịch sử thanh toán',
   'LBL_PAYMENT' => 'Thanh toán',
 );

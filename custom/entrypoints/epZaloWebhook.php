@@ -314,6 +314,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             else if(in_array($event, ['follow', 'unfollow'])) {
                 // Update quota
                 try {
+                    $sender_id    = $data['sender']['id'] ?? '';
+                    $recipient_id = $data['recipient']['id'] ?? '';
                     $zalo_user_id = $data['follower']['id'] ?? '';
                     $follower = $event == 'follow' ? 1 : 0;
                     $zalo_last_interaction = date($datetimeDbFormat, (int)($timestamp / 1000) - 7*3600);

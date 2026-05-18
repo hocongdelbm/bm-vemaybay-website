@@ -106,11 +106,9 @@ $entry_point_registry = array(
     'entryPointSummarySite' => ['file' => 'custom/entrypoints/ep_Summary_sites.php', 'auth' => true],
 
     // New version
-    'entryPointGeneralNA' => ['file' => 'custom/entrypoints/entryGeneralNonAuth.php', 'auth' => false],
-    'entryPointGeneral' => ['file' => 'custom/entrypoints/entryGeneral.php', 'auth' => true],
-    'entryTelegramWebhook' => ['file' => 'custom/entrypoints/entryTelegramWebhook.php', 'auth' => false],
-
-    // Misa Callback
-    'entryPointMisaCallback' => ['file' => 'custom/entrypoints/entryMisaCallback.php', 'auth' => false],
-
+    'entryPointGeneral'         => ['file' => 'custom/entrypoints/entryGeneral.php', 'auth' => true],
+    'entryPointGeneralNA'       => ['file' => 'custom/entrypoints/entryGeneralNonAuth.php', 'auth' => false],
+    'entryTelegramWebhook'      => ['file' => 'custom/entrypoints/entryTelegramWebhook.php', 'auth' => false],
+    'entryOnepayIPN'            => ['file' => 'custom/entrypoints/entryOnepayIPN.php', 'auth' => false],
+    'entryPointMisaCallback'    => ['file' => 'custom/entrypoints/entryMisaCallback.php', 'auth' => false], // Misa Callback
 );
