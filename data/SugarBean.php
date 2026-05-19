@@ -4294,15 +4294,18 @@ class SugarBean
             }
         } else {
             if ((empty($limit) || $limit == -1)) {
-                $limit = $max_per_page + 1;
-                $max_per_page = $limit;
+                if ($max_per_page > 0) {
+                    $limit = $max_per_page + 1;
+                    $max_per_page = $limit;
+                }
+                // negative max_per_page (e.g. -99 = "all records") means no limit; leave $limit as -1
             }
         }
 
         if (empty($row_offset)) {
             $row_offset = 0;
         }
-        if (!empty($limit) && $limit != -1 && $limit != -99) {
+        if (!empty($limit) && $limit > 0) {
             $result = $db->limitQuery($query, $row_offset, $limit, true, "Error retrieving $this->object_name list: ");
         } else {
             $result = $db->query($query, true, "Error retrieving $this->object_name list: ");
