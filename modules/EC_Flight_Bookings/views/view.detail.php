@@ -693,7 +693,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			// Lịch sử giao dịch
 			$transBody = '';
 			$nganluong_info = json_decode(html_entity_decode($this->bean->nganluong_info), true);
+			$transCount = 0;
 			if(is_array($nganluong_info) && isset($nganluong_info[0])) {
+				$transCount = count($nganluong_info);
 				foreach ($nganluong_info as $val) {
 					$opdesArr = Onepay::getResponseDescription($val["vpc_TxnResponseCode"] ?? null);
 					$transStatusClass = $opdesArr['code'] === '0' ? 'text-success' : 'text-danger';
@@ -736,7 +738,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
 						<path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
 					</svg>
-					<p class="title-history">Onepay</p>
+					<p class="title-history">Onepay ({$transCount})</p>
 				</button>
 				<div class="modal fade" id="history-transaction" tabindex="-1" aria-labelledby="history-transactionLabel" aria-hidden="true">
 					<div class="modal-dialog modal-dialog-centered">
