@@ -18,5 +18,4 @@ $listViewDefs[$module_name] = array(
         'id' => 'ASSIGNED_USER_ID',
         'default' => true
     ),
-
 );
