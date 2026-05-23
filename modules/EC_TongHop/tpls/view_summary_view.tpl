@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css" />
-<link type="text/css" rel="stylesheet" href="modules/EC_TongHop/css/ec_tonghop.css?v=2.0.4">
+<link type="text/css" rel="stylesheet" href="modules/EC_TongHop/css/ec_tonghop.css?v=2.0.5">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/js/jsvectormap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js"></script>
@@ -16,7 +16,7 @@
         <!-- HEADER -->
         <div class="uat-header">
             <div class="uat-header-info">
-                <h1>User Analytics Tracker</h1>
+                <h1>Phân tích hành vi người dùng</h1>
                 <p class="uat-header-desc">Theo dõi & phân tích hành vi người dùng đa nền tảng</p>
             </div>
             <div class="uat-header-actions">
@@ -62,7 +62,7 @@
                 Phân tích chuyến bay
             </div>
             <div class="uat-tab" data-tab="ip_journey">
-                IP Journey
+                Truy vết IP
             </div>
             <div class="uat-tab" data-tab="elements">
                 Tổng hợp hành vi
@@ -78,6 +78,9 @@
             </div>
             <div class="uat-tab" data-tab="heatmap" style="color: #f72585;">
                 Heatmap
+            </div>
+            <div class="uat-tab" data-tab="ip_manage">
+                Quản lý IP
             </div>
         </div>
     </div> <!-- END STICKY ZONE -->
@@ -95,7 +98,7 @@
         <div class="uat-grid-row" id="ec_lifetime_cards">
             <div class="uat-col-3">
                 <div class="uat-card" style="border-top: 4px solid #3b82f6;">
-                    <div class="uat-card-title">Total Auth Users</div>
+                    <div class="uat-card-title">Tổng số người dùng</div>
                     <div class="uat-card-des">Người dùng đã được xác thực toàn bộ hệ thống</div>
                     <div class="uat-card-divider"></div>
                     <div class="uat-stat-value" style="color:#3b82f6" id="ec_total_users">—</div>
@@ -103,7 +106,7 @@
             </div>
             <div class="uat-col-3">
                 <div class="uat-card" style="border-top: 4px solid #10b981;">
-                    <div class="uat-card-title">Realtime Sessions</div>
+                    <div class="uat-card-title">Session hiện tại</div>
                     <div class="uat-card-des">Sessions đang hoạt động online trong ngày hôm nay</div>
                     <div class="uat-card-divider"></div>
                     <div class="uat-stat-value" style="color:#10b981" id="ec_today_sessions">—</div>
@@ -111,7 +114,7 @@
             </div>
             <div class="uat-col-3">
                 <div class="uat-card" style="border-top: 4px solid #8b5cf6;">
-                    <div class="uat-card-title">Total Bot Sessions</div>
+                    <div class="uat-card-title">Bot Session</div>
                     <div class="uat-card-des">Số lượng truy cập từ Bot đã được hệ thống bắt lại</div>
                     <div class="uat-card-divider"></div>
                     <div class="uat-stat-value" style="color:#8b5cf6" id="ec_total_bots">—</div>
@@ -119,7 +122,7 @@
             </div>
             <div class="uat-col-3">
                 <div class="uat-card" style="border-top: 4px solid #ef4444;">
-                    <div class="uat-card-title">Suspicious Flagger</div>
+                    <div class="uat-card-title">Người dùng bất thường</div>
                     <div class="uat-card-des">Số người dùng có điểm bất thường bị đánh dấu đỏ</div>
                     <div class="uat-card-divider"></div>
                     <div class="uat-stat-value" style="color:#ef4444" id="ec_suspicious_users">—</div>
@@ -132,8 +135,8 @@
                 <div class="uat-card" style="margin-bottom: 24px; border-top: 4px solid #8b5cf6;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <div class="uat-card-title">Hourly Traffic Analytics</div>
-                            <div class="uat-card-des">Lưu lượng truy cập theo từng khung giờ trong ngày</div>
+                            <div class="uat-card-title">Lưu lượng truy cập</div>
+                            <div class="uat-card-des">Lưu lượng truy cập theo từng khung giờ trong ngày, có thể xem, đối soát với dữ liệu lịch sử</div>
                         </div>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
                             <button id="ec_hourly_toggle_btn" class="uat-btn uat-btn-sm"
@@ -165,7 +168,7 @@
         <div class="uat-grid-row" id="ec_quality_cards">
             <div class="uat-col-3">
                 <div class="uat-card" style="border-left: 4px solid #10b981;">
-                    <div class="uat-card-title">Engagement Rate <span class="badge"
+                    <div class="uat-card-title">Session tích cực<span class="badge"
                             style="background:#d1fae5; color:#047857" id="ec_engage_sess">0 sess</span></div>
                     <div class="uat-card-des">Tỉ lệ người dùng tương tác tích cực trên 10s</div>
                     <div class="uat-card-divider"></div>
@@ -183,7 +186,7 @@
             </div>
             <div class="uat-col-3">
                 <div class="uat-card" style="border-left: 4px solid #6366f1;">
-                    <div class="uat-card-title" style="font-size:12px;">Typing Rate <span class="badge"
+                    <div class="uat-card-title" style="font-size:12px;">Nhập liệu<span class="badge"
                             style="background:#e0e7ff; color:#4338ca" id="ec_typing_sess">0 sess</span></div>
                     <div class="uat-card-des">Tỉ lệ sessions có tương tác nhập liệu form liên tục</div>
                     <div class="uat-card-divider"></div>
@@ -266,7 +269,7 @@
         <div class="uat-grid-row">
             <div class="uat-col-6">
                 <div class="uat-card" style="display:flex; flex-direction:column;">
-                    <div class="uat-card-title">Top Locations</div>
+                    <div class="uat-card-title">Top Khu vực</div>
                     <div class="uat-card-des">Khu vực địa lý biểu diễn mật độ session truy cập</div>
                     <div class="uat-card-divider"></div>
                     <div id="ec_geo_map" style="width: 100%; flex: 1; min-height: 280px;"></div>
@@ -274,7 +277,7 @@
             </div>
             <div class="uat-col-6">
                 <div class="uat-card">
-                    <div class="uat-card-title">Top Viewed Pages</div>
+                    <div class="uat-card-title">Top trang</div>
                     <div class="uat-card-des">Các trang đích thu hút lượng xem chi tiết nhiều nhất</div>
                     <div class="uat-card-divider"></div>
                     <table class="uat-table">
@@ -307,7 +310,7 @@
             </div>
             <div class="uat-col-3">
                 <div class="uat-card">
-                    <div class="uat-card-title">Device Types</div>
+                    <div class="uat-card-title">Loại thiết bị</div>
                     <div class="uat-card-des">Nền tảng thiết bị (PC, Mobile, Tablet)</div>
                     <div class="uat-card-divider"></div>
                     <div id="ec_devices"></div>
@@ -315,7 +318,7 @@
             </div>
             <div class="uat-col-3">
                 <div class="uat-card">
-                    <div class="uat-card-title">Operating Systems</div>
+                    <div class="uat-card-title">Hệ điều hành</div>
                     <div class="uat-card-des">Thống kê hệ điều hành người dùng sử dụng</div>
                     <div class="uat-card-divider"></div>
                     <div id="ec_os"></div>
@@ -323,7 +326,7 @@
             </div>
             <div class="uat-col-3">
                 <div class="uat-card">
-                    <div class="uat-card-title">Goals & Funnels</div>
+                    <div class="uat-card-title">Chuyển đổi</div>
                     <div class="uat-card-des">Tỉ lệ chuyển đổi của các quy trình cốt lõi trên website</div>
                     <div class="uat-card-divider"></div>
                     <table class="uat-table">
@@ -375,7 +378,7 @@
             <div class="uat-col-8">
                 <div class="uat-card" style="height: 100%; padding:0; overflow:hidden;">
                     <div style="padding: 20px 20px 10px;">
-                        <div class="uat-card-title">Live Typing Logs</div>
+                        <div class="uat-card-title">Danh sách Nhập liệu</div>
                         <div class="uat-card-des">Log dữ liệu thực tế khách hàng đã và đang nhập (nếu có form)</div>
                     </div>
                     <div style="max-height: 280px; overflow-y: auto; padding: 0 20px 20px;">
@@ -407,11 +410,11 @@
 
     <!-- TAB: FLIGHT ANALYTICS -->
     <div id="uat-tab-flights" class="uat-tab-content">
-        <h2 class="uat-section-title">Flight Behavior Analytics</h2>
+        <h2 class="uat-section-title">Phân tích hành vi tìm chuyến</h2>
         <div class="uat-grid-row">
             <div class="uat-col-3">
                 <div class="uat-card" style="border-left: 4px solid #10b981;">
-                    <div class="uat-card-title">Search to Detail <span class="badge"
+                    <div class="uat-card-title">Tỉ lệ chuyển đổi chi tiết<span class="badge"
                             style="background:#d1fae5; color:#047857" id="ec_s2d_sess">0 sess</span></div>
                     <div class="uat-card-des">Tỉ lệ chuyển đổi ấn vào xem chi tiết sau khi tìm kiếm</div>
                     <div class="uat-card-divider"></div>
@@ -420,7 +423,7 @@
             </div>
             <div class="uat-col-6">
                 <div class="uat-card">
-                    <div class="uat-card-title">Journey Types</div>
+                    <div class="uat-card-title">Loại hành trình</div>
                     <div class="uat-card-des">Hành trình người dùng chọn: Một chiều, khứ hồi...</div>
                     <div class="uat-card-divider"></div>
                     <div id="ec_journey_types" style="display:flex; gap:20px; flex-wrap:wrap;"></div>
@@ -430,7 +433,7 @@
         <div class="uat-grid-row">
             <div class="uat-col-4">
                 <div class="uat-card">
-                    <div class="uat-card-title">Top Routes</div>
+                    <div class="uat-card-title">Top hành trình</div>
                     <div class="uat-card-des">Các đường bay (điếm đến, đi) được tìm kiếm liên tục</div>
                     <div class="uat-card-divider"></div>
                     <table class="uat-table">
@@ -450,7 +453,7 @@
             </div>
             <div class="uat-col-4">
                 <div class="uat-card">
-                    <div class="uat-card-title">Departure Leadtime</div>
+                    <div class="uat-card-title">Thời gian đặt vé</div>
                     <div class="uat-card-des">Tỉ lệ ước tính thời gian đặt vé trước chuyến bay</div>
                     <div class="uat-card-divider"></div>
                     <div id="ec_leadtime"></div>
@@ -468,7 +471,7 @@
         <div class="uat-grid-row">
             <div class="uat-col-6">
                 <div class="uat-card">
-                    <div class="uat-card-title">Route Plans</div>
+                    <div class="uat-card-title">Lịch trình bay</div>
                     <div class="uat-card-des">Chuyến bay phổ biến theo thiết lập hành trình + ngày đi</div>
                     <div class="uat-card-divider"></div>
                     <table class="uat-table">
@@ -488,7 +491,7 @@
             </div>
             <div class="uat-col-6">
                 <div class="uat-card">
-                    <div class="uat-card-title">Airline Filters</div>
+                    <div class="uat-card-title">Tìm theo hãng</div>
                     <div class="uat-card-des">Lựa chọn bộ lọc theo các hãng Hàng Tuyến được chọn</div>
                     <div class="uat-card-divider"></div>
                     <div id="ec_airlines"></div>
@@ -503,7 +506,7 @@
                     <div
                         style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                         <div>
-                            <div class="uat-card-title">Peak Hour Intelligence</div>
+                            <div class="uat-card-title">Giờ cao điểm</div>
                             <div class="uat-card-des">Phân phối lưu lượng theo giờ — highlight 3 khung giờ cao điểm
                             </div>
                         </div>
@@ -604,7 +607,7 @@
             <div class="uat-col-4">
                 <div class="uat-card" style="padding:0; overflow:hidden;">
                     <div style="padding:24px 24px 12px 24px;">
-                        <div class="uat-card-title">TOP INTERACTION CLICKS</div>
+                        <div class="uat-card-title">Top clicks</div>
                         <div class="uat-card-des">Cấu trúc các phần tử được click nhiều nhất</div>
                     </div>
                     <table class="uat-table">
@@ -626,7 +629,7 @@
             <div class="uat-col-4">
                 <div class="uat-card" style="padding:0; overflow:hidden;">
                     <div style="padding:24px 24px 12px 24px;">
-                        <div class="uat-card-title">TOP INTERACTION TYPING</div>
+                        <div class="uat-card-title">Top nhập</div>
                         <div class="uat-card-des">Các ô nhập liệu được tương tác nhiều nhất</div>
                     </div>
                     <table class="uat-table">
@@ -648,7 +651,7 @@
             <div class="uat-col-4">
                 <div class="uat-card" style="padding:0; overflow:hidden;">
                     <div style="padding:24px 24px 12px 24px;">
-                        <div class="uat-card-title">TOP INTERACTION SCROLLED</div>
+                        <div class="uat-card-title">TOP nội dung cuộn</div>
                         <div class="uat-card-des">Lưu lượng độ sâu người dùng cuộn tới</div>
                     </div>
                     <table class="uat-table">
@@ -672,7 +675,7 @@
 
     <!-- TAB: AREA ANALYTICS -->
     <div id="uat-tab-areas" class="uat-tab-content">
-        <h2 class="uat-section-title">Area Analytics</h2>
+        <h2 class="uat-section-title">Phân tích theo vùng miền</h2>
         <p class="uat-tab-des" style="margin-bottom: 20px;">Phân tích lượt tìm kiếm theo 3 miền địa lý Bắc - Trung -
             Nam. Mỗi miền tổng hợp các route bắt đầu từ sân bay thuộc khu vực đó.</p>
 
@@ -771,7 +774,7 @@
             <div class="uat-col-4">
                 <div class="uat-card" style="padding:0; overflow:hidden;">
                     <div style="padding:20px 20px 0 20px;">
-                        <div class="uat-card-title" style="color:#3b82f6;">Tất cả Routes &#8212; Miền Bắc</div>
+                        <div class="uat-card-title" style="color:#3b82f6;">Tất cả Hành trình &#8212; Miền Bắc</div>
                         <div class="uat-card-des">Danh sách đầy đủ hành trình xuất phát từ miền Bắc</div>
                         <div class="uat-card-divider"></div>
                     </div>
@@ -794,7 +797,7 @@
             <div class="uat-col-4">
                 <div class="uat-card" style="padding:0; overflow:hidden;">
                     <div style="padding:20px 20px 0 20px;">
-                        <div class="uat-card-title" style="color:#f59e0b;">Tất cả Routes &#8212; Miền Trung</div>
+                        <div class="uat-card-title" style="color:#f59e0b;">Tất cả Hành trình &#8212; Miền Trung</div>
                         <div class="uat-card-des">Danh sách đầy đủ hành trình xuất phát từ miền Trung</div>
                         <div class="uat-card-divider"></div>
                     </div>
@@ -817,7 +820,7 @@
             <div class="uat-col-4">
                 <div class="uat-card" style="padding:0; overflow:hidden;">
                     <div style="padding:20px 20px 0 20px;">
-                        <div class="uat-card-title" style="color:#10b981;">Tất cả Routes &#8212; Miền Nam</div>
+                        <div class="uat-card-title" style="color:#10b981;">Tất cả Hành trình &#8212; Miền Nam</div>
                         <div class="uat-card-des">Danh sách đầy đủ hành trình xuất phát từ miền Nam</div>
                         <div class="uat-card-divider"></div>
                     </div>
@@ -840,9 +843,8 @@
         </div>
 
         <!-- Full IP Tables -->
-        <h3 class="uat-section-title" style="margin-top:24px; font-size:16px; margin-bottom: 4px;">Danh sách IP theo Khu
-            Vực (Target Adds)</h3>
-        <p class="uat-tab-des" style="margin-bottom: 16px;">Tracking danh sách IP thực tế của khách truy cập phân bổ vào
+        <h3 class="uat-section-title" style="margin-top:24px; font-size:16px; margin-bottom: 4px;">Danh sách IP theo Khu Vực</h3>
+        <p class="uat-tab-des" style="margin-bottom: 16px;">danh sách IP thực tế của khách truy cập phân bổ vào
             từng miền để phục vụ lên chiến dịch quảng cáo.</p>
         <div class="uat-grid-row">
             <div class="uat-col-4">
@@ -1028,13 +1030,13 @@
 
     <!-- TAB: SUSPICIOUS IPS -->
     <div id="uat-tab-suspicious" class="uat-tab-content">
-        <h2 class="uat-section-title" style="margin-bottom:0px;">Suspicious Users Activity</h2>
+        <h2 class="uat-section-title" style="margin-bottom:0px;">Người dùng khả nghi</h2>
         <p class="uat-tab-des" style="margin-bottom: 20px;">Những người dùng có hành vi đáng ngờ và có mức điểm tích luỹ
             cao sẽ được báo cáo về đây.</p>
         <div class="uat-card" style="padding:0; overflow:hidden;">
             <!-- For thick fat table cards, no extra divider needed unless asked. But let's add title/des inside standardly as requested -->
             <div style="padding: 24px 24px 0 24px;">
-                <div class="uat-card-title">SUSPICIOUS ACTIVITIES RECORDED</div>
+                <div class="uat-card-title">HÀNH VI KHẢ NGHI</div>
                 <div class="uat-card-des">Danh sách IP và điểm đánh giá bất thường dựa trên hành vi</div>
                 <div class="uat-card-divider"></div>
             </div>
@@ -1046,11 +1048,12 @@
                         <th>Score</th>
                         <th>Last Seen</th>
                         <th>Connections</th>
+                        <th>Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="ec_suspicious_tbody">
                     <tr>
-                        <td colspan="5" class="uat-empty-cell">Đang tải...</td>
+                        <td colspan="6" class="uat-empty-cell">Đang tải...</td>
                     </tr>
                 </tbody>
             </table>
@@ -1061,7 +1064,7 @@
     <div id="uat-tab-scraping" class="uat-tab-content">
         <div class="uat-tab-header-flex">
             <div class="uat-tab-header-info">
-                <h2 class="uat-tab-title">Scraping Route Analysis <span class="badge badge-red"
+                <h2 class="uat-tab-title">Nghi vấn quét dữ liệu<span class="badge badge-red"
                         id="ec_scraping_count2">0</span></h2>
                 <p class="uat-tab-desc">Phân tích các IP tìm kiếm xuôi/ngược nhiều lần trên cùng 1 hành trình để lọc
                     click tặc / bot scraping.</p>
@@ -1073,7 +1076,7 @@
         </div>
         <div class="uat-card" style="padding:0; overflow:hidden; border-top: none; border-radius: 0 0 12px 12px;">
             <div style="padding: 24px 24px 10px 24px;">
-                <div class="uat-card-title">SCRAPING DETECTION LOGS</div>
+                <div class="uat-card-title">Danh sách nghi vấn quét dữ liệu</div>
                 <div class="uat-card-des">Hồ sơ nghi ngờ cào dữ liệu được thống kê phân loại cho mỗi IP</div>
             </div>
             <div style="max-height: 450px; overflow-y: auto;">
@@ -1092,11 +1095,14 @@
                             <th
                                 style="position:sticky; top:0; background:#f8fafc; z-index:2; border-bottom:1px solid #e2e8f0;">
                                 Activity Log (Route Analysis)</th>
+                            <th
+                                style="position:sticky; top:0; background:#f8fafc; z-index:2; border-bottom:1px solid #e2e8f0; width:100px;">
+                                Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="ec_scraping_tbody">
                         <tr>
-                            <td colspan="4" class="uat-empty-cell">Đang tải...</td>
+                            <td colspan="5" class="uat-empty-cell">Đang tải...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1104,13 +1110,66 @@
         </div>
     </div><!-- END TAB SCRAPING -->
 
+    <!-- TAB: IP MANAGE -->
+    <div id="uat-tab-ip_manage" class="uat-tab-content">
+        <div class="uat-grid-row" style="align-items:flex-start;">
+
+            <!-- Block list -->
+            <div class="uat-col-6">
+                <div class="uat-card" style="padding:0; overflow:hidden;">
+                    <div style="padding:20px 24px 12px;">
+                        <div class="uat-card-title">Danh sách IP bị chặn</div>
+                        <div class="uat-card-divider"></div>
+                    </div>
+                    <table class="uat-table" id="ec_ipm_blocked_table">
+                        <thead>
+                            <tr>
+                                <th style="padding-left:24px;">IP</th>
+                                <th>Chặn từ</th>
+                                <th>Chặn đến</th>
+                                <th style="text-align:center;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ec_ipm_blocked_tbody">
+                            <tr><td colspan="4" class="uat-empty-cell">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Allow list -->
+            <div class="uat-col-6">
+                <div class="uat-card" style="padding:0; overflow:hidden;">
+                    <div style="padding:20px 24px 12px;">
+                        <div class="uat-card-title">Danh sách IP được cho phép</div>
+                        <div class="uat-card-divider"></div>
+                    </div>
+                    <table class="uat-table" id="ec_ipm_allowed_table">
+                        <thead>
+                            <tr>
+                                <th style="padding-left:24px;">IP</th>
+                                <th>Cho phép từ</th>
+                                <th>Cho phép đến</th>
+                                <th style="text-align:center;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ec_ipm_allowed_tbody">
+                            <tr><td colspan="4" class="uat-empty-cell">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div><!-- END TAB IP MANAGE -->
+
     <!-- TAB: BOTS -->
     <div id="uat-tab-bots" class="uat-tab-content">
         <h2 class="uat-section-title">Bot Analysis</h2>
         <div class="uat-grid-row">
             <div class="uat-col-4">
                 <div class="uat-card" style="border-top: 4px solid #10b981;">
-                    <div class="uat-card-title">Safe Bots <span class="badge badge-green"
+                    <div class="uat-card-title">Bot an toàn<span class="badge badge-green"
                             id="ec_safe_bot_count">0</span></div>
                     <div class="uat-card-des">Các định danh bot hợp lệ đã được hệ thống xác nhận (VD: Googlebot)</div>
                     <div class="uat-card-divider"></div>
@@ -1119,7 +1178,7 @@
             </div>
             <div class="uat-col-4">
                 <div class="uat-card" style="border-top: 4px solid #f59e0b;">
-                    <div class="uat-card-title">Suspicious Bots <span class="badge badge-yellow"
+                    <div class="uat-card-title">Bot khả nghi <span class="badge badge-yellow"
                             id="ec_sus_bot_count">0</span></div>
                     <div class="uat-card-des">Danh sách Bot chưa rõ nguồn gốc, cần theo dõi thêm hành vi</div>
                     <div class="uat-card-divider"></div>
@@ -1128,7 +1187,7 @@
             </div>
             <div class="uat-col-4">
                 <div class="uat-card" style="border-top: 4px solid #ef4444;">
-                    <div class="uat-card-title">Danger Bots <span class="badge badge-red"
+                    <div class="uat-card-title">Bot nguy hiểm <span class="badge badge-red"
                             id="ec_danger_bot_count">0</span></div>
                     <div class="uat-card-des">Hệ thống phân tích phát hiện Bot nguy hiểm / pattern scraping rác</div>
                     <div class="uat-card-divider"></div>
@@ -1187,7 +1246,7 @@
 
     <!-- TAB: IP JOURNEY -->
     <div id="uat-tab-ip_journey" class="uat-tab-content">
-        <h2 class="uat-section-title">IP Journey &mdash; Hành Trình Funnel</h2>
+        <h2 class="uat-section-title">Truy vết IP &mdash; Hành Trình của IP trên trang</h2>
         <p class="uat-tab-des" style="margin-bottom:20px;">Trực quan hóa hành trình của một IP qua các bước funnel
             chuẩn. Overlay path thực tế của từng session lên cây chuẩn.</p>
 
@@ -1216,6 +1275,13 @@
                         <button id="ec_journey_btn" class="uat-btn"
                             style="background:#6366f1;color:#fff;border:none;padding:0 20px;height:38px;border-radius:8px;font-weight:600;cursor:pointer;">Tra
                             cứu</button>
+                    </div>
+                    <div class="ec-journey-search-field" style="display:none;" id="ec_journey_manage_ip_wrap">
+                        <label>&nbsp;</label>
+                        <button id="ec_journey_manage_ip_btn" data-ip="" class="uat-btn ec-open-ip-modal"
+                                style="background:#ef4444;color:#fff;border:none;padding:0 20px;height:38px;border-radius:8px;font-weight:600;cursor:pointer;">
+                            Quản lý IP
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1248,7 +1314,7 @@
                 <!-- Tree Chart -->
                 <div style="padding:24px;">
                     <div class="ec-journey-tree-header">
-                        <span class="ec-journey-tree-title">Cây Funnel Chuẩn &amp; Hành Trình Thực Tế</span>
+                        <span class="ec-journey-tree-title">Khung hành trình chuẩn &amp; Hành Trình Thực Tế</span>
                         <div class="ec-journey-legend">
                             <span class="ec-legend-item ec-legend-visited">Đã đi qua</span>
                             <span class="ec-legend-item ec-legend-dropped">Thoát tại</span>
@@ -1266,5 +1332,52 @@
     </div><!-- END TAB IP JOURNEY -->
 
 </div><!-- END uat-wrap -->
+
+<!-- IP Management Modal -->
+<div id="ec_ip_modal_overlay" class="ec-ipm-overlay">
+  <div class="ec-ipm-box">
+
+    <div class="ec-ipm-header">
+      <div>
+        <div class="ec-ipm-title">Quản lý IP đáng ngờ</div>
+        <div class="ec-ipm-subtitle">Chặn, cho phép hoặc gỡ chặn địa chỉ IP</div>
+      </div>
+    </div>
+
+    <div class="ec-ipm-body">
+      <div class="ec-ipm-meta">
+        <div class="ec-ipm-meta-item">
+          <div class="ec-ipm-meta-label">Địa chỉ IP</div>
+          <div class="ec-ipm-meta-value is-ip" id="ec_ipm_ip">—</div>
+        </div>
+        <div class="ec-ipm-meta-item">
+          <div class="ec-ipm-meta-label">Domain</div>
+          <div class="ec-ipm-meta-value is-domain" id="ec_ipm_domain">—</div>
+        </div>
+      </div>
+
+      <label class="ec-ipm-field-label" for="ec_ipm_duration">Thời gian áp dụng</label>
+      <select id="ec_ipm_duration" class="ec-ipm-select">
+        <option value="3600">1 Giờ</option>
+        <option value="21600">6 Giờ</option>
+        <option value="86400" selected>1 Ngày</option>
+        <option value="2592000">30 Ngày</option>
+      </select>
+
+      <div class="ec-ipm-actions">
+        <button id="ec_ipm_block"   class="ec-ipm-btn ec-ipm-btn-block">Chặn</button>
+        <button id="ec_ipm_allow"   class="ec-ipm-btn ec-ipm-btn-allow">Cho phép</button>
+        <button id="ec_ipm_unblock" class="ec-ipm-btn ec-ipm-btn-unblock">Bỏ chặn</button>
+      </div>
+
+      <div id="ec_ipm_msg" class="ec-ipm-msg"></div>
+    </div>
+
+    <div class="ec-ipm-footer">
+      <button id="ec_ipm_cancel" class="ec-ipm-btn-cancel">Huỷ</button>
+    </div>
+
+  </div>
+</div>
 
 <script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=2.1.0"></script>

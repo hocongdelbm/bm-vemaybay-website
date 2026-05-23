@@ -44,6 +44,10 @@ $(document).ready(function () {
             if ($('.uat-tab[data-tab="heatmap"]').hasClass('active')) {
                 loadHeatmapData();
             }
+
+            if ($('.uat-tab[data-tab="ip_manage"]').hasClass('active')) {
+                loadIpManage();
+            }
         });
 
         // Date selector
@@ -59,6 +63,10 @@ $(document).ready(function () {
             $(this).addClass('active');
             $('.uat-tab-content').removeClass('active');
             $(`#uat-tab-${tab}`).addClass('active');
+
+            if (tab === 'ip_manage') {
+                loadIpManage();
+            }
 
             // Handle map when overview tab becomes visible
             if (tab === 'overview') {
@@ -292,6 +300,18 @@ $(document).ready(function () {
             timeout: 30000,
             crossDomain: true,
             headers: headers,
+        });
+    }
+
+    function callPageApi(params) {
+        var payload = $.extend({ site_key: currentSiteKey }, params);
+        return $.ajax({
+            url: 'index.php?entryPoint=entryPointIpManage',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            dataType: 'json',
+            timeout: 15000,
         });
     }
 
@@ -1810,7 +1830,7 @@ $(document).ready(function () {
         $('#ec_susp_count').text(items.length);
 
         if (!items || items.length === 0) {
-            $tbody.html('<tr><td colspan="5" class="uat-empty-cell">Không có người dùng đáng ngờ nào.</td></tr>');
+            $tbody.html('<tr><td colspan="6" class="uat-empty-cell">Không có người dùng đáng ngờ nào.</td></tr>');
             return;
         }
 
@@ -1844,6 +1864,12 @@ $(document).ready(function () {
                     <td data-label="Score" style="vertical-align:top;"><span class="${scoreClass}" style="padding:4px 10px; border-radius:12px; font-weight:700; font-size:12px">${(su.suspicious_score || 0).toFixed(1)} PTS</span></td>
                     <td data-label="Last Seen" style="vertical-align:top; color:#64748b;">${formatDate(su.last_seen)}</td>
                     <td data-label="Connections" style="vertical-align:top; font-weight:600; color:#334155;">${fmt(su.total_sessions)}</td>
+                    <td data-label="Thao tác" style="vertical-align:middle;text-align:center;">
+                        <button class="uat-btn ec-open-ip-modal" data-ip="${escH(su.ip || '')}"
+                                style="background:#ef4444;color:#fff;border:none;padding:0 14px;height:30px;border-radius:6px;font-weight:600;font-size:12px;cursor:pointer;">
+                            Quản lý
+                        </button>
+                    </td>
                 </tr>`);
         });
     }
@@ -1856,7 +1882,7 @@ $(document).ready(function () {
         $('#ec_scraping_count2').text(items.length);
 
         if (!items || items.length === 0) {
-            $tbody.html('<tr><td colspan="4" style="text-align:center; color:#10b981; padding:40px 0; font-weight:500;">No route scraping behavior detected.</td></tr>');
+            $tbody.html('<tr><td colspan="5" style="text-align:center; color:#10b981; padding:40px 0; font-weight:500;">No route scraping behavior detected.</td></tr>');
             return;
         }
 
@@ -1891,6 +1917,12 @@ $(document).ready(function () {
                             <div class="uat-route-divider"></div>
                             ${revHtml}
                         </div>
+                    </td>
+                    <td data-label="Thao tác" style="vertical-align:middle;text-align:center;">
+                        <button class="uat-btn ec-open-ip-modal" data-ip="${escH(cb.ip || '')}"
+                                style="background:#ef4444;color:#fff;border:none;padding:0 14px;height:30px;border-radius:6px;font-weight:600;font-size:12px;cursor:pointer;">
+                            Quản lý
+                        </button>
                     </td>
                 </tr>`);
         });
@@ -2114,6 +2146,7 @@ $(document).ready(function () {
         var $error = $('#ec_journey_error');
         var $result = $('#ec_journey_result');
         var $summary = $('#ec_journey_summary');
+        var $manageIpWrap = $('#ec_journey_manage_ip_wrap');
         var $sessCard = $('#ec_journey_sessions_card');
         var $sessCount = $('#ec_journey_session_count');
         var $sessList = $('#ec_journey_session_list');
@@ -2176,6 +2209,7 @@ $(document).ready(function () {
             $result.hide();
             $loading.show();
             $error.hide();
+            $manageIpWrap.hide();
 
             // Sử dụng apiGet() đã có trong EC_TongHop, endpoint tracking/v1/ip-timeline
             apiGet('/dashboard/ip-timeline', { ip: ip, days: days })
@@ -2198,6 +2232,7 @@ $(document).ready(function () {
 
         function showJourneyError(msg) {
             $error.text(msg).show();
+            $manageIpWrap.hide();
         }
 
         function renderJourney(data) {
@@ -2286,6 +2321,8 @@ $(document).ready(function () {
                 '</div>' +
                 '</div>'
             );
+            $('#ec_journey_manage_ip_btn').attr('data-ip', data.ip || '');
+            $manageIpWrap.show();
 
             $.ajax({
                 url: 'index.php?entryPoint=entryPointBookingStats',
@@ -2773,5 +2810,192 @@ $(document).ready(function () {
             var s = secs % 60;
             return m > 0 ? (m + 'm ' + s + 's') : (s + 's');
         }
+
+        // ── IP Management Modal ──────────────────────────────────
+        (function () {
+            var OVERLAY = '#ec_ip_modal_overlay';
+            var currentIp = '';
+
+            // Map logical action → page-api.php action param.
+            // To add a new action: add entry here + elseif block in page-api.php + button in tpl.
+            var ACTION_MAP = {
+                block:   'block_ip',
+                allow:   'allow_ip',
+                unblock: 'unblock_ip',
+            };
+            var TIMED_ACTIONS = ['block', 'allow'];
+
+            function open(ip) {
+                currentIp = ip;
+                $('#ec_ipm_ip').text(ip);
+                $('#ec_ipm_domain').text(currentSiteKey || '—');
+                $('#ec_ipm_msg').text('').removeClass('is-ok is-err');
+                $(OVERLAY).addClass('is-open');
+            }
+
+            function close() {
+                $(OVERLAY).removeClass('is-open');
+                currentIp = '';
+            }
+
+            function setMsg(ok, text) {
+                $('#ec_ipm_msg')
+                    .text(text)
+                    .removeClass('is-ok is-err')
+                    .addClass(ok ? 'is-ok' : 'is-err');
+            }
+
+            var ACTION_LABEL = {
+                block:   'Chặn',
+                allow:   'Cho phép',
+                unblock: 'Gỡ chặn',
+            };
+
+            function doAction(action) {
+                if (!currentIp) return;
+                var apiAction = ACTION_MAP[action];
+                if (!apiAction) return;
+
+                var isTimed = TIMED_ACTIONS.indexOf(action) !== -1;
+                var params = { action: apiAction, ip: currentIp };
+                var durationLabel = '';
+                if (isTimed) {
+                    params.dur = parseInt($('#ec_ipm_duration').val(), 10) || 86400;
+                    durationLabel = $('#ec_ipm_duration option:selected').text();
+                }
+
+                var label = ACTION_LABEL[action] || action;
+
+                setMsg(true, 'Đang xử lý...');
+                callPageApi(params)
+                    .done(function (res) {
+                        var ok = res.error === 0;
+                        var msg = label + (ok ? ' thành công' : ' thất bại');
+                        if (ok && durationLabel) msg += ' · ' + durationLabel;
+                        setMsg(ok, msg);
+                    })
+                    .fail(function (xhr) {
+                        var msg = (xhr.responseJSON && xhr.responseJSON.message) || ('Lỗi HTTP ' + xhr.status);
+                        setMsg(false, label + ' thất bại · ' + msg);
+                    });
+            }
+
+            $(document).on('click', '.ec-open-ip-modal', function () {
+                var ip = $(this).data('ip');
+                if (!ip) { alert('Không có IP để quản lý.'); return; }
+                open(ip);
+            });
+
+            $(document).on('click', '#ec_ipm_block',   function () { doAction('block');   });
+            $(document).on('click', '#ec_ipm_allow',   function () { doAction('allow');   });
+            $(document).on('click', '#ec_ipm_unblock', function () { doAction('unblock'); });
+            $(document).on('click', '#ec_ipm_cancel',  close);
+            $(document).on('click', OVERLAY, function (e) {
+                if ($(e.target).is(OVERLAY)) close();
+            });
+        })();
+    })();
+
+    // ── IP Manage Tab ────────────────────────────────────────
+    (function () {
+        var $blockedTbody = $('#ec_ipm_blocked_tbody');
+        var $allowedTbody = $('#ec_ipm_allowed_tbody');
+
+        function proxyCall(action, ip) {
+            var payload = { site_key: currentSiteKey, action: action };
+            if (ip) payload.ip = ip;
+            return $.ajax({
+                url: 'index.php?entryPoint=entryPointIpManage',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                dataType: 'json',
+                timeout: 15000,
+            });
+        }
+
+        function fmt(dt) {
+            if (!dt) return '—';
+            return dt.replace('T', ' ').substring(0, 16);
+        }
+
+        function renderBlocked(rows) {
+            if (!rows || rows.length === 0) {
+                $blockedTbody.html('<tr><td colspan="4" class="uat-empty-cell">Không có IP nào đang bị chặn.</td></tr>');
+                return;
+            }
+            $blockedTbody.empty();
+            rows.forEach(function (row) {
+                $blockedTbody.append(`
+                    <tr>
+                        <td style="padding-left:24px; font-weight:600; color:#ef4444;">${escH(row.id)}</td>
+                        <td style="color:#64748b; font-size:13px;">${fmt(row.block_from)}</td>
+                        <td style="color:#64748b; font-size:13px;">${fmt(row.block_to)}</td>
+                        <td style="text-align:center;">
+                            <button class="uat-btn ec-ipm-row-action" data-action="unblock_ip" data-ip="${escH(row.id)}"
+                                    style="background:#64748b;color:#fff;border:none;padding:0 14px;height:28px;border-radius:6px;font-weight:600;font-size:12px;cursor:pointer;">
+                                Bỏ chặn
+                            </button>
+                        </td>
+                    </tr>`);
+            });
+        }
+
+        function renderAllowed(rows) {
+            if (!rows || rows.length === 0) {
+                $allowedTbody.html('<tr><td colspan="4" class="uat-empty-cell">Không có IP nào đang được cho phép.</td></tr>');
+                return;
+            }
+            $allowedTbody.empty();
+            rows.forEach(function (row) {
+                $allowedTbody.append(`
+                    <tr>
+                        <td style="padding-left:24px; font-weight:600; color:#10b981;">${escH(row.id)}</td>
+                        <td style="color:#64748b; font-size:13px;">${fmt(row.allow_from)}</td>
+                        <td style="color:#64748b; font-size:13px;">${fmt(row.allow_to)}</td>
+                        <td style="text-align:center;">
+                            <button class="uat-btn ec-ipm-row-action" data-action="disallow_ip" data-ip="${escH(row.id)}"
+                                    style="background:#f59e0b;color:#fff;border:none;padding:0 14px;height:28px;border-radius:6px;font-weight:600;font-size:12px;cursor:pointer;">
+                                Xóa
+                            </button>
+                        </td>
+                    </tr>`);
+            });
+        }
+
+        window.loadIpManage = function () {
+            $blockedTbody.html('<tr><td colspan="4" class="uat-empty-cell">Đang tải...</td></tr>');
+            $allowedTbody.html('<tr><td colspan="4" class="uat-empty-cell">Đang tải...</td></tr>');
+
+            proxyCall('get_blocked_ips').done(function (res) {
+                renderBlocked(res.data || []);
+            }).fail(function () {
+                $blockedTbody.html('<tr><td colspan="4" class="uat-empty-cell">Lỗi tải dữ liệu.</td></tr>');
+            });
+
+            proxyCall('get_allowed_ips').done(function (res) {
+                renderAllowed(res.data || []);
+            }).fail(function () {
+                $allowedTbody.html('<tr><td colspan="4" class="uat-empty-cell">Lỗi tải dữ liệu.</td></tr>');
+            });
+        };
+
+        $(document).on('click', '.ec-ipm-row-action', function () {
+            var $btn = $(this);
+            var action = $btn.data('action');
+            var ip     = $btn.data('ip');
+            $btn.prop('disabled', true).text('...');
+            proxyCall(action, ip)
+                .done(function (res) {
+                    if (res.error === 0) {
+                        window.loadIpManage();
+                    } else {
+                        $btn.prop('disabled', false).text(action === 'unblock_ip' ? 'Bỏ chặn' : 'Xóa');
+                    }
+                })
+                .fail(function () {
+                    $btn.prop('disabled', false).text(action === 'unblock_ip' ? 'Bỏ chặn' : 'Xóa');
+                });
+        });
     })();
 });
