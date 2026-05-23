@@ -1,105 +1,115 @@
 <?php
-$app_list_strings['moduleList']['Home']                   = 'Trang chủ';
-$app_list_strings['moduleList']['Dashboard']              = 'Biểu đồ';
-$app_list_strings['moduleList']['Calendar']               = 'Lịch công tác';
-$app_list_strings['moduleList']['Contacts']               = 'Liên hệ';
-$app_list_strings['moduleList']['Emails']                 = 'Email';
-$app_list_strings['moduleList']['EmailMarketing']         = 'Email tiếp thị';
-$app_list_strings['moduleList']['Calls']                  = 'Cuộc gọi';
-$app_list_strings['moduleList']['Calls_Reschedule']       = 'Lịch gọi';
-$app_list_strings['moduleList']['Alerts']                 = 'Thông báo';
-$app_list_strings['moduleList']['TemplateSectionLine']    = 'Bản mẫu phần dòng';
-$app_list_strings['moduleList']['Schedulers']             = 'Lịch biểu';
-$app_list_strings['moduleList']['OAuth2Clients']          = 'OAuth2Clients';
-$app_list_strings['moduleList']['OAuthKeys']              = 'OAuthKeys';
-$app_list_strings['moduleList']['Bugs']                   = 'Lỗi';
-$app_list_strings['moduleList']['Feeds']                  = 'Feeds';
-$app_list_strings['moduleList']['iFrames']                = 'iFrames';
-$app_list_strings['moduleList']['Sync']                   = 'Đồng bộ';
-$app_list_strings['moduleList']['Releases']               = 'Phiên bản Phát hành';
-$app_list_strings['moduleList']['TimePeriods']            = 'Giai đoạn';
-$app_list_strings['moduleList']['Opportunities']          = 'Cơ hội';
-$app_list_strings['moduleList']['SavedSearch']            = 'Lưu Tìm kiếm';
-$app_list_strings['moduleList']['Trackers']               = 'Bộ theo dõi';
-$app_list_strings['moduleList']['Newsletters']            = 'Bản tin';
-$app_list_strings['moduleList']['Library']                = 'Thư viện';
-$app_list_strings['moduleList']['TrackerPerfs']           = 'TrackerPerfs';
-$app_list_strings['moduleList']['Queues']                 = 'Hàng đợi';
-$app_list_strings['moduleList']['Tasks']                  = 'Công việc';
-$app_list_strings['moduleList']['Meetings']               = 'Hội họp';
-$app_list_strings['moduleList']['Currencies']             = 'Tiền tệ';
-$app_list_strings['moduleList']['Documents']              = 'Tài liệu';
-$app_list_strings['moduleList']['Activities']             = 'Hoạt động';
-$app_list_strings['moduleList']['Cases']                  = 'Tình huống';
-$app_list_strings['moduleList']['SecurityGroups']         = 'Security Groups';
-$app_list_strings['moduleList']['OutboundEmailAccounts']  = 'Tài khoản email gửi đi';
-$app_list_strings['moduleList']['InboundEmail']           = 'Hộp thư đến';
-$app_list_strings['moduleList']['EC_Receipt_Voucher']     = 'Phiếu thu';
-$app_list_strings['moduleList']['Notes']                  = 'Ghi chú';
-$app_list_strings['moduleList']['EC_Payment_Voucher']     = 'Phiếu chi';
-$app_list_strings['moduleList']['EC_Payment_Types']       = 'Loại chi';
+/****** MODULE HỆ THỐNG ******/
+// AOW PR 5775
+$app_list_strings['moduleList']['AOW_WorkFlow']   = 'AOW WorkFlow';
+$app_list_strings['moduleList']['AOW_Conditions'] = 'AOW Conditions';
+$app_list_strings['moduleList']['AOW_Processed']  = 'AOW Processed';
+$app_list_strings['moduleList']['AOW_Actions']    = 'AOW Actions';
+// AOS
+$app_list_strings['moduleList']['AOS_Quotes']             = 'Báo giá';
+$app_list_strings['moduleList']['AOS_Contracts']          = 'AOS Contracts';
+$app_list_strings['moduleList']['AOS_Invoices']           = 'AOS Invoices';
+$app_list_strings['moduleList']['AOS_PDF_Templates']      = 'AOS PDF Templates';
+$app_list_strings['moduleList']['AOS_Product_Categories'] = 'AOS Product Categories';
+$app_list_strings['moduleList']['AOS_Products']           = 'AOS Products';
+$app_list_strings['moduleList']['AOS_Products_Quotes']    = 'AOS Products Quotes';
+$app_list_strings['moduleList']['AOS_Line_Item_Groups']   = 'AOS Line Item Groups';
+// AOD
+$app_list_strings['moduleList']['AOD_IndexEvent']   = 'AOD IndexEvent';
+$app_list_strings['moduleList']['AOD_Index']        = 'AOD Index';
+$app_list_strings['moduleList']['AOP_Case_Events']  = 'AOP Case Events';
+$app_list_strings['moduleList']['AOP_Case_Updates'] = 'AOP Case Updates';
+// Knowledge base
+$app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Trung tâm hỗ trợ'; // Shows in the ALL menu entries
+$app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'Danh mục hỗ trợ'; // Shows in the ALL menu entries
+// External Oauth
+$app_list_strings['moduleList']['ExternalOAuthProvider']   = 'External OAuth Provider';
+$app_list_strings['moduleList']['ExternalOAuthConnection'] = 'External OAuth Connection';
+$app_list_strings['moduleList']['EAPM'] = 'EAPM'; // External Account Password Management
+$app_list_strings['moduleList']['TemplateSectionLine']= 'Template Section Line';
+$app_list_strings['moduleList']['Releases']           = 'Releases';
+$app_list_strings['moduleList']['TimePeriods']        = 'TimePeriods';
+$app_list_strings['moduleList']['iFrames']            = 'iFrames';
+$app_list_strings['moduleList']['Sync']               = 'Sync';
+$app_list_strings['moduleList']['Newsletters']        = 'Newsletters';
+$app_list_strings['moduleList']['Library']            = 'Library';
+$app_list_strings['moduleList']['TrackerPerfs']       = 'TrackerPerfs';
+$app_list_strings['moduleList']['Queues']             = 'Queues';
+$app_list_strings['moduleList']['Feeds']              = 'Feeds';
+// IT
+$app_list_strings['moduleList']['ACLRoles']           = 'Quyền người dùng';
+$app_list_strings['moduleList']['ACLActions']         = 'Quyền hành động';
+$app_list_strings['moduleList']['Schedulers']         = 'Lịch biểu';
+$app_list_strings['moduleList']['OAuthKeys']          = 'OAuth Keys';
+$app_list_strings['moduleList']['OAuth2Clients']      = 'OAuth2 Clients';
+$app_list_strings['moduleList']['SecurityGroups']     = 'Security Groups';
+$app_list_strings['moduleList']['LZ_Redirect_Login']  = 'Điều hướng';
+$app_list_strings['moduleList']['Administration']     = 'Quản trị viên'; // Fix Notice: Undefined index
+$app_list_strings['moduleList']['Home']                 = 'Trang chủ';
+$app_list_strings['moduleList']['Dashboard']            = 'Bảng điều khiển';
+$app_list_strings['moduleList']['Calendar']             = 'Lịch';
+$app_list_strings['moduleList']['Contacts']             = 'Liên hệ';
+$app_list_strings['moduleList']['Emails']               = 'Email';
+$app_list_strings['moduleList']['EmailMarketing']       = 'Email tiếp thị';
+$app_list_strings['moduleList']['Calls']                = 'Cuộc gọi';
+$app_list_strings['moduleList']['Calls_Reschedule']     = 'Lịch gọi';
+$app_list_strings['moduleList']['Alerts']               = 'Thông báo';
+$app_list_strings['moduleList']['Bugs']                 = 'Lỗi';
+$app_list_strings['moduleList']['Opportunities']        = 'Cơ hội';
+$app_list_strings['moduleList']['SavedSearch']          = 'Lưu Tìm kiếm';
+$app_list_strings['moduleList']['Trackers']             = 'Bộ theo dõi';
+$app_list_strings['moduleList']['Tasks']                = 'Công việc';
+$app_list_strings['moduleList']['Meetings']             = 'Hội họp';
+$app_list_strings['moduleList']['Currencies']           = 'Tiền tệ';
+$app_list_strings['moduleList']['Documents']            = 'Tài liệu';
+$app_list_strings['moduleList']['Activities']           = 'Hoạt động';
+$app_list_strings['moduleList']['Cases']                = 'Tình huống';
+$app_list_strings['moduleList']['OutboundEmailAccounts']= 'Tài khoản gửi email';
+$app_list_strings['moduleList']['InboundEmail']         = 'Hộp thư đến';
+$app_list_strings['moduleList']['Notes']                = 'Ghi chú';
+$app_list_strings['moduleList']['Accounts']             = 'Tài khoản';
+$app_list_strings['moduleList']['Employees']            = 'Nhân viên';
+$app_list_strings['moduleList']['Users']                = 'Người dùng';
+$app_list_strings['moduleList']['EC_Flight_Bookings']     = 'Booking';
+$app_list_strings['moduleList']['EC_Booking_Details']     = 'Booking Details';
+$app_list_strings['moduleList']['EC_Booking_Itineraries'] = 'Booking Itineraries';
+$app_list_strings['moduleList']['EC_Booking_Passengers']  = 'Booking Passengers';
 $app_list_strings['moduleList']['EC_SMS_Logs']            = 'Tin nhắn (cũ)';
 $app_list_strings['moduleList']['EC_Messages']            = 'Tin nhắn';
-$app_list_strings['moduleList']['Accounts']               = 'Tài khoản';
+$app_list_strings['moduleList']['EC_Receipt_Voucher']     = 'Phiếu thu';
+$app_list_strings['moduleList']['EC_Payment_Voucher']     = 'Phiếu chi';
+$app_list_strings['moduleList']['EC_Payment_Types']       = 'Loại chi';
 $app_list_strings['moduleList']['EC_ChiTietTaiKhoan']     = 'Nhập số dư ban đầu';
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
-$app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
+$app_list_strings['moduleList']['EC_Input_Invoices']      = 'Hóa đơn đầu vào';
 $app_list_strings['moduleList']['EC_HoanVe']              = 'Hoàn vé';
 $app_list_strings['moduleList']['EC_ChiTietHoanVe']       = 'Chi tiết Hoàn vé';
-$app_list_strings['moduleList']['EC_Flight_Bookings']     = 'Booking';
-$app_list_strings['moduleList']['EC_Booking_Details']     = 'Booking_Details';
-$app_list_strings['moduleList']['EC_Booking_Itineraries'] = 'Booking_Itineraries';
-$app_list_strings['moduleList']['EC_Booking_Passengers']  = 'Booking_Passengers';
 $app_list_strings['moduleList']['EC_Employee_Salary']     = 'Bảng lương';
+$app_list_strings['moduleList']['EC_Salary_Details']      = 'Bảng lương chi tiết';
 $app_list_strings['moduleList']['EC_Commission']          = 'Thưởng doanh số';
 $app_list_strings['moduleList']['EC_WorkingOverTimes']    = 'Ngoài giờ';
+$app_list_strings['moduleList']['EC_WorkingOverTimeDetails'] = 'Chi tiết ngoài giờ';
 $app_list_strings['moduleList']['EC_ChuyenTienNoiBo']     = 'Chuyển tiền NB';
 $app_list_strings['moduleList']['EC_Banks']               = 'Ngân hàng';
 $app_list_strings['moduleList']['EC_Bank_Account']        = 'Tài khoản NH';
-$app_list_strings['moduleList']['LZ_Redirect_Login']      = 'Điều hướng';
-$app_list_strings['moduleList']['Administration']         = 'Quản trị viên'; // Fix Notice: Undefined index
-$app_list_strings['moduleList']['Employees']              = 'Nhân viên';
-$app_list_strings['moduleList']['Users']                  = 'Người dùng';
-$app_list_strings['moduleList']['ACLRoles']               = 'Quyền người dùng';
-$app_list_strings['moduleList']['EC_Vouchers']            = 'Vouchers';
-$app_list_strings['moduleList']['EC_Zalo']                = 'Zalo OA';
+$app_list_strings['moduleList']['EC_Vouchers']            = 'Mã giảm giá';
 $app_list_strings['moduleList']['EC_TongHop']             = 'Tổng hợp';
+$app_list_strings['moduleList']['EC_CashFlow']            = 'Dòng tiền';
 $app_list_strings['moduleList']['EC_LeaveAbsenceTypes']   = 'Loại nghỉ phép';
 $app_list_strings['moduleList']['EC_LeaveAbsences']       = 'Nghỉ phép';
 $app_list_strings['moduleList']['EC_LyDoThangThua']       = 'Lý do thắng thua';
 $app_list_strings['moduleList']['EC_Location']            = 'Địa điểm';
 $app_list_strings['moduleList']['EC_LoginAudit']          = 'Login Audit';
 $app_list_strings['moduleList']['EC_Contact_Points_Log']  = 'Quá trình tích điểm';
+$app_list_strings['moduleList']['EC_Zalo']                = 'Zalo OA';
+$app_list_strings['moduleList']['EC_Zalo_Apps']           = 'Zalo Apps';
 $app_list_strings['moduleList']['EC_Zalo_Contacts']       = 'Liên hệ Zalo';
-
-// AOW PR 5775
-$app_list_strings['moduleList']['AOW_WorkFlow'] = 'Quy trình công việc';
-$app_list_strings['moduleList']['AOW_Conditions'] = 'Quy trình làm việc điều kiện';
-$app_list_strings['moduleList']['AOW_Processed'] = 'Quá trình kiểm toán';
-$app_list_strings['moduleList']['AOW_Actions'] = 'Quy trình làm việc hành động';
-// AOS
-$app_list_strings['moduleList']['AOS_Contracts'] = 'Hợp đồng';
-$app_list_strings['moduleList']['AOS_Invoices'] = 'QL Hóa đơn';
-$app_list_strings['moduleList']['AOS_PDF_Templates'] = 'Các mẫu PDF';
-$app_list_strings['moduleList']['AOS_Product_Categories'] = 'Sản phẩm - thể loại';
-$app_list_strings['moduleList']['AOS_Products'] = 'Sản phẩm';
-$app_list_strings['moduleList']['AOS_Products_Quotes'] = 'Các hàng mục';
-$app_list_strings['moduleList']['AOS_Line_Item_Groups'] = 'Line Item Groups';
-$app_list_strings['moduleList']['AOS_Quotes'] = 'Báo giá';
-// AOD
-$app_list_strings['moduleList']['AOD_IndexEvent'] = 'Chỉ số sự kiện';
-$app_list_strings['moduleList']['AOD_Index'] = 'Chỉ số';
-$app_list_strings['moduleList']['AOP_Case_Events'] = 'Trường hợp các sự kiện';
-$app_list_strings['moduleList']['AOP_Case_Updates'] = 'Cập nhật trường hợp';
-
-// knowledge base
-$app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Trung tâm hỗ trợ'; // Shows in the ALL menu entries
-$app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'Danh mục hỗ trợ'; // Shows in the ALL menu entries
-
-// ExternalOauth
-$app_list_strings['moduleList']['ExternalOAuthProvider'] = 'External OAuth Provider';
-$app_list_strings['moduleList']['ExternalOAuthConnection'] = 'External OAuth Connection';
-$app_list_strings['moduleList']['EAPM'] = 'External Account Password Management';
+$app_list_strings['moduleList']['EC_Zalo_Messages']       = 'Tin nhắn Zalo';
+$app_list_strings['moduleList']['EC_Online_Report']       = 'Tình trạng online';
+$app_list_strings['moduleList']['EC_Outbound_Phone']      = 'Số gọi ra';
+$app_list_strings['moduleList']['EC_Revenue']             = 'Doanh thu';
+$app_list_strings['moduleList']['EC_WorkHistory']         = 'Lịch sử làm việc';
+$app_list_strings['moduleList']['EC_Working_Process']     = 'Quá trình làm việc';
 
 $app_strings['LBL_LOGIN_AS'] = "Login as ";
 $app_strings['LBL_LOGOUT_AS'] = "Logout as ";
@@ -117,7 +127,6 @@ $app_strings['LBL_GROUPTAB6_1384221712']  = 'QLDA';
 $app_strings['LBL_GROUPTAB6_1384221746']  = 'QLDA';
 $app_strings['LBL_GROUPTAB2_1529488412']  = 'Kế toán';
 $app_strings['LBL_GROUPTAB3_1607995668']  = 'HCNS';
-
 
 //gant
 $app_list_strings['relationship_type_list']['FS']       = 'Kết thúc để bắt đầu';
