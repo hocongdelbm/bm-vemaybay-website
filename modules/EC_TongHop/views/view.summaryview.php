@@ -25,7 +25,7 @@ class Viewsummaryview extends SugarView
             'label' => 'vietjet.net',
             'api_base' => 'https://vietjet.net/wp-json/uat/v1',
             'username' => 'datlnt',
-            'app_password' => 'Y3rcC1Uo*!&9JcRjO&',
+            'app_password' => 'YFa@jrA5XW4DnDw6q!N0zZRL',
             'page_api' => 'https://vietjet.net/api',
             'api_key' => '4F3yBy83DIRuHaFp6ealBkSsb3T3kvZ8MqM',
         ],
