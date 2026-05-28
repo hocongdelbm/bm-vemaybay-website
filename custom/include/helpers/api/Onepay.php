@@ -13,6 +13,7 @@ class Onepay {
 
         $status = false;
         $message = $description = '';
+        $hashValidated = false;
 
         try {
             $hashValidated  = $this->verifyResponseHash($responseData);
@@ -44,7 +45,7 @@ class Onepay {
         catch(Throwable $th) {
             return [
                 'status' => false,
-                'verifyStatus' => $hashValidated ?? false,
+                'verifyStatus' => $hashValidated,
                 'message' => "Lỗi xử lý",
                 'data' => $responseData ?? null,
                 'description' => "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}",

@@ -667,8 +667,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$nganluong_code = '';
 		$server_name = get_server_name($this->bean->created_by);
 		$datepaid = date('Y-m-d', strtotime('-7 hours', strtotime($this->bean->nganluong_datepaid)));
-		if ($server_name === 'timchuyenbay.com') $payment_link = "$server_name/thanh-toan-online?bkid={$this->bean->id}&datepaid=$datepaid";
-		else $payment_link = "$server_name/thanh-toan-online?paymentlink={$this->bean->nganluong_code}&datepaid=$datepaid";
+		$payment_link = "$server_name/thanh-toan-online?bkid={$this->bean->id}&datepaid=$datepaid";
+		// else $payment_link = "$server_name/thanh-toan-online?paymentlink={$this->bean->nganluong_code}&datepaid=$datepaid";
 		$array_servername = ['vietjet.net', 'timchuyenbay.com', 'timchuyenbay.vn'];
 		if (in_array($server_name, $array_servername)) {
 			$nganluong_code = <<<HTML
