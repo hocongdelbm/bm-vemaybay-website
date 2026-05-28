@@ -20,7 +20,10 @@ try {
         $data = $result['data'] ?? []; // Get Onepay data
 
         if ($verifyStatus) {
-            if($bookingNameLength > 7 && $bookingNameLength < 21 && !empty($data)) {
+            if($bookingNameLength > 8 && $bookingNameLength < 16 && !empty($data)) {
+                // Remove entryPoint key
+                unset($data['entryPoint']);
+
                 // Add custom data
                 $data['payment_date'] = date("Y-m-d H:i:s");
 

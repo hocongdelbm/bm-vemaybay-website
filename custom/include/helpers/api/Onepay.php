@@ -9,7 +9,7 @@ class Onepay {
     }
 
     public function handleResponse(array $responseData): array {
-        $vpc_TxnResponseCode = $response["vpc_TxnResponseCode"] ?? '';
+        $vpc_TxnResponseCode = $responseData["vpc_TxnResponseCode"] ?? '';
 
         $status = false;
         $message = $description = '';
@@ -316,13 +316,7 @@ class Onepay {
         $filteredData = [];
 
         foreach ($responseData as $key => $value) {
-            if (
-                !empty($value) &&
-                (
-                    str_starts_with($key, 'vpc_') ||
-                    str_starts_with($key, 'user_')
-                )
-            ) {
+            if (strlen($value) > 0 && (str_starts_with($key, 'vpc_') || str_starts_with($key, 'user_'))) {
                 $filteredData[$key] = $value;
             }
         }
@@ -334,14 +328,8 @@ class Onepay {
         $hashData = urldecode(http_build_query($filteredData, '', '&'));
 
         // Generate secure hash
-        $generatedHash = strtoupper(
-            hash_hmac(
-                'SHA256',
-                $hashData,
-                pack('H*', $this->hashCode)
-            )
-        );
+        $generatedHash = hash_hmac('SHA256', $hashData, pack('H*', $this->hashCode));
 
-        return strtoupper($receivedHash) === $generatedHash;
+        return strtoupper($receivedHash) === strtoupper($generatedHash);
     }
 }
