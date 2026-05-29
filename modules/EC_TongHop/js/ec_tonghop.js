@@ -402,6 +402,7 @@ $(document).ready(function () {
                 $('#ec_city_total_thamkhao').text('—');
                 $('#ec_city_total_booking').text('—');
                 $('#ec_city_total_hoantat').text('—');
+                $('#ec_city_total_booker').text('—');
 
                 $.ajax({
                     url: 'index.php?entryPoint=entryPointBookingStats',
@@ -419,6 +420,16 @@ $(document).ready(function () {
                                         c.suite_stats = { ThamKhao: 0, Booking: 0, HoanTat: 0 };
                                     }
                                 });
+                                if (parsed._ip_stats) {
+                                    const s = parsed._ip_stats;
+                                    console.log(
+                                        '[BookingStats] IP in DB but NOT in UAT ip-list: %d IPs',
+                                        s.db_only_count
+                                    );
+                                    if (s.db_only && s.db_only.length > 0) {
+                                        console.table(s.db_only);
+                                    }
+                                }
                             }
                         } catch (e) { }
                         renderCityDistribution(cities || {});
@@ -718,7 +729,7 @@ $(document).ready(function () {
 
     function renderCityDistribution(cityData) {
         _cityDataCache = (cityData.data || []).map(function (r) {
-            const suiteStats = r.suite_stats || { ThamKhao: 0, Booking: 0, HoanTat: 0 };
+            const suiteStats = r.suite_stats || { ThamKhao: 0, Booking: 0, HoanTat: 0, Booker: 0 };
             return {
                 city: r.city || 'Chưa xác định',
                 sessions: r.sessions || 0,
@@ -727,16 +738,18 @@ $(document).ready(function () {
                 thamkhao: suiteStats.ThamKhao || 0,
                 booking: suiteStats.Booking || 0,
                 hoantat: suiteStats.HoanTat || 0,
+                booker: suiteStats.Booker || 0,
                 _raw: r
             };
         });
 
         // Tính totals
-        let totalThamKhao = 0, totalBooking = 0, totalHoanTat = 0;
+        let totalThamKhao = 0, totalBooking = 0, totalHoanTat = 0, totalBooker = 0;
         _cityDataCache.forEach(function (r) {
             totalThamKhao += r.thamkhao;
             totalBooking += r.booking;
             totalHoanTat += r.hoantat;
+            totalBooker += r.booker;
         });
 
         if (_cityDataCache.length > 0) {
@@ -744,6 +757,7 @@ $(document).ready(function () {
             $('#ec_city_total_thamkhao').text(fmt(totalThamKhao));
             $('#ec_city_total_booking').text(fmt(totalBooking));
             $('#ec_city_total_hoantat').text(fmt(totalHoanTat));
+            $('#ec_city_total_booker').text(fmt(totalBooker));
         } else {
             $('#ec_city_totals_bar').hide();
         }

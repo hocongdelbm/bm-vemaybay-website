@@ -979,6 +979,8 @@
                                 style="color:#1d4ed8;">0</strong></span>
                         <span style="font-size:12px; color:#10b981;">Hoàn tất: <strong id="ec_city_total_hoantat"
                                 style="color:#10b981;">0</strong></span>
+                        <span style="font-size:12px; color:#f59e0b;">Bookers: <strong id="ec_city_total_booker"
+                                style="color:#f59e0b;">0</strong></span>
                     </div>
                     <table class="uat-table" style="margin-top:-16px;">
                         <thead>

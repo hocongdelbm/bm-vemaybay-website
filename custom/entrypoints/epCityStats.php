@@ -22,7 +22,7 @@ $results = [];
 $from_date = !empty($data['from_date']) ? $db->quote($data['from_date']) : '';
 $to_date = !empty($data['to_date']) ? $db->quote($data['to_date']) : '';
 
-$system_booker_names = ['Panda Po', 'Bao Gia Khach', 'Khach Hang Hoi', 'Tham Khao'];
+$system_booker_names = ['Panda Po', 'Bao Gia Khach', 'Báo Giá Khách', 'Khach Hang Hoi', 'Khách Hàng Hỏi', 'Tham Khao', 'Tham Khảo'];
 
 // BƯỚC 1: Tiền xử lý tất cả IP vào một mảng phẳng duy nhất để thực thi 1 query duy nhất
 $all_clean_ips = [];
@@ -30,7 +30,7 @@ $ip_to_city_map = [];
 
 foreach ($data['cities'] as $city => $ips) {
     // Khởi tạo sẵn giá trị mặc định cho City này
-    $results[$city] = ['ThamKhao' => 0, 'Booking' => 0, 'HoanTat' => 0];
+    $results[$city] = ['ThamKhao' => 0, 'Booking' => 0, 'HoanTat' => 0, 'Booker' => 0];
 
     if (!is_array($ips) || empty($ips)) {
         continue;
@@ -84,11 +84,13 @@ if (!empty($all_clean_ips)) {
             throw new Exception("Database Query Error: " . $db->lastDbError());
         }
         // BƯỚC 3: Xử lý và phân bổ kết quả về đúng mảng City
+        $matched_ip_set = [];
         while ($row = $db->fetchByAssoc($query)) {
             $ip = trim((string)$row['ip_address']);
             if (!isset($ip_to_city_map[$ip])) {
                 continue;
             }
+            $matched_ip_set[$ip] = true;
             $city = $ip_to_city_map[$ip];
 
             // Tên liên hệ gốc (Nếu đã từng đổi tên thì lấy tên cũ nhất từ bảng Audit, không có audit thì lấy hiện hành)
@@ -97,13 +99,17 @@ if (!empty($all_clean_ips)) {
 
             $is_ref = (int)$row['is_reference'] === 1;
             $status = (int)$row['booking_status'];
-            
+
             $is_booker = in_array($initial_contact, $system_booker_names);
 
             if ($is_ref) {
                 $results[$city]['ThamKhao']++;
             }
-            
+
+            if($is_booker && !$is_ref && $status !== 8) {
+                $results[$city]['Booker']++;
+            }
+
             // Điều kiện Booking do Khách Đặt
             if (!$is_ref && !$is_booker) {
                 $results[$city]['Booking']++;
