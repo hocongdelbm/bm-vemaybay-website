@@ -365,7 +365,7 @@ class Note extends File
      * @author DucPham
      */
     public function hasMoney(string $text): bool {
-        $moneyRegex = '/\b(\d{1,3}([.,]\d{3})+|\d{6,})(\s?(₫|VND|USD|\$))?\b/u';
+        $moneyRegex = '/(\d{1,3}([.,]\d{3})+|\d{6,})(\s?(₫|VND|USD|\$))?/u';
         return preg_match($moneyRegex, $text);
     }
 }

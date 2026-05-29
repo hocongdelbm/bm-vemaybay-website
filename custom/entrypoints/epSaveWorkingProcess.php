@@ -252,7 +252,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 						}
 					}
 				} catch (Exception $e) {
-					$GLOBALS['log']->error("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+					$GLOBALS['log']->error("{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}");
 				}
 			} else echo 0;
 		}
