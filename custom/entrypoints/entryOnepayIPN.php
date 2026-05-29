@@ -7,6 +7,7 @@ try {
         require_once "custom/include/helpers/api/Onepay.php";
 
         // Transaction ID
+        $transNo  = $_GET['vpc_TransactionNo'] ?? '';
         $transId  = $_GET['vpc_MerchTxnRef'] ?? ''; // Booking name + time();
         $transArr = explode("_", $transId);
         $bookingName = trim($_GET['vpc_OrderInfo'] ?? $transArr[0] ?? '');
@@ -32,7 +33,7 @@ try {
                     FROM ec_flight_bookings bk
                     WHERE bk.name = '$bookingName' AND bk.deleted = 0";
                 $res = $db->query($sql);
-                $row = $db->fetchByAssoc();
+                $row = $db->fetchByAssoc($res);
 
                 $bookingId = $row['id'] ?? '';
 
@@ -51,15 +52,19 @@ try {
                     $bookingPaymentInfo = json_encode($bookingPaymentInfoArr, JSON_UNESCAPED_UNICODE);
                     $sqlUpdate = 
                         "UPDATE ec_flight_bookings
-                        SET bk.nganluong_info = '{$bookingPaymentInfo}'
-                        WHERE bk.id = '{$bookingId}'";
+                        SET nganluong_info = '{$bookingPaymentInfo}'
+                        WHERE id = '{$bookingId}'";
                         
                     if(!$db->query($sqlUpdate)) {
                         $logId = LoggerHelper::generateLogId();
-                        $GLOBALS['log']->error("[{$logId}] Save Onepay payment info failed: " . json_encode($result, JSON_UNESCAPED_UNICODE));
+                        $GLOBALS['log']->error("[{$logId}] Save Onepay payment info failed: " . json_encode($result, JSON_UNESCAPED_UNICODE) . " $sqlUpdate");
                         NotificationService::sendErrorMessage("Save Onepay payment info failed\n<i>{$logId}</i>", "default", ['threadKey' => 'logs']);
                     }
                 }
+
+                $amount = number_format($data['vpc_Amount'] ?? 0);
+                $messageNoti = "✌️ <b>Onepay</b> +$amount VND - {$data['payment_date']} Booking $bookingName $transNo";
+                NotificationService::sendMessage($messageNoti, "payment");
 
                 echo "responsecode=1&desc=confirm-success";
                 exit();
@@ -79,6 +84,10 @@ try {
     };
 }
 catch (Throwable $th) {
+    $logId = LoggerHelper::generateLogId();
+    $GLOBALS['log']->error("[{$logId}] Handle Onepay IPN failed: {$th->getMessage()} on line {$th->getLine()}");
+    NotificationService::sendErrorMessage("Handle Onepay IPN failed\n<i>{$logId}</i>", "default", ['threadKey' => 'logs']);
+
     echo "responsecode=0&desc=error-handling";
     exit();
 }
