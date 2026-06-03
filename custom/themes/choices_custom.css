@@ -1,0 +1,34 @@
+/* Custom fixes so Choices.js dropdown is not hidden behind WYSIWYG editor (TinyMCE) */
+
+/* Ensure dropdown container floats above editor UI */
+.choices__list--dropdown,
+.choices__inner,
+.choices__list--multiple {
+  z-index: 99999 !important; /* very high to outrank editor toolbars */
+}
+
+/* Specifically target the dropdown menu element created by Choices.js */
+.choices__list[aria-expanded="true"] {
+  position: absolute !important;
+  overflow: visible !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* If parent containers have overflow:hidden, try to make the immediate wrapper visible */
+.select-wrapper, .ec-multiselect-wrapper, .choices {
+  overflow: visible !important;
+}
+
+/* TinyMCE toolbar area can have a high z-index; ensure choices dropdown beats it */
+.mce-container,
+.tox,
+.tox-tinymce,
+.mce-toolbar,
+.mce-panel {
+  z-index: 9999 !important; /* keep editor below the choices dropdown */
+}
+
+/* Additional sanity: ensure choices dropdown uses pointer events */
+.choices__list--dropdown {
+  pointer-events: auto !important;
+}

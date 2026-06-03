@@ -1275,6 +1275,7 @@ $(document).ready(function () {
 			doMapCall(0);
 		}
 	});
+
 	// Auto-search related calls when manualLinkCall modal opens
 	$('#manualLinkCall').on('shown.bs.modal', function () {
 		// Reset state on every open
@@ -1322,6 +1323,7 @@ $(document).ready(function () {
 			}
 		});
 	});
+	
 	// Clicking a suggestion row populates the input and stores link state
 	$(document).on('click', '.suggest-call-item', function () {
 		let callName = $(this).attr('data-call-name');
