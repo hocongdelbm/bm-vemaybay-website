@@ -944,7 +944,67 @@ class APIZaloOA {
         return $result;
     }
 
+    /***************  Auto Post  ***************/
+    /** 
+     * Create an article (post)
+     * 
+     * @param array $data
+     * @return string json
+     */
+    public function create_article($data) {
+        $url = "https://openapi.zalo.me/v2.0/article/create";
+        $header = [
+            "Content-Type: application/json",
+            "access_token: ". $this->get_token()
+        ];
+        $curlOptions = [
+            CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+            CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+        ];
+        return $this->send_request("POST", $url, json_encode($data), $header, $curlOptions);
+    }
 
+    /** 
+     * Upload video for article
+     * 
+     * @param string $path
+     * @param string|null $name
+     * @return string json
+     */
+    public function upload_video_article($path, $name = null) {
+        $url = "https://openapi.zalo.me/v2.0/article/upload_video/preparevideo";
+        $header = [
+            "access_token: ". $this->get_token()
+        ];
+        $requestBody = ['file' => new CURLFile($path, null, $name)];
+        $curlOptions = [
+            CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+            CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+        ];
+
+        return $this->send_request("POST", $url, $requestBody, $header, $curlOptions);
+    }
+
+    /** 
+     * Verify video status for article
+     * 
+     * @param string $token
+     * @return string json
+     */
+    public function verify_video_article($token) {
+        $url = "https://openapi.zalo.me/v2.0/article/upload_video/verify";
+        $header = [
+            "Content-Type: application/json",
+            "access_token: ". $this->get_token(),
+            "token: " . $token
+        ];
+        $curlOptions = [
+            CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+            CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+        ];
+
+        return $this->send_request("GET", $url, null, $header, $curlOptions);
+    }
 
     /***************  Utils  ***************/
     /**
