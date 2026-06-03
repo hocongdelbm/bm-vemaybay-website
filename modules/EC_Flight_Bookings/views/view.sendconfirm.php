@@ -91,11 +91,8 @@ class Viewsendconfirm extends SugarView {
 		}
 		else return false;
 
-		// Ngân lượng (Thanh toán online)
-		$datepaid =  date('Y-m-d', strtotime('-7 hours', strtotime($this->bean->nganluong_datepaid)));
-		$server_name = get_server_name($this->bean->created_by);
-		if($server_name === 'timchuyenbay.com') $payment_link = "$server_name/thanh-toan-online?bkid=". $this->bean->id ."&datepaid=$datepaid";
-		else $payment_link = "$server_name/thanh-toan-online?paymentlink=". $this->bean->nganluong_code ."&datepaid=$datepaid";
+		// Online payment
+		$payment_link = EC_Flight_Bookings_Helper::get_online_payment_link($this->bean->id, $this->bean->created_by);
 
 		$body = str_replace(
 			[

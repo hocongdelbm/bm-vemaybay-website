@@ -664,135 +664,96 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$this->ss->assign('IS_INVOICE_EXPORT', '<div class="d-flex flex-column gap-1">' . $is_invoice_export . $is_invoice_input_export . '</div>');
 
-		$nganluong_code = '';
-		$server_name = get_server_name($this->bean->created_by);
-		$datepaid = date('Y-m-d', strtotime('-7 hours', strtotime($this->bean->nganluong_datepaid)));
-		$payment_link = "$server_name/thanh-toan-online?bkid={$this->bean->id}&datepaid=$datepaid";
-		// else $payment_link = "$server_name/thanh-toan-online?paymentlink={$this->bean->nganluong_code}&datepaid=$datepaid";
-		$array_servername = ['vietjet.net', 'timchuyenbay.com', 'timchuyenbay.vn'];
-		if (in_array($server_name, $array_servername)) {
-			$nganluong_code = <<<HTML
-				<div class="nganluong__wrap">
-					<button class="flex-fill outline-none" id="copy_payment_link" onclick="copyContent('{$payment_link}')">
-						<img src="themes/SuiteP/images/modules/ec_flight_booking/onepay.svg" alt="onepay">
-					</button>
-					<button class="flex-fill outline-none" id="get_qr_code">
-						<svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M9 6.6V8.4C9 8.73137 8.73137 9 8.4 9H6.6C6.26863 9 6 8.73137 6 8.4V6.6C6 6.26863 6.26863 6 6.6 6H8.4C8.73137 6 9 6.26863 9 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 12H9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12V15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18H15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.0111L12.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 12.0111L18.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 15.0111L12.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15.0111L18.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 18.0111L18.01 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 9.01111L12.01 9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6.01111L12.01 6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 15.6V17.4C9 17.7314 8.73137 18 8.4 18H6.6C6.26863 18 6 17.7314 6 17.4V15.6C6 15.2686 6.26863 15 6.6 15H8.4C8.73137 15 9 15.2686 9 15.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 6.6V8.4C18 8.73137 17.7314 9 17.4 9H15.6C15.2686 9 15 8.73137 15 8.4V6.6C15 6.26863 15.2686 6 15.6 6H17.4C17.7314 6 18 6.26863 18 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 3H21V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 21H21V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 3H3V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H3V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-						<span>QR code</span>
-					</button>
-					<button class="flex-fill outline-none btn btn-primary-2" id="get_bank" booking_id="{$this->bean->id}">
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
-							<path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
-						</svg>
-						<span>Ngân hàng</span>
-					</button>
-				</div>
-			HTML;
-			$nganluong_code .= $this->generateDialogGetQRCode($this->bean->total_amount, $this->bean->phone);
-
-			// Lịch sử giao dịch
-			$transBody = '';
-			$nganluong_info = json_decode(html_entity_decode($this->bean->nganluong_info), true);
-			$transCount = 0;
-			if(is_array($nganluong_info) && isset($nganluong_info[0])) {
-				$transCount = count($nganluong_info);
-				foreach ($nganluong_info as $val) {
-					$opdesArr = Onepay::getResponseDescription($val["vpc_TxnResponseCode"] ?? null);
-					$transStatusClass = $opdesArr['code'] === '0' ? 'text-success' : 'text-danger';
-
-					$transBody .= '<div class="history-card">
-						<div class="history-line time-transaction">
-							<div class="transaction-label">Thời gian</div>
-							<div class="transaction-value">' . date('d/m/Y H:i:s', strtotime($val['payment_date'])) . '</div>
-						</div>
-						<div class="history-line code-transaction">
-							<div class="transaction-label">Mã giao dịch</div>
-							<div class="transaction-value">' . $val['vpc_TransactionNo'] . '</div>
-						</div>
-						<div class="history-line amount-transaction">
-							<div class="transaction-label">Số tiền</div>
-							<div class="transaction-value fw-bold">' . format_number(substr($val['vpc_Amount'], 0, -2)) . ' VND</div>
-						</div>
-						<div class="history-line fee-transaction">
-							<div class="transaction-label">Phí giao dịch</div>
-							<div class="transaction-value">Miễn phí</div>
-						</div>
-						<div class="history-line desc-transaction">
-							<div class="transaction-label">Nội dung</div>
-							<div class="transaction-value">' . ($val['payment_note'] ?? '') . '</div>
-						</div>
-						<div class="history-line status-transaction">
-							<div class="transaction-label">Trạng thái</div>
-							<div class="transaction-value '. $transStatusClass .'">' . ($opdesArr['description']['vi'] ?? 'Chưa xác định') . '</div>
-						</div>
-					</div>';
-				}
-			}
-			else {
-				$transBody = '<p><i>Booking chưa có giao dịch thanh toán nào!</i></p>';
-			}
-			$transactionHistory = <<<HTML
-				<button type="button" class="history-transaction d-flex align-items-center gap-2 cursor-pointer btn btn-primary-2" data-bs-toggle="modal" data-bs-target="#history-transaction">
-					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-						<path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483m.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535m-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
-						<path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
-						<path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
-					</svg>
-					<p class="title-history">Onepay ({$transCount})</p>
+		// Online payment
+		$onlinePaymentLink = EC_Flight_Bookings_Helper::get_online_payment_link($this->bean->id, $this->bean->created_by);
+		$nganluong_code = <<<HTML
+			<div class="nganluong__wrap">
+				<button class="flex-fill outline-none" id="copy_payment_link" onclick="copyContent('{$onlinePaymentLink}')">
+					<img src="themes/SuiteP/images/modules/ec_flight_booking/onepay.svg" alt="onepay">
 				</button>
-				<div class="modal fade" id="history-transaction" tabindex="-1" aria-labelledby="history-transactionLabel" aria-hidden="true">
-					<div class="modal-dialog modal-dialog-centered">
-						<div class="modal-content">
-							<div class="modal-header">
-								<h2 class="modal-title fs-5" id="history-transactionLabel">Lịch sử giao dịch Onepay</h2>
-							</div>
-							<div class="modal-body d-flex align-items-center gap-3 justify-content-center flex-column">
-								$transBody
-							</div>
-							<div class="modal-footer">
-								<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-							</div>
+				<button class="flex-fill outline-none" id="get_qr_code">
+					<svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M9 6.6V8.4C9 8.73137 8.73137 9 8.4 9H6.6C6.26863 9 6 8.73137 6 8.4V6.6C6 6.26863 6.26863 6 6.6 6H8.4C8.73137 6 9 6.26863 9 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 12H9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12V15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18H15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.0111L12.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 12.0111L18.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 15.0111L12.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15.0111L18.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 18.0111L18.01 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 9.01111L12.01 9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6.01111L12.01 6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 15.6V17.4C9 17.7314 8.73137 18 8.4 18H6.6C6.26863 18 6 17.7314 6 17.4V15.6C6 15.2686 6.26863 15 6.6 15H8.4C8.73137 15 9 15.2686 9 15.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 6.6V8.4C18 8.73137 17.7314 9 17.4 9H15.6C15.2686 9 15 8.73137 15 8.4V6.6C15 6.26863 15.2686 6 15.6 6H17.4C17.7314 6 18 6.26863 18 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 3H21V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 21H21V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 3H3V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H3V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+					<span>QR code</span>
+				</button>
+				<button class="flex-fill outline-none btn btn-primary-2" id="get_bank" booking_id="{$this->bean->id}">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
+						<path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
+					</svg>
+					<span>Ngân hàng</span>
+				</button>
+			</div>
+		HTML;
+		// QR payment
+		$nganluong_code .= $this->generateDialogGetQRCode($this->bean->total_amount, $this->bean->phone);
+		$this->ss->assign('CUSTOM_NGANLUONG_CODE', $nganluong_code);
+
+		// Transaction history
+		$transBody = '';
+		$nganluong_info = json_decode(html_entity_decode($this->bean->nganluong_info), true);
+		$transCount = 0;
+		if(is_array($nganluong_info) && isset($nganluong_info[0])) {
+			$transCount = count($nganluong_info);
+			foreach ($nganluong_info as $val) {
+				$opdesArr = Onepay::getResponseDescription($val["vpc_TxnResponseCode"] ?? null);
+				$transStatusClass = $opdesArr['code'] === '0' ? 'text-success' : 'text-danger';
+
+				$transBody .= '<div class="history-card">
+					<div class="history-line time-transaction">
+						<div class="transaction-label">Thời gian</div>
+						<div class="transaction-value">' . date('d/m/Y H:i:s', strtotime($val['payment_date'])) . '</div>
+					</div>
+					<div class="history-line code-transaction">
+						<div class="transaction-label">Mã giao dịch</div>
+						<div class="transaction-value">' . $val['vpc_TransactionNo'] . '</div>
+					</div>
+					<div class="history-line amount-transaction">
+						<div class="transaction-label">Số tiền</div>
+						<div class="transaction-value fw-bold">' . format_number(substr($val['vpc_Amount'], 0, -2)) . ' VND</div>
+					</div>
+					<div class="history-line fee-transaction">
+						<div class="transaction-label">Phí giao dịch</div>
+						<div class="transaction-value">Miễn phí</div>
+					</div>
+					<div class="history-line desc-transaction">
+						<div class="transaction-label">Nội dung</div>
+						<div class="transaction-value">' . ($val['payment_note'] ?? '') . '</div>
+					</div>
+					<div class="history-line status-transaction">
+						<div class="transaction-label">Trạng thái</div>
+						<div class="transaction-value '. $transStatusClass .'">' . ($opdesArr['description']['vi'] ?? 'Chưa xác định') . '</div>
+					</div>
+				</div>';
+			}
+		}
+		else {
+			$transBody = '<p><i>Booking chưa có giao dịch thanh toán nào!</i></p>';
+		}
+		$transactionHistory = <<<HTML
+			<button type="button" class="history-transaction d-flex align-items-center gap-2 cursor-pointer btn btn-primary-2" data-bs-toggle="modal" data-bs-target="#history-transaction">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
+					<path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483m.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535m-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
+					<path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
+					<path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
+				</svg>
+				<p class="title-history">Onepay ({$transCount})</p>
+			</button>
+			<div class="modal fade" id="history-transaction" tabindex="-1" aria-labelledby="history-transactionLabel" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="history-transactionLabel">Lịch sử giao dịch Onepay</h2>
+						</div>
+						<div class="modal-body d-flex align-items-center gap-3 justify-content-center flex-column">
+							$transBody
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
 						</div>
 					</div>
 				</div>
-			HTML;
-			$this->ss->assign('CUSTOM_TRANSACTION_HISTORY', $transactionHistory);
-		}
-		else {
-			$nganluong_code = <<<HTML
-				<div class="nganluong__wrap">
-					<button class="flex-fill outline-none" id="get_qr_code">
-						<svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
-							<path d="M9 6.6V8.4C9 8.73137 8.73137 9 8.4 9H6.6C6.26863 9 6 8.73137 6 8.4V6.6C6 6.26863 6.26863 6 6.6 6H8.4C8.73137 6 9 6.26863 9 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M6 12H9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M15 12V15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M12 18H15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M12 12.0111L12.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M18 12.0111L18.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M12 15.0111L12.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M18 15.0111L18.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M18 18.0111L18.01 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M12 9.01111L12.01 9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M12 6.01111L12.01 6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M9 15.6V17.4C9 17.7314 8.73137 18 8.4 18H6.6C6.26863 18 6 17.7314 6 17.4V15.6C6 15.2686 6.26863 15 6.6 15H8.4C8.73137 15 9 15.2686 9 15.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M18 6.6V8.4C18 8.73137 17.7314 9 17.4 9H15.6C15.2686 9 15 8.73137 15 8.4V6.6C15 6.26863 15.2686 6 15.6 6H17.4C17.7314 6 18 6.26863 18 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M18 3H21V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M18 21H21V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M6 3H3V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							<path d="M6 21H3V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-							</svg>
-						<span>QR code</span>
-					</button>
-					<button class="flex-fill outline-none btn btn-primary-2" id="get_bank" booking_id="' . $this->bean->id . '">
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
-							<path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
-						</svg>
-						<span>Ngân hàng</span>
-					</button>
-				</div>
-			HTML;
-		}
-		$this->ss->assign('CUSTOM_NGANLUONG_CODE', $nganluong_code);
+			</div>
+		HTML;
+		$this->ss->assign('CUSTOM_TRANSACTION_HISTORY', $transactionHistory);
 
 		// Giảm giá
 		$discount_html = '<span class="discount_value">' . format_number($this->bean->discount_amount) . '</span>';
@@ -831,35 +792,37 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		}
 		if (in_array((int)$this->bean->booking_status, [1, 2, 6])) {
 			// Giảm giá tích điểm
-			$points = (int)($this->bean->db->getOne('SELECT points FROM contacts WHERE id = "' . $this->bean->contact_id . '" AND deleted = 0') ?? 0);
+			$points = (int)($this->bean->db->getOne("SELECT points FROM contacts WHERE id = '{$this->bean->contact_id}' AND deleted = 0") ?? 0);
 			if ($points && $points > 0) {
 				$max_point = (int) ($points / $this->bean->point_step) * $this->bean->point_step;
-				$discount_html .= '<div class="wrap-points">
-					<button class="btn btn btn-primary-2 btn-sm btn-use-point" for="dialog_use_point" title="Dùng điểm tích lũy">Dùng điểm</button>
-					<dialog id="dialog_use_point" class="dialog dialog-use-point" style="display:none">
-						<div class="content">
-							<div class="point">
-								<label for="point_of_use">Nhập điểm áp dụng:</label>
-								<div class="input-group">
-									<input type="number" name="point_of_use" id="point_of_use" class="form-control allow-number-only" min="' . $this->bean->point_step . '" max="' . $max_point . '" step="' . $this->bean->point_step . '" />
-									<span class="input-group-text">/<b class="tt_points" id="tt_points" data="' . $points . '">' . $points . ' điểm</b></span>
+				$discount_html .= <<<HTML
+					<div class="wrap-points">
+						<button class="btn btn btn-primary-2 btn-sm btn-use-point" for="dialog_use_point" title="Dùng điểm tích lũy">Dùng điểm</button>
+						<dialog id="dialog_use_point" class="dialog dialog-use-point" style="display:none">
+							<div class="content">
+								<div class="point">
+									<label for="point_of_use">Nhập điểm áp dụng:</label>
+									<div class="input-group">
+										<input type="number" name="point_of_use" id="point_of_use" class="form-control allow-number-only" min="{$this->bean->point_step}" max="$max_point" step="{$this->bean->point_step}" />
+										<span class="input-group-text">/<b class="tt_points" id="tt_points" data="$points">$points điểm</b></span>
+									</div>
+								</div>
+								<div class="equal">=</div>
+								<div class="amount">
+									<label for="points_discount">Tổng tiền giảm:</label>
+									<div class="input-group">
+										<input type="text" name="points_discount" id="points_discount" value="0" class="form-control points_discount allow-number-only" readonly="true"/>
+										<span class="input-group-text">đ</span>
+									</div>
 								</div>
 							</div>
-							<div class="equal">=</div>
-							<div class="amount">
-								<label for="points_discount">Tổng tiền giảm:</label>
-								<div class="input-group">
-									<input type="text" name="points_discount" id="points_discount" value="0" class="form-control points_discount allow-number-only" readonly="true"/>
-									<span class="input-group-text">đ</span>
-								</div>
+							<div class="description">
+								<p>Các mốc điểm được sử dụng: 50, 100, 150, 200, 250,...</p>
 							</div>
-						</div>
-						<div class="description">
-							<p>Các mốc điểm được sử dụng: 50, 100, 150, 200, 250,...</p>
-						</div>
-						<button id="btn_apply_points_discount" class="btn btn btn-primary btn-apply-points-discount" contact_id="' . $this->bean->contact_id . '" booking_id="' . $this->bean->id . '" disabled="true">Áp dụng</button>
-					</dialog>
-				</div>';
+							<button id="btn_apply_points_discount" class="btn btn btn-primary btn-apply-points-discount" contact_id="{$this->bean->contact_id}" booking_id="{$this->bean->id}" disabled="true">Áp dụng</button>
+						</dialog>
+					</div>
+				HTML;
 			}
 		}
 		$this->ss->assign('CUS_DISCOUNT_AMOUNT', $discount_html);
