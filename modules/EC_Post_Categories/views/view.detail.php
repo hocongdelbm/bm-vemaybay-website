@@ -10,12 +10,10 @@ class EC_Post_CategoriesViewDetail extends ViewDetail {
         if (!empty($catId)) {
             global $db, $timedate;
 
-            // Pagination params
             $perPage = 5;
             $page = isset($_GET['posts_page']) ? (int)$_GET['posts_page'] : 1;
             if ($page < 1) $page = 1;
 
-            // Count total
             $countSql = "SELECT COUNT(*) AS c FROM ec_post p JOIN ec_posts_categories j ON j.post_id = p.id AND j.deleted = 0 WHERE j.category_id = '" . $db->quote($catId) . "' AND p.deleted = 0";
             $countRes = $db->query($countSql);
             $countRow = $db->fetchByAssoc($countRes);
@@ -41,11 +39,11 @@ class EC_Post_CategoriesViewDetail extends ViewDetail {
                 $i = $offset + 1;
                 $tbody = '';
                 while ($row = $db->fetchByAssoc($res)) {
-                    $title = htmlspecialchars($row['post_title'], ENT_QUOTES);
-                    $url = 'index.php?module=EC_Post&action=DetailView&record=' . $row['id'];
+                    $title  = htmlspecialchars($row['post_title'], ENT_QUOTES);
+                    $url    = 'index.php?module=EC_Post&action=DetailView&record=' . $row['id'];
                     $author = isset($row['author_name']) ? htmlspecialchars($row['author_name'], ENT_QUOTES) : '';
-                    $pub = !empty($row['published_at']) ? date('d-m-Y H:i', strtotime($row['published_at'])) : '';
-                    $desc = isset($row['description']) ? htmlspecialchars(strip_tags($row['description'])) : '';
+                    $pub    = !empty($row['published_at']) ? date('d-m-Y H:i', strtotime($row['published_at'])) : '';
+                    $desc   = isset($row['description']) ? htmlspecialchars(strip_tags($row['description'])) : '';
 
                     $tbody .= '<tr>'
                         . '<td class="td-index text-left"><strong>' . $i . '</strong></td>'
@@ -61,24 +59,39 @@ class EC_Post_CategoriesViewDetail extends ViewDetail {
                     . '<thead><tr><th>#</th><th>Tiêu đề</th><th>Tác giả</th><th>Ngày</th><th>Mô tả</th></tr></thead>'
                     . '<tbody class="border-bottom-none">' . $tbody . '</tbody></table>';
 
-                // pagination links
                 if ($totalPages > 1) {
-                    $baseUrl = htmlspecialchars($_SERVER['PHP_SELF'] . '?' . preg_replace('/(&|\?)?posts_page=\\d+/', '', $_SERVER['QUERY_STRING']));
-                    $pager = '<nav aria-label="Posts pagination"><ul class="pagination mt-2">';
-                    for ($p = 1; $p <= $totalPages; $p++) {
-                        $active = ($p == $page) ? ' active' : '';
-                        $link = $baseUrl . (strpos($baseUrl, '?') === false ? '?' : '&') . 'posts_page=' . $p;
-                        $pager .= '<li class="page-item' . $active . '"><a class="page-link" href="' . $link . '">' . $p . '</a></li>';
+                    $baseUrl = htmlspecialchars($_SERVER['PHP_SELF'] . '?' . preg_replace('/(&|\?)?posts_page=\d+/', '', $_SERVER['QUERY_STRING']));
+                    $sep     = strpos($baseUrl, '?') === false ? '?' : '&';
+
+                    $pager = '<nav aria-label="Posts pagination" style="width:100%;display:block;">'
+                           . '<ul class="pagination" style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;list-style:none;padding:8px 0 0;margin:0;">';
+
+                    if ($page > 1) {
+                        $pager .= '<li class="page-item" style="margin:2px;">'
+                                . '<a class="page-link" href="' . $baseUrl . $sep . 'posts_page=' . ($page - 1) . '" style="padding:4px 10px;">&laquo;</a></li>';
                     }
+
+                    for ($p = 1; $p <= $totalPages; $p++) {
+                        $isActive    = ($p == $page);
+                        $activeStyle = $isActive ? 'background:#0d6efd;color:#fff;border-color:#0d6efd;' : '';
+                        $pager .= '<li class="page-item' . ($isActive ? ' active' : '') . '" style="margin:2px;">'
+                                . '<a class="page-link" href="' . $baseUrl . $sep . 'posts_page=' . $p . '" style="padding:4px 10px;' . $activeStyle . '">' . $p . '</a></li>';
+                    }
+
+                    if ($page < $totalPages) {
+                        $pager .= '<li class="page-item" style="margin:2px;">'
+                                . '<a class="page-link" href="' . $baseUrl . $sep . 'posts_page=' . ($page + 1) . '" style="padding:4px 10px;">&raquo;</a></li>';
+                    }
+
                     $pager .= '</ul></nav>';
                     $html .= $pager;
                 }
             }
         }
-    // Fallback JS: traverse up from #posts_panel at render time and hide the left label cell for this panel
-    $js = '<script type="text/javascript">(function(){try{var el=document.getElementById("posts_panel");if(el){var row=el.closest(".detail-view-row-item");if(row){var label=row.querySelector(".label.col-1-label");if(label){label.style.display="none";}var field=row.querySelector(".detail-view-field");if(field){field.style.width="100%";field.style.paddingLeft="0";}}}}catch(e){console && console.log(e);}})();</script>';
 
-    $this->ss->assign('POSTS_PANEL', $html . $js);
+        $js = '<script type="text/javascript">(function(){try{var el=document.getElementById("posts_panel");if(el){var row=el.closest(".detail-view-row-item");if(row){var label=row.querySelector(".label.col-1-label");if(label){label.style.display="none";}var field=row.querySelector(".detail-view-field");if(field){field.style.width="100%";field.style.paddingLeft="0";}}}}catch(e){console && console.log(e);}})();</script>';
+
+        $this->ss->assign('POSTS_PANEL', $html . $js);
         parent::display();
     }
 }

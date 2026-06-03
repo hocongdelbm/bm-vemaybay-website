@@ -2585,7 +2585,7 @@ $app_list_strings['list_phone_airline_support'] = array(
   '19001599' => 'Sun Phú Quốc',
   '19006686' => 'Vietravel',
 );
-$app_strings['LBL_GROUPTAB5_1780126133'] = 'Blog';
+$app_strings['LBL_GROUPTAB5_1780126133'] = 'Post';
 
 $GLOBALS['app_list_strings']['post_type_list'] = array(
   'post' => 'Bài viết',

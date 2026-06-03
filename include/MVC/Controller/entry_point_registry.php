@@ -112,4 +112,8 @@ $entry_point_registry = array(
     'entryOnepayIPN'            => ['file' => 'custom/entrypoints/entryOnepayIPN.php', 'auth' => false],
     'entryPointMisaCallback'    => ['file' => 'custom/entrypoints/entryMisaCallback.php', 'auth' => false], // Misa Callback
     'entryPointIpManage'        => ['file' => 'custom/entrypoints/epIpManage.php', 'auth' => true],
+
+    //Add categories and tags
+    'epCreateTaxonomy' => ['file' => 'custom/entrypoints/epCreateTaxonomy.php', 'auth' => true],
+ 
 );
