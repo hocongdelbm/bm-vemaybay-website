@@ -1315,7 +1315,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		}
 
 		// Auto book
-		if (in_array($this->bean->booking_status, [1, 2, 3, 6])) {
+		if (!$this->isTelesaleRole($current_user->id) && in_array($this->bean->booking_status, [1, 2, 3, 6])) {
 			// if (in_array($this->bean->booking_status, [1, 2, 3, 6]) && !$this->bean->is_hold && !$this->bean->holding_status) {
 			$agencyOptions = '
 				<li>
@@ -2598,6 +2598,14 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		return $this->bean->db->getOne($sql);
 	}
 
+	//Kiểm tra có phải telesale hay không
+	function isTelesaleRole($user_id)
+	{
+		$sql = 'SELECT COUNT(id) 
+			FROM acl_roles_users 
+			WHERE user_id = "' . $user_id . '" AND role_id = "34beb2a2-5ee7-f001-2496-68ca264d1d3f" AND deleted = 0';
+		return $this->bean->db->getOne($sql);
+	}
 	/**
 	 * Tạo modal confirm action
 	 * 

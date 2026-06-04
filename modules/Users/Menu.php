@@ -10,6 +10,7 @@ $arr_admin = [
     '622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
     '4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //nhatdo
     '168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
+    '5ac1d89e-0258-7237-0763-6a20dab448b4', //dahy
 ];
 
 $module_menu = [];
