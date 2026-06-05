@@ -142,8 +142,9 @@ $(document).ready(function () {
           label += ' <small style="color:#888;">(' + luggageText + ")</small>";
 
         // Overwrite per name — last one wins (= latest version)
-        if (!psgByName[fullname]) psgOrder.push(fullname);
-        psgByName[fullname] = {
+        var psgKey = fullname + '|' + passId; 
+        if (!psgByName[psgKey]) psgOrder.push(psgKey);
+        psgByName[psgKey] = {
           passId: passId,
           passType: passType,
           label: label,
