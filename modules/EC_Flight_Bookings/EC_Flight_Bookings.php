@@ -96,7 +96,6 @@ class EC_Flight_Bookings extends Basic
 		'd83ad3f6-3b3b-ba7b-f046-5512bad66c66', // Booking android
 		'940beedb-4f03-0e00-1a16-5456ebc43fc0' // vemaybay5s.com
 	];
-
 	public $_isNewBooking = false;
 	public $_isDuplicate = false;
 
@@ -110,8 +109,7 @@ class EC_Flight_Bookings extends Basic
 		return false;
 	}
 
-	public function save($check_notify = FALSE)
-	{
+	public function save($check_notify = FALSE) {
 		// Set up current user for use new API
 		$this->_initCurrentUser();
 
@@ -139,6 +137,9 @@ class EC_Flight_Bookings extends Basic
 		
 		// Đánh dấu đã thanh toán
 		$this->_resolveIsPaid();
+
+		// Đánh dấu đã thanh toán
+		$this->_resolveTotalQty();
 		
 		// City
 		$this->_normalizeCity();
@@ -326,6 +327,16 @@ class EC_Flight_Bookings extends Basic
 	{
 		if (isset($_POST['is_paid'])) {
 			$this->is_paid = $_POST['is_paid'];
+		}
+	}
+
+	private function _resolveTotalQty() {
+		// The number of ticket
+		if(strlen($this->id) == 36) {
+			$sql = "SELECT SUM(IFNULL(quantity, 0)) AS total_ticket
+				FROM ec_booking_details
+				WHERE booking_id = '{$this->id}' AND deleted = 0";
+			$this->total_qty = (int) ($this->db->getOne($sql) ?? 0);
 		}
 	}
 

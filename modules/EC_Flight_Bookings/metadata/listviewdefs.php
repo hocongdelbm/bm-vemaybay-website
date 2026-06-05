@@ -22,8 +22,10 @@ $listViewDefs[$module_name] = array(
         'default' => false,
     ),
     'IS_PRIOR' => array(
-        'label' => 'LBL_IS_PRIOR',
-        'width' => '12%',
+        // 'label' => 'LBL_IS_PRIOR',
+        'label' => 'Ký hiệu',
+        'width' => '15%',
+        'type' => 'text',
         'default' => true,
     ),
     'PHONE' => array(
@@ -69,14 +71,31 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_ASSIGNED_TO_NAME',
         'default' => true,
     ),
-    'IP_ADDRESS' => array(
-        'width' => '10%',
-        'label' => 'LBL_IP_ADDRESS',
-        'default' => true,
-    ),
+    'IP_ADDRESS' => array(),
     'DATE_ENTERED' => array(
         'label' => 'LBL_DATE_ENTERED',
         'width' => '15%',
         'default' => true,
     ),
 );
+
+// Show/hide IP column
+if(in_array($GLOBALS['current_user']->id, [
+    // '1', // ducpham
+    'e3bbb3e5-6660-0bf7-8976-54869c4ee609', // ksnb
+    '4f4d7a13-4171-9b7d-251c-64dd8f9885e4', // pandapo
+    '168889bb-54c2-59c7-8b3f-649102530d3c', // haihung
+    'dd9c1488-60b4-22e5-545b-69bb6d12a6b0', // thanhdat
+    '9eb0f65f-a9f6-65bb-1985-637ca8511491', // trinhdoan
+    '622ecf27-f729-7187-7e27-6520e0dab882', // quangnd
+    '5ac1d89e-0258-7237-0763-6a20dab448b4', // dahy
+])) {
+    $listViewDefs[$module_name]['IP_ADDRESS'] = [
+        'width' => '10%',
+        'label' => 'LBL_IP_ADDRESS',
+        'default' => true,
+    ];
+}
+else {
+    unset($listViewDefs[$module_name]['IP_ADDRESS']);
+}
