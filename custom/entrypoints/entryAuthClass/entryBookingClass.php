@@ -8,8 +8,7 @@ use custom\services\Notification\NotificationService;
  * 
  * Xử lý ajax cho booking
  */
-class entryBookingClass extends entryClass
-{
+class entryBookingClass extends entryClass {
     /**
      * Update fields
      *
@@ -37,6 +36,41 @@ class entryBookingClass extends entryClass
             }
             if ($bookingBean->save2())
                 return ['status' => 1, 'message' => 'Thao tác thành công'];
+            return ['status' => 0, 'message' => 'Thao tác không thành công, vui lòng thử lại'];
+        } catch (Throwable $th) {
+            $GLOBALS['log']->fatal("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+            return ["status" => 0, "message" => "Có lỗi xảy ra trong quá trình thao tác"];
+        }
+    }
+
+    /**
+     * Update fields
+     *
+     * @param array $params
+     * @return array
+     */
+    public function updatePassengerFields($params = [])
+    {
+        $passengerId = $params['passengerId'] ?? '';
+        $fields = $params['fields'] ?? [];
+
+        if (empty($passengerId))
+            return ['status' => 0, 'message' => 'Không tìm thấy hành khách'];
+        if (empty($fields))
+            return ['status' => 0, 'message' => 'Dữ liệu không hợp lệ'];
+        $list_allowed_fields = ['type'];
+
+        try {
+            $passengerBean = new EC_Booking_Passengers();
+            $passengerBean->retrieve($passengerId);
+            foreach ($fields as $name => $value) {
+                if (in_array($name, $list_allowed_fields)) {
+                    $passengerBean->$name = $value;
+                }
+            }
+            if ($passengerBean->save()) {
+                return ['status' => 1, 'message' => 'Thao tác thành công'];
+            }
             return ['status' => 0, 'message' => 'Thao tác không thành công, vui lòng thử lại'];
         } catch (Throwable $th) {
             $GLOBALS['log']->fatal("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
