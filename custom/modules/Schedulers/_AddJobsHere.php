@@ -1567,7 +1567,7 @@ function checkBookingHandle()
 		LEFT JOIN ec_flight_bookings b ON b.id = onl.booking_id AND b.deleted = 0
 		WHERE onl.deleted = 0
 			AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
-			AND (onl.booking_id <> "" OR onl.booking_id IS NOT NULL) 
+			AND (onl.booking_id <> "" AND onl.booking_id IS NOT NULL) 
 			AND TIMESTAMPDIFF(MINUTE, DATE_FORMAT(onl.start_assign, "%Y-%m-%d %H:%i"), "' . date('Y-m-d H:i') . '") >= 2
 			AND b.deleted = 0
 	';
