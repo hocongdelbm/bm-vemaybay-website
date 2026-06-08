@@ -54,7 +54,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// External file
 		$js = '
 			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=' . $version . '"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=' . $version . '"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.0.9"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=' . $version . '"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=' . $version . '"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=' . $version . '"></script>
@@ -304,7 +304,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$list_bookmark = '<div class="d-flex align-items-start flex-nowrap gap-3">';
 		// Telesale
 		if ($this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
-			$call_name = $this->bean->db->getOne("SELECT name FROM calls WHERE id = '{$this->bean->telesale_call_id}' AND deleted = 0");
+			$call_name = $this->bean->db->getOne("SELECT name FROM calls WHERE id = '{$this->bean->telesale_call_id}' AND deleted = 0") ?? '';
 			$list_bookmark .= '<div class="item small">
 				<label for="checkIsTelesale">Là BK Telesale</label>
 				<input type="checkbox" name="is_telesale" id="checkIsTelesale" checked disabled />

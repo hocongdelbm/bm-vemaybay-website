@@ -1,12 +1,7 @@
 const ENTRYPOINT = "index.php?entryPoint=entryPointGeneral";
 const PREFIX = "autobook";
-const MAPPING_SYSTEM_CODE = {
-    'VJA':'VJ',
-    'VNA':'VN',
-    'VNP':'VN',
-    'BBA':'QH',
-    'VTA':'VU'
-};
+const MAPPING_SYSTEM_CODE = {'VJA':'VJ','VNA':'VN','VNP':'VN','BBA':'QH','VTA':'VU'};
+
 var bookingId = '';
 var isInter = 0;
 var statusAutoBook = 1;
@@ -111,8 +106,8 @@ $(document).ready(function () {
 
     // Show steps in auto book dialog
     $(document).on("click", "#confirmAutoBook", async function() {
+        statusAutoBook = 1;
         try {
-            statusAutoBook = 1;
             const entryClass = $('input[name="entryClass"]').val();
             
             /******  STEP 1: RESEARCHING FLIGHTS INFO  ******/
@@ -137,15 +132,94 @@ $(document).ready(function () {
             var listPassengerId = [];
             var passIdInputs = document.querySelectorAll(`input[name="${PREFIX}PassengerId[]"]`);
             var passTypeInputs = document.querySelectorAll(`input[name="${PREFIX}PassengerType[]"]`);
+            var passDateOfBirthInputs = document.querySelectorAll(`input[name="${PREFIX}PassengerDateOfBirth[]"]`);
+            var passFullnameInputs = document.querySelectorAll(`input[name="${PREFIX}PassengerFullname[]"]`);
+
+            // Validate passenger type against date of birth: inf (< 2y), chd (< 12y), adt (>= 12y).
+            // Age is calculated at the first departure date (fallback: today).
+            var referenceDate = (departureDate && departureDate.length > 0) ? departureDate[0] : '';
+            var typeMismatches = [];
             passIdInputs.forEach((input, index) => {
                 let passId = input.value;
-                if(passId && passId.length > 0) {
-                    let passType = passTypeInputs[index].value.toLowerCase();
-                    if(passType == 'adt') adt++;
-                    else if(passType == 'chd') chd++;
-                    else if(passType == 'inf') inf++;
-                    listPassengerId.push(passId);
+                if(!passId || passId.length == 0) return;
+
+                listPassengerId.push(passId);
+
+                let passType = passTypeInputs[index].value.toLowerCase();
+                let expectedType = getPassengerTypeByAge(calculateAge(passDateOfBirthInputs[index].value, referenceDate));
+                if(expectedType && expectedType != passType) {
+                    typeMismatches.push({
+                        index: index,
+                        name: passFullnameInputs[index] ? passFullnameInputs[index].value : '',
+                        birthdate: passDateOfBirthInputs[index].value,
+                        oldType: passType,
+                        newType: expectedType,
+                    });
                 }
+            });
+
+            // Mismatch found -> warn and let the user confirm the auto-correction
+            if(typeMismatches.length > 0) {
+                const typeLabels = { adt: 'Người lớn', chd: 'Trẻ em', inf: 'Em bé' };
+                let detailHTML = typeMismatches.map(m =>
+                    `<div style="margin:4px 0">• <b>${m.name}</b> (${formatDateOfBirth(m.birthdate, 'DMY')}): `
+                    + `<span style="color:#d9534f">${typeLabels[m.oldType] ?? m.oldType}</span> &rarr; `
+                    + `<b style="color:#198754">${typeLabels[m.newType] ?? m.newType}</b></div>`
+                ).join('');
+
+                $('#autoBookDialog').hide();
+                let confirmed = await showConfirmNotify(
+                    'Loại hành khách chưa khớp với ngày sinh. Bạn có muốn hệ thống tự điều chỉnh và tiếp tục?',
+                    detailHTML
+                );
+                if(!confirmed) return;
+                $('#autoBookDialog').show();
+
+                // Apply the corrections to the hidden input (booking payload) and the visible card label
+                const typeValueMap = { adt: 'Adt', chd: 'Chd', inf: 'Inf' };  // autobookPassengerType[] format
+                const typeDbMap    = { adt: '0', chd: '1', inf: '2' };        // ec_booking_passengers.type enum
+                typeMismatches.forEach(m => {
+                    passTypeInputs[m.index].value = typeValueMap[m.newType];
+
+                    let card = passTypeInputs[m.index].closest('.passenger-info');
+                    let label = card ? card.querySelector('.passenger-type-label') : null;
+                    if(label) label.textContent = typeLabels[m.newType] ?? m.newType;
+                });
+
+                // Persist the corrected types to the database via entrypoint
+                try {
+                    let updateResults = await Promise.all(typeMismatches.map(m =>
+                        $.ajax({
+                            url: ENTRYPOINT,
+                            method: 'POST',
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            data: JSON.stringify({
+                                class: 'entryBookingClass',
+                                method: 'updatePassengerFields',
+                                params: {
+                                    passengerId: passIdInputs[m.index].value,
+                                    fields: { type: typeDbMap[m.newType] }
+                                }
+                            })
+                        })
+                    ));
+                    let failed = updateResults.filter(r => !r || r.status != 1).length;
+                    if(failed > 0) showToastNotify('warning', `Có ${failed} hành khách chưa cập nhật được loại vào hệ thống`);
+                }
+                catch (e) {
+                    console.error(e);
+                    showToastNotify('warning', 'Cập nhật loại hành khách vào hệ thống chưa thành công');
+                }
+            }
+
+            // Count passenger types after any correction above
+            passIdInputs.forEach((input, index) => {
+                if(!input.value || input.value.length == 0) return;
+                let passType = passTypeInputs[index].value.toLowerCase();
+                if(passType == 'adt') adt++;
+                else if(passType == 'chd') chd++;
+                else if(passType == 'inf') inf++;
             });
             // Get price info
             var adtDetailId = $(`input[name="${PREFIX}AdtDetailId[]"]`).map((i, el) => el.value).get();
@@ -400,11 +474,10 @@ $(document).ready(function () {
 
                         // Passengers
                         let listPassenger = [];
-                        let passTitleInputs         = document.querySelectorAll(`input[name="${PREFIX}PassengerTitle[]"]`);
-                        let passFullnameInputs      = document.querySelectorAll(`input[name="${PREFIX}PassengerFullname[]"]`);
-                        let passDateOfBirthInputs   = document.querySelectorAll(`input[name="${PREFIX}PassengerDateOfBirth[]"]`);
-                        let passPassportInputs      = document.querySelectorAll(`input[name="${PREFIX}PassengerPassport[]"]`);
-                        let passParentIdInputs      = document.querySelectorAll(`select[name="${PREFIX}PassengerParentId[]"]`);
+                        let passTitleInputs     = document.querySelectorAll(`input[name="${PREFIX}PassengerTitle[]"]`);
+                        let passFullnameInputs  = document.querySelectorAll(`input[name="${PREFIX}PassengerFullname[]"]`);
+                        let passPassportInputs  = document.querySelectorAll(`input[name="${PREFIX}PassengerPassport[]"]`);
+                        let passParentIdInputs  = document.querySelectorAll(`select[name="${PREFIX}PassengerParentId[]"]`);
                         passIdInputs.forEach((input, index) => {
                             let title   = passTitleInputs[index].value;
                             let gender  = title == 'Ms' ? 'F' : 'M';
@@ -440,7 +513,6 @@ $(document).ready(function () {
                                 "RowNumber"  : index + 1,
                                 "Passport"   : type != 'inf' ? passPassportInputs[index].value : null,
                                 "SortOrder"  : index + 1,
-                                
                             });
                         });
 
@@ -945,7 +1017,7 @@ function showDialogAutoBook(bookingData) {
 
             <div class="info-row d-flex justify-content-between">
                 <div><b><span style="font-weight:700;color:${value.salutation == 'Ms' ? '#f7689e' : '#2d87d5'}">${value.salutation}.</span> ${value.name}</b></div>
-                <div><b>${passengerTypes[value.type]}</b></div>
+                <div><b class="passenger-type-label">${passengerTypes[value.type]}</b></div>
             </div>
             <div class="info-row d-flex justify-content-between">
                 <div>CCCD/Passport: <b>${value.passportNumber || value.cic}</b></div>
@@ -1275,6 +1347,132 @@ function handleException(e, msg = '') {
         }
     }
     showModalNotify('error', msg, e.message);
+}
+
+/**
+ * Parse a date string into a Date. Supports the app format "DD-MM-YYYY[ HH:MM]"
+ * (also tolerates "/" separators and ISO "YYYY-MM-DD"). Returns null when invalid.
+ *
+ * @param {string} value
+ * @returns {Date|null}
+ */
+function parseLocalDate(value) {
+    if (!value) return null;
+    const datePart = String(value).trim().split(' ')[0]; // drop the time part
+    const parts = datePart.split(/[-\/]/);
+    if (parts.length !== 3) return null;
+
+    // Default DD-MM-YYYY; if the first token is a 4-digit year, treat as YYYY-MM-DD.
+    let d = +parts[0], m = +parts[1], y = +parts[2];
+    if (parts[0].length === 4) { y = +parts[0]; m = +parts[1]; d = +parts[2]; }
+    if (!d || !m || !y) return null;
+
+    const date = new Date(y, m - 1, d);
+    return isNaN(date.getTime()) ? null : date;
+}
+
+/**
+ * Calculate age (in full years) at a reference date.
+ *
+ * @param {string} birthdate "DD-MM-YYYY"
+ * @param {string} referenceDate "DD-MM-YYYY[ HH:MM]" (default: today)
+ * @returns {number|null} age in years, or null when birthdate is empty/invalid
+ */
+function calculateAge(birthdate, referenceDate = '') {
+    const birth = parseLocalDate(birthdate);
+    if (!birth) return null;
+
+    const ref = parseLocalDate(referenceDate) || new Date();
+
+    let age = ref.getFullYear() - birth.getFullYear();
+    const monthDiff = ref.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && ref.getDate() < birth.getDate())) age--;
+    return age;
+}
+
+/**
+ * Map an age to a passenger type code.
+ *
+ * @param {number|null} age
+ * @returns {string|null} 'inf' (< 2), 'chd' (< 12), 'adt' (>= 12), or null when unknown
+ */
+function getPassengerTypeByAge(age) {
+    if (age === null || age === undefined || isNaN(age)) return null;
+    if (age < 2) return 'inf';
+    if (age < 12) return 'chd';
+    return 'adt';
+}
+
+/**
+ * Format a date string as "DD/MM/YYYY" for display.
+ *
+ * @param {string} birthdate
+ * @param {string} inputFormat 'YMD' (default, input is YYYY-MM-DD) or 'DMY' (input is DD-MM-YYYY)
+ * @returns {string}
+ */
+function formatDateOfBirth(birthdate, inputFormat = 'YMD') {
+    if (!birthdate) return '';
+    const parts = String(birthdate).split(' ')[0].split('-');
+    if (parts.length !== 3) return birthdate;
+    return inputFormat === 'DMY'
+        ? `${parts[0]}/${parts[1]}/${parts[2]}`
+        : `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+/**
+ * Warning popup with Confirm/Cancel buttons.
+ *
+ * Uses its own native <dialog> opened with showModal(): top-layer dialogs stack by
+ * open order, so this renders above #autoBookDialog (a plain #modal-container could
+ * not, since it sits below the dialog's top layer regardless of z-index).
+ *
+ * @param {string} text_modal Main message
+ * @param {string} text_detail Optional HTML detail shown in the body
+ * @returns {Promise<boolean>} resolves true on confirm, false on cancel/dismiss
+ */
+function showConfirmNotify(text_modal, text_detail = '') {
+    return new Promise((resolve) => {
+        const existing = document.getElementById('confirmNotifyDialog');
+        if (existing) existing.remove();
+
+        let detailHTML = '';
+        if (text_detail && text_detail.length > 0) {
+            detailHTML = `<div style="text-align:left; background:#fff8e1; border-radius:4px; padding:8px; margin-top:10px">${text_detail}</div>`;
+        }
+
+        const dialog = document.createElement('dialog');
+        dialog.id = 'confirmNotifyDialog';
+        dialog.style.cssText = 'border:none; border-radius:8px; padding:0; max-width:440px; box-shadow:0 8px 30px rgba(0,0,0,.25)';
+        dialog.innerHTML = `<div style="padding:20px; text-align:center">
+            <div style="width:56px; height:56px; border-radius:50%; background:#ffc107; display:flex; align-items:center; justify-content:center; margin:0 auto 12px">
+                <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" fill="#fff" class="bi bi-exclamation-lg" viewBox="0 0 16 16">
+                    <path d="M7.005 3.1a1 1 0 1 1 1.99 0l-.388 6.35a.61.61 0 0 1-1.214 0L7.005 3.1ZM7 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0"/>
+                </svg>
+            </div>
+            <p style="font-size:15px; margin:0">${text_modal}</p>
+            ${detailHTML}
+            <div style="display:flex; gap:8px; margin-top:16px">
+                <button type="button" id="btnConfirmNotifyYes" class="btn btn-warning" style="flex:1">Xác nhận</button>
+                <button type="button" id="btnConfirmNotifyNo" class="btn btn-secondary" style="flex:1">Hủy</button>
+            </div>
+        </div>`;
+
+        document.body.appendChild(dialog);
+        dialog.showModal();
+
+        let settled = false;
+        const settle = (result) => {
+            if (settled) return;
+            settled = true;
+            dialog.close();
+            dialog.remove();
+            resolve(result);
+        };
+        dialog.querySelector('#btnConfirmNotifyYes').addEventListener('click', () => settle(true));
+        dialog.querySelector('#btnConfirmNotifyNo').addEventListener('click', () => settle(false));
+        // Esc key -> treat as cancel
+        dialog.addEventListener('cancel', (e) => { e.preventDefault(); settle(false); });
+    });
 }
 
 function encodeAutoBook(value) {
