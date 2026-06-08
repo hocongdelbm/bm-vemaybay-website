@@ -157,13 +157,13 @@ $admin_option_defs['Administration']['configure_group_tabs'] = [
     './index.php?action=wizard&module=Studio&wizard=StudioWizard&option=ConfigureGroupTabs',
     'configure-module-menu-filters'
 ];
-// $admin_option_defs['Administration']['configure_tabs'] = [
-//     'ConfigureTabs',
-//     'LBL_CONFIGURE_TABS_AND_SUBPANELS',
-//     'LBL_CONFIGURE_TABS_AND_SUBPANELS_DESC',
-//     './index.php?module=Administration&action=ConfigureTabs',
-//     'display-modules-and-subpanels'
-// ];
+$admin_option_defs['Administration']['configure_tabs'] = [
+    'ConfigureTabs',
+    'LBL_CONFIGURE_TABS_AND_SUBPANELS',
+    'LBL_CONFIGURE_TABS_AND_SUBPANELS_DESC',
+    './index.php?module=Administration&action=ConfigureTabs',
+    'display-modules-and-subpanels'
+];
 // $admin_option_defs['Administration']['history_contacts_emails'] = [
 //     'ConfigureTabs',
 //     'LBL_HISTORY_CONTACTS_EMAILS',

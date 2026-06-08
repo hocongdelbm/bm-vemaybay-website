@@ -113,4 +113,7 @@ $entry_point_registry = array(
     'entryPointMisaCallback'    => ['file' => 'custom/entrypoints/entryMisaCallback.php', 'auth' => false], // Misa Callback
     'entryPointIpManage'        => ['file' => 'custom/entrypoints/epIpManage.php', 'auth' => true],
     'epZaloPost'                => ['file' => 'custom/entrypoints/epZaloPost.php', 'auth' => false],
+
+    //Add categories and tags
+    'epCreateTaxonomy' => ['file' => 'custom/entrypoints/epCreateTaxonomy.php', 'auth' => true],
 );

@@ -1150,7 +1150,7 @@ class entryAutoBookDatacomClass extends entryClass {
                     }
 
                     // // Update available checked baggage info (Use for website have new baggage)
-                    // if($booking->id && !empty($booking->id) && in_array($booking->created_by, $booking->list_website_new_baggage)) {
+                    // if($booking->id && !empty($booking->id)) {
                     //     foreach($bk["ListFlightFare"] as $ff) {
                     //         $roundText = $ff["Leg"] == 1 ? 'inbound' : 'outbound';
 
@@ -1229,7 +1229,7 @@ class entryAutoBookDatacomClass extends entryClass {
                     }
 
                     // // Update available checked baggage info (Use for website have new baggage)
-                    // if($booking->id && !empty($booking->id) && in_array($booking->created_by, $booking->list_website_new_baggage)) {
+                    // if($booking->id && !empty($booking->id)) {
                     //     foreach($bk["ListFlightFare"] as $ff) {
                     //         foreach($ff["FareInfo"]["ListFarePax"] as $farePax) {
                     //             $paxType = strtolower($farePax["PaxType"] ?? '');   

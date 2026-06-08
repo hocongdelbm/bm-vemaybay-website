@@ -50,17 +50,42 @@ $viewdefs[$module_name]['EditView'] = array(
 
     'panels' => array(
         'default' => array(
-
             array(
-                'name',
-                'assigned_user_name',
+                array('name' => 'from_id', 'label' => 'LBL_FROM_ID'),
+                array('name' => 'to_id',   'label' => 'LBL_TO_ID'),
             ),
-
             array(
-                'description',
+                array('name' => 'timestamp_dt', 'label' => 'LBL_TIMESTAMP'),
+                array('name' => 'type',      'label' => 'LBL_TYPE'),
+            ),
+            array(
+                array('name' => 'sub_type',  'label' => 'LBL_SUB_TYPE'),
+                array('name' => 'thumbnail', 'label' => 'LBL_THUMBNAIL'),
+            ),
+            array(
+                array('name' => 'url',                  'label' => 'LBL_URL'),
+                array('name' => 'attached_description', 'label' => 'LBL_ATTACHED_DESCRIPTION'),
+            ),
+            array(
+                array('name' => 'latitude',  'label' => 'LBL_LATITUDE'),
+                array('name' => 'longitude', 'label' => 'LBL_LONGITUDE'),
+            ),
+            array(
+                array('name' => 'quote_message_id', 'label' => 'LBL_QUOTE_MESSAGE_ID'),
+                array('name' => 'template_id',      'label' => 'LBL_TEMPLATE_ID'),
+            ),
+            array(
+                array('name' => 'data',     'label' => 'LBL_DATA'),
+                array('name' => 'response', 'label' => 'LBL_RESPONSE'),
+            ),
+            array(
+                array('name' => 'cost',    'label' => 'LBL_COST'),
+                array('name' => 'booking', 'label' => 'LBL_BOOKING'),
+            ),
+            array(
+                array('name' => 'description',      'label' => 'LBL_DESCRIPTION'),
+                array('name' => 'assigned_user_name','label' => 'LBL_ASSIGNED_TO'),
             ),
         ),
-
     ),
-
 );

@@ -235,23 +235,40 @@ class ACLRolesViewDisablerole extends SugarView
 
         $totalActions = (int) $db->getOne("SELECT COUNT(*) FROM acl_actions WHERE deleted = 0");
 
+        // STEP 1: UPDATE các row đã tồn tại trong acl_roles_actions
         $db->query("
-            INSERT INTO acl_roles_actions
-                (id, role_id, action_id, access_override, date_modified, deleted)
-            SELECT
-                UUID(),
-                '{$roleId}',
-                a.id,
-                CASE a.name WHEN 'access' THEN -98 ELSE -99 END,
-                {$now},
-                0
-            FROM acl_actions a
-            WHERE a.deleted = 0
-            ON DUPLICATE KEY UPDATE
-                access_override = VALUES(access_override),
-                date_modified   = VALUES(date_modified),
-                deleted         = 0
+            UPDATE acl_roles_actions ara
+            JOIN acl_actions a ON a.id = ara.action_id
+            SET ara.access_override = CASE a.name WHEN 'access' THEN -98 ELSE -99 END,
+                ara.date_modified   = {$now},
+                ara.deleted         = 0
+            WHERE ara.role_id = '{$roleId}'
+              AND a.deleted   = 0
         ");
+
+        // STEP 2: INSERT các row chưa tồn tại — UUID sinh từ PHP per-row tránh bug batch UUID()
+        $missingResult = $db->query("
+            SELECT a.id AS action_id, a.name AS action_name
+            FROM acl_actions a
+            LEFT JOIN acl_roles_actions ara
+                   ON ara.action_id = a.id AND ara.role_id = '{$roleId}'
+            WHERE a.deleted = 0
+              AND ara.id IS NULL
+        ");
+        $insertRows = [];
+        while ($miss = $db->fetchByAssoc($missingResult)) {
+            $newId       = create_guid();
+            $accessValue = ($miss['action_name'] === 'access') ? -98 : -99;
+            $insertRows[] = "('$newId', '{$roleId}', '{$miss['action_id']}', $accessValue, {$now}, 0)";
+        }
+        if (!empty($insertRows)) {
+            $db->query("
+                INSERT INTO acl_roles_actions
+                    (id, role_id, action_id, access_override, date_modified, deleted)
+                VALUES " . implode(",
+", $insertRows)
+            );
+        }
 
         $disabledCount = (int) $db->getOne(
             "SELECT COUNT(*) FROM acl_roles_actions
