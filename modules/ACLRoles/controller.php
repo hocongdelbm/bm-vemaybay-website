@@ -10,4 +10,9 @@ class ACLRolesController extends SugarController
     {
         $this->view = 'disablerole';
     }
+    // Maps action=DisableModuleRole → view.disablemodulerole.php
+     public function action_disablemodulerole()
+    {
+        $this->view = 'disablemodulerole';
+    }
 }

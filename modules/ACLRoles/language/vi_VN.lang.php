@@ -13,7 +13,7 @@ $mod_strings = array(
     'LBL_MODULE_TITLE'                                 => 'Quyền người dùng: Trang chủ',
     'LBL_ROLE'                                         => 'Quyền người dùng',
     'LBL_NAME'                                         => 'Tên',
-    'LBL_DESCRIPTION'                                  => 'Mô tả',
+    'LBL_DESCRIPTION'                                      => 'Mô tả',
     'LIST_ROLES'                                       => 'D/s Quyền người dùng',
     'LBL_USERS_SUBPANEL_TITLE'                         => 'Người dùng',
     'LIST_ROLES_BY_USER'                               => 'D/s Quyền theo Người dùng',
@@ -25,4 +25,8 @@ $mod_strings = array(
     'LBL_ALL'                                          => 'Tất cả',
     'LBL_DUPLICATE_OF'                                 => 'Trùng lắp với',
     'LBL_USER_NAME_FOR_ROLE'                           => 'Người dùng/Tổ đội/Quyền',
+
+    // Chức năng Disable
+    'LBL_DISABLE_ROLE'                                 => 'Vô hiệu hóa toàn bộ Role',
+    'LBL_DISABLE_MODULE_ROLE'                          => 'Vô hiệu hóa theo Module',
 );
