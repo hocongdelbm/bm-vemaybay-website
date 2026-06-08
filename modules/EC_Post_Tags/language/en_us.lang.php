@@ -74,4 +74,6 @@ $mod_strings = array (
   'LBL_ACTIVITIES_SUBPANEL_TITLE' => 'Activities',
   'LBL_EC_POST_TAGS_SUBPANEL_TITLE' => 'Thẻ',
   'LBL_NEW_FORM_TITLE' => 'New Thẻ',
+  'LBL_RELATED_POSTS' => 'Related Posts',
+  'LBL_POST_COUNT' => 'Number of Posts',
 );

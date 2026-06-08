@@ -75,4 +75,5 @@ $mod_strings = array (
   'LBL_EC_POST_TAGS_SUBPANEL_TITLE' => 'Thẻ',
   'LBL_NEW_FORM_TITLE' => 'Mới Thẻ',
   'LBL_RELATED_POSTS' => 'Bài viết liên quan',
+  'LBL_POST_COUNT' => 'Số bài viết',
 );

@@ -16,11 +16,13 @@ $viewdefs[$module_name]['EditView'] = array(
 
             array(
                 array(
-                    'name' => 'post_title', 
-                    'label' => 'LBL_POST_TITLE'),
+                    'name' => 'post_title',
+                    'label' => 'LBL_POST_TITLE'
+                ),
                 array(
-                    'name' => 'post_status', 
-                    'label' => 'LBL_POST_STATUS'),
+                    'name' => 'post_status',
+                    'label' => 'LBL_POST_STATUS'
+                ),
             ),
             array(
                 array('name' => 'post_type', 'label' => 'LBL_POST_TYPE'),
@@ -54,12 +56,11 @@ $viewdefs[$module_name]['EditView'] = array(
                     'name' => 'tags_selector',
                     'label' => 'LBL_TAGS_SELECTOR',
                     'customCode' => '{$TAGS_SELECTOR}',
-            ),
+                ),
             ),
 
         ),
 
-        // ===== Panel nội dung bài viết =====
         'LBL_PANEL_CONTENT' => array(
 
             array(

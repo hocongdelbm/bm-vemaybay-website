@@ -130,6 +130,7 @@ $dictionary['EC_Post'] = array(
             'name' => 'published_at',
             'vname' => 'LBL_PUBLISHED_AT',
             'type' => 'datetime',
+            'default' => date('Y-m-d H:i:s'),
             'massupdate' => 0,
             'comments' => '',
             'help' => '',

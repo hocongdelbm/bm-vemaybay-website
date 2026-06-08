@@ -71,21 +71,21 @@ class EC_Post extends Basic
     public $categories_selector;
     // date fields
     public $published_at;
-	
+
     public function bean_implements($interface)
     {
-        switch($interface)
-        {
+        switch ($interface) {
             case 'ACL':
                 return true;
         }
 
         return false;
     }
-    public function populateSelectors() {
+    public function populateSelectors()
+    {
         // Relationship join tables used by the relationships are named ec_posts_tags / ec_posts_categories
         // Check for the existence of the join table (plural) before attempting to load the relationship
-    if (!empty($this->id) && $this->tableExists('ec_posts_tags') && $this->load_relationship('tags')) {
+        if (!empty($this->id) && $this->tableExists('ec_posts_tags') && $this->load_relationship('tags')) {
             try {
                 $ids = array();
                 $rels = $this->tags->getBeans();
@@ -102,7 +102,7 @@ class EC_Post extends Basic
         }
 
         // Categories
-    if (!empty($this->id) && $this->tableExists('ec_posts_categories') && $this->load_relationship('categories')) {
+        if (!empty($this->id) && $this->tableExists('ec_posts_categories') && $this->load_relationship('categories')) {
             try {
                 $ids = array();
                 $rels = $this->categories->getBeans();
@@ -119,7 +119,8 @@ class EC_Post extends Basic
         }
     }
 
-    public function retrieve($id = -1, $encode = true, $deleted = true) {
+    public function retrieve($id = -1, $encode = true, $deleted = true)
+    {
         $ret = parent::retrieve($id, $encode, $deleted);
         if (empty($ret)) {
             // Debug: log failure to retrieve
@@ -134,8 +135,8 @@ class EC_Post extends Basic
         return $ret;
     }
 
-    public function save($check_notify = false) {
-        // Temporary debug: log incoming selectors to help diagnose missing selections
+    public function save($check_notify = false)
+    {
         try {
             $logData = array(
                 'id' => isset($this->id) ? $this->id : null,
@@ -193,7 +194,8 @@ class EC_Post extends Basic
                     }
                     $td = new TimeDate();
                     $dbDate = $td->to_db($raw);
-                    if ($dbDate) $normalized = $dbDate;
+                    if ($dbDate)
+                        $normalized = $dbDate;
                 } catch (Exception $e) {
                     $GLOBALS['log']->warn('TimeDate->to_db failed for published_at: ' . $e->getMessage());
                 }
@@ -213,7 +215,11 @@ class EC_Post extends Basic
                 $GLOBALS['log']->error('convert: Conversion of ' . $raw . ' to Y-m-d H:i:s failed');
             }
         }
+        global $current_user;
 
+        if (empty($this->assigned_user_id)) {
+            $this->assigned_user_id = $current_user->id;
+        }
         $ret = parent::save($check_notify);
 
         // After save, synchronize selectors -> relationships but be defensive: if the underlying
@@ -239,10 +245,16 @@ class EC_Post extends Basic
                 // insert new rows
                 foreach ($ids as $tid) {
                     $tid = trim($tid);
-                    if (empty($tid)) continue;
+                    if (empty($tid))
+                        continue;
                     $rowId = create_guid();
-                    $sqlIns = sprintf("INSERT INTO ec_posts_tags (id, post_id, tag_id, date_modified, deleted) VALUES('%s', '%s', '%s', %s, 0)",
-                        $db->quote($rowId), $postId, $db->quote($tid), $db->convert('now()', 'datetime'));
+                    $sqlIns = sprintf(
+                        "INSERT INTO ec_posts_tags (id, post_id, tag_id, date_modified, deleted) VALUES('%s', '%s', '%s', %s, 0)",
+                        $db->quote($rowId),
+                        $postId,
+                        $db->quote($tid),
+                        $db->convert('now()', 'datetime')
+                    );
                     $db->query($sqlIns, true, "Error inserting ec_posts_tags row for post {$this->id} tag {$tid}");
                 }
             } catch (Exception $e) {
@@ -266,10 +278,16 @@ class EC_Post extends Basic
                 $db->query($sqlDel, true, "Error clearing ec_posts_categories for post {$this->id}");
                 foreach ($ids as $cid) {
                     $cid = trim($cid);
-                    if (empty($cid)) continue;
+                    if (empty($cid))
+                        continue;
                     $rowId = create_guid();
-                    $sqlIns = sprintf("INSERT INTO ec_posts_categories (id, post_id, category_id, date_modified, deleted) VALUES('%s', '%s', '%s', %s, 0)",
-                        $db->quote($rowId), $postId, $db->quote($cid), $db->convert('now()', 'datetime'));
+                    $sqlIns = sprintf(
+                        "INSERT INTO ec_posts_categories (id, post_id, category_id, date_modified, deleted) VALUES('%s', '%s', '%s', %s, 0)",
+                        $db->quote($rowId),
+                        $postId,
+                        $db->quote($cid),
+                        $db->convert('now()', 'datetime')
+                    );
                     $db->query($sqlIns, true, "Error inserting ec_posts_categories row for post {$this->id} category {$cid}");
                 }
             } catch (Exception $e) {

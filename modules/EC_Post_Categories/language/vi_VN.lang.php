@@ -77,4 +77,5 @@ $mod_strings = array (
   'LBL_PARENT_CATEGORY' => 'Chuyên mục cha',
   'LBL_SLUG' => 'Slug',
   'LBL_RELATED_POSTS' => 'Bài viết liên quan',
+  'LBL_POST_COUNT' => 'Số bài viết',
 );

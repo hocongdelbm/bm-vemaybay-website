@@ -26,13 +26,25 @@ class EC_Post_CategoriesViewDetail extends ViewDetail {
                 if ($page > $totalPages) $page = $totalPages;
                 $offset = ($page - 1) * $perPage;
 
-                $sql = "SELECT p.id, p.post_title, p.slug, p.published_at, p.description, CONCAT_WS(' ', u.first_name, u.last_name) AS author_name
-                    FROM ec_post p
-                    JOIN ec_posts_categories j ON j.post_id = p.id AND j.deleted = 0
-                    LEFT JOIN users u ON p.assigned_user_id = u.id AND u.deleted = 0
-                    WHERE j.category_id = '" . $db->quote($catId) . "' AND p.deleted = 0
-                    ORDER BY p.published_at DESC
-                    LIMIT " . intval($perPage) . " OFFSET " . intval($offset);
+                $sql = "SELECT
+            p.id,
+            p.post_title,
+            p.slug,
+            p.published_at,
+            p.description,
+            CONCAT_WS(' ', u.first_name, u.last_name) AS author_name
+        FROM ec_post p
+        JOIN ec_posts_categories j
+            ON j.post_id = p.id
+           AND j.deleted = 0
+        LEFT JOIN users u
+            ON p.created_by = u.id
+           AND u.deleted = 0
+        WHERE j.category_id = '" . $db->quote($catId) . "'
+          AND p.deleted = 0
+        ORDER BY p.published_at DESC
+        LIMIT " . intval($perPage) . "
+        OFFSET " . intval($offset)  ;
 
                 $res = $db->query($sql);
 

@@ -17,6 +17,11 @@ $listViewDefs['EC_Post'] = array(
         'link' => true,
         'default' => true,
     ),
+    'CREATED_BY_NAME' => array(
+        'width' => '15',
+        'label' => 'LBL_AUTHOR',
+        'default' => true,
+    ),
     'POST_STATUS' => array(
         'width' => '10',
         'label' => 'LBL_POST_STATUS',

@@ -74,4 +74,5 @@ $mod_strings = array (
   'LBL_ACTIVITIES_SUBPANEL_TITLE' => 'Activities',
   'LBL_EC_POST_CATEGORIES_SUBPANEL_TITLE' => 'Chuyên mục',
   'LBL_NEW_FORM_TITLE' => 'New Chuyên mục',
+  'LBL_POST_COUNT'=> 'Số bài viết',
 );

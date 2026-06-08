@@ -3,11 +3,26 @@ require_once('include/MVC/View/views/view.detail.php');
 
 class EC_PostViewDetail extends ViewDetail
 {
+    /**
+     * Display the EC_Post detail view
+     * 
+     * Loads and displays:
+     * - Custom taxonomy display (categories, tags)
+     * - Formatted post content (HTML from WYSIWYG editor)
+     * - Thumbnail with modal preview
+     * - Author name (NOT just ID)
+     */
     public function display()
     {
-        // Assign taxonomy HTML into Smarty placeholders (uses custom helper if present)
+        // ──────── LOAD CUSTOM CSS ────────
+        $this->getStyles();
+
+        // Get post ID from bean or URL
         $postId = isset($this->bean->id) ? $this->bean->id : (isset($_GET['record']) ? $_GET['record'] : null);
 
+        // ═══════════════════════════════════════════════════════════
+        // DISPLAY CATEGORIES & TAGS
+        // ═══════════════════════════════════════════════════════════
         $displayCategories = '';
         $displayTags = '';
         $helperPath = 'custom/modules/EC_Post/DisplayTaxonomyHelper.php';
@@ -22,22 +37,27 @@ class EC_PostViewDetail extends ViewDetail
         $this->ss->assign('CATEGORIES_DISPLAY', $displayCategories);
         $this->ss->assign('TAGS_DISPLAY', $displayTags);
 
-    // Assign formatted post content (render WYSIWYG HTML from editor)
-    $rawContent = isset($this->bean->post_content) ? $this->bean->post_content : '';
-    // If content was stored with HTML entities (e.g. &lt;p&gt;), decode them so markup renders
-    $decoded = html_entity_decode($rawContent, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-    // sanitize basic: allow HTML but prevent script tags
-    $safeContent = preg_replace('#<\s*script[^>]*>.*?<\s*/\s*script\s*>#is', '', $decoded);
-    // wrap in container for styling
-    $contentHtml = '<div class="ec-post-content">' . $safeContent . '</div>';
-    $this->ss->assign('POST_CONTENT', $contentHtml);
+        // ═══════════════════════════════════════════════════════════
+        // DISPLAY AUTHOR NAME (NOT just ID) ← NEW!
+        // ═══════════════════════════════════════════════════════════
+        $this->setupAuthorDisplay();
 
-    // Thumbnail button + modal (uses thumbnail_url field value)
+        // ═══════════════════════════════════════════════════════════
+        // DISPLAY POST CONTENT (Formatted HTML)
+        // ═══════════════════════════════════════════════════════════
+        $rawContent = isset($this->bean->post_content) ? $this->bean->post_content : '';
+        $decoded = html_entity_decode($rawContent, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $safeContent = preg_replace('#<\s*script[^>]*>.*?<\s*/\s*script\s*>#is', '', $decoded);
+        $contentHtml = '<div class="ec-post-content">' . $safeContent . '</div>';
+        $this->ss->assign('POST_CONTENT', $contentHtml);
+
+        // ═══════════════════════════════════════════════════════════
+        // DISPLAY THUMBNAIL with Modal
+        // ═══════════════════════════════════════════════════════════
         $thumb = '';
         $thumb_src = isset($this->bean->thumbnail_url) ? trim($this->bean->thumbnail_url) : '';
         if (!empty($thumb_src)) {
             $thumb_esc = htmlspecialchars($thumb_src, ENT_QUOTES, 'UTF-8');
-            // unique modal id to avoid collisions
             $modalId = 'ec_post_thumb_modal';
             $thumb = '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#' . $modalId . '" data-thumb-src="' . $thumb_esc . '">Xem ảnh</button>';
             $modal = '<div class="modal fade" id="' . $modalId . '" tabindex="-1" aria-hidden="true">'
@@ -61,5 +81,55 @@ class EC_PostViewDetail extends ViewDetail
         $this->ss->assign('CUSTOM_THUMB', $thumb);
 
         parent::display();
+    }
+
+    /**
+     * Display author name (NOT just author_id)
+     * 
+     * Loads the user object from author_id and displays the full name
+     * Instead of just showing the raw user ID
+     */
+    private function setupAuthorDisplay()
+    {
+        $authorDisplay = '';
+
+        try {
+            // Get author_id from the post
+            $authorId = isset($this->bean->author_id) ? $this->bean->author_id : '';
+
+            if (!empty($authorId)) {
+                // Load the user object by ID
+                $authorUser = BeanFactory::getBean('Users', $authorId);
+
+                if (!empty($authorUser) && is_object($authorUser)) {
+                    // Get display name
+                    $authorName = '';
+                    
+                    if (method_exists($authorUser, 'get_display_name')) {
+                        $authorName = $authorUser->get_display_name();
+                    } elseif (!empty($authorUser->full_name)) {
+                        $authorName = $authorUser->full_name;
+                    } elseif (!empty($authorUser->user_name)) {
+                        $authorName = $authorUser->user_name;
+                    }
+
+                    $authorDisplay = htmlspecialchars($authorName, ENT_QUOTES, 'UTF-8');
+                }
+            }
+        } catch (Exception $e) {
+            // Silent fail - if author not found, show empty
+            $authorDisplay = '';
+        }
+
+        // Assign to Smarty for display in DetailView template
+        $this->ss->assign('AUTHOR_DISPLAY', $authorDisplay);
+    }
+
+    /**
+     * Load custom CSS for EC_Post DetailView
+     */
+    private function getStyles()
+    {
+        echo "<link rel='stylesheet' href='modules/EC_Post/css/view.detail.css?v=1.0.0'>";
     }
 }
