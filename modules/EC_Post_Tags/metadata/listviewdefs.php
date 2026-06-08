@@ -23,5 +23,11 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_DESCRIPTION',
         'default' => false,
     ),
+    'POST_COUNT' => array(
+        'width' => '10',
+        'label' => 'LBL_POST_COUNT',
+        'default' => true,
+    ),
+    
 
 );
