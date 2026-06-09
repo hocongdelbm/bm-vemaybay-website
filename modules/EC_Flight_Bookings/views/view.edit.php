@@ -1,5 +1,6 @@
 <?php
-if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+if (!defined('sugarEntry') || !sugarEntry)
+	die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.edit.php');
 require_once('custom/entrypoints/entryAuthClass/entryFareSystemClass.php');
 
@@ -43,8 +44,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 
 			if ($this->bean->isUseNewBaggage($this->bean->date_entered, $this->bean->created_by)) {
 				$this->populateLinePassengers();
-			}
-			else {
+			} else {
 				$this->populateLinePassengersOld();
 			}
 
@@ -63,8 +63,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 
 			if ($this->bean->isUseNewBaggage($this->bean->date_entered, $this->bean->created_by)) {
 				$this->populateLinePassengers();
-			}
-			else {
+			} else {
 				$this->populateLinePassengersOld();
 			}
 
@@ -309,6 +308,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		$res = $this->bean->db->query($sql);
 		$row_count = $this->bean->db->countRows($res);
 		$row_count = !empty($row_count) ? $row_count : 0;
+		// [REFACTOR] init data array for JSON output
+		$itineraries_data = [];
 
 		$html = '';
 		$html .= '<table id="tbl_line_itineraries" class="table-vertical__mobile table-edit__booking table-details__booking" border="0" cellpadding="0" cellspacing="0">';
@@ -334,6 +335,28 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			$i = 0;
 			while ($row = $this->bean->db->fetchByAssoc($res)) {
 				// Nếu là hãng BBA thì hạng vé hiện theo dạng select
+				// [REFACTOR] collect data for JSON output
+				$itineraries_data[] = [
+					'db_id'         => $row['detail_id'],
+					'direction'     => (int) $row['direction'],
+					'airline_code'  => $row['airline_code'],
+					'flight_number' => $row['flight_number'],
+					'ticket_class'  => $row['ticket_class'],
+					'departure'     => $row['departure'],
+					'arrival'       => $row['arrival'],
+					'departure_date'=> $row['departure_date'] != '' ? date($date_format, strtotime($row['departure_date'])) : '',
+					'departure_h'   => $row['departure_date'] != '' ? date('H', strtotime($row['departure_date'])) : '',
+					'departure_m'   => $row['departure_date'] != '' ? date('i', strtotime($row['departure_date'])) : '',
+					'arrival_date'  => $row['arrival_date'] != '' ? date($date_format, strtotime($row['arrival_date'])) : '',
+					'arrival_h'     => $row['arrival_date'] != '' ? date('H', strtotime($row['arrival_date'])) : '',
+					'arrival_m'     => $row['arrival_date'] != '' ? date('i', strtotime($row['arrival_date'])) : '',
+					'time_limit_date'=>$row['time_limit'] != '' ? date($date_format, strtotime($row['time_limit'])) : '',
+					'time_limit_h'  => $row['time_limit'] != '' ? date('H', strtotime($row['time_limit'])) : '',
+					'time_limit_m'  => $row['time_limit'] != '' ? date('i', strtotime($row['time_limit'])) : '',
+					'base_price'    => (float) $row['base_price'],
+					'is_layover'    => (int) $row['is_layover'],
+				];
+
 				if ($row['airline_code'] == 'BBA') {
 					$cus_ticket_class = '<select id="iti_ticket_class' . $i . '" name="iti_ticket_class[]">' . get_select_options_with_id($app_list_strings['bba_ticket_class_list'], $row['ticket_class']) . '</select>';
 				} else {
@@ -442,7 +465,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 							Số dòng = <label id="lbl_iti_row_count">0</label>
 						</td>
 					</tr>';
-			$html .= '</table>';
+			$html .= '<input type="hidden" id="iti_data_json" value=\'' . htmlspecialchars(json_encode($itineraries_data), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '</table>';
 		}
 
 		$this->ss->assign('LINE_ITINERARIES', $html);
@@ -484,6 +508,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		// $row_count = $this->bean->db->getRowCount($res);
 		$row_count = $this->bean->db->countRows($res);
 		$row_count = !empty($row_count) ? $row_count : 0;
+		// [REFACTOR] init data array for JSON output
+		$details_data = [];
 
 		$html = '';
 		$html .= '<table id="tbl_line_details" class="table-vertical__mobile table-edit__booking table-details__booking" cellpadding="0" cellspacing="0" border="0">';
@@ -512,6 +538,26 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			$html .= '<tbody>';
 			while ($row = $this->bean->db->fetchByAssoc($res)) {
 				$detail_id = isset($_POST['isDuplicate']) && $_POST['isDuplicate'] == 'true' ? '' : $row['detail_id'];
+
+				// [REFACTOR] collect data for JSON output
+				$details_data[] = [
+					'db_id'              => $row['detail_id'],
+					'direction'          => (int) $row['direction'],
+					'passenger_type'     => (int) $row['passenger_type'],
+					'quantity'           => (int) $row['quantity'],
+					'unit_price'         => (float) $row['unit_price'],
+					'tax_and_fee'        => (float) $row['tax_and_fee'],
+					'airport_fee'        => (float) $row['airport_fee'],
+					'admin_fee'          => (float) $row['admin_fee'],
+					'admin_fee_no_vat'   => (float) $row['admin_fee_no_vat'],
+					'vat_admin'          => (float) $row['vat_admin'],
+					'service_fee'        => (float) $row['service_fee'],
+					'total_price'        => (float) $row['total_price'],
+					'total_bought_price' => (float) ((float) $row['total_bought_price'] ? $row['total_bought_price'] : ($row['total_price'] - ($row['service_fee']) * $row['quantity'])),
+					'fee_bought'         => (float) $row['fee_bought'],
+					'supplier_id'        => $row['supplier_id'],
+					'supplier_discount'  => (float) $row['supplier_discount'],
+				];
 
 				$html .= '<tr id="bkd_line_' . $i . '" class="bkd_line fw-semibold">
 							<td data-label="Chiều"><select class="w-100" name="bkd_direction[]" id="bkd_direction' . $i . '" >' . get_select_options_with_id($app_list_strings['bk_direction_list'], (int) $row['direction']) . '</select></td>
@@ -597,6 +643,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 					</tr>';
 		}
 
+		$html .= '<input type="hidden" id="bkd_data_json" value=\'' . htmlspecialchars(json_encode($details_data), ENT_QUOTES, 'UTF-8') . '\' />';
 		$html .= '</table>';
 		$this->ss->assign('LINE_DETAILS', $html);
 	}
@@ -857,297 +904,177 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 
 	/**
 	 * Render passengers info as HTML
+	 *
+	 * Refactored: PHP outputs the table shell + JSON passenger data.
+	 * All row rendering (initial data + new rows) is done by a single
+	 * JS function `renderPassengerRow()` in view.edit.js.
 	 */
 	public function populateLinePassengers()
 	{
-		global $app_list_strings, $timedate, $current_user;
+		global $app_list_strings, $timedate;
 
+		// Định dạng ngày tháng
 		$date_format = $timedate->get_date_format();
+
+		// Điều kiện SQL để lấy nhà cung cấp
 		$sql_supplier = " AND account_type = 'Supplier' AND is_stop_tracking = 0 ";
 
+		/**
+		 * BƯỚC 1: LẤY DỮ LIỆU TỪ DATABASE
+		 */
 		$sql = "SELECT p.id,
-				p.type,
-				p.salutation,
-				p.name,
-				p.birthday,
-				p.eticket_outbound,
-				p.eticket_inbound,
-				p.eluggage_outbound,
-				p.eluggage_inbound,
-				p.pnr_outbound,
-				p.pnr_inbound,
-				p.supplier_id,
-				p.supplier_inbound_id,
-				p.luggage_price,
-				p.luggage_price_inbound,
-				p.luggage_purchase_no_vat,
-				p.vat_luggage_purchase,
-				p.luggage_purchase,
-				p.luggage_purchase_text,
-				p.luggage_purchase_inbound_no_vat,
-				p.vat_luggage_purchase_inbound,
-				p.luggage_purchase_inbound,
-				p.luggage_purchase_text_inbound,
-				p.luggage_index_outbound,
-				p.luggage_index_inbound,
-				p.hand_baggage_outbound,
-				p.hand_baggage_inbound,
-				p.cic,
-				p.passport_number
-			FROM ec_booking_passengers p
-			WHERE p.booking_id = '{$this->bean->id}'
-				AND p.booking_id IS NOT NULL
-				AND p.booking_id != ''
-				AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
-				AND p.deleted = 0
-			ORDER BY p.type, p.date_entered";
-
-		// if($current_user->user_name == 'hungnh'){
-		// 	pr($sql);
-		// }
+			p.type,
+			p.salutation,
+			p.name,
+			p.birthday,
+			p.eticket_outbound,
+			p.eticket_inbound,
+			p.eluggage_outbound,
+			p.eluggage_inbound,
+			p.pnr_outbound,
+			p.pnr_inbound,
+			p.supplier_id,
+			p.supplier_inbound_id,
+			p.luggage_price,
+			p.luggage_price_inbound,
+			p.luggage_purchase_no_vat,
+			p.vat_luggage_purchase,
+			p.luggage_purchase,
+			p.luggage_purchase_text,
+			p.luggage_purchase_inbound_no_vat,
+			p.vat_luggage_purchase_inbound,
+			p.luggage_purchase_inbound,
+			p.luggage_purchase_text_inbound,
+			p.luggage_index_outbound,
+			p.luggage_index_inbound,
+			p.hand_baggage_outbound,
+			p.hand_baggage_inbound,
+			p.cic,
+			p.passport_number
+		FROM ec_booking_passengers p
+		WHERE p.booking_id = '{$this->bean->id}'
+			AND p.booking_id IS NOT NULL
+			AND p.booking_id != ''
+			AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
+			AND p.deleted = 0
+		ORDER BY p.type, p.date_entered";
 
 		$res = $this->bean->db->query($sql);
 		$row_count = $this->bean->db->countRows($res);
 		$row_count = !empty($row_count) ? $row_count : 0;
 
-		$html = '<table id="tbl_line_passengers" class="table-vertical__mobile table-edit__booking table-config table-details__booking" cellpadding="0" cellspacing="0" border="0">
-			<thead>
-				<tr id="psg_first_row">
-					<th scope="col" class="text-center fw-semibold" style="width:9%;">Loại HK</th>
-					<th scope="col" class="text-center fw-semibold" style="width:8%;">Danh xưng</th>
-					<th scope="col" class="text-center fw-semibold" style="width:20%;">Họ tên</th>
-					<th scope="col" class="text-center fw-semibold" style="width:10%;">Ngày sinh</th>
-					<th scope="col" class="text-center fw-semibold" style="width:12%;">CCCD/Passport</th>
-					<th scope="col" class="text-center fw-semibold" style="width:9%;">PNR lượt đi</th>
-					<th scope="col" class="text-center fw-semibold" style="width:9%;">PNR lượt về</th>
-					<th scope="col" class="text-center fw-semibold" style="width:11%;">Số vé lượt đi</th>
-					<th scope="col" class="text-center fw-semibold" style="width:11%;">Số vé lượt về</th>
-					<th scope="col">&nbsp;</th>
-				</tr>
-			</thead>
-		';
-
-		$i = 0;
+		/**
+		 * BƯỚC 2: CHUYỂN ĐỔI DỮ LIỆU THÀNH MẢNG (CHỈ DỮ LIỆU, KHÔNG HTML)
+		 */
+		$passengers_data = [];
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			$passenger_id = isset($_POST['isDuplicate']) && (string)$_POST['isDuplicate'] === 'true' ? '' : $row['id'];
+			$passenger_id = isset($_POST['isDuplicate']) && (string) $_POST['isDuplicate'] === 'true' ? '' : $row['id'];
 
-			##### Line 1 (Thông tin hành khách) #####
-			$html .= '<tr id="psg_line_' . $i . '" class="psg_line">';
-
-			// Loại khách hàng
-			$html .= '<td data-label="Loại HK">
-				<select name="psg_traveller_type[]" id="psg_traveller_type' . $i . '" class="w-100">
-					' . get_select_options_with_id($app_list_strings['passenger_type_list'], (int) $row['type']) . '
-				</select>
-        	</td>';
-
-			// Danh xưng
-			$html .= '<td data-label="Danh xưng">
-				<select name="psg_salutation[]" id="psg_salutation' . $i . '" class="w-100">
-					' . get_select_options_with_id($app_list_strings['passenger_salutation_list'], (int) $row['salutation']) . '
-				</select>
-			</td>';
-
-			// Họ tên
-			$html .= '<td data-label="Họ tên">
-				<input type="text" name="psg_full_name[]" id="psg_full_name' . $i . '" value="' . $row['name'] . '" class="text-start" maxlength="128" style="padding-left: 8px !important;" />
-			</td>';
-
-			// Ngày sinh
-			$html .= '<td data-label="Ngày sinh">
-				<div class="d-flex align-items-center gap-1">
-					<input type="text" name="psg_birthday[]"
-						id="psg_birthday' . $i . '" 
-						value="' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') . '"
-						class="text-center"
-						maxlength="10"
-					/>
-					<img class="flex-fill cursor-pointer" border="0" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="psg_birthday_trigger' . $i . '" align="absmiddle" />
-				</div>
-			</td>';
-
-			// CCCD/Passport
-			$id_number_value = trim($row['passport_number'] ?? '');
-			if (empty($id_number_value)) $id_number_value = trim($row['cic'] ?? '');
-			$html .= '<td data-label="CCCD/Passport">
-				<input type="text" name="psg_id_number[]"
-					id="psg_id_number' . $i . '"
-					value="' . $id_number_value . '"
-					class="text-start"
-					maxlength="16"
-					style="padding-left:8px !important; letter-spacing:1px;"
-				/>
-			</td>';
-
-			// PNR lượt đi
-			$html .= '<td data-label="PNR lượt đi"><input type="text" name="psg_pnr_outbound[]" id="psg_pnr_outbound' . $i . '" value="' . $row['pnr_outbound'] . '" class="text-center" maxlength="30" /></td>';
-			// PNR lượt về
-			$html .= '<td data-label="PNR lượt về"><input type="text" name="psg_pnr_inbound[]" id="psg_pnr_inbound' . $i . '" value="' . $row['pnr_inbound'] . '" class="text-center" maxlength="30" /></td>';
-			// Số vé lượt đi
-			$html .= '<td data-label="Số vé lượt đi"><input type="text" name="psg_eticket_outbound[]" id="psg_eticket_outbound' . $i . '" value="' . $row['eticket_outbound'] . '" class="text-center" maxlength="25" /></td>';
-			// Số vé lượt về
-			$html .= '<td data-label="Số vé lượt về"><input type="text" name="psg_eticket_inbound[]" id="psg_eticket_inbound' . $i . '" value="' . $row['eticket_inbound'] . '" class="text-center" maxlength="25" /></td>';
-
-			// Nút xóa
-			$html .= '<td data-label="Xóa dòng" class="text-center align-middle">
-				<button type="button" title="Xóa" class="button-remove-in-edit" onclick="markPassengerRowDeleted2(' . $i . ')">' . $this->icon_x . '</button>
-				<input type="hidden" name="psg_deleted[]" id="psg_deleted' . $i . '" value="0" />
-				<input type="hidden" name="psg_id[]" id="psg_id' . $i . '" value="' . $passenger_id . '" readonly />
-			</td>';
-			$html .= '</tr>';
-
-			// Hành lý - Use different baggage options for each direction
-			foreach (["outbound", "inbound"] as $roundName) {
-				$suffix = $roundName == "outbound" ? "" : "_inbound";
-				$dir = $roundName == "outbound" ? 0 : 1;
-
-				// Input name
-				$inputNameBagText = "psg_luggage_purchase_text$suffix";
-				$inputNameBagPrice = "psg_luggage_purchase$suffix";
-				$inputNameBagTax = "psg_vat_luggage_purchase$suffix";
-				$inputNameSuppplier = "psg_luggage_supplier$suffix";
-				$inputNameTicketNum = "psg_eluggage_$roundName";
-				$inputNameSellingPrice = "psg_luggage_price$suffix"; // Giá bán
-				$inputNameAvaiBagIndex = "psg_luggage_index_$roundName";
-
-				$inputNameHandBagIndex = "psg_hand_baggage_$roundName";
-
-				// Value
-				$bagText = $row["luggage_purchase_text$suffix"] ?? '';
-				$bagPrice = $row["luggage_purchase$suffix"] ?? 0;
-				$bagTax = $row["vat_luggage_purchase$suffix"] ?? 0; // VAT
-				$bagSuppplier = $row["supplier{$suffix}_id"] ?? '';
-				$bagTicketNum = $row["eluggage_$roundName"] ?? '';
-				$bagSellingPrice = $row["luggage_price$suffix"] ?? 0;
-				$avaiBag = $row["luggage_index_$roundName"] ?? '';
-				$handBag = $row["hand_baggage_$roundName"] ?? '';
-
-				// Label
-				$suffix_text = $roundName == "outbound" ? "lượt đi" : "lượt về";
-
-				// Build baggage options dropdown
-				$baggageOptionsHtml = $this->bean->generateBaggageOptions($roundName == "inbound" ? $this->bean->airline_inbound : $this->bean->airline, '', $bagText, $bagPrice);
-
-				$html .= '<tr id="psg_baggage_line_'. $roundName .'_'. $i .'" class="psg_baggage_line_'.$roundName.'">
-					<td data-label="'. $roundName .' baggage information" class="row_psg_price" colspan="10">
-						<div class="psg_price-wrap d-flex gap-3 align-items-center mb-1">
-							<span class="text-label" style="width:155px;">Hành lý xách tay ' . $suffix_text . ':</span>
-							<div>
-								<input type="text" name="' . $inputNameHandBagIndex . '[]"
-									id="' . ($inputNameHandBagIndex . $i) . '"
-									value="' . $handBag . '"
-									style="width:80px" maxlength="6" size="6"
-								/> 
-								<button type="button" title="Hướng dẫn nhập liệu" style="border:none; background:none; padding:0;"
-									data-bs-toggle="popover"
-									data-bs-html="true"
-									data-bs-content="Nhập <b>1x23</b> = 1 kiện x 23kg<br>Nhập <b>1T23</b> = 1 kiện tổng 23kg<br>Nhập <b>5</b> trở xuống = 5 kiện<br>Nhập <b>6</b> trở lên = 6kg">
-									<svg width="18px" height="18px" stroke-width="2.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#a1a1a1"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#a1a1a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="#a1a1a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18.01L12.01 17.9989" stroke="#a1a1a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-								</button>
-							</div>
-						</div>
-						<div class="psg_price-wrap d-flex gap-3 align-items-center mb-1">
-							<span class="text-label" style="width:155px;">Hành lý có sẵn ' . $suffix_text . ':</span>
-							<div>
-								<input type="text" name="' . $inputNameAvaiBagIndex . '[]"
-									id="' . ($inputNameAvaiBagIndex . $i) . '"
-									value="' . $avaiBag . '"
-									style="width:80px" maxlength="6" size="6"
-								/> 
-								<button type="button" title="Hướng dẫn nhập liệu" style="border:none; background:none; padding:0;"
-									data-bs-toggle="popover"
-									data-bs-html="true"
-									data-bs-content="Nhập <b>1x23</b> = 1 kiện x 23kg<br>Nhập <b>1T23</b> = 1 kiện tổng 23kg<br>Nhập <b>5</b> trở xuống = 5 kiện<br>Nhập <b>6</b> trở lên = 6kg">
-									<svg width="18px" height="18px" stroke-width="2.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#a1a1a1"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#a1a1a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="#a1a1a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18.01L12.01 17.9989" stroke="#a1a1a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-								</button>
-							</div>
-						</div>
-						<div class="psg_price-wrap d-flex gap-3 align-items-center">
-							<div class="col_psg_price col-psg-bag-text">
-								<span class="text-label">Hành lý mua thêm ' . $suffix_text . '</span>
-								<select name="' . $inputNameBagText . '[]"
-									id="' . ($inputNameBagText . $i) . '"
-									class="psg_luggage_purchase_select"
-									style="width:100%; max-width:400px;"
-									onchange="updateBaggagePriceFromSelect(' . $i . ', \'' . $roundName . '\')">
-									' . $baggageOptionsHtml . '
-								</select>
-							</div>
-							<div class="col_psg_price col-psg-bag-selling-price">
-								<span class="text-label">Giá bán (VAT): </span>
-								<input type="text" name="' . $inputNameSellingPrice . '[]"
-									id="' . ($inputNameSellingPrice . $i) . '"
-									value="' . format_number($bagSellingPrice) . '"
-									class="allow-number-only psg_luggage_purchase_input"
-									maxlength="12"
-								/>
-							</div>
-							<div class="col_psg_price col-psg-bag-price">
-								<span class="text-label">Giá mua (VAT): </span>
-								<input type="text" name="' . $inputNameBagPrice . '[]"
-									id="' . ($inputNameBagPrice . $i) . '"
-									value="' . format_number($bagPrice) . '"
-									class="allow-number-only psg_luggage_purchase_input"
-									maxlength="12"
-									onkeyup="calculateBagPurchasePrice(' . $i . ', ' . $dir . ');"
-									onpaste="calculateBagPurchasePrice(' . $i . ', ' . $dir . ');"
-								/>
-							</div>
-							<div class="col_psg_price col-psg-bag-tax">
-								<span class="text-label">VAT giá mua: </span>
-								<input type="text" name="' . $inputNameBagTax . '[]"
-									id="' . ($inputNameBagTax . $i) . '"
-									value="' . format_number($bagTax) . '"
-									class="allow-number-only psg_luggage_purchase_input"
-									maxlength="12"
-									onkeyup="calculateBagPurchasePrice(' . $i . ', ' . $dir . ');"
-								/>
-							</div>
-							<div class="col_psg_price col-psg-bag-supplier">
-								<span class="text-label">NCC: </span>
-								<select name="' . $inputNameSuppplier . '[]" id="' . ($inputNameSuppplier . $i) . '" class="psg_luggage_purchase_select">
-									<option value=""></option>
-									' . myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', $bagSuppplier, 'id', $sql_supplier) . '
-								</select>
-							</div>
-							<div class="col_psg_price col-psg-bag-ticketnum">
-								<span class="text-label">Số vé HL ' . $suffix_text . ': </span>
-								<input type="text" name="' . $inputNameTicketNum . '[]"
-									id="' . ($inputNameTicketNum . $i) . '"
-									value="' . $bagTicketNum . '"
-									class="psg_luggage_purchase_input"
-									maxlength="25" size="25"
-								/>
-							</div>
-						</div>
-					</td>
-				</tr>';
+			$birthday = '';
+			if (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00') {
+				$birthday = date($date_format, strtotime($row['birthday']));
 			}
 
-			$i++;
+			$id_number_value = trim($row['passport_number'] ?? '');
+			if (empty($id_number_value)) {
+				$id_number_value = trim($row['cic'] ?? '');
+			}
+
+			$passengers_data[] = [
+				'id'                      => $passenger_id,
+				'db_id'                   => $row['id'],
+				'type'                    => (int) $row['type'],
+				'salutation'              => (int) $row['salutation'],
+				'name'                    => $row['name'],
+				'birthday'                => $birthday,
+				'id_number'               => $id_number_value,
+				'pnr_outbound'            => $row['pnr_outbound'],
+				'pnr_inbound'             => $row['pnr_inbound'],
+				'eticket_outbound'        => $row['eticket_outbound'],
+				'eticket_inbound'         => $row['eticket_inbound'],
+				'eluggage_outbound'       => $row['eluggage_outbound'],
+				'eluggage_inbound'        => $row['eluggage_inbound'],
+				'luggage_price'           => (float) $row['luggage_price'],
+				'luggage_price_inbound'   => (float) $row['luggage_price_inbound'],
+				'luggage_purchase'        => (float) $row['luggage_purchase'],
+				'luggage_purchase_text'   => $row['luggage_purchase_text'],
+				'luggage_purchase_inbound' => (float) $row['luggage_purchase_inbound'],
+				'luggage_purchase_text_inbound' => $row['luggage_purchase_text_inbound'],
+				'luggage_index_outbound'  => $row['luggage_index_outbound'],
+				'luggage_index_inbound'   => $row['luggage_index_inbound'],
+				'hand_baggage_outbound'   => $row['hand_baggage_outbound'],
+				'hand_baggage_inbound'    => $row['hand_baggage_inbound'],
+				'supplier_id'             => $row['supplier_id'],
+				'supplier_inbound_id'     => $row['supplier_inbound_id'],
+			];
 		}
 
-		$html .= '<tr id="psg_last_row" class="footer-tr">
-			<td colspan="13" class="text-start">
-				<input type="button" class="btn btn-primary" id="btnPassengerAddRow" data-is-new="1" value="Thêm dòng" title="Thêm dòng" />
-				Số dòng = <label id="lbl_psg_row_count">' . $row_count . '</label>
-				<input type="hidden" name="psg_row_count" id="psg_row_count" value="' . $row_count . '" />
-				<input type="hidden" id="booking_status" value="' . $this->bean->booking_status . '" >
-				<input type="hidden" id="baggage_options_outbound" value="' . htmlspecialchars(json_encode($this->bean->generateBaggageOptions($this->bean->airline)), ENT_QUOTES, 'UTF-8') . '" />
-				<input type="hidden" id="baggage_options_inbound" value="' . htmlspecialchars(json_encode($this->bean->generateBaggageOptions($this->bean->airline_inbound)), ENT_QUOTES, 'UTF-8') . '" />
-			</td>
-		</tr>';
+		/**
+		 * BƯỚC 3: TẠO HTML KHUNG BẢNG (không render row ở PHP)
+		 * - Header
+		 * - <tbody id="psg_tbody"></tbody> rỗng để JS render
+		 * - Footer với các input hidden cần thiết
+		 */
+		$baggage_options_outbound = $this->bean->generateBaggageOptions($this->bean->airline);
+		$baggage_options_inbound  = $this->bean->generateBaggageOptions($this->bean->airline_inbound);
+
+		$supplier_list_html = myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', '', 'id', $sql_supplier);
+
+		$html  = '<table id="tbl_line_passengers" class="table-vertical__mobile table-edit__booking table-config table-details__booking" cellpadding="0" cellspacing="0" border="0">';
+		$html .= '<thead>';
+		$html .= '<tr id="psg_first_row">';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">Loại HK</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:8%;">Danh xưng</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:20%;">Họ tên</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:10%;">Ngày sinh</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:12%;">CCCD/Passport</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">PNR lượt đi</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">PNR lượt về</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:11%;">Số vé lượt đi</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:11%;">Số vé lượt về</th>';
+		$html .= '<th scope="col">&nbsp;</th>';
+		$html .= '</tr>';
+		$html .= '</thead>';
+		$html .= '<tbody id="psg_tbody"></tbody>';
+		$html .= '<tr id="psg_last_row" class="footer-tr">';
+		$html .= '<td colspan="13" class="text-start">';
+		$html .= '<input type="button" class="btn btn-primary" id="btnPassengerAddRow" data-is-new="1" value="Thêm dòng" title="Thêm dòng" />';
+		$html .= ' Số dòng = <label id="lbl_psg_row_count">' . $row_count . '</label>';
+		$html .= '<input type="hidden" name="psg_row_count" id="psg_row_count" value="' . $row_count . '" />';
+		$html .= '<input type="hidden" id="booking_status" value="' . $this->bean->booking_status . '" >';
+		$html .= '<input type="hidden" id="baggage_options_outbound" value=\'' . htmlspecialchars(json_encode($baggage_options_outbound), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<input type="hidden" id="baggage_options_inbound" value=\'' . htmlspecialchars(json_encode($baggage_options_inbound), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<input type="hidden" id="psg_passengers_data_json" value=\'' . htmlspecialchars(json_encode($passengers_data), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<input type="hidden" id="supplier_list_json" value=\'' . htmlspecialchars(json_encode($supplier_list_html), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<input type="hidden" id="passenger_type_list_json" value=\'' . htmlspecialchars(json_encode(get_select_options_with_id($app_list_strings['passenger_type_list'], 0)), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<input type="hidden" id="passenger_salutation_list_json" value=\'' . htmlspecialchars(json_encode(get_select_options_with_id($app_list_strings['passenger_salutation_list'], 0)), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '</td>';
+		$html .= '</tr>';
 		$html .= '</table>';
+
+		/**
+		 * BƯỚC 4: GỬI DỮ LIỆU VỀ TEMPLATE
+		 */
+		// Gửi HTML khung bảng (row sẽ được render bằng JS)
 		$this->ss->assign('LINE_PASSENGERS', $html);
+
+		// Gửi dữ liệu JSON cho JavaScript xử lý
+		$this->ss->assign('PASSENGERS_DATA_JSON', json_encode($passengers_data));
+
+		// Gửi các danh sách lookup dạng JSON
+		$this->ss->assign('PASSENGER_TYPE_LIST', get_select_options_with_id($app_list_strings['passenger_type_list'], 0));
+		$this->ss->assign('PASSENGER_SALUTATION_LIST', get_select_options_with_id($app_list_strings['passenger_salutation_list'], 0));
+		$this->ss->assign('SUPPLIER_LIST', $supplier_list_html);
 	}
+
 
 	// Bổ sung phần thông tin hoá đơn
 	public function populateInvoiceFields()
 	{
 		$iv_payment_method = [
-			''                           => '',
-			'Tiền mặt'                   => 'Tiền mặt',
-			'Chuyển khoản'               => 'Chuyển khoản',
+			'' => '',
+			'Tiền mặt' => 'Tiền mặt',
+			'Chuyển khoản' => 'Chuyển khoản',
 			'Tiền mặt hoặc Chuyển khoản' => 'Tiền mặt hoặc Chuyển khoản',
 		];
 
@@ -1169,8 +1096,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		$this->ss->assign(
 			'CUS_IV_PAYMENT_METHOD',
 			'<select name="iv_payment_method" class="w-100">'
-				. get_select_options_with_id($iv_payment_method, $invoice_arr['iv_payment_method'] ?? '')
-				. '</select>'
+			. get_select_options_with_id($iv_payment_method, $invoice_arr['iv_payment_method'] ?? '')
+			. '</select>'
 		);
 		$this->ss->assign(
 			'CUS_IV_BANK_ACCOUNT',

@@ -355,6 +355,13 @@ $(document).ready(function () {
 		$('#lbl_psg_row_count').text(parseInt($('#lbl_psg_row_count').text()) + 1);
 	});
 
+	// Render initial passenger rows from JSON data supplied by PHP.
+	// All rows (initial data + new) are rendered using the same single
+	// function `insertPassengerLine2` defined below.
+	renderInitialPassengers();
+	renderInitialItineraries();
+	renderInitialDetails();
+
 	// Check is agent
 	$('#chk_is_agent').change(function () {
 		if ($(this).is(':checked')) {
@@ -1827,4 +1834,312 @@ function updateRowCount() {
 	}
 
 	$('#lbl_psg_row_count').text(activeCount);
+}
+
+/**
+ * Render initial passenger rows from JSON data supplied by PHP.
+ *
+ * PHP (`populateLinePassengers` in view.edit.php) outputs passenger data
+ * as JSON via a hidden input `#psg_passengers_data_json`. This function
+ * reads that JSON, then for each passenger it uses the SAME single
+ * rendering function `insertPassengerLine2(ln)` that the "Thêm dòng"
+ * button uses. After inserting the row, it populates the values from
+ * the data object (so initial data is shown the same way as new rows
+ * are added).
+ */
+function renderInitialPassengers() {
+	var jsonStr = '';
+	try {
+		jsonStr = $('#psg_passengers_data_json').val() || '';
+	} catch (e) {
+		jsonStr = '';
+	}
+	if (!jsonStr) return;
+
+	var passengers = [];
+	try {
+		passengers = JSON.parse(jsonStr);
+	} catch (e) {
+		console.error('Error parsing passengers JSON:', e);
+		return;
+	}
+	if (!Array.isArray(passengers) || passengers.length === 0) return;
+
+	var cal_date_format = $('#cal_date_format').val();
+	var dec_seperator = $('#dec_seperator').val();
+	var grp_seperator = $('#grp_seperator').val();
+	var sig_digits = $('#sig_digits').val();
+
+	for (var i = 0; i < passengers.length; i++) {
+		var p = passengers[i];
+
+		// Use the SAME single function to render this row
+		$('#psg_tbody').append(insertPassengerLine2(i));
+
+		// Populate the row with data
+		if (p.id !== undefined && p.id !== null) $('#psg_id' + i).val(p.id);
+
+		// Type
+		if (p.type !== undefined && p.type !== null) {
+			$('#psg_traveller_type' + i).val(String(p.type));
+		}
+		// Salutation
+		if (p.salutation !== undefined && p.salutation !== null) {
+			$('#psg_salutation' + i).val(String(p.salutation));
+		}
+		// Name
+		if (p.name) $('#psg_full_name' + i).val(p.name);
+		// Birthday
+		if (p.birthday) $('#psg_birthday' + i).val(p.birthday);
+		// CCCD / Passport
+		if (p.id_number) $('#psg_id_number' + i).val(p.id_number);
+		// PNR
+		if (p.pnr_outbound) $('#psg_pnr_outbound' + i).val(p.pnr_outbound);
+		if (p.pnr_inbound) $('#psg_pnr_inbound' + i).val(p.pnr_inbound);
+		// eTicket
+		if (p.eticket_outbound) $('#psg_eticket_outbound' + i).val(p.eticket_outbound);
+		if (p.eticket_inbound) $('#psg_eticket_inbound' + i).val(p.eticket_inbound);
+		// eLuggage (số vé HL)
+		if (p.eluggage_outbound) $('#psg_eluggage_outbound' + i).val(p.eluggage_outbound);
+		if (p.eluggage_inbound) $('#psg_eluggage_inbound' + i).val(p.eluggage_inbound);
+		// Selling price (gía bán)
+		if (p.luggage_price) {
+			$('#psg_luggage_price' + i).val(formatNumber(p.luggage_price));
+		}
+		if (p.luggage_price_inbound) {
+			$('#psg_luggage_price_inbound' + i).val(formatNumber(p.luggage_price_inbound));
+		}
+		// Purchase price (giá mua)
+		if (p.luggage_purchase) {
+			$('#psg_luggage_purchase' + i).val(formatNumber(p.luggage_purchase));
+		}
+		if (p.luggage_purchase_inbound) {
+			$('#psg_luggage_purchase_inbound' + i).val(formatNumber(p.luggage_purchase_inbound));
+		}
+		// Baggage text (hành lý mua thêm)
+		if (p.luggage_purchase_text) {
+			$('#psg_luggage_purchase_text' + i).val(p.luggage_purchase_text);
+		}
+		if (p.luggage_purchase_text_inbound) {
+			$('#psg_luggage_purchase_text_inbound' + i).val(p.luggage_purchase_text_inbound);
+		}
+		// VAT of purchase (VAT giá mua)
+		if (p.vat_luggage_purchase !== undefined && p.vat_luggage_purchase !== null) {
+			$('#psg_vat_luggage_purchase' + i).val(p.vat_luggage_purchase);
+		}
+		if (p.vat_luggage_purchase_inbound !== undefined && p.vat_luggage_purchase_inbound !== null) {
+			$('#psg_vat_luggage_purchase_inbound' + i).val(p.vat_luggage_purchase_inbound);
+		}
+		// Hand baggage
+		if (p.hand_baggage_outbound) $('#psg_hand_baggage_outbound' + i).val(p.hand_baggage_outbound);
+		if (p.hand_baggage_inbound) $('#psg_hand_baggage_inbound' + i).val(p.hand_baggage_inbound);
+		// Luggage index (hành lý có sẵn)
+		if (p.luggage_index_outbound) $('#psg_luggage_index_outbound' + i).val(p.luggage_index_outbound);
+		if (p.luggage_index_inbound) $('#psg_luggage_index_inbound' + i).val(p.luggage_index_inbound);
+		// Supplier
+		if (p.supplier_id) $('#psg_luggage_supplier' + i).val(p.supplier_id);
+		if (p.supplier_inbound_id) $('#psg_luggage_supplier_inbound' + i).val(p.supplier_inbound_id);
+
+		// Re-apply number formatting to the new inputs
+		$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
+
+		// Set up calendar for birthday
+		Calendar.setup({
+			inputField: 'psg_birthday' + i,
+			daFormat: cal_date_format,
+			button: 'psg_birthday_trigger' + i,
+			singleClick: true,
+			dateStr: '',
+			step: 1,
+			weekNumbers: false
+		});
+	}
+
+	// Initialize select2 for the new baggage selects
+	for (var j = 0; j < passengers.length; j++) {
+		initializeSelect2ForRow(j);
+	}
+}
+
+
+/**
+ * Render initial itinerary rows from JSON data supplied by PHP.
+ *
+ * PHP (`populateLineItineraries` in view.edit.php) outputs itinerary data
+ * as JSON via a hidden input `#iti_data_json`. This function reads that
+ * JSON, then for each itinerary it uses the SAME single rendering function
+ * `insertItineraryLine(ln)` that the "Thêm dòng" button uses. After
+ * inserting the row, it populates the values from the data object.
+ */
+function renderInitialItineraries() {
+	var jsonStr = '';
+	try { jsonStr = $('#iti_data_json').val() || ''; } catch (e) { jsonStr = ''; }
+	if (!jsonStr) return;
+
+	var items = [];
+	try { items = JSON.parse(jsonStr); } catch (e) { console.error('Error parsing itineraries JSON:', e); return; }
+	if (!Array.isArray(items) || items.length === 0) return;
+
+	var cal_date_format = $('#cal_date_format').val();
+
+	for (var i = 0; i < items.length; i++) {
+		var p = items[i];
+		// Use the SAME single function to render this row
+		$('#iti_last_row').before(insertItineraryLine(i));
+
+		if (p.id !== undefined && p.id !== null && p.id !== '') {
+			$('#iti_detail_id' + i).val(p.id);
+		}
+		if (p.direction !== undefined && p.direction !== null) {
+			$('#iti_direction' + i).val(String(p.direction));
+		}
+		if (p.airline_code) $('#iti_airline_code' + i).val(p.airline_code);
+		if (p.flight_number) $('#iti_flight_number' + i).val(p.flight_number);
+		if (p.ticket_class) {
+			// BBA has a select for ticket_class; for others it's a text input
+			var $tc = $('#iti_ticket_class' + i);
+			if ($tc.length) $tc.val(p.ticket_class);
+		}
+		if (p.departure) $('#iti_departure' + i).val(p.departure);
+		if (p.arrival) $('#iti_arrival' + i).val(p.arrival);
+		if (p.departure_date) $('#iti_departure_date' + i).val(p.departure_date);
+		if (p.departure_h) $('#iti_departure_h' + i).val(p.departure_h);
+		if (p.departure_m) $('#iti_departure_m' + i).val(p.departure_m);
+		if (p.arrival_date) $('#iti_arrival_date' + i).val(p.arrival_date);
+		if (p.arrival_h) $('#iti_arrival_h' + i).val(p.arrival_h);
+		if (p.arrival_m) $('#iti_arrival_m' + i).val(p.arrival_m);
+		if (p.time_limit_date) $('#iti_time_limit_date' + i).val(p.time_limit_date);
+		if (p.time_limit_h) $('#iti_time_limit_h' + i).val(p.time_limit_h);
+		if (p.time_limit_m) $('#iti_time_limit_m' + i).val(p.time_limit_m);
+		if (p.base_price !== undefined && p.base_price !== null) {
+			$('#iti_base_price' + i).val(formatNumber(p.base_price));
+		}
+		if (p.is_layover !== undefined && p.is_layover !== null && p.is_layover == 1) {
+			var $chk = $('#iti_is_layover_chk' + i);
+			if ($chk.length) $chk.prop('checked', true);
+			var $hid = $('#iti_is_layover' + i);
+			if ($hid.length) $hid.val(1);
+		}
+
+		// Set up calendars
+		Calendar.setup({
+			inputField: 'iti_departure_date' + i,
+			daFormat: cal_date_format,
+			button: 'iti_departure_date_trigger' + i,
+			singleClick: true,
+			dateStr: '',
+			step: 1,
+			weekNumbers: false
+		});
+		Calendar.setup({
+			inputField: 'iti_arrival_date' + i,
+			daFormat: cal_date_format,
+			button: 'iti_arrival_date_trigger' + i,
+			singleClick: true,
+			dateStr: '',
+			step: 1,
+			weekNumbers: false
+		});
+		Calendar.setup({
+			inputField: 'iti_time_limit_date' + i,
+			daFormat: cal_date_format,
+			button: 'iti_time_limit_date_trigger' + i,
+			singleClick: true,
+			dateStr: '',
+			step: 1,
+			weekNumbers: false
+		});
+	}
+
+	// Re-apply number formatting to the new inputs
+	var dec_seperator = $('#dec_seperator').val();
+	var grp_seperator = $('#grp_seperator').val();
+	var sig_digits = $('#sig_digits').val();
+	$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
+}
+
+/**
+ * Render initial ticket-detail rows from JSON data supplied by PHP.
+ *
+ * PHP (`populateLineDetails` in view.edit.php) outputs detail data
+ * as JSON via a hidden input `#bkd_data_json`. This function reads that
+ * JSON, then for each detail it uses the SAME single rendering function
+ * `insertDetailLine(ln)` that the "Thêm dòng" button uses. After
+ * inserting the row, it populates the values from the data object.
+ */
+function renderInitialDetails() {
+	var jsonStr = '';
+	try { jsonStr = $('#bkd_data_json').val() || ''; } catch (e) { jsonStr = ''; }
+	if (!jsonStr) return;
+
+	var items = [];
+	try { items = JSON.parse(jsonStr); } catch (e) { console.error('Error parsing details JSON:', e); return; }
+	if (!Array.isArray(items) || items.length === 0) return;
+
+	var dec_seperator = $('#dec_seperator').val();
+	var grp_seperator = $('#grp_seperator').val();
+	var sig_digits = $('#sig_digits').val();
+
+	for (var i = 0; i < items.length; i++) {
+		var p = items[i];
+
+		// Use the SAME single function to render this row (line + admin line)
+		$('#bkd_last_row').before(insertDetailLine(i));
+
+		if (p.id !== undefined && p.id !== null && p.id !== '') {
+			$('#bkd_detail_id' + i).val(p.id);
+		}
+		if (p.direction !== undefined && p.direction !== null) {
+			$('#bkd_direction' + i).val(String(p.direction));
+		}
+		if (p.passenger_type !== undefined && p.passenger_type !== null) {
+			$('#bkd_passenger_type' + i).val(String(p.passenger_type));
+		}
+		if (p.quantity !== undefined && p.quantity !== null) {
+			$('#bkd_quantity' + i).val(p.quantity);
+		}
+		if (p.unit_price !== undefined && p.unit_price !== null) {
+			$('#bkd_unit_price' + i).val(formatNumber(p.unit_price));
+		}
+		if (p.tax_and_fee !== undefined && p.tax_and_fee !== null) {
+			$('#bkd_tax_and_fee' + i).val(formatNumber(p.tax_and_fee));
+		}
+		if (p.airport_fee !== undefined && p.airport_fee !== null) {
+			$('#bkd_airport_fee' + i).val(formatNumber(p.airport_fee));
+		}
+		if (p.admin_fee !== undefined && p.admin_fee !== null) {
+			$('#bkd_admin_fee' + i).val(formatNumber(p.admin_fee));
+		}
+		if (p.service_fee !== undefined && p.service_fee !== null) {
+			$('#bkd_service_fee' + i).val(formatNumber(p.service_fee));
+		}
+		if (p.total_price !== undefined && p.total_price !== null) {
+			$('#bkd_total_price' + i).val(formatNumber(p.total_price));
+		}
+		if (p.total_bought_price !== undefined && p.total_bought_price !== null) {
+			$('#bkd_total_bought_price' + i).val(formatNumber(p.total_bought_price));
+		}
+		if (p.supplier_discount !== undefined && p.supplier_discount !== null) {
+			$('#bkd_supplier_discount' + i).val(formatNumber(p.supplier_discount));
+		}
+		if (p.fee_bought !== undefined && p.fee_bought !== null) {
+			$('#bkd_supplier_ticketing_fee' + i).val(formatNumber(p.fee_bought));
+		}
+		if (p.supplier_id) $('#bkd_supplier_id' + i).val(p.supplier_id);
+		if (p.admin_fee_no_vat !== undefined && p.admin_fee_no_vat !== null) {
+			$('#bkd_admin_fee_no_vat' + i).val(formatNumber(p.admin_fee_no_vat));
+		}
+		if (p.vat_admin !== undefined && p.vat_admin !== null) {
+			$('#bkd_vat_admin' + i).val(formatNumber(p.vat_admin));
+		}
+
+		// Re-compute totals for this row
+		calculateLineTotal(i);
+
+		// Initialize select2 for the supplier select
+		try { $('#bkd_supplier_id' + i).select2({ width: '100%' }); } catch (e) {}
+	}
+
+	// Re-apply number formatting
+	$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
 }
