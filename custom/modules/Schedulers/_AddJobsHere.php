@@ -26,6 +26,7 @@ $job_strings[] = 'resetRewardPoints'; // Reset lại điểm tích lũy của li
 $job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
 $job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
 $job_strings[] = 'migrateZaloImagesToNextCloud'; // Đồng bộ ảnh từ Zalo CDN sang VN Backup
+$job_strings[] = 'sendPromotionalSummerZBS'; // Gửi tin nhắn tri ân khách hàng du lịch hè ZBS
 
 /**
  * Thông báo hành trình cần checkin
@@ -2393,5 +2394,105 @@ function migrateZaloImagesToNextCloud()
 	}
 
 	$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": Done.");
+	return true;
+}
+
+/**
+ * Gửi tin nhắn tri ân khách hàng du lịch hè ZBS
+ */
+function sendPromotionalSummerZBS()
+{
+	try {
+		$phoneFile = 'cache/upload/list_phone.txt';
+		$listPhone = [];
+
+		if (is_readable($phoneFile)) {
+			$listPhone = array_values(array_unique(array_filter(array_map(function ($phone) {
+				return preg_replace('/\D/', '', $phone);
+			}, file($phoneFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES)), function ($phone) {
+				return strlen($phone) >= 10;
+			})));
+		}
+		$listPhone = array_unique($listPhone);
+		array_push($listPhone, "0909588080");
+		array_push($listPhone, "0919330802");
+		array_push($listPhone, "0932168808");
+
+		// Init entry
+		$entry = new entryFactory();
+		$entryOA = $entry->create('entryZaloOAClass');
+
+		$sentMap = [];
+		$failedInfo = [];
+
+		foreach ($listPhone as $phone) {
+			$params = [
+				"phoneNumber" => $phone,
+				"type" => "promotional-summer",
+				"parentId" => "",
+				"parentType" => "",
+				"templateData" => [
+					"voucher_code" 		=> $phone,
+					"start_time" 		=> "10/06/2026",
+					"end_time" 			=> "07/07/2026",
+					"condition_string" 	=> " ",
+					"discount_string" 	=> "Voucher trị giá 200K",
+				],
+				"auto" => 1,
+			];
+
+			$sendResult = $entryOA->sendTemplateMessage($params);
+
+			if (isset($sendResult['status']) && $sendResult['status'] == 1) $sentMap[$phone] = true;
+			else {
+				$sentMap[$phone] = false;
+
+				$errCode = $sendResult['error'] ?? null;
+				if(!is_null($errCode)) {
+					if(!isset($failedInfo[$errCode])) {
+						$failedInfo[$errCode]['message'] = $sendResult['message'] ?? '';
+						$failedInfo[$errCode]['count'] = 1;
+					}
+					else $failedInfo[$errCode]['count'] += 1;
+				}
+
+				$GLOBALS['log']->error(
+					"Send auto message Zalo ZBS (cheap-price) failed: " . json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
+				);
+			}
+		}
+
+		// Send info to notification channel
+		$countSent = count(array_filter($sentMap));
+		$countFailed = count(array_filter($sentMap, fn($v) => !$v));
+
+		$mFailed = "";
+		if(count($failedInfo) > 0) {
+			foreach($failedInfo as $err_code => $errInfo) {
+				$mFailed .= "\n<b>-</b> {$errInfo['message']} ($err_code): <b>{$errInfo['count']}</b> số";
+			}
+		}
+
+		if ($countSent > 0) {
+			$countTotal = $countSent + $countFailed;
+			$m = "<b>⚙️Auto:</b> Đã gửi tin Zalo tri ân - du lịch hè cho <b>{$countSent}</b>/{$countTotal} số";
+			$m .= $mFailed;
+			NotificationService::sendMessage($m, "zalo");
+		}
+		else if($countFailed > 0) {
+			$m = "Gửi tin Zalo tri ân - du lịch hè";
+			$m .= $mFailed;
+			$m .= "\n\n<i>Please check suitecrm log <code>_AddJobsHere.php -> " . __FUNCTION__ . "()</code></i>";
+			NotificationService::sendWarningMessage($m, "", ['threadKey' => 'logs']);
+		}
+
+		return true;
+	}
+	catch (Throwable $th) {
+		$m = "Cronjob " . __FUNCTION__ . "() failed";
+		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
+	}
+
 	return true;
 }
