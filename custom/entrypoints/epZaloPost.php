@@ -6,6 +6,53 @@ require_once 'custom/include/helpers/api/APIZaloOA.php';
 // ============================================================
 // Zalo Post - Endpoint (No IP Whitelist, Auth by Api-Key)
 // ============================================================
+// AUTH: Header "Api-Key" khớp với $sugar_config['api_key']['zaloPost']
+// URL : /index.php?entryPoint=epZaloPost
+//
+// ============================================================
+// DEBUG CURL EXAMPLES
+// ============================================================
+//
+// --- [1] createArticle (type: normal) ---
+//
+// curl --location 'http://localhost:8001/index.php?entryPoint=epZaloPost' \
+// --header 'Api-Key: ' \
+// --header 'Content-Type: application/json' \
+// --data '{
+//     "method": "createArticle",
+//     "params": {
+//         "app_id": "",
+//         "type": "normal",
+//         "title": "Test Bài Viết Dạng Normal",
+//         "author": "Hệ thống Booking",
+//         "description": "Đây là bài viết dạng thường dùng ảnh cover để test API.",
+//         "cover": {
+//             "cover_type": "photo",
+//             "photo_url": "https://drive.usercontent.google.com/download?id=1kJ97yDfV2dN4onQtqEl-t5mQbomjhnbv&export=view&authuser=0",
+//             "status": "show"
+//         },
+//         "body": [
+//             {
+//                 "type": "text",
+//                 "content": "Đây là đoạn văn bản đầu tiên của bài viết."
+//             },
+//             {
+//                 "type": "text",
+//                 "content": "Và đây là đoạn văn bản thứ hai..."
+//             }
+//         ],
+//         "status": "hide",
+//         "comment": "show"
+//     }
+// }'
+//
+// ============================================================
+// RESPONSE FORMAT
+// ============================================================
+// Thành công : {"status": 1, "message": "...", "data": {...}}
+// Thất bại   : {"status": 0, "message": "...", "data": null}
+// Unauthorized: HTTP 401 + {"status": 0, "message": "Unauthorized"}
+// ============================================================
 header('Content-Type: application/json');
 
 // 1. Authenticate with Api-Key
@@ -13,7 +60,7 @@ global $sugar_config;
 $headers = getallheaders();
 $api_key = $headers['Api-Key'] ?? '';
 
-if ($api_key !== ($sugar_config['api_key']['non_auth_entrypoint'] ?? '')) {
+if ($api_key !== ($sugar_config['api_key']['zaloPost'] ?? '')) {
     http_response_code(401);
     echo json_encode([
         "status" => 0,
