@@ -1985,7 +1985,7 @@ function renderInitialItineraries() {
 	for (var i = 0; i < items.length; i++) {
 		var p = items[i];
 		// Use the SAME single function to render this row
-		$('#iti_last_row').before(insertItineraryLine(i));
+		$('#iti_tbody').append(insertItineraryLine(i));
 
 		if (p.id !== undefined && p.id !== null && p.id !== '') {
 			$('#iti_detail_id' + i).val(p.id);
@@ -2084,7 +2084,7 @@ function renderInitialDetails() {
 		var p = items[i];
 
 		// Use the SAME single function to render this row (line + admin line)
-		$('#bkd_last_row').before(insertDetailLine(i));
+		$('#bkd_tbody').append(insertDetailLine(i));
 
 		if (p.id !== undefined && p.id !== null && p.id !== '') {
 			$('#bkd_detail_id' + i).val(p.id);

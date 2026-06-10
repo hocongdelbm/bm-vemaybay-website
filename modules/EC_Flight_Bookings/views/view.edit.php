@@ -304,101 +304,41 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 				AND add_type = 0 AND i.deleted = 0
 				ORDER BY i.direction, i.transit_order, i.date_entered, i.departure_date";
 
-
 		$res = $this->bean->db->query($sql);
 		$row_count = $this->bean->db->countRows($res);
 		$row_count = !empty($row_count) ? $row_count : 0;
-		// [REFACTOR] init data array for JSON output
+
+		/**
+		 * BƯỚC 1: THU THẬP DỮ LIỆU THÀNH MẢNG (CHỈ DỮ LIỆU, KHÔNG HTML)
+		 * Row sẽ được render bằng JS (`renderInitialItineraries()` + `insertItineraryLine(ln)`).
+		 */
 		$itineraries_data = [];
-
-		$html = '';
-		$html .= '<table id="tbl_line_itineraries" class="table-vertical__mobile table-edit__booking table-details__booking" border="0" cellpadding="0" cellspacing="0">';
-		$html .= '<thead>
-				<tr id="iti_first_row">
-					<th scope="col" style="width:8%;" class="text-center">Chiều</th>
-					<th scope="col" style="width:5%;" class="text-center">Mã hãng</th>
-					<th scope="col" style="width:7%;" class="text-center">Số hiệu</th>
-					<th scope="col" style="width:11%;" class="text-center">Hạng vé</th>
-					<th scope="col" style="width:5%;" class="text-center">Nơi đi</th>
-					<th scope="col" style="width:5%;" class="text-center">Nơi đến</th>
-					<th scope="col" style="width:14%;" class="text-center">Ngày giờ đi</th>
-					<th scope="col" style="width:14%;" class="text-center">Ngày giờ đến</th>
-					<th scope="col" style="width:14%;" class="text-center">Hạn giữ chỗ</th>
-					<th scope="col" style="width:8%;" class="text-center">Giá cơ bản</th>
-					<th scope="col" style="width:2%;" class="text-center">Quá cảnh</th>
-					<th scope="col" style="width:3%;" class="text-center">&nbsp;</th>
-				</tr>
-			</thead>';
-
-		// Chỉnh sửa hành trình
 		if (!empty($this->bean->id)) {
 			$i = 0;
 			while ($row = $this->bean->db->fetchByAssoc($res)) {
-				// Nếu là hãng BBA thì hạng vé hiện theo dạng select
-				// [REFACTOR] collect data for JSON output
 				$itineraries_data[] = [
-					'db_id'         => $row['detail_id'],
-					'direction'     => (int) $row['direction'],
-					'airline_code'  => $row['airline_code'],
-					'flight_number' => $row['flight_number'],
-					'ticket_class'  => $row['ticket_class'],
-					'departure'     => $row['departure'],
-					'arrival'       => $row['arrival'],
-					'departure_date'=> $row['departure_date'] != '' ? date($date_format, strtotime($row['departure_date'])) : '',
-					'departure_h'   => $row['departure_date'] != '' ? date('H', strtotime($row['departure_date'])) : '',
-					'departure_m'   => $row['departure_date'] != '' ? date('i', strtotime($row['departure_date'])) : '',
-					'arrival_date'  => $row['arrival_date'] != '' ? date($date_format, strtotime($row['arrival_date'])) : '',
-					'arrival_h'     => $row['arrival_date'] != '' ? date('H', strtotime($row['arrival_date'])) : '',
-					'arrival_m'     => $row['arrival_date'] != '' ? date('i', strtotime($row['arrival_date'])) : '',
-					'time_limit_date'=>$row['time_limit'] != '' ? date($date_format, strtotime($row['time_limit'])) : '',
-					'time_limit_h'  => $row['time_limit'] != '' ? date('H', strtotime($row['time_limit'])) : '',
-					'time_limit_m'  => $row['time_limit'] != '' ? date('i', strtotime($row['time_limit'])) : '',
-					'base_price'    => (float) $row['base_price'],
-					'is_layover'    => (int) $row['is_layover'],
+					'db_id'          => $row['detail_id'],
+					'id'             => $row['detail_id'],
+					'direction'      => (int) $row['direction'],
+					'airline_code'   => $row['airline_code'],
+					'flight_number'  => $row['flight_number'],
+					'ticket_class'   => $row['ticket_class'],
+					'departure'      => $row['departure'],
+					'arrival'        => $row['arrival'],
+					'departure_date' => $row['departure_date'] != '' ? date($date_format, strtotime($row['departure_date'])) : '',
+					'departure_h'    => $row['departure_date'] != '' ? date('H', strtotime($row['departure_date'])) : '',
+					'departure_m'    => $row['departure_date'] != '' ? date('i', strtotime($row['departure_date'])) : '',
+					'arrival_date'   => $row['arrival_date'] != '' ? date($date_format, strtotime($row['arrival_date'])) : '',
+					'arrival_h'      => $row['arrival_date'] != '' ? date('H', strtotime($row['arrival_date'])) : '',
+					'arrival_m'      => $row['arrival_date'] != '' ? date('i', strtotime($row['arrival_date'])) : '',
+					'time_limit_date'=> $row['time_limit'] != '' ? date($date_format, strtotime($row['time_limit'])) : '',
+					'time_limit_h'   => $row['time_limit'] != '' ? date('H', strtotime($row['time_limit'])) : '',
+					'time_limit_m'   => $row['time_limit'] != '' ? date('i', strtotime($row['time_limit'])) : '',
+					'base_price'     => (float) $row['base_price'],
+					'is_layover'     => (int) $row['is_layover'],
 				];
 
-				if ($row['airline_code'] == 'BBA') {
-					$cus_ticket_class = '<select id="iti_ticket_class' . $i . '" name="iti_ticket_class[]">' . get_select_options_with_id($app_list_strings['bba_ticket_class_list'], $row['ticket_class']) . '</select>';
-				} else {
-					$cus_ticket_class = '<input type="text" maxlength="100" id="iti_ticket_class' . $i . '" name="iti_ticket_class[]" value="' . $row['ticket_class'] . '" />';
-				}
-
-
-				$detail_id = isset($_POST['isDuplicate']) && $_POST['isDuplicate'] == 'true' ? '' : $row['detail_id'];
-				$departure_date = $row['departure_date'] != '' ? date($date_format, strtotime($row['departure_date'])) : '';
-				$departure_h = $row['departure_date'] != '' ? date('H', strtotime($row['departure_date'])) : '';
-				$departure_m = $row['departure_date'] != '' ? date('i', strtotime($row['departure_date'])) : '';
-
-				$arrival_date = $row['arrival_date'] != '' ? date($date_format, strtotime($row['arrival_date'])) : '';
-				$arrival_h = $row['arrival_date'] != '' ? date('H', strtotime($row['arrival_date'])) : '';
-				$arrival_m = $row['arrival_date'] != '' ? date('i', strtotime($row['arrival_date'])) : '';
-
-				$time_limit_date = $row['time_limit'] != '' ? date($date_format, strtotime($row['time_limit'])) : '';
-				$time_limit_h = $row['time_limit'] != '' ? date('H', strtotime($row['time_limit'])) : '';
-				$time_limit_m = $row['time_limit'] != '' ? date('i', strtotime($row['time_limit'])) : '';
-
-				$html .= '<tr id="iti_line_' . $i . '">
-							<td data-label="Chiều"><select onchange="getAirlineCode(' . $i . ')" id="iti_direction' . $i . '" name="iti_direction[]" class="w-100" value=>' . get_select_options_with_id($app_list_strings['bk_direction_list'], (int) $row['direction']) . '</select></td>
-							<td data-label="Mã hãng"><input autocomplete="off" class="ac airline" type="text" maxlength="255" name="iti_airline_code[]" id="iti_airline_code' . $i . '" value="' . $row['airline_code'] . '" /></td>
-							<td data-label="Số hiệu"><input type="text" maxlength="10" name="iti_flight_number[]" id="iti_flight_number' . $i . '" value="' . $row['flight_number'] . '" /></td>
-							<td data-label="Hạng vé">' . $cus_ticket_class . '</td>
-							<td data-label="Nơi đi"><input autocomplete="off" class="ac airport" type="text" maxlength="255" name="iti_departure[]" id="iti_departure' . $i . '" value="' . $row['departure'] . '" /></td>
-							<td data-label="Nơi đến"><input autocomplete="off" class="ac airport" type="text" maxlength="255" name="iti_arrival[]" id="iti_arrival' . $i . '" value="' . $row['arrival'] . '" /></td>
-							<td data-label="Ngày giờ đi"><div class="d-flex align-items-center gap-1 align-middle"><div class="date-wrap d-flex w-65 gap-1"><input maxlength="10" type="text" name="iti_departure_date[]" id="iti_departure_date' . $i . '" value="' . $departure_date . '" /><img border="0" class="cursor-pointer" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="iti_departure_date_trigger' . $i . '" align="absmiddle" /></div><div class="time-wrap d-flex flex-fill align-items-center"><input class="datetime_h w-25-px text-center" type="text" name="iti_departure_h[]" id="iti_departure_h' . $i . '" value="' . $departure_h . '" maxlength="2" /><span>:</span><input class="datetime_m w-25-px text-center" type="text" name="iti_departure_m[]" id="iti_departure_m' . $i . '" value="' . $departure_m . '" maxlength="2" /></div></div></td>
-							<td data-label="Ngày giờ đến"><div class="d-flex align-items-center gap-1 align-middle"><div class="date-wrap d-flex w-65 gap-1"><input maxlength="10" type="text" name="iti_arrival_date[]" id="iti_arrival_date' . $i . '" value="' . $arrival_date . '" /><img border="0" class="cursor-pointer" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="iti_arrival_date_trigger' . $i . '" align="absmiddle" /></div><div class="time-wrap d-flex flex-fill align-items-center"><input class="datetime_h w-25-px text-center" type="text" name="iti_arrival_h[]" id="iti_arrival_h' . $i . '" value="' . $arrival_h . '" maxlength="2" /><span>:</span><input class="datetime_m w-25-px text-center" type="text" name="iti_arrival_m[]" id="iti_arrival_m' . $i . '" value="' . $arrival_m . '" maxlength="2" /></div></div></td>
-							<td data-label="Hạn giữ chỗ"><div class="d-flex align-items-center gap-1 align-middle"><div class="date-wrap d-flex w-65 gap-1"><input maxlength="10" type="text" name="iti_time_limit_date[]" id="iti_time_limit_date' . $i . '" value="' . $time_limit_date . '" /><img border="0" class="cursor-pointer" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="iti_time_limit_date_trigger' . $i . '" align="absmiddle" /></div><div class="time-wrap d-flex flex-fill align-items-center"><input class="datetime_h w-25-px text-center" type="text" name="iti_time_limit_h[]" id="iti_time_limit_h' . $i . '" value="' . $time_limit_h . '" maxlength="2" /><span>:</span><input class="datetime_m w-25-px text-center" type="text" name="iti_time_limit_m[]" id="iti_time_limit_m' . $i . '" value="' . $time_limit_m . '" maxlength="2" /></div></div></td>
-							<td data-label="Giá cơ bản"><input class="allow-number-only text-end" type="text" maxlength="20" name="iti_base_price[]" id="iti_base_price' . $i . '" value="' . format_number($row['base_price']) . '" /></td>
-							<td data-label="Transit" class="text-center align-middle">
-								<input ' . ($row['is_layover'] ? 'checked="checked"' : '') . ' type="checkbox" name="iti_is_layover_chk[]" id="iti_is_layover_chk' . $i . '" onchange="checkActive(\'iti_is_layover_chk' . $i . '\', \'iti_is_layover' . $i . '\')" />
-								<input type="hidden" name="iti_is_layover[]" id="iti_is_layover' . $i . '" value="' . $row['is_layover'] . '" />
-							</td>
-							<td data-label="Xóa dòng" class="text-center align-middle">
-								<button title="Xóa" type="button" onclick="markItineraryRowDeleted(' . $i . ')" class="button-remove-in-edit" >' . $this->icon_x . '</button>
-								<input type="hidden" value="0" name="iti_deleted[]" id="iti_deleted' . $i . '" />
-								<input type="hidden" name="iti_detail_id[]" id="iti_detail_id' . $i . '" value="' . $detail_id . '" />
-							</td>
-						</tr>';
-
+				// Lưu thông tin airline/ticket_class theo direction để dùng ở chỗ khác
 				if ($row['direction'] == '0') {
 					$this->_outbound_airline = $row['airline_code'];
 					$this->_outbound_ticket_class = $row['ticket_class'];
@@ -416,61 +356,67 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 
 				$i++;
 			}
-
-			$sep = my_get_number_separators();
-			$html .= '<tr id="iti_last_row" class="footer-tr">
-				<td colspan="12" class="text-start">
-					<input type="hidden" name="discount_percent_list" id="discount_percent_list" value="' . get_select_options_with_id($app_list_strings['discount_percent_list'], '') . '" />
-					<input type="hidden" name="direction_list" id="direction_list" value="' . get_select_options_with_id($app_list_strings['bk_direction_list'], '') . '" />
-					<input type="hidden" name="passenger_type_list" id="passenger_type_list" value="' . get_select_options_with_id($app_list_strings['passenger_type_list'], '') . '" />
-					<input type="hidden" name="passenger_salutation_list" id="passenger_salutation_list" value="' . get_select_options_with_id($app_list_strings['passenger_salutation_list'], '') . '" />
-					<input type="hidden" name="vna_luggage_price_list" id="vna_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['vietnamair_luggage_price_list2'], '') . '" />
-					<input type="hidden" name="vnp_luggage_price_list" id="vnp_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['pacificair_luggage_price_list'], '') . '" />
-					<input type="hidden" name="vja_luggage_price_list" id="vja_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['new_vietjet_luggage_price_list'], '') . '" />
-					<input type="hidden" name="bba_luggage_price_list" id="bba_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['bambooair_luggage_price_list'], '') . '" />
-					<input type="hidden" name="vta_luggage_price_list" id="vta_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['new_vietravel_luggage_price_list2'], '') . '" />
-					<input type="hidden" id="grp_seperator" name="grp_seperator" value="' . $sep[0] . '" />
-					<input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />
-					<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />
-					<input type="hidden" id="cal_date_format" name="cal_date_format" value="' . $cal_date_format . '" />
-					<input type="hidden" id="iti_row_count" name="iti_row_count" value="' . $row_count . '" />
-					<input type="hidden" id="booking_prev_name" name="booking_prev_name" value="' . $booking_prev_name . '" />
-					<input type="hidden" id="journey" name="journey" value="' . $this->_journey . '" />
-					<input type="button" class="btn btn-primary" id="btnItineraryAddRow" value="Thêm dòng" title="Thêm dòng" />
-					Số dòng = <label id="lbl_iti_row_count">' . $row_count . '</label>
-				</td>
-			</tr>';
-			$html .= '</table>';
-		} else {
-			// Tạo mới hành trình
-			$sep = my_get_number_separators();
-			$html .= '<tr id="iti_last_row" class="footer-tr">
-						<td colspan="12" class="text-start">
-							<input type="hidden" name="discount_percent_list" id="discount_percent_list" value="' . get_select_options_with_id($app_list_strings['discount_percent_list'], '') . '" />
-							<input type="hidden" name="direction_list" id="direction_list" value="' . get_select_options_with_id($app_list_strings['bk_direction_list'], '') . '" />
-							<input type="hidden" name="passenger_type_list" id="passenger_type_list" value="' . get_select_options_with_id($app_list_strings['passenger_type_list'], '') . '" />
-							<input type="hidden" name="passenger_salutation_list" id="passenger_salutation_list" value="' . get_select_options_with_id($app_list_strings['passenger_salutation_list'], '') . '" />
-							<input type="hidden" name="vna_luggage_price_list" id="vna_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['vietnamair_luggage_price_list2'], '') . '" />
-							<input type="hidden" name="vnp_luggage_price_list" id="vnp_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['pacificair_luggage_price_list'], '') . '" />
-							<input type="hidden" name="vja_luggage_price_list" id="vja_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['new_vietjet_luggage_price_list'], '') . '" />
-							<input type="hidden" name="bba_luggage_price_list" id="bba_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['bambooair_luggage_price_list'], '') . '" />
-							<input type="hidden" name="vta_luggage_price_list" id="vta_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['new_vietravel_luggage_price_list2'], '') . '" />
-							<input type="hidden" id="grp_seperator" name="grp_seperator" value="' . $sep[0] . '" />
-							<input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />
-							<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />
-							<input type="hidden" id="cal_date_format" name="cal_date_format" value="' . $cal_date_format . '" />
-							<input type="hidden" id="iti_row_count" name="iti_row_count" value="' . $row_count . '" />
-							<input type="hidden" id="booking_prev_name" name="booking_prev_name" value="' . $booking_prev_name . '" />
-							<input type="button" class="btn btn-primary" id="btnItineraryAddRow" value="Thêm dòng" title="Thêm dòng" />
-							Số dòng = <label id="lbl_iti_row_count">0</label>
-						</td>
-					</tr>';
-			$html .= '<input type="hidden" id="iti_data_json" value=\'' . htmlspecialchars(json_encode($itineraries_data), ENT_QUOTES, 'UTF-8') . '\' />';
-		$html .= '</table>';
 		}
 
+		/**
+		 * BƯỚC 2: TẠO HTML KHUNG BẢNG (không render row ở PHP)
+		 * - Header
+		 * - <tbody id="iti_tbody"></tbody> rỗng để JS render
+		 * - Footer với các input hidden cần thiết + JSON data
+		 */
+		$sep = my_get_number_separators();
+
+		$html  = '<table id="tbl_line_itineraries" class="table-vertical__mobile table-edit__booking table-details__booking" border="0" cellpadding="0" cellspacing="0">';
+		$html .= '<thead>
+				<tr id="iti_first_row">
+					<th scope="col" style="width:8%;" class="text-center">Chiều</th>
+					<th scope="col" style="width:5%;" class="text-center">Mã hãng</th>
+					<th scope="col" style="width:7%;" class="text-center">Số hiệu</th>
+					<th scope="col" style="width:11%;" class="text-center">Hạng vé</th>
+					<th scope="col" style="width:5%;" class="text-center">Nơi đi</th>
+					<th scope="col" style="width:5%;" class="text-center">Nơi đến</th>
+					<th scope="col" style="width:14%;" class="text-center">Ngày giờ đi</th>
+					<th scope="col" style="width:14%;" class="text-center">Ngày giờ đến</th>
+					<th scope="col" style="width:14%;" class="text-center">Hạn giữ chỗ</th>
+					<th scope="col" style="width:8%;" class="text-center">Giá cơ bản</th>
+					<th scope="col" style="width:2%;" class="text-center">Quá cảnh</th>
+					<th scope="col" style="width:3%;" class="text-center">&nbsp;</th>
+				</tr>
+			</thead>';
+		$html .= '<tbody id="iti_tbody"></tbody>';
+		$html .= '<tr id="iti_last_row" class="footer-tr">';
+		$html .= '<td colspan="12" class="text-start">';
+		$html .= '<input type="hidden" name="discount_percent_list" id="discount_percent_list" value="' . get_select_options_with_id($app_list_strings['discount_percent_list'], '') . '" />';
+		$html .= '<input type="hidden" name="direction_list" id="direction_list" value="' . get_select_options_with_id($app_list_strings['bk_direction_list'], '') . '" />';
+		$html .= '<input type="hidden" name="passenger_type_list" id="passenger_type_list" value="' . get_select_options_with_id($app_list_strings['passenger_type_list'], '') . '" />';
+		$html .= '<input type="hidden" name="passenger_salutation_list" id="passenger_salutation_list" value="' . get_select_options_with_id($app_list_strings['passenger_salutation_list'], '') . '" />';
+		$html .= '<input type="hidden" name="vna_luggage_price_list" id="vna_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['vietnamair_luggage_price_list2'], '') . '" />';
+		$html .= '<input type="hidden" name="vnp_luggage_price_list" id="vnp_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['pacificair_luggage_price_list'], '') . '" />';
+		$html .= '<input type="hidden" name="vja_luggage_price_list" id="vja_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['new_vietjet_luggage_price_list'], '') . '" />';
+		$html .= '<input type="hidden" name="bba_luggage_price_list" id="bba_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['bambooair_luggage_price_list'], '') . '" />';
+		$html .= '<input type="hidden" name="vta_luggage_price_list" id="vta_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['new_vietravel_luggage_price_list2'], '') . '" />';
+		$html .= '<input type="hidden" name="bba_ticket_class_list" id="bba_ticket_class_list" value="' . get_select_options_with_id($app_list_strings['bba_ticket_class_list'], '') . '" />';
+		$html .= '<input type="hidden" id="grp_seperator" name="grp_seperator" value="' . $sep[0] . '" />';
+		$html .= '<input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />';
+		$html .= '<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />';
+		$html .= '<input type="hidden" id="cal_date_format" name="cal_date_format" value="' . $cal_date_format . '" />';
+		$html .= '<input type="hidden" id="iti_row_count" name="iti_row_count" value="' . $row_count . '" />';
+		$html .= '<input type="hidden" id="booking_prev_name" name="booking_prev_name" value="' . $booking_prev_name . '" />';
+		$html .= '<input type="hidden" id="journey" name="journey" value="' . $this->_journey . '" />';
+		$html .= '<input type="hidden" id="iti_data_json" value=\'' . htmlspecialchars(json_encode($itineraries_data), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<input type="button" class="btn btn-primary" id="btnItineraryAddRow" value="Thêm dòng" title="Thêm dòng" />';
+		$html .= ' Số dòng = <label id="lbl_iti_row_count">' . $row_count . '</label>';
+		$html .= '</td>';
+		$html .= '</tr>';
+		$html .= '</table>';
+
+		/**
+		 * BƯỚC 3: GỬI DỮ LIỆU VỀ TEMPLATE
+		 */
+		// Gửi HTML khung bảng (row sẽ được render bằng JS)
 		$this->ss->assign('LINE_ITINERARIES', $html);
 	}
+
 
 	/* CHỈNH SỬA CHI TIẾT VÉ */
 	function populateLineDetails()
@@ -481,7 +427,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		// User permission
 		$supplier_list = str_replace('"', "'", myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', '', 'id', $supplier_cus_sql));
 
-		$sql = "SELECT id AS detail_id 
+		$sql = "SELECT id AS detail_id
 					   ,direction
 					   ,passenger_type
 					   ,quantity
@@ -500,19 +446,50 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 				AND deleted = 0
 				ORDER BY direction, passenger_type, date_entered ";
 
-		// if($current_user->user_name == 'hungnh'){
-		// 	pr($sql);
-		// }
-
 		$res = $this->bean->db->query($sql);
-		// $row_count = $this->bean->db->getRowCount($res);
 		$row_count = $this->bean->db->countRows($res);
 		$row_count = !empty($row_count) ? $row_count : 0;
-		// [REFACTOR] init data array for JSON output
-		$details_data = [];
 
-		$html = '';
-		$html .= '<table id="tbl_line_details" class="table-vertical__mobile table-edit__booking table-details__booking" cellpadding="0" cellspacing="0" border="0">';
+		/**
+		 * BƯỚC 1: THU THẬP DỮ LIỆU THÀNH MẢNG (CHỈ DỮ LIỆU, KHÔNG HTML)
+		 * Row sẽ được render bằng JS (`renderInitialDetails()` + `insertDetailLine(ln)`).
+		 */
+		$details_data = [];
+		if (!empty($this->bean->id)) {
+			while ($row = $this->bean->db->fetchByAssoc($res)) {
+				$details_data[] = [
+					'db_id'              => $row['detail_id'],
+					'id'                 => $row['detail_id'],
+					'direction'          => (int) $row['direction'],
+					'passenger_type'     => (int) $row['passenger_type'],
+					'quantity'           => (int) $row['quantity'],
+					'unit_price'         => (float) $row['unit_price'],
+					'tax_and_fee'        => (float) $row['tax_and_fee'],
+					'airport_fee'        => (float) $row['airport_fee'],
+					'admin_fee'          => (float) $row['admin_fee'],
+					'admin_fee_no_vat'   => (float) $row['admin_fee_no_vat'],
+					'vat_admin'          => (float) $row['vat_admin'],
+					'service_fee'        => (float) $row['service_fee'],
+					'total_price'        => (float) $row['total_price'],
+					'total_bought_price' => (float) ((float) $row['total_bought_price'] ? $row['total_bought_price'] : ($row['total_price'] - ($row['service_fee']) * $row['quantity'])),
+					'fee_bought'         => (float) $row['fee_bought'],
+					'supplier_id'        => $row['supplier_id'],
+					'supplier_discount'  => (float) $row['supplier_discount'],
+				];
+			}
+		}
+
+		$total_qty = isset($_POST['total_qty']) && !empty($_POST['total_qty']) ? $_POST['total_qty'] : (isset($this->bean->total_qty) ? $this->bean->total_qty : 0);
+		$subtotal_amount = isset($_POST['subtotal_amount']) && !empty($_POST['subtotal_amount']) ? $_POST['subtotal_amount'] : (isset($this->bean->subtotal_amount) ? $this->bean->subtotal_amount : 0);
+		$total_bought_amount = isset($_POST['total_bought_amount']) && !empty($_POST['total_bought_amount']) ? $_POST['total_bought_amount'] : (isset($this->bean->total_bought_amount) ? $this->bean->total_bought_amount : 0);
+
+		/**
+		 * BƯỚC 2: TẠO HTML KHUNG BẢNG (không render row ở PHP)
+		 * - Header
+		 * - <tbody id="bkd_tbody"></tbody> rỗng để JS render
+		 * - Footer với các input hidden cần thiết + JSON data
+		 */
+		$html  = '<table id="tbl_line_details" class="table-vertical__mobile table-edit__booking table-details__booking" cellpadding="0" cellspacing="0" border="0">';
 		$html .= '<thead>
 				<tr id="bkd_first_row">
 					<th scope="col" style="width:7%;" class="text-center fw-semibold">Chiều</th>
@@ -531,123 +508,35 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 					<th scope="col" style="width:3%;" class="text-center fw-semibold">&nbsp;</th>
 				</tr>
 			</thead>';
-
-		// Chỉnh sửa chi tiết vé
-		if (!empty($this->bean->id)) {
-			$i = 0;
-			$html .= '<tbody>';
-			while ($row = $this->bean->db->fetchByAssoc($res)) {
-				$detail_id = isset($_POST['isDuplicate']) && $_POST['isDuplicate'] == 'true' ? '' : $row['detail_id'];
-
-				// [REFACTOR] collect data for JSON output
-				$details_data[] = [
-					'db_id'              => $row['detail_id'],
-					'direction'          => (int) $row['direction'],
-					'passenger_type'     => (int) $row['passenger_type'],
-					'quantity'           => (int) $row['quantity'],
-					'unit_price'         => (float) $row['unit_price'],
-					'tax_and_fee'        => (float) $row['tax_and_fee'],
-					'airport_fee'        => (float) $row['airport_fee'],
-					'admin_fee'          => (float) $row['admin_fee'],
-					'admin_fee_no_vat'   => (float) $row['admin_fee_no_vat'],
-					'vat_admin'          => (float) $row['vat_admin'],
-					'service_fee'        => (float) $row['service_fee'],
-					'total_price'        => (float) $row['total_price'],
-					'total_bought_price' => (float) ((float) $row['total_bought_price'] ? $row['total_bought_price'] : ($row['total_price'] - ($row['service_fee']) * $row['quantity'])),
-					'fee_bought'         => (float) $row['fee_bought'],
-					'supplier_id'        => $row['supplier_id'],
-					'supplier_discount'  => (float) $row['supplier_discount'],
-				];
-
-				$html .= '<tr id="bkd_line_' . $i . '" class="bkd_line fw-semibold">
-							<td data-label="Chiều"><select class="w-100" name="bkd_direction[]" id="bkd_direction' . $i . '" >' . get_select_options_with_id($app_list_strings['bk_direction_list'], (int) $row['direction']) . '</select></td>
-							<td data-label="Loại HK"><select class="w-100" name="bkd_passenger_type[]" id="bkd_passenger_type' . $i . '">' . get_select_options_with_id($app_list_strings['passenger_type_list'], (int) $row['passenger_type']) . '</select></td>
-							<td data-label="SL"><input class="allow-number-only text-center" onblur="calculateLineTotal(' . $i . ')" type="text" name="bkd_quantity[]" id="bkd_quantity' . $i . '" value="' . format_number($row['quantity']) . '" maxlength="3" /></td>
-							<td data-label="Giá cơ bản"><input class="allow-number-only text-center" onblur="calculateLineTotal(' . $i . ')" onkeyup="calculateLineTotal(' . $i . ', 0, 1)" type="text" name="bkd_unit_price[]" id="bkd_unit_price' . $i . '" value="' . format_number($row['unit_price']) . '" maxlength="25" /></td>
-							<td data-label="VAT"><input class="allow-number-only text-center" onblur="calculateLineTotal(' . $i . ')" type="text" name="bkd_tax_and_fee[]" id="bkd_tax_and_fee' . $i . '" value="' . format_number($row['tax_and_fee']) . '" maxlength="25" /></td>
-							<td data-label="Phí sân bay"><input class="allow-number-only text-center" onblur="calculateLineTotal(' . $i . ')" type="text" name="bkd_airport_fee[]" id="bkd_airport_fee' . $i . '" value="' . format_number($row['airport_fee']) . '" maxlength="25" /></td>
-							<td data-label="Phí admin"><input class="allow-number-only text-center" onblur="calculateLineTotal(' . $i . ', 1)" type="text" name="bkd_admin_fee[]" id="bkd_admin_fee' . $i . '" value="' . format_number($row['admin_fee']) . '" maxlength="25" /></td>
-							<td data-label="Phí dịch vụ"><input class="allow-number-only text-center" onblur="calculateLineTotal(' . $i . ')" type="text" name="bkd_service_fee[]" id="bkd_service_fee' . $i . '" value="' . format_number($row['service_fee']) . '" maxlength="25" /></td>
-							<td data-label="Thành tiền"><input class="allow-number-only text-center" onblur="calculateLineTotal(' . $i . ')" type="text" name="bkd_total_price[]" id="bkd_total_price' . $i . '" value="' . format_number($row['total_price']) . '" maxlength="25" /></td>
-							<td data-label="Giá mua"><input class="allow-number-only text-center" onblur="calculateLineTotal(' . $i . ');" type="text" name="bkd_total_bought_price[]" id="bkd_total_bought_price' . $i . '" value="' . ((float) $row['total_bought_price'] ? format_number($row['total_bought_price']) : format_number($row['total_price'] - ($row['service_fee']) * $row['quantity'])) . '" maxlength="25" /></td>
-							<td data-label="Chiết khấu"><input class="allow-number-only text-center" onblur="calculateLineTotal(' . $i . ');" type="text" name="bkd_supplier_discount[]" id="bkd_supplier_discount' . $i . '" value="' . format_number($row['supplier_discount']) . '" maxlength="25" /></td>
-							<td data-label="Phí xuất vé"><input class="allow-number-only text-center" onblur="calculateLineTotal(' . $i . ');" id="bkd_supplier_ticketing_fee' . $i . '" type="text" name="bkd_supplier_ticketing_fee[]" value="' . format_number($row['fee_bought']) . '" maxlength="25"></td>
-							<td data-label="NCC"><select class="box-select bkd_select_supplier" id="bkd_supplier_id' . $i . '" name="bkd_supplier_id[]"><option value=""></option>' . myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', $row['supplier_id'], 'id', $supplier_cus_sql) . '</select></td>
-							<td data-label="Xóa dòng" class="align-middle text-center"><button title="Xóa" type="button" onclick="markDetailRowDeleted(' . $i . ')" style="background:transparent; border:0;" >' . $this->icon_x . '</button><input type="hidden" value="0" name="bkd_deleted[]" id="bkd_deleted' . $i . '" /><input type="hidden" name="bkd_detail_id[]" id="bkd_detail_id' . $i . '" value="' . $detail_id . '" /></td>
-						</tr>';
-
-				// Thêm dòng phí admin chưa VAT
-				$html .= '<tr id="bkd_admin_line_' . $i . '">';
-				$html .= '<td data-label="Chi tiết phí Admin" colspan="15">
-							<div class="addmin-fee-wrap d-flex gap-3 align-items-center">
-								<div class="d-flex gap-1 align-items-center admin-fee-not-vat">
-									<span class="text-label">Phí admin chưa VAT:</span>
-									<input type="text" class="allow-number-only detail_ticket_input" name="bkd_admin_fee_no_vat[]" id="bkd_admin_fee_no_vat' . $i . '" onkeyup="calculateRelateAdminFee(' . $i . ');" onpaste="setTimeout(function(){calculateRelateAdminFee(' . $i . ');}, 10);" value="' . format_number($row['admin_fee_no_vat']) . '"/> 
-								</div>
-								<div class="d-flex gap-1 align-items-center admin-fee-vat">
-									<span class="text-label">VAT admin: </span>
-									<input type="text" class="allow-number-only detail_ticket_input" name="bkd_vat_admin[]" id="bkd_vat_admin' . $i . '" onkeyup="calculateRelateAdminFee(' . $i . ', 1);" onpaste="setTimeout(function(){calculateRelateAdminFee(' . $i . ', 1);}, 10);" value="' . format_number($row['vat_admin']) . '"/>
-								</div>
-							</div>
-						</td>';
-				$html .= '</tr>';
-
-				$i++;
-			}
-
-			$total_qty = isset($_POST['total_qty']) && !empty($_POST['total_qty']) ? $_POST['total_qty'] : (isset($this->bean->total_qty) ? $this->bean->total_qty : 0);
-			$subtotal_amount = isset($_POST['subtotal_amount']) && !empty($_POST['subtotal_amount']) ? $_POST['subtotal_amount'] : (isset($this->bean->subtotal_amount) ? $this->bean->subtotal_amount : 0);
-			$total_bought_amount = isset($_POST['total_bought_amount']) && !empty($_POST['total_bought_amount']) ? $_POST['total_bought_amount'] : (isset($this->bean->total_bought_amount) ? $this->bean->total_bought_amount : 0);
-
-			// Total
-			$html .= '<tr id="bkd_last_row" class="footer-tr">
-				<td colspan="2">
-					<input type="hidden" name="bkd_row_count" id="bkd_row_count" value="' . $row_count . '" />
-					<input type="hidden" name="supplier_list" id="supplier_list" value="' . $supplier_list . '" />
-					<div class="d-flex align-items-center gap-2">
-						<input type="button" class="btn btn-primary" id="btnDetailAddRow" value="Thêm dòng" title="Thêm dòng" />
-						<p>Số dòng = <span id="lbl_bkd_row_count">' . $row_count . '</span></p>
-					</div>
-				</td>
-				<td data-label="Tổng số vé"><input type="text" readonly="readonly" name="total_qty" id="total_qty" value="' . format_number($total_qty) . '" /></td>
-				<td class="hide-mobile"  colspan="5"></td>
-				<td data-label="Tổng thành tiền" class="text-center">
-					<input type="text" class="text-danger" readonly="readonly" name="subtotal_amount" id="subtotal_amount" value="' . format_number($subtotal_amount) . '" />
-				</td>
-				<td data-label="Tổng giá mua" class="text-center">
-					<input type="text" class="text-danger" readonly="readonly" name="total_bought_amount" id="total_bought_amount" value="' . format_number($total_bought_amount) . '" />
-				</td>
-				<td class="hide-mobile" colspan="4"></td>
-			</tr>';
-			$html .= '</tbody>';
-		} else {
-			// TẠO MỚI CHI TIẾT VÉ
-			$html .= '<tr id="bkd_last_row" class="footer-tr">
-						<td colspan="2" style="margin-top: 3px;">
-							<input type="hidden" name="bkd_row_count" id="bkd_row_count" value="0" />
-							<input type="hidden" name="supplier_list" id="supplier_list" value="' . $supplier_list . '" />
-							<div class="d-flex align-items-center gap-2">
-								<input type="button" class="btn btn-primary" id="btnDetailAddRow" value="Thêm dòng" title="Thêm dòng" />
-								<p>Số dòng = <span id="lbl_bkd_row_count">0</span></p>
-							</div>
-						</td>
-						<td><input type="text" readonly="readonly" name="total_qty" id="total_qty" value="0" /></td>
-						<td colspan="5"></td>
-						<td class="text-center">
-							<input type="text" class="text-danger" readonly="readonly" name="subtotal_amount" id="subtotal_amount" value="0" />
-						</td>
-						<td class="text-center">
-							<input type="text" class="text-danger" readonly="readonly" name="total_bought_amount" id="total_bought_amount" value="0" />
-						</td>
-						<td colspan="4"></td>
-					</tr>';
-		}
-
+		$html .= '<tbody id="bkd_tbody"></tbody>';
+		$html .= '<tr id="bkd_last_row" class="footer-tr">';
+		$html .= '<td colspan="2">';
+		$html .= '<input type="hidden" name="bkd_row_count" id="bkd_row_count" value="' . $row_count . '" />';
+		$html .= '<input type="hidden" name="supplier_list" id="supplier_list" value="' . $supplier_list . '" />';
 		$html .= '<input type="hidden" id="bkd_data_json" value=\'' . htmlspecialchars(json_encode($details_data), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<div class="d-flex align-items-center gap-2">';
+		$html .= '<input type="button" class="btn btn-primary" id="btnDetailAddRow" value="Thêm dòng" title="Thêm dòng" />';
+		$html .= '<p>Số dòng = <span id="lbl_bkd_row_count">' . $row_count . '</span></p>';
+		$html .= '</div>';
+		$html .= '</td>';
+		$html .= '<td data-label="Tổng số vé"><input type="text" readonly="readonly" name="total_qty" id="total_qty" value="' . format_number($total_qty) . '" /></td>';
+		$html .= '<td class="hide-mobile" colspan="5"></td>';
+		$html .= '<td data-label="Tổng thành tiền" class="text-center">';
+		$html .= '<input type="text" class="text-danger" readonly="readonly" name="subtotal_amount" id="subtotal_amount" value="' . format_number($subtotal_amount) . '" />';
+		$html .= '</td>';
+		$html .= '<td data-label="Tổng giá mua" class="text-center">';
+		$html .= '<input type="text" class="text-danger" readonly="readonly" name="total_bought_amount" id="total_bought_amount" value="' . format_number($total_bought_amount) . '" />';
+		$html .= '</td>';
+		$html .= '<td class="hide-mobile" colspan="4"></td>';
+		$html .= '</tr>';
 		$html .= '</table>';
+
+		/**
+		 * BƯỚC 3: GỬI DỮ LIỆU VỀ TEMPLATE
+		 */
+		// Gửi HTML khung bảng (row sẽ được render bằng JS)
 		$this->ss->assign('LINE_DETAILS', $html);
 	}
-
 	/* HÀNH KHÁCH */
 	function populateLinePassengersOld()
 	{
