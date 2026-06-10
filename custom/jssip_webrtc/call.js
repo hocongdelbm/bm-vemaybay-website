@@ -215,11 +215,7 @@ ua.on('newRTCSession', function (ev) {
             // Set readonly cho field SĐT khi incoming call confirmed
             // Nếu đã có SĐT thì readonly, ngược lại để trống và cho phép nhập
             let incomingPhone = $('#voiceip-phone').val().trim();
-            if (incomingPhone.length > 0) {
-                $('#voiceip-phone').prop('readonly', true);
-            } else {
-                $('#voiceip-phone').prop('readonly', false);
-            }
+            $('#voiceip-phone').prop('readonly', phone.length > 0);
 
             $(document).on('click', '.calc-number', function () {
                 let dtml_value = $("#display_dtmf").html().trim();
@@ -1209,7 +1205,7 @@ if ('serviceWorker' in navigator) {
 
                         $('#voiceip-info-phone').html(phone);
                         $('#voiceip-phone').val(phone || zaloid);
-                        $('#voiceip-phone').prop('readonly', true);
+                        $('#voiceip-phone').prop('readonly', phone.length > 0);
 
                         if (zaloid.length > 0) {
                             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zaloid}`);
