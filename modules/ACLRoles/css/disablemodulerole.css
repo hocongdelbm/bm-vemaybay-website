@@ -1,0 +1,349 @@
+/* ── DisableModuleRole: Two-column picker ── */
+
+/* Layout 2 cột */
+.dmr-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Panel (Roles / Modules) */
+.dmr-panel {
+    border: 1.5px solid var(--clr-border);
+    border-radius: var(--drm-radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.dmr-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f8faff;
+    border-bottom: 1.5px solid var(--clr-border);
+}
+
+.dmr-panel__title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--clr-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Badge đếm số đã chọn */
+.dmr-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--clr-primary);
+    color: #fff;
+    transition: all .2s ease;
+}
+
+.dmr-badge:empty,
+.dmr-badge[data-count="0"] {
+    background: var(--clr-border);
+    color: var(--clr-muted);
+}
+
+/* Checkbox chọn tất cả */
+.dmr-select-all {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--clr-primary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.dmr-select-all input[type="checkbox"] {
+    accent-color: var(--clr-primary);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+
+/* Search input */
+.dmr-search-wrap {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--clr-border);
+    background: #fff;
+}
+
+.dmr-search {
+    width: 100%;
+    padding: 7px 12px;
+    border: 1.5px solid var(--clr-border);
+    border-radius: var(--drm-radius-sm);
+    font-size: 12px;
+    font-family: var(--drm-font);
+    color: var(--clr-text);
+    background: #f8faff;
+    transition: border-color .15s;
+    box-sizing: border-box;
+}
+
+.dmr-search:focus {
+    outline: none;
+    border-color: var(--clr-primary);
+    background: #fff;
+}
+
+.dmr-search::placeholder {
+    color: var(--clr-muted);
+}
+
+/* List container */
+.dmr-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 360px;
+    padding: 6px;
+    background: #fff;
+}
+
+.dmr-list::-webkit-scrollbar { width: 5px; }
+.dmr-list::-webkit-scrollbar-track { background: transparent; }
+.dmr-list::-webkit-scrollbar-thumb { background: var(--clr-border); border-radius: 3px; }
+
+/* Item trong list */
+.dmr-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--drm-radius-sm);
+    cursor: pointer;
+    transition: background .1s ease;
+    position: relative;
+    user-select: none;
+}
+
+.dmr-item:hover {
+    background: #f0f4ff;
+}
+
+.dmr-item input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Checked state */
+.dmr-item:has(input:checked) {
+    background: #eff4ff;
+    border: 1px solid #c7d9ff;
+    margin: -1px;
+}
+
+.dmr-item__check {
+    margin-left: auto;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1.5px solid var(--clr-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: transparent;
+    flex-shrink: 0;
+    transition: all .15s ease;
+    background: #fff;
+}
+
+.dmr-item:has(input:checked) .dmr-item__check {
+    background: var(--clr-primary);
+    border-color: var(--clr-primary);
+    color: #fff;
+}
+
+/* Avatar (cho roles) */
+.dmr-item__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+    color: var(--clr-primary);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: var(--drm-mono);
+}
+
+.dmr-item:has(input:checked) .dmr-item__avatar {
+    background: linear-gradient(135deg, var(--clr-primary), var(--clr-primary-dk));
+    color: #fff;
+}
+
+/* Icon module */
+.dmr-item__mod-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    color: var(--clr-success);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.dmr-item--ec .dmr-item__mod-icon {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    color: #d97706;
+}
+
+.dmr-item:has(input:checked) .dmr-item__mod-icon {
+    background: linear-gradient(135deg, var(--clr-success), #15803d);
+    color: #fff;
+}
+
+.dmr-item__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.dmr-item__name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--clr-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dmr-item__desc {
+    font-size: 11px;
+    color: var(--clr-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+}
+
+/* Hidden item (khi filter) */
+.dmr-item--hidden {
+    display: none;
+}
+
+/* Summary bar */
+.dmr-summary {
+    padding: 12px 16px;
+    border-radius: var(--drm-radius-sm);
+    background: #f0f4ff;
+    border: 1.5px solid #c7d9ff;
+    margin-bottom: 20px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
+
+.dmr-summary__text {
+    font-size: 13px;
+    color: var(--clr-primary);
+    font-weight: 500;
+}
+
+/* ── Confirm step: module table ── */
+.dmr-module-table {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 8px;
+    border-radius: var(--drm-radius-sm);
+    background: rgba(0,0,0,.2);
+    border: 1px solid rgba(255,255,255,.06);
+}
+
+.dmr-module-table::-webkit-scrollbar { width: 5px; }
+.dmr-module-table::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 3px; }
+
+.dmr-module-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.06);
+}
+
+.dmr-module-row__name {
+    font-family: var(--drm-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: #e2e8f0;
+    min-width: 160px;
+    padding-top: 2px;
+    flex-shrink: 0;
+}
+
+.dmr-module-row__name--ec {
+    color: #fde68a;
+}
+
+.dmr-module-row__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+/* Action badge trên confirm */
+.dmr-act {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.dmr-act code {
+    font-family: var(--drm-mono);
+    font-size: 10px;
+}
+
+.dmr-act--98 {
+    background: rgba(251,191,36,.15);
+    color: #fde68a;
+    border: 1px solid rgba(251,191,36,.25);
+}
+
+.dmr-act--99 {
+    background: rgba(220,38,38,.2);
+    color: #fca5a5;
+    border: 1px solid rgba(220,38,38,.25);
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+    .dmr-columns {
+        grid-template-columns: 1fr;
+    }
+    .dmr-list {
+        max-height: 220px;
+    }
+}

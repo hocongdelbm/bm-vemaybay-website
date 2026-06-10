@@ -48,7 +48,8 @@ class entryFareSystemClass extends entryClass
             "chd" => 1,
             "inf" => 1,
             "options" => [
-                "isLive" => $isLive
+                "isLive" => $isLive,
+                "promoCode" => "VJSALE20"
             ]
         ];
 

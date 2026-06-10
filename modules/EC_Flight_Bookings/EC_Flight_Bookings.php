@@ -86,16 +86,10 @@ class EC_Flight_Bookings extends Basic
 	public $is_output_invoice_checked;
 	public $is_invoice_input_export;
 	public $is_mail_confirm;
-
-	public $point_step = 50;
+	
+	// Attributes are not included in vardefs
 	public $contact_name_ignore = ['THAM KHAO', 'TEST', 'IT', 'DEMO'];
-	public $list_website_new_baggage = [
-		'dc22131a-795a-6cd3-2caa-52d40d3b5622', // vietjet.net
-		'557d4a5b-27ce-5cb1-4531-5800ab9ed31d', // timchuyenbay.com
-		'2b2c93b3-e916-113c-29bc-5b4c6de75db4', // timchuyenbay.vn
-		'd83ad3f6-3b3b-ba7b-f046-5512bad66c66', // Booking android
-		'940beedb-4f03-0e00-1a16-5456ebc43fc0' // vemaybay5s.com
-	];
+	public $point_step = 50;
 	public $_isNewBooking = false;
 	public $_isDuplicate = false;
 
@@ -1393,9 +1387,7 @@ class EC_Flight_Bookings extends Basic
 		$timeFormat = $current_user->getPreference('timef') ?? $sugar_config['timef'] ?? 'H:i';
 
 		// $date_entered = str_replace("/", "-", trim($date_entered));
-		if (strtotime($date_entered) > strtotime("$dateFormat $timeFormat") 
-			// || in_array($created_by, $this->list_website_new_baggage)
-		) return true;
+		if (strtotime($date_entered) > strtotime("$dateFormat $timeFormat")) return true;
 		return false;
 	}
 
@@ -1419,7 +1411,6 @@ class EC_Flight_Bookings extends Basic
 
 			$result = ['available' => '', 'purchase' => ''];
 
-			// if (in_array($createdBy, $this->list_website_new_baggage)) {
 			if ($this->isUseNewBaggage($dateEntered, $createdBy)) {
 				$result['available'] = Baggage::renderAvailableBaggage($bagIndex, $language);
 			}

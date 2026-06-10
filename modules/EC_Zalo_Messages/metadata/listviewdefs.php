@@ -44,16 +44,40 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 $module_name = 'EC_Zalo_Messages';
 $listViewDefs[$module_name] = array(
-    'NAME' => array(
-        'width' => '32',
-        'label' => 'LBL_NAME',
+    'MESSAGE_ID' => array(
+        'width' => '20',
+        'label' => 'Mã tin nhắn',
         'default' => true,
-        'link' => true
+        'link' => true,
+        'name' => 'message_id',
+    ),
+    'FROM_ID' => array(
+        'width' => '15',
+        'label' => 'Từ ID',
+        'default' => true,
+        'name' => 'from_id',
+    ),
+    'TO_ID' => array(
+        'width' => '15',
+        'label' => 'Tới ID',
+        'default' => true,
+        'name' => 'to_id',
+    ),
+    'DATE_ENTERED' => array(
+        'width' => '15',
+        'label' => 'Ngày tạo',
+        'default' => true,
+        'name' => 'date_entered',
+    ),
+    'TYPE' => array(
+        'width' => '10',
+        'label' => 'Loại tin nhắn',
+        'default' => true,
+        'name' => 'type',
     ),
     'ASSIGNED_USER_NAME' => array(
-        'width' => '9',
-        'label' => 'LBL_ASSIGNED_TO_NAME',
-        'module' => 'Employees',
+        'width' => '12',
+        'label' => 'Người phụ trách',
         'id' => 'ASSIGNED_USER_ID',
         'default' => true
     ),

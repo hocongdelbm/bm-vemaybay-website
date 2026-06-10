@@ -788,7 +788,9 @@ class APIZaloOA {
             case 'cheap-flight':
                 return "549919"; // Gửi vé giá rẻ booking tham khảo (CSKH)
             case 'otp':
-                return "518686"; // Gửi OTP qua SĐT
+                return "518686"; // Gửi tin tri ân, du lịch hè vi vu
+            case 'promotional-summer':
+                return "588680";
             default:
                 return "";
         }
@@ -824,6 +826,8 @@ class APIZaloOA {
                 return "Gửi OTP";
             case '549919':
                 return "Gửi vé giá rẻ booking tham khảo (CSKH)";
+             case '588680':
+                return "Tri ân, du lịch hè vi vu";
             default:
                 return "";
         }
@@ -849,6 +853,10 @@ class APIZaloOA {
             "549919" => [
                 "phone_number" => 200,
                 "uid" => 140,
+            ],
+            "588680" => [
+                "phone_number" => 400,
+                "uid" => 280,
             ],
         ];
         return $arr[(string)$template_id][$send_by] ?? 200;
