@@ -1205,7 +1205,7 @@ if ('serviceWorker' in navigator) {
 
                         $('#voiceip-info-phone').html(phone);
                         $('#voiceip-phone').val(phone || zaloid);
-                        $('#voiceip-phone').prop('readonly', phone.length > 0);
+                        $('#voiceip-phone').prop('readonly', phone.length > 0); 
 
                         if (zaloid.length > 0) {
                             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zaloid}`);
