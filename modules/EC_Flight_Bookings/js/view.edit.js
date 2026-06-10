@@ -863,20 +863,27 @@ function insertPassengerLine2(ln) {
 		if (baggageOptions && Array.isArray(baggageOptions)) {
 			baggageOptions.forEach(function (baggage) {
 				let description = baggage.description || '';
-				let cost = baggage.cost || 0;
-				let value = baggage.value || 0;
+				let cost = baggage.cost || 0;  // giá mua VAT
+				let value = baggage.value || 0;  // giá bán VAT
 
 				if (description) {
-					let displayText = description.replace(/^Thêm\s+/, '').replace(/\s*\([^)]*\)\s*$/, '');
+					// Bỏ tiền tố "Thêm " và phần trong ngoặc ở cuối để lấy text hiển thị
+					let displayText = description
+						.replace(/^Thêm\s+/i, '')
+						.replace(/\s*\([^)]*\)\s*$/, '')
+						.trim();
+					let saveValue = displayText; // Giá trị lưu vào DB
 
-					let saveValue = description.replace(/^Thêm\s+/, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
-
-					baggageOptionsHtml += `<option value="${escapeHtml(saveValue)}" data-text="${escapeHtml(displayText)}" data-cost="${cost}" data-value="${value}">${escapeHtml(displayText)}</option>`;
+					baggageOptionsHtml += `<option 
+                value="${escapeHtml(saveValue)}" 
+                data-cost="${cost}" 
+                data-value="${value}"
+            >${escapeHtml(displayText)}</option>`;
 				}
 			});
 		}
 
-		let classShowHide = flight_type == '1' && roundName == 'inbound' ? 'd-none' : ''; 
+		let classShowHide = flight_type == '1' && roundName == 'inbound' ? 'd-none' : '';
 		html += `<tr id="psg_baggage_line_${roundName}_${ln}" class="psg_baggage_line_${roundName} ${classShowHide}">
 			<td data-label="${roundName} baggage information" class="row_psg_price" colspan="10">
 			<div class="psg_price-wrap d-flex gap-3 align-items-center mb-1">
@@ -1777,7 +1784,7 @@ function isValidDateBirthDay(date) {
 	return true;
 }
 
-function updateBaggagePriceFromSelect(rowIndex, direction) {
+function updateBaggagePriceFromSelectOld(rowIndex, direction) {
 	var selectId = direction === 'outbound'
 		? 'psg_luggage_purchase_text' + rowIndex
 		: 'psg_luggage_purchase_text_inbound' + rowIndex;
@@ -1792,31 +1799,59 @@ function updateBaggagePriceFromSelect(rowIndex, direction) {
 	$('#' + sellingPriceInputId).val(formatNumber(cost));
 	updateTotalBaggageFee();
 }
+function updateBaggagePriceFromSelect(rowIndex, direction) {
+	var suffix = direction === 'outbound' ? '' : '_inbound';
+	var selectId = 'psg_luggage_purchase_text' + suffix + rowIndex;
+	var sellingPriceId = 'psg_luggage_price' + suffix + rowIndex;
+	var purchasePriceId = 'psg_luggage_purchase' + suffix + rowIndex;
+	var vatPriceId = 'psg_vat_luggage_purchase' + suffix + rowIndex;
 
-function updateTotalBaggageFee() {
-	var totalBaggageFee = 0;
+	var selectedOption = $('#' + selectId + ' option:selected');
+	var selectedValue = selectedOption.val();
 
-	var rowCount = parseInt($('#psg_row_count').val()) || 0;
-
-	for (var i = 0; i < rowCount; i++) {
-		var isDeleted = $('#psg_deleted' + i).val();
-		if (isDeleted == '1') {
-			continue; // Skip deleted rows
-		}
-
-		var outboundPrice = $('#psg_luggage_price' + i).val() || '0';
-		outboundPrice = parseFloat(outboundPrice.replace(/,/g, '')) || 0;
-
-		var inboundPrice = $('#psg_luggage_price_inbound' + i).val() || '0';
-		inboundPrice = parseFloat(inboundPrice.replace(/,/g, '')) || 0;
-
-		totalBaggageFee += outboundPrice + inboundPrice;
+	// Reset nếu chọn "-- Chọn hành lý --"
+	if (!selectedValue) {
+		$('#' + sellingPriceId).val('');
+		$('#' + purchasePriceId).val('0');
+		$('#' + vatPriceId).val('0');
+		updateTotalBaggageFee();
+		return;
 	}
 
-	$('#luggage_fee').val(formatNumber(totalBaggageFee));
-	calculateTotal();
+	var cost = parseFloat(selectedOption.data('cost')) || 0; // giá mua VAT
+	var value = parseFloat(selectedOption.data('value')) || 0; // giá bán VAT
+
+	// Set giá bán (VAT) — thu của khách
+	$('#' + sellingPriceId).val(formatNumber(value));
+
+	// Set giá mua (VAT) — trả cho NCC
+	$('#' + purchasePriceId).val(formatNumber(cost));
+
+	// Tính VAT giá mua tự động
+	var directionNum = direction === 'outbound' ? 0 : 1;
+	calculateBagPurchasePrice(rowIndex, directionNum);
+
+	updateTotalBaggageFee();
 }
 
+function updateTotalBaggageFee() {
+    var total = 0;
+    var rowCount = parseInt($('#psg_row_count').val()) || 0;
+
+    for (var i = 0; i < rowCount; i++) {
+        if ($('#psg_deleted' + i).val() == '1') continue;
+
+        // Giá bán hành lý lượt đi
+        var ob = unformatNumber($('#psg_luggage_price' + i).val()) || 0;
+        // Giá bán hành lý lượt về
+        var ib = unformatNumber($('#psg_luggage_price_inbound' + i).val()) || 0;
+        total += ob + ib;
+    }
+
+    // Dùng số nguyên để tránh float precision
+    $('#luggage_fee').val(Math.round(total));
+    calculateTotal();
+}
 function formatNumber(num) {
 	if (!num) return '';
 	return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -1848,119 +1883,112 @@ function updateRowCount() {
  * are added).
  */
 function renderInitialPassengers() {
-	var jsonStr = '';
-	try {
-		jsonStr = $('#psg_passengers_data_json').val() || '';
-	} catch (e) {
-		jsonStr = '';
-	}
-	if (!jsonStr) return;
+    var jsonStr = '';
+    try {
+        jsonStr = $('#psg_passengers_data_json').val() || '';
+    } catch (e) {
+        jsonStr = '';
+    }
+    if (!jsonStr) return;
 
-	var passengers = [];
-	try {
-		passengers = JSON.parse(jsonStr);
-	} catch (e) {
-		console.error('Error parsing passengers JSON:', e);
-		return;
-	}
-	if (!Array.isArray(passengers) || passengers.length === 0) return;
+    var passengers = [];
+    try {
+        passengers = JSON.parse(jsonStr);
+    } catch (e) {
+        console.error('Error parsing passengers JSON:', e);
+        return;
+    }
+    if (!Array.isArray(passengers) || passengers.length === 0) return;
 
-	var cal_date_format = $('#cal_date_format').val();
-	var dec_seperator = $('#dec_seperator').val();
-	var grp_seperator = $('#grp_seperator').val();
-	var sig_digits = $('#sig_digits').val();
+    var cal_date_format = $('#cal_date_format').val();
+    var dec_seperator   = $('#dec_seperator').val();
+    var grp_seperator   = $('#grp_seperator').val();
+    var sig_digits      = $('#sig_digits').val();
 
-	for (var i = 0; i < passengers.length; i++) {
-		var p = passengers[i];
+    for (var i = 0; i < passengers.length; i++) {
+        var p = passengers[i];
 
-		// Use the SAME single function to render this row
-		$('#psg_tbody').append(insertPassengerLine2(i));
+        $('#psg_tbody').append(insertPassengerLine2(i));
 
-		// Populate the row with data
-		if (p.id !== undefined && p.id !== null) $('#psg_id' + i).val(p.id);
+        if (p.id   !== undefined && p.id   !== null) $('#psg_id'   + i).val(p.id);
+        if (p.type !== undefined && p.type !== null) $('#psg_traveller_type' + i).val(String(p.type));
+        if (p.salutation !== undefined && p.salutation !== null) $('#psg_salutation' + i).val(String(p.salutation));
+        if (p.name)             $('#psg_full_name'        + i).val(p.name);
+        if (p.birthday)         $('#psg_birthday'         + i).val(p.birthday);
+        if (p.id_number)        $('#psg_id_number'        + i).val(p.id_number);
+        if (p.pnr_outbound)     $('#psg_pnr_outbound'     + i).val(p.pnr_outbound);
+        if (p.pnr_inbound)      $('#psg_pnr_inbound'      + i).val(p.pnr_inbound);
+        if (p.eticket_outbound) $('#psg_eticket_outbound' + i).val(p.eticket_outbound);
+        if (p.eticket_inbound)  $('#psg_eticket_inbound'  + i).val(p.eticket_inbound);
+        if (p.eluggage_outbound) $('#psg_eluggage_outbound' + i).val(p.eluggage_outbound);
+        if (p.eluggage_inbound)  $('#psg_eluggage_inbound'  + i).val(p.eluggage_inbound);
 
-		// Type
-		if (p.type !== undefined && p.type !== null) {
-			$('#psg_traveller_type' + i).val(String(p.type));
-		}
-		// Salutation
-		if (p.salutation !== undefined && p.salutation !== null) {
-			$('#psg_salutation' + i).val(String(p.salutation));
-		}
-		// Name
-		if (p.name) $('#psg_full_name' + i).val(p.name);
-		// Birthday
-		if (p.birthday) $('#psg_birthday' + i).val(p.birthday);
-		// CCCD / Passport
-		if (p.id_number) $('#psg_id_number' + i).val(p.id_number);
-		// PNR
-		if (p.pnr_outbound) $('#psg_pnr_outbound' + i).val(p.pnr_outbound);
-		if (p.pnr_inbound) $('#psg_pnr_inbound' + i).val(p.pnr_inbound);
-		// eTicket
-		if (p.eticket_outbound) $('#psg_eticket_outbound' + i).val(p.eticket_outbound);
-		if (p.eticket_inbound) $('#psg_eticket_inbound' + i).val(p.eticket_inbound);
-		// eLuggage (số vé HL)
-		if (p.eluggage_outbound) $('#psg_eluggage_outbound' + i).val(p.eluggage_outbound);
-		if (p.eluggage_inbound) $('#psg_eluggage_inbound' + i).val(p.eluggage_inbound);
-		// Selling price (gía bán)
-		if (p.luggage_price) {
-			$('#psg_luggage_price' + i).val(formatNumber(p.luggage_price));
-		}
-		if (p.luggage_price_inbound) {
-			$('#psg_luggage_price_inbound' + i).val(formatNumber(p.luggage_price_inbound));
-		}
-		// Purchase price (giá mua)
-		if (p.luggage_purchase) {
-			$('#psg_luggage_purchase' + i).val(formatNumber(p.luggage_purchase));
-		}
-		if (p.luggage_purchase_inbound) {
-			$('#psg_luggage_purchase_inbound' + i).val(formatNumber(p.luggage_purchase_inbound));
-		}
-		// Baggage text (hành lý mua thêm)
-		if (p.luggage_purchase_text) {
-			$('#psg_luggage_purchase_text' + i).val(p.luggage_purchase_text);
-		}
-		if (p.luggage_purchase_text_inbound) {
-			$('#psg_luggage_purchase_text_inbound' + i).val(p.luggage_purchase_text_inbound);
-		}
-		// VAT of purchase (VAT giá mua)
-		if (p.vat_luggage_purchase !== undefined && p.vat_luggage_purchase !== null) {
-			$('#psg_vat_luggage_purchase' + i).val(p.vat_luggage_purchase);
-		}
-		if (p.vat_luggage_purchase_inbound !== undefined && p.vat_luggage_purchase_inbound !== null) {
-			$('#psg_vat_luggage_purchase_inbound' + i).val(p.vat_luggage_purchase_inbound);
-		}
-		// Hand baggage
-		if (p.hand_baggage_outbound) $('#psg_hand_baggage_outbound' + i).val(p.hand_baggage_outbound);
-		if (p.hand_baggage_inbound) $('#psg_hand_baggage_inbound' + i).val(p.hand_baggage_inbound);
-		// Luggage index (hành lý có sẵn)
-		if (p.luggage_index_outbound) $('#psg_luggage_index_outbound' + i).val(p.luggage_index_outbound);
-		if (p.luggage_index_inbound) $('#psg_luggage_index_inbound' + i).val(p.luggage_index_inbound);
-		// Supplier
-		if (p.supplier_id) $('#psg_luggage_supplier' + i).val(p.supplier_id);
-		if (p.supplier_inbound_id) $('#psg_luggage_supplier_inbound' + i).val(p.supplier_inbound_id);
+        if (p.luggage_price)         $('#psg_luggage_price'         + i).val(formatNumber(p.luggage_price));
+        if (p.luggage_price_inbound)  $('#psg_luggage_price_inbound' + i).val(formatNumber(p.luggage_price_inbound));
+        if (p.luggage_purchase)       $('#psg_luggage_purchase'      + i).val(formatNumber(p.luggage_purchase));
+        if (p.luggage_purchase_inbound) $('#psg_luggage_purchase_inbound' + i).val(formatNumber(p.luggage_purchase_inbound));
 
-		// Re-apply number formatting to the new inputs
-		$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
+        if (p.vat_luggage_purchase !== undefined && p.vat_luggage_purchase !== null)
+            $('#psg_vat_luggage_purchase' + i).val(p.vat_luggage_purchase);
+        if (p.vat_luggage_purchase_inbound !== undefined && p.vat_luggage_purchase_inbound !== null)
+            $('#psg_vat_luggage_purchase_inbound' + i).val(p.vat_luggage_purchase_inbound);
 
-		// Set up calendar for birthday
-		Calendar.setup({
-			inputField: 'psg_birthday' + i,
-			daFormat: cal_date_format,
-			button: 'psg_birthday_trigger' + i,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-	}
+        if (p.hand_baggage_outbound) $('#psg_hand_baggage_outbound' + i).val(p.hand_baggage_outbound);
+        if (p.hand_baggage_inbound)  $('#psg_hand_baggage_inbound'  + i).val(p.hand_baggage_inbound);
+        if (p.luggage_index_outbound) $('#psg_luggage_index_outbound' + i).val(p.luggage_index_outbound);
+        if (p.luggage_index_inbound)  $('#psg_luggage_index_inbound'  + i).val(p.luggage_index_inbound);
+        if (p.supplier_id)         $('#psg_luggage_supplier'         + i).val(p.supplier_id);
+        if (p.supplier_inbound_id) $('#psg_luggage_supplier_inbound' + i).val(p.supplier_inbound_id);
 
-	// Initialize select2 for the new baggage selects
-	for (var j = 0; j < passengers.length; j++) {
-		initializeSelect2ForRow(j);
-	}
+        // Re-apply number formatting
+        $('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
+
+        // Calendar
+        Calendar.setup({
+            inputField: 'psg_birthday' + i,
+            daFormat: cal_date_format,
+            button: 'psg_birthday_trigger' + i,
+            singleClick: true,
+            dateStr: '',
+            step: 1,
+            weekNumbers: false
+        });
+
+        // ── Select2 + populate baggage text ──────────────────────────
+        // Khởi tạo Select2 TRƯỚC khi set value
+        initializeSelect2ForRow(i);
+
+        // Lượt đi
+        if (p.luggage_purchase_text) {
+            var $selOb = $('#psg_luggage_purchase_text' + i);
+            if ($selOb.find('option[value="' + p.luggage_purchase_text + '"]').length === 0) {
+                var newOpt = new Option(
+                    p.luggage_purchase_text + ' (Tùy chỉnh)',
+                    p.luggage_purchase_text,
+                    false, false
+                );
+                $selOb.append(newOpt);
+            }
+            $selOb.val(p.luggage_purchase_text).trigger('change');
+        }
+
+        // Lượt về
+        if (p.luggage_purchase_text_inbound) {
+            var $selIb = $('#psg_luggage_purchase_text_inbound' + i);
+            if ($selIb.find('option[value="' + p.luggage_purchase_text_inbound + '"]').length === 0) {
+                var newOptIb = new Option(
+                    p.luggage_purchase_text_inbound + ' (Tùy chỉnh)',
+                    p.luggage_purchase_text_inbound,
+                    false, false
+                );
+                $selIb.append(newOptIb);
+            }
+            $selIb.val(p.luggage_purchase_text_inbound).trigger('change');
+        }
+    }
+    // Cập nhật tổng phí hành lý sau khi render xong tất cả rows
+    updateTotalBaggageFee();
 }
-
 
 /**
  * Render initial itinerary rows from JSON data supplied by PHP.
@@ -2137,7 +2165,7 @@ function renderInitialDetails() {
 		calculateLineTotal(i);
 
 		// Initialize select2 for the supplier select
-		try { $('#bkd_supplier_id' + i).select2({ width: '100%' }); } catch (e) {}
+		try { $('#bkd_supplier_id' + i).select2({ width: '100%' }); } catch (e) { }
 	}
 
 	// Re-apply number formatting

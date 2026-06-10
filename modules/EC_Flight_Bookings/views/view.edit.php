@@ -317,25 +317,25 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			$i = 0;
 			while ($row = $this->bean->db->fetchByAssoc($res)) {
 				$itineraries_data[] = [
-					'db_id'          => $row['detail_id'],
-					'id'             => $row['detail_id'],
-					'direction'      => (int) $row['direction'],
-					'airline_code'   => $row['airline_code'],
-					'flight_number'  => $row['flight_number'],
-					'ticket_class'   => $row['ticket_class'],
-					'departure'      => $row['departure'],
-					'arrival'        => $row['arrival'],
+					'db_id' => $row['detail_id'],
+					'id' => $row['detail_id'],
+					'direction' => (int) $row['direction'],
+					'airline_code' => $row['airline_code'],
+					'flight_number' => $row['flight_number'],
+					'ticket_class' => $row['ticket_class'],
+					'departure' => $row['departure'],
+					'arrival' => $row['arrival'],
 					'departure_date' => $row['departure_date'] != '' ? date($date_format, strtotime($row['departure_date'])) : '',
-					'departure_h'    => $row['departure_date'] != '' ? date('H', strtotime($row['departure_date'])) : '',
-					'departure_m'    => $row['departure_date'] != '' ? date('i', strtotime($row['departure_date'])) : '',
-					'arrival_date'   => $row['arrival_date'] != '' ? date($date_format, strtotime($row['arrival_date'])) : '',
-					'arrival_h'      => $row['arrival_date'] != '' ? date('H', strtotime($row['arrival_date'])) : '',
-					'arrival_m'      => $row['arrival_date'] != '' ? date('i', strtotime($row['arrival_date'])) : '',
-					'time_limit_date'=> $row['time_limit'] != '' ? date($date_format, strtotime($row['time_limit'])) : '',
-					'time_limit_h'   => $row['time_limit'] != '' ? date('H', strtotime($row['time_limit'])) : '',
-					'time_limit_m'   => $row['time_limit'] != '' ? date('i', strtotime($row['time_limit'])) : '',
-					'base_price'     => (float) $row['base_price'],
-					'is_layover'     => (int) $row['is_layover'],
+					'departure_h' => $row['departure_date'] != '' ? date('H', strtotime($row['departure_date'])) : '',
+					'departure_m' => $row['departure_date'] != '' ? date('i', strtotime($row['departure_date'])) : '',
+					'arrival_date' => $row['arrival_date'] != '' ? date($date_format, strtotime($row['arrival_date'])) : '',
+					'arrival_h' => $row['arrival_date'] != '' ? date('H', strtotime($row['arrival_date'])) : '',
+					'arrival_m' => $row['arrival_date'] != '' ? date('i', strtotime($row['arrival_date'])) : '',
+					'time_limit_date' => $row['time_limit'] != '' ? date($date_format, strtotime($row['time_limit'])) : '',
+					'time_limit_h' => $row['time_limit'] != '' ? date('H', strtotime($row['time_limit'])) : '',
+					'time_limit_m' => $row['time_limit'] != '' ? date('i', strtotime($row['time_limit'])) : '',
+					'base_price' => (float) $row['base_price'],
+					'is_layover' => (int) $row['is_layover'],
 				];
 
 				// Lưu thông tin airline/ticket_class theo direction để dùng ở chỗ khác
@@ -366,7 +366,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		 */
 		$sep = my_get_number_separators();
 
-		$html  = '<table id="tbl_line_itineraries" class="table-vertical__mobile table-edit__booking table-details__booking" border="0" cellpadding="0" cellspacing="0">';
+		$html = '<table id="tbl_line_itineraries" class="table-vertical__mobile table-edit__booking table-details__booking" border="0" cellpadding="0" cellspacing="0">';
 		$html .= '<thead>
 				<tr id="iti_first_row">
 					<th scope="col" style="width:8%;" class="text-center">Chiều</th>
@@ -458,23 +458,23 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		if (!empty($this->bean->id)) {
 			while ($row = $this->bean->db->fetchByAssoc($res)) {
 				$details_data[] = [
-					'db_id'              => $row['detail_id'],
-					'id'                 => $row['detail_id'],
-					'direction'          => (int) $row['direction'],
-					'passenger_type'     => (int) $row['passenger_type'],
-					'quantity'           => (int) $row['quantity'],
-					'unit_price'         => (float) $row['unit_price'],
-					'tax_and_fee'        => (float) $row['tax_and_fee'],
-					'airport_fee'        => (float) $row['airport_fee'],
-					'admin_fee'          => (float) $row['admin_fee'],
-					'admin_fee_no_vat'   => (float) $row['admin_fee_no_vat'],
-					'vat_admin'          => (float) $row['vat_admin'],
-					'service_fee'        => (float) $row['service_fee'],
-					'total_price'        => (float) $row['total_price'],
+					'db_id' => $row['detail_id'],
+					'id' => $row['detail_id'],
+					'direction' => (int) $row['direction'],
+					'passenger_type' => (int) $row['passenger_type'],
+					'quantity' => (int) $row['quantity'],
+					'unit_price' => (float) $row['unit_price'],
+					'tax_and_fee' => (float) $row['tax_and_fee'],
+					'airport_fee' => (float) $row['airport_fee'],
+					'admin_fee' => (float) $row['admin_fee'],
+					'admin_fee_no_vat' => (float) $row['admin_fee_no_vat'],
+					'vat_admin' => (float) $row['vat_admin'],
+					'service_fee' => (float) $row['service_fee'],
+					'total_price' => (float) $row['total_price'],
 					'total_bought_price' => (float) ((float) $row['total_bought_price'] ? $row['total_bought_price'] : ($row['total_price'] - ($row['service_fee']) * $row['quantity'])),
-					'fee_bought'         => (float) $row['fee_bought'],
-					'supplier_id'        => $row['supplier_id'],
-					'supplier_discount'  => (float) $row['supplier_discount'],
+					'fee_bought' => (float) $row['fee_bought'],
+					'supplier_id' => $row['supplier_id'],
+					'supplier_discount' => (float) $row['supplier_discount'],
 				];
 			}
 		}
@@ -489,7 +489,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		 * - <tbody id="bkd_tbody"></tbody> rỗng để JS render
 		 * - Footer với các input hidden cần thiết + JSON data
 		 */
-		$html  = '<table id="tbl_line_details" class="table-vertical__mobile table-edit__booking table-details__booking" cellpadding="0" cellspacing="0" border="0">';
+		$html = '<table id="tbl_line_details" class="table-vertical__mobile table-edit__booking table-details__booking" cellpadding="0" cellspacing="0" border="0">';
 		$html .= '<thead>
 				<tr id="bkd_first_row">
 					<th scope="col" style="width:7%;" class="text-center fw-semibold">Chiều</th>
@@ -870,31 +870,31 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			}
 
 			$passengers_data[] = [
-				'id'                      => $passenger_id,
-				'db_id'                   => $row['id'],
-				'type'                    => (int) $row['type'],
-				'salutation'              => (int) $row['salutation'],
-				'name'                    => $row['name'],
-				'birthday'                => $birthday,
-				'id_number'               => $id_number_value,
-				'pnr_outbound'            => $row['pnr_outbound'],
-				'pnr_inbound'             => $row['pnr_inbound'],
-				'eticket_outbound'        => $row['eticket_outbound'],
-				'eticket_inbound'         => $row['eticket_inbound'],
-				'eluggage_outbound'       => $row['eluggage_outbound'],
-				'eluggage_inbound'        => $row['eluggage_inbound'],
-				'luggage_price'           => (float) $row['luggage_price'],
-				'luggage_price_inbound'   => (float) $row['luggage_price_inbound'],
-				'luggage_purchase'        => (float) $row['luggage_purchase'],
-				'luggage_purchase_text'   => $row['luggage_purchase_text'],
+				'id' => $passenger_id,
+				'db_id' => $row['id'],
+				'type' => (int) $row['type'],
+				'salutation' => (int) $row['salutation'],
+				'name' => $row['name'],
+				'birthday' => $birthday,
+				'id_number' => $id_number_value,
+				'pnr_outbound' => $row['pnr_outbound'],
+				'pnr_inbound' => $row['pnr_inbound'],
+				'eticket_outbound' => $row['eticket_outbound'],
+				'eticket_inbound' => $row['eticket_inbound'],
+				'eluggage_outbound' => $row['eluggage_outbound'],
+				'eluggage_inbound' => $row['eluggage_inbound'],
+				'luggage_price' => (float) $row['luggage_price'],
+				'luggage_price_inbound' => (float) $row['luggage_price_inbound'],
+				'luggage_purchase' => (float) $row['luggage_purchase'],
+				'luggage_purchase_text' => $row['luggage_purchase_text'],
 				'luggage_purchase_inbound' => (float) $row['luggage_purchase_inbound'],
 				'luggage_purchase_text_inbound' => $row['luggage_purchase_text_inbound'],
-				'luggage_index_outbound'  => $row['luggage_index_outbound'],
-				'luggage_index_inbound'   => $row['luggage_index_inbound'],
-				'hand_baggage_outbound'   => $row['hand_baggage_outbound'],
-				'hand_baggage_inbound'    => $row['hand_baggage_inbound'],
-				'supplier_id'             => $row['supplier_id'],
-				'supplier_inbound_id'     => $row['supplier_inbound_id'],
+				'luggage_index_outbound' => $row['luggage_index_outbound'],
+				'luggage_index_inbound' => $row['luggage_index_inbound'],
+				'hand_baggage_outbound' => $row['hand_baggage_outbound'],
+				'hand_baggage_inbound' => $row['hand_baggage_inbound'],
+				'supplier_id' => $row['supplier_id'],
+				'supplier_inbound_id' => $row['supplier_inbound_id'],
 			];
 		}
 
@@ -904,12 +904,12 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		 * - <tbody id="psg_tbody"></tbody> rỗng để JS render
 		 * - Footer với các input hidden cần thiết
 		 */
-		$baggage_options_outbound = $this->bean->generateBaggageOptions($this->bean->airline);
-		$baggage_options_inbound  = $this->bean->generateBaggageOptions($this->bean->airline_inbound);
+		$baggage_options_outbound = $this->bean->getBaggageOptionsData($this->bean->airline);
+		$baggage_options_inbound = $this->bean->getBaggageOptionsData($this->bean->airline_inbound);
 
 		$supplier_list_html = myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', '', 'id', $sql_supplier);
 
-		$html  = '<table id="tbl_line_passengers" class="table-vertical__mobile table-edit__booking table-config table-details__booking" cellpadding="0" cellspacing="0" border="0">';
+		$html = '<table id="tbl_line_passengers" class="table-vertical__mobile table-edit__booking table-config table-details__booking" cellpadding="0" cellspacing="0" border="0">';
 		$html .= '<thead>';
 		$html .= '<tr id="psg_first_row">';
 		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">Loại HK</th>';
