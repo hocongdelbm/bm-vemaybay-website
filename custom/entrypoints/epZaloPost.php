@@ -60,7 +60,7 @@ global $sugar_config;
 $headers = getallheaders();
 $api_key = $headers['Api-Key'] ?? '';
 
-if ($api_key !== ($sugar_config['api_key']['zaloPost'] ?? '')) {
+if ($api_key !== ($sugar_config['api_key']['zalo_post'] ?? '')) {
     http_response_code(401);
     echo json_encode([
         "status" => 0,
