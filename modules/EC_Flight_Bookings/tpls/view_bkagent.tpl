@@ -28,9 +28,58 @@
                     $("#to_date").val(tdate_val);
                 }
             });
+
+            // Filter bookings by airline
+            var numGrpSep = '{/literal}{$NUM_GRP_SEP}{literal}';
+            var decSep = '{/literal}{$DEC_SEP}{literal}';
+            var sigDigits = {/literal}{$SIG_DIGITS|default:0}{literal};
+
+            function formatNumber(num) {
+                num = parseFloat(num);
+                if (isNaN(num)) return "0";
+                
+                num = num.toFixed(sigDigits);
+                var parts = num.split('.');
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, numGrpSep);
+                
+                if (parts.length > 1 && sigDigits > 0) {
+                    return parts[0] + decSep + parts[1];
+                }
+                return parts[0];
+            }
+
+            $('.airline-row').on('click', function() {
+                var selectedAirline = $(this).attr('data-airline');
+                
+                // Highlight selected row
+                $('.airline-row').removeClass('active-filter');
+                $(this).addClass('active-filter');
+
+                var totalQty = 0;
+                var totalAmount = 0;
+                var visibleIndex = 1;
+
+                $('.booking-row').each(function() {
+                    var rowAirline = $(this).attr('data-airline');
+                    // Treat N/A or empty as the same if we filter for Khác (N/A)
+                    if (selectedAirline === 'ALL' || rowAirline === selectedAirline || (selectedAirline === 'N/A' && !rowAirline)) {
+                        $(this).show();
+                        $(this).find('.stt-cell').text(visibleIndex++);
+                        totalQty += parseFloat($(this).attr('data-qty') || 0);
+                        totalAmount += parseFloat($(this).attr('data-amount') || 0);
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                // Update totals
+                $('#total_filtered_ticket_qty').text(formatNumber(totalQty));
+                $('#total_filtered_amount').text(formatNumber(totalAmount));
+            });
         });
     </script>
 {/literal}
+<link rel="stylesheet" type="text/css" href="modules/EC_Flight_Bookings/css/view.bkagent.css?v={php}echo time();{/php}">
 
 <h1 class="title">Thống kê vé</h1>
 
@@ -137,6 +186,9 @@
             <th width="20%">Hãng bay</th>
             <th width="15%">Chiều bay</th>
             <th width="10%">SL vé</th>
+            <th width="10%">Doanh số</th>
+            <th width="10%">Ngày xuất vé</th>
+            <th width="10%">Ngày tạo</th>
         </thead>
         <tbody>
             {$BOOKING_LIST_TBL}
