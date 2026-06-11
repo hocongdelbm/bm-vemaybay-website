@@ -30,23 +30,6 @@
             });
 
             // Filter bookings by airline
-            var numGrpSep = '{/literal}{$NUM_GRP_SEP}{literal}';
-            var decSep = '{/literal}{$DEC_SEP}{literal}';
-            var sigDigits = {/literal}{$SIG_DIGITS|default:0}{literal};
-
-            function formatNumber(num) {
-                num = parseFloat(num);
-                if (isNaN(num)) return "0";
-                
-                num = num.toFixed(sigDigits);
-                var parts = num.split('.');
-                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, numGrpSep);
-                
-                if (parts.length > 1 && sigDigits > 0) {
-                    return parts[0] + decSep + parts[1];
-                }
-                return parts[0];
-            }
 
             $('.airline-row').on('click', function() {
                 var selectedAirline = $(this).attr('data-airline');
@@ -186,7 +169,6 @@
             <th width="20%">Hãng bay</th>
             <th width="15%">Chiều bay</th>
             <th width="10%">SL vé</th>
-            <th width="10%">Doanh số</th>
             <th width="10%">Ngày xuất vé</th>
             <th width="10%">Ngày tạo</th>
         </thead>

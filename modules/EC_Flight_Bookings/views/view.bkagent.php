@@ -252,11 +252,11 @@ class Viewbkagent extends SugarView
                 <td></td>
                 <td></td>
                 <td class="center"><b id="total_filtered_ticket_qty">$TOTAL_TICKET_QTY</b></td>
-                <td class="center"><b id="total_filtered_amount">$TOTAL_AMOUNT</b></td>
                 <td></td>
                 <td></td>
             </tr>
         ';
+          //  <td class="center"><b id="total_filtered_amount">$TOTAL_AMOUNT</b></td>
 
           $sql = '
             SELECT 
@@ -313,15 +313,14 @@ class Viewbkagent extends SugarView
                } elseif ($filter_airline_code === 'VN') {
                     $filter_airline_code = 'VNA';
                }
-
+//<td class="center">' . format_number($doanh_so) . '</td> tạm ẩn
                $html .= '
                 <tr class="booking-row" data-airline="' . $filter_airline_code . '" data-qty="' . $row['ticket_qty'] . '" data-amount="' . $doanh_so . '">
                     <td class="center stt-cell">' . ($i + 1) . '</td>
-                     <td class="center"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['bk_id'] . '" target="_blank">' . $row['bk_name'] . '</a></td>
+                    <td class="center"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['bk_id'] . '" target="_blank">' . $row['bk_name'] . '</a></td>
                     <td class="center">(' . $row['airline_code'] . ')</td>
                     <td class="center">' . $direction . '</td>
                     <td class="center">' . format_number($row['ticket_qty']) . '</td>
-                    <td class="center">' . format_number($doanh_so) . '</td>
                     <td class="center">' . $date_ticket_issue . '</td>
                     <td class="center">' . $date_entered . '</td>
                 </tr>
@@ -334,11 +333,11 @@ class Viewbkagent extends SugarView
           $html = str_replace(
                array(
                     '$TOTAL_TICKET_QTY',
-                    '$TOTAL_AMOUNT'
+                    // '$TOTAL_AMOUNT'
                ),
                array(
                     format_number($total_ticket_qty),
-                    format_number($total_amount)
+                    // format_number($total_amount)
                ),
                $html
           );
