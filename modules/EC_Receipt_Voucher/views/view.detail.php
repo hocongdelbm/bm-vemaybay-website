@@ -17,6 +17,9 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail
 		$js = '<script>
 			var rv_status = "' . $this->bean->rv_status . '";
 			var amount_type = "' . $this->bean->amount_type . '";
+			var loai_thu = "' . $this->bean->loai_thu . '";
+			var amount = ' . (float)$this->bean->amount . ';
+			var total_sell = ' . ((float)$this->bean->sell_amount + (float)$this->bean->sell_amount2 + (float)$this->bean->sell_amount3) . ';
 			const current_user_title = "' . trim($current_user->title) . '";
 		</script>';
 
