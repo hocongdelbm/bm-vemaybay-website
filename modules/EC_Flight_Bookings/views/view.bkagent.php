@@ -83,19 +83,19 @@ class Viewbkagent extends SugarView
 
      function populateBKAgentReport($from_date, $to_date)
      {
-          global $db, $app_list_strings;
+          global $db;
           $from_date  = date('Y-m-d 00:00:00', strtotime($from_date));
           $to_date    = date('Y-m-d 23:59:59', strtotime($to_date));
 
           $html = '
-            <tr>
+            <tr class="airline-row cursor-pointer" data-airline="ALL" title="Bấm để xem tất cả">
                 <td></td>
-                <td class="center"><b>Tổng</b></td>
-                <td class="center"><b>$TOTAL_BK_QTY</b></td>
-                <td class="center"><b>$TOTAL_TICKET_QTY</b></td>
-                <td class="center"><b>$TOTAL_AMOUNT</b></td>
-                <td class="center"><b>$TOTAL_PURCHASE</b></td>
-                <td class="center"><b>$TOTAL_PROFIT</b></td>
+                <td class="text-center text-decoration-underline"><b>Tổng</b></td>
+                <td class="text-center"><b>$TOTAL_BK_QTY</b></td>
+                <td class="text-center"><b>$TOTAL_TICKET_QTY</b></td>
+                <td class="text-center"><b>$TOTAL_AMOUNT</b></td>
+                <td class="text-center"><b>$TOTAL_PURCHASE</b></td>
+                <td class="text-center"><b>$TOTAL_PROFIT</b></td>
             </tr>
         ';
 
@@ -146,6 +146,8 @@ class Viewbkagent extends SugarView
           $total_amout = 0;
           $total_purchase = 0;
           $total_profit = 0;
+          $priceCache = [];
+          $countedBkIds = [];
 
           while ($row = $db->fetchByAssoc($res)) {
                $airline = myGetAirlineInfo2($row['airline_code'], 'CODE');
@@ -167,31 +169,51 @@ class Viewbkagent extends SugarView
 
                if ($sl_bk > 0) {
                     foreach ($bkIds as $bk_id) {
-                         $info_price = calculateBKAmt($bk_id);
+                         if (!isset($priceCache[$bk_id])) {
+                              $priceCache[$bk_id] = calculateBKAmt($bk_id);
+                         }
+                         $info_price = $priceCache[$bk_id];
                          $airline_amout += $info_price['total_amount'];
                          $airline_purchase += $info_price['total_purchase'];
                          $airline_profit += $info_price['total_profit'];
+
+                         if (!isset($countedBkIds[$bk_id])) {
+                              $countedBkIds[$bk_id] = true;
+                              $total_amout += $info_price['total_amount'];
+                              $total_purchase += $info_price['total_purchase'];
+                              $total_profit += $info_price['total_profit'];
+                         }
                     }
                }
 
+               $airline_name = isset($airline['data'][0]['name']) ? $airline['data'][0]['name'] : '';
+               $airline_code = $row['airline_code'];
+               if (empty($airline_name)) {
+                   if ($airline_code === '0V') {
+                       $airline_name = 'VASCO';
+                   } elseif (empty($airline_code)) {
+                       $airline_name = 'Khác';
+                       $airline_code = 'N/A';
+                   } else {
+                       $airline_name = 'Hãng khác';
+                   }
+               }
+
                $html .= '
-                         <tr>
-                              <td class="center">' . ($i + 1) . '</td>
-                              <td class="center">' . $airline['data'][0]['name'] . '&nbsp;(' . $row['airline_code'] . ')</td>
-                              <td class="center">' . format_number($sl_bk) . '</td>
-                              <td class="center">' . format_number($row['ticket_qty']) . '</td>
-                              <td class="center">' . format_number($airline_amout) . '</td>
-                              <td class="center">' . format_number($airline_purchase) . '</td>
-                              <td class="center">' . format_number($airline_profit) . '</td>
+                         <tr class="airline-row cursor-pointer" data-airline="' . $airline_code . '" title="Bấm để lọc vé của hãng này">
+                              <td class="text-center">' . ($i + 1) . '</td>
+                              <td class="text-center fw-semibold text-decoration-underline">' . $airline_name . ' (' . $airline_code . ')</td>
+                              <td class="text-center">' . format_number($sl_bk) . '</td>
+                              <td class="text-center">' . format_number($row['ticket_qty']) . '</td>
+                              <td class="text-center">' . format_number($airline_amout) . '</td>
+                              <td class="text-center">' . format_number($airline_purchase) . '</td>
+                              <td class="text-center">' . format_number($airline_profit) . '</td>
                          </tr>
                     ';
                     
                $i++;
                $total_bk_qty += $sl_bk;
                $total_ticket_qty += $row['ticket_qty'];
-               $total_amout += $airline_amout;
-               $total_purchase += $airline_purchase;
-               $total_profit += $airline_profit;
           }
 
           $html = str_replace(
@@ -221,24 +243,28 @@ class Viewbkagent extends SugarView
           $from_date = date('Y-m-d 00:00:00', strtotime($from_date));
           $to_date = date('Y-m-d 23:59:59', strtotime($to_date));
           $html = '
-            <tr>
+            <tr id="booking_list_total_row">
                 <td></td>
                 <td class="center"><b>Tổng</b></td>
                 <td></td>
                 <td></td>
-                <td class="center"><b>$TOTAL_TICKET_QTY</b></td>
+                <td class="center"><b id="total_filtered_ticket_qty">$TOTAL_TICKET_QTY</b></td>
+                <td></td>
+                <td></td>
             </tr>
         ';
+          //  <td class="center"><b id="total_filtered_amount">$TOTAL_AMOUNT</b></td>
 
           $sql = '
             SELECT 
                 airline_code, bk_name, bk_id, GROUP_CONCAT(direction) AS direction    
                 , SUM(IF(ticket_qty > 0, ticket_qty, 0)) AS ticket_qty
+                , date_entered, date_ticket_issue
                 -- , GROUP_CONCAT(IF(ticket_qty > 0, bk_name, NULL) SEPARATOR ", ") AS bk_name_err
             FROM ( 
                 SELECT 
                     i.airline_code, i.direction
-                    , bk.name AS bk_name, bk.id AS bk_id, bk.date_entered
+                    , bk.name AS bk_name, bk.id AS bk_id, bk.date_entered, bk.date_ticket_issue
                     , IF(
                         bk.ticket_type = 2
                         , 1
@@ -263,7 +289,7 @@ class Viewbkagent extends SugarView
         ';
 
           $res = $db->query($sql);
-          $i = $total_ticket_qty = 0;
+          $i = $total_ticket_qty = $total_amount = 0;
           while ($row = $db->fetchByAssoc($res)) {
                // $airline = myGetAirlineInfo2($row['airline_code'], 'CODE');
                if ($row['direction'] == '0') {
@@ -272,25 +298,43 @@ class Viewbkagent extends SugarView
                     $direction = 'Lượt về';
                } else $direction = 'Lượt đi & về';
 
+               $info_price = calculateBKAmt($row['bk_id']);
+               $doanh_so = $info_price['total_profit'];
+               global $timedate;
+               $date_ticket_issue = !empty($row['date_ticket_issue']) ? $timedate->to_display_date($row['date_ticket_issue']) : '';
+               $date_entered = !empty($row['date_entered']) ? $timedate->to_display_date_time($row['date_entered']) : '';
+
+               $filter_airline_code = $row['airline_code'];
+               if ($filter_airline_code === 'VJ') {
+                    $filter_airline_code = 'VJA';
+               } elseif ($filter_airline_code === 'VN') {
+                    $filter_airline_code = 'VNA';
+               }
+//<td class="center">' . format_number($doanh_so) . '</td> tạm ẩn
                $html .= '
-                <tr>
-                    <td class="center">' . ($i + 1) . '</td>
-                     <td class="center"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['bk_id'] . '" target="_blank">' . $row['bk_name'] . '</a></td>
+                <tr class="booking-row" data-airline="' . $filter_airline_code . '" data-qty="' . $row['ticket_qty'] . '" data-amount="' . $doanh_so . '">
+                    <td class="center stt-cell">' . ($i + 1) . '</td>
+                    <td class="center"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['bk_id'] . '" target="_blank">' . $row['bk_name'] . '</a></td>
                     <td class="center">(' . $row['airline_code'] . ')</td>
                     <td class="center">' . $direction . '</td>
                     <td class="center">' . format_number($row['ticket_qty']) . '</td>
+                    <td class="center">' . $date_ticket_issue . '</td>
+                    <td class="center">' . $date_entered . '</td>
                 </tr>
             ';
                $i++;
                $total_ticket_qty += $row['ticket_qty'];
+               $total_amount += $doanh_so;
           }
 
           $html = str_replace(
                array(
-                    '$TOTAL_TICKET_QTY'
+                    '$TOTAL_TICKET_QTY',
+                    // '$TOTAL_AMOUNT'
                ),
                array(
-                    format_number($total_ticket_qty)
+                    format_number($total_ticket_qty),
+                    // format_number($total_amount)
                ),
                $html
           );

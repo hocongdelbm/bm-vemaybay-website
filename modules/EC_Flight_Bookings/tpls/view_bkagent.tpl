@@ -28,10 +28,41 @@
                     $("#to_date").val(tdate_val);
                 }
             });
+
+            // Filter bookings by airline
+
+            $('.airline-row').on('click', function() {
+                let selectedAirline = $(this).attr('data-airline');
+                
+                // Highlight selected row
+                $('.airline-row').removeClass('bg-warning');
+                $(this).addClass('bg-warning');
+
+                let totalQty = 0;
+                let totalAmount = 0;
+                let visibleIndex = 1;
+
+                $('.booking-row').each(function() {
+                    let rowAirline = $(this).attr('data-airline');
+                    
+                    // Treat N/A or empty as the same if we filter for Khác (N/A)
+                    if (selectedAirline === 'ALL' || rowAirline === selectedAirline || (selectedAirline === 'N/A' && !rowAirline)) {
+                        $(this).show();
+                        $(this).find('.stt-cell').text(visibleIndex++);
+                        totalQty += parseFloat($(this).attr('data-qty') || 0);
+                        totalAmount += parseFloat($(this).attr('data-amount') || 0);
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                // Update totals
+                $('#total_filtered_ticket_qty').text(formatNumber(totalQty));
+                $('#total_filtered_amount').text(formatNumber(totalAmount));
+            });
         });
     </script>
 {/literal}
-
 <h1 class="title">Thống kê vé</h1>
 
 <div class="box-section">
@@ -111,6 +142,11 @@
         </div>
     </form>
 
+    <ul class="bookingqtyreport-note alert alert-info text-dark fw-semibold">
+        <li>- Lọc theo <strong>ngày xuất vé</strong>, chỉ tính booking trạng thái đã thanh toán tiền <em>Xuất vé / Hoàn tất / Xác nhận</em>.</li>
+        <li>- Bấm vào tên hãng để lọc danh sách chi tiết booking bên dưới.</li>
+    </ul>
+
     <table id="bkagent_tbl" class="list-data table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
         <thead>
             <th width="5%">STT</th>
@@ -137,6 +173,8 @@
             <th width="20%">Hãng bay</th>
             <th width="15%">Chiều bay</th>
             <th width="10%">SL vé</th>
+            <th width="10%">Ngày xuất vé</th>
+            <th width="10%">Ngày tạo</th>
         </thead>
         <tbody>
             {$BOOKING_LIST_TBL}
