@@ -193,9 +193,9 @@ $(document).ready(function () {
 
 			// Bought amount
 			const suppliers = [
-				{ id: '', amount: bought_amount, selector: '#bought_amount', alwaysCheck: true },
-				{ id: supplier2_id, amount: bought_amount2, selector: '#bought_amount2' },
-				{ id: supplier3_id, amount: bought_amount3, selector: '#bought_amount3' }
+				{ id: '', amount: String($('#bought_amount').val() || ''), selector: '#bought_amount', alwaysCheck: true },
+				{ id: supplier2_id, amount: String($('#bought_amount2').val() || ''), selector: '#bought_amount2' },
+				{ id: supplier3_id, amount: String($('#bought_amount3').val() || ''), selector: '#bought_amount3' }
 			];
 			for (const sup of suppliers) {
 				const shouldCheck = sup.alwaysCheck || (sup.id !== '' && loai_thu !== '4' && loai_thu !== '5');
@@ -207,7 +207,7 @@ $(document).ready(function () {
 			}
 
 			// Check total sell and amount
-			if (loai_thu_arr.includes(loai_thu) && amount != total_sell) {
+			if (['4', '5', '14', '27'].includes(loai_thu) && amount != total_sell) {
 				$text_warning = 'Số tiền và tổng giá bán phải bằng nhau!';
 				showToastWarning($text_warning);
 				$('#amount').focus();
