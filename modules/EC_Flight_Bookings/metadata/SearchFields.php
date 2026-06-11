@@ -203,6 +203,12 @@ $searchFields[$module_name] = array(
         'enable_range_search' => true,
         'is_date_field' => true,
     ),
+    'is_refund_search' => [
+        'query_type' => 'format',
+        'operator' => 'subquery',
+        'subquery' => 'SELECT id FROM ec_flight_bookings WHERE deleted = 0 AND IF("{0}" = "1", id IN (SELECT booking_id FROM ec_hoanve WHERE deleted = 0), id NOT IN (SELECT booking_id FROM ec_hoanve WHERE deleted = 0))',
+        'db_field' => ['id'],
+    ],
     'booking_status' => [
         'query_type' => 'format',
         'operator' => 'subquery',

@@ -51,6 +51,7 @@ class APIDatacom {
                 "options"       => [
                     'api' => strtoupper($this->API_NAME),
                     'cabin' => $cabin,
+                    'promoCode' => 'VJSALE20'
                 ],
             ];
 

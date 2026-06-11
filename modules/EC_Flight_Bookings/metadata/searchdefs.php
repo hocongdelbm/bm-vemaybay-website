@@ -268,6 +268,13 @@ $searchdefs[$module_name] = array(
                 'default' => true,
                 'name' => 'is_reference',
             ),
+            'is_refund_search' => array(
+                'type' => 'bool',
+                'label' => 'LBL_IS_REFUND_SEARCH',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'is_refund_search',
+            ),
             'current_user_only' => array(
                 'name' => 'current_user_only',
                 'label' => 'LBL_CURRENT_USER_FILTER',

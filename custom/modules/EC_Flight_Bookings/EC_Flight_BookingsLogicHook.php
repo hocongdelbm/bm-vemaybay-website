@@ -5,24 +5,39 @@ class EC_Flight_BookingsLogicHook
 
 	public function customDisplay(SugarBean $focus, $event, $arguments)
 	{
-		global $app_list_strings, $current_user;
+		global $app_list_strings;
 		$text_color = $app_list_strings['booking_status_color_list'][$focus->booking_status];
 		$text 		= $app_list_strings['booking_status_list'][$focus->booking_status];
 		$focus->booking_status = '<label style="color:' . $text_color . '">' . $text . '</label>';
 
-		// ip address - only panda view
-		if ($current_user->id != '4f4d7a13-4171-9b7d-251c-64dd8f9885e4') {
-			$focus->ip_address = '';
+		// Tags
+		$tagList = '';
+		if($focus->is_prior == 1) {
+			$tagList .= <<<HTML
+				<span class="tag-prior" title="Vé cận" style="cursor:pointer">
+					<svg height="18px" width="18px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 309.768 309.768" xml:space="preserve" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path style="fill:#e00000;" d="M308.417,122.685c-2.317-4.607-7.223-7.408-12.292-6.967l-15.409,1.126 c-16.714-60.412-72.04-104.968-137.706-104.968C64.154,11.875,0,76.034,0,154.884c0,78.856,64.154,143.009,143.009,143.009 c45.645,0,88.934-22.083,115.798-59.063c4.123-5.689,2.855-13.63-2.823-17.764c-5.689-4.128-13.636-2.845-17.759,2.817 c-22.099,30.421-57.692,48.587-95.222,48.587c-64.839,0-117.582-52.748-117.582-117.582S78.165,37.308,143.004,37.308 c52.22,0,96.549,34.244,111.838,81.434l-8.023,0.587c-5.124,0.37-9.524,3.807-11.139,8.681 c-1.621,4.884-0.131,10.258,3.753,13.619l23.083,19.934c2.246,3.617,6.217,6.037,10.775,6.037c0.239,0,0.462-0.054,0.696-0.065 c0.076,0,0.136,0.033,0.207,0.033c0.305,0,0.615-0.005,0.93-0.033c3.361-0.25,6.483-1.822,8.692-4.373l22.849-26.456 C310.038,132.818,310.723,127.275,308.417,122.685z"></path> <g> <path style="fill:#e00000;" d="M75.772,199.191v-12.347l11.259-10.176c19.031-17.024,28.278-26.815,28.544-36.997 c0-7.109-4.286-12.733-14.348-12.733c-7.5,0-14.071,3.742-18.629,7.239l-5.765-14.62c6.57-4.944,16.752-8.974,28.55-8.974 c19.706,0,30.562,11.525,30.562,27.342c0,14.609-10.584,26.276-23.187,37.53l-8.044,6.701v0.261h32.841v16.763H75.772V199.191z"></path> <path style="fill:#e00000;" d="M186.261,199.191v-20.783H147.66v-13.26l32.972-53.091h24.933v51.073h10.454v15.278h-10.454 v20.783C205.564,199.191,186.261,199.191,186.261,199.191z M186.261,163.13v-19.298c0-5.232,0.267-10.584,0.669-16.219h-0.533 c-2.823,5.635-5.102,10.726-8.044,16.219l-11.661,19.031v0.267H186.261z"></path></g></g></g></g></svg>
+				</span>
+			HTML;
 		}
-
-		// Số vé
-		$sql = "SELECT IFNULL(SUM(d.quantity), 0) AS total_ticket
-			FROM ec_flight_bookings bk
-			LEFT JOIN ec_booking_details d ON d.booking_id = bk.id AND d.deleted = 0
-			WHERE bk.id = '{$focus->id}'
-			AND bk.deleted = 0
-		";
-		$focus->total_qty = (int)$focus->db->getOne($sql);
+		$sql_refund = "SELECT 1 FROM ec_hoanve WHERE booking_id = '{$focus->id}' AND deleted = 0";
+		$is_refund = (bool) ($focus->db->fetchByAssoc($focus->db->query($sql_refund)) ?? 0);
+		if($is_refund) {
+			$tagList .= <<<HTML
+				<span class="tag-refund" title="Hoàn vé" style="cursor:pointer">
+					<svg width="18px" height="18px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M15 12h-2v-1c0-.551-.449-1-1-1H9.414l.586.586A1 1 0 118.586 12L6.293 9.707a1 1 0 010-1.414L8.586 6A1 1 0 1110 7.414L9.414 8H12c1.654 0 3 1.346 3 3v1zm2-8.5A1.5 1.5 0 0015.5 2h-11A1.5 1.5 0 003 3.5V17a1 1 0 001.3.954c.18-.057.317-.195.439-.338l1.121-1.321 1.349 1.399a1.002 1.002 0 001.415.026l1.364-1.318 1.305 1.305a.997.997 0 001.414 0l1.42-1.42 1.136 1.332c.12.141.257.277.434.334A1 1 0 0017 17V3.5z" fill="#ffae00"></path></g></svg>
+				</span>
+			HTML;
+		}
+		if(!empty($tagList)) {
+			$focus->is_prior = <<<HTML
+				<div class="d-flex justify-content-center gap-1">
+					$tagList
+				</div>
+			HTML;
+		}
+		else {
+			$focus->is_prior = '';
+		}
 	}
 
 	function checkBeforeDelete($focus, $event, $arguments)

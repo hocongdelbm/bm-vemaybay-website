@@ -103,7 +103,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			</script>';
 		}
 
-		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.8"></script>';
+		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.9"></script>';
 		echo $js;
 	}
 
@@ -1028,8 +1028,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 				// Build baggage options dropdown
 				$baggageOptionsHtml = $this->bean->generateBaggageOptions($roundName == "inbound" ? $this->bean->airline_inbound : $this->bean->airline, '', $bagText, $bagPrice);
 
-				$html .= '<tr id="psg_baggage_line_' . $roundName . '_' . $i . '">
-					<td data-label="' . $roundName . ' baggage information" class="row_psg_price" colspan="10">
+				$html .= '<tr id="psg_baggage_line_'. $roundName .'_'. $i .'" class="psg_baggage_line_'.$roundName.'">
+					<td data-label="'. $roundName .' baggage information" class="row_psg_price" colspan="10">
 						<div class="psg_price-wrap d-flex gap-3 align-items-center mb-1">
 							<span class="text-label" style="width:155px;">Hành lý xách tay ' . $suffix_text . ':</span>
 							<div>

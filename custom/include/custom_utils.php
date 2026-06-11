@@ -1294,25 +1294,17 @@ function content_logs_behavior($current_user_id, $time, $name_user = '', $url = 
 }
 
 // GET WEBSITE LINK - CREATEDBY
-function get_server_name($created_by = '')
-{
-    global $db;
-
+function get_server_name(string $user_id): string {
     $arr = [
-        'dc22131a-795a-6cd3-2caa-52d40d3b5622', // bookingvj
-        '557d4a5b-27ce-5cb1-4531-5800ab9ed31d', // timcbcom
-        '2b2c93b3-e916-113c-29bc-5b4c6de75db4' // timcbvn
+        'dc22131a-795a-6cd3-2caa-52d40d3b5622' => 'vietjet.net',
+        '557d4a5b-27ce-5cb1-4531-5800ab9ed31d' => 'timchuyenbay.com',
+        '2b2c93b3-e916-113c-29bc-5b4c6de75db4' => 'timchuyenbay.vn',
+        '940beedb-4f03-0e00-1a16-5456ebc43fc0' => 'vemaybay5s.com'
     ];
-    if (!in_array($created_by, $arr)) return 'timchuyenbay.com';
+    if (isset($arr[$user_id])) return $arr[$user_id];
 
-    // Query từ db - another
-    $sql = "SELECT last_name FROM users WHERE id = '$created_by' AND deleted = 0 LIMIT 1";
-    $res = $db->query($sql);
-
-    while ($row = $db->fetchByAssoc($res)) {
-        return $row['last_name'];
-    }
-    return '';
+    global $db;
+    return $db->getOne("SELECT last_name FROM users WHERE id = '$user_id' AND deleted = 0") ?? '';
 }
 
 // Function to get the client ip address

@@ -18,6 +18,40 @@ if (empty($data) || !is_array($data) || empty($data['cities'])) {
 
 global $db;
 
+// Fetch booker IPs from external WordPress APIs, cached for 5 minutes
+function ec_get_booker_ip_set() {
+    $cache_key = 'ec_booker_ip_set_v1';
+    $cached = sugar_cache_retrieve($cache_key);
+    if ($cached !== null) {
+        return $cached;
+    }
+    $domains = ['timchuyenbay.vn', 'vietjet.net'];
+    $ip_set = [];
+    foreach ($domains as $domain) {
+        $url = "https://{$domain}/wp-json/uat/v1/booker-ips?active_only=1";
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+        $res = curl_exec($ch);
+        $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($http_status === 200 && $res) {
+            $json = json_decode($res, true);
+            if (isset($json['data']) && is_array($json['data'])) {
+                foreach ($json['data'] as $item) {
+                    if (!empty($item['ip'])) {
+                        $ip_set[trim($item['ip'])] = true;
+                    }
+                }
+            }
+        }
+    }
+    sugar_cache_put($cache_key, $ip_set, 300);
+    return $ip_set;
+}
+
 $results = [];
 $from_date = !empty($data['from_date']) ? $db->quote($data['from_date']) : '';
 $to_date = !empty($data['to_date']) ? $db->quote($data['to_date']) : '';
@@ -64,7 +98,7 @@ if (!empty($all_clean_ips)) {
             $sql .= " INNER JOIN users u ON b.created_by = u.id AND u.deleted = 0";
         }
         
-        $sql .= " WHERE b.ip_address IN ($ip_list_str) AND b.deleted = 0";
+        $sql .= " WHERE b.ip_address IN ($ip_list_str) AND b.deleted = 0 AND b.booking_status != 4";
 
         if ($site_domain) {
             $sql .= " AND u.last_name = '{$site_domain}'";
@@ -84,6 +118,7 @@ if (!empty($all_clean_ips)) {
             throw new Exception("Database Query Error: " . $db->lastDbError());
         }
         // BƯỚC 3: Xử lý và phân bổ kết quả về đúng mảng City
+        $booker_ip_set = ec_get_booker_ip_set();
         $matched_ip_set = [];
         while ($row = $db->fetchByAssoc($query)) {
             $ip = trim((string)$row['ip_address']);
@@ -96,29 +131,43 @@ if (!empty($all_clean_ips)) {
             // Tên liên hệ gốc (Nếu đã từng đổi tên thì lấy tên cũ nhất từ bảng Audit, không có audit thì lấy hiện hành)
             $initial_contact = !empty($row['initial_contact_name']) ? $row['initial_contact_name'] : $row['current_contact_name'];
             $initial_contact = trim((string) $initial_contact);
-
             $is_ref = (int)$row['is_reference'] === 1;
             $status = (int)$row['booking_status'];
 
-            $is_booker = in_array($initial_contact, $system_booker_names);
-
-            if ($is_ref) {
-                $results[$city]['ThamKhao']++;
-            }
-
-            if($is_booker && !$is_ref && $status !== 8) {
-                $results[$city]['Booker']++;
-            }
-
-            // Điều kiện Booking do Khách Đặt
-            if (!$is_ref && !$is_booker) {
-                $results[$city]['Booking']++;
-            }
+            $is_booker = !empty($booker_ip_set) ? isset($booker_ip_set[$ip]) : in_array($initial_contact, $system_booker_names);
 
             if ($status === 8) {
                 $results[$city]['HoanTat']++;
+            } elseif ($is_booker) {
+                $results[$city]['Booker']++;
+            } elseif ($is_ref) {
+                $results[$city]['ThamKhao']++;
+            } else {
+                $results[$city]['Booking']++;
             }
         }
+
+        // BƯỚC 4: Tìm IP có trong DB nhưng không có trong danh sách IP từ analytics API
+        // $ip_stats = ['db_only_count' => 0, 'db_only' => []];
+        // if ($site_domain && $from_date && $to_date) {
+        //     $sql_db_ips = "SELECT DISTINCT b.ip_address
+        //                    FROM ec_flight_bookings b
+        //                    INNER JOIN users u ON b.created_by = u.id AND u.deleted = 0
+        //                    WHERE u.last_name = '{$site_domain}'
+        //                      AND b.deleted = 0
+        //                      AND b.booking_status NOT IN (4, 8)
+        //                      AND (DATE_ADD(b.date_entered, INTERVAL 7 HOUR) BETWEEN '{$from_date} 00:00:00' AND '{$to_date} 23:59:59')";
+        //     $q_db_ips = $db->query($sql_db_ips, false);
+        //     if ($q_db_ips) {
+        //         while ($r = $db->fetchByAssoc($q_db_ips)) {
+        //             $db_ip = trim((string)$r['ip_address']);
+        //             if ($db_ip && !isset($ip_to_city_map[$db_ip])) {
+        //                 $ip_stats['db_only'][] = $db_ip;
+        //             }
+        //         }
+        //         $ip_stats['db_only_count'] = count($ip_stats['db_only']);
+        //     }
+        // }
     } catch (Exception $e) {
         header('Content-Type: application/json');
         die(json_encode(['status' => 'error', 'message' => $e->getMessage()]));
@@ -128,5 +177,7 @@ if (!empty($all_clean_ips)) {
     }
 }
 
+// header('Content-Type: application/json');
+// echo json_encode(['status' => 'success', 'data' => $results, '_ip_stats' => $ip_stats ?? []]);
 echo json_encode(['status' => 'success', 'data' => $results]);
 exit();

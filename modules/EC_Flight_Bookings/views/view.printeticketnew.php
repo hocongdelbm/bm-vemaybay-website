@@ -326,7 +326,11 @@ class Viewprinteticketnew extends SugarView
 
 		while ($row = $db->fetchByAssoc($res)) {
 			// PHP-level deduplication: skip if same name+pnr+type already added
-			$dedupKey = mb_strtoupper(trim($row['name']), 'UTF-8') . '|' . trim($row['pnr_outbound'] ?? '') . '|' . $row['type'];
+			$cicKey   = trim($row['cic'] ?? '') ?: trim($row['passport_number'] ?? '');
+			$dedupKey = mb_strtoupper(trim($row['name']), 'UTF-8')
+				. '|' . trim($row['pnr_outbound'] ?? '')
+				. '|' . $row['type']
+				. '|' . $cicKey;
 			if (isset($seen[$dedupKey])) continue;
 			$seen[$dedupKey] = true;
 

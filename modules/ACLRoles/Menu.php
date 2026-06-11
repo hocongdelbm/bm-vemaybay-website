@@ -26,5 +26,6 @@ if (is_admin($current_user)) {
     $admin_mod_strings = return_module_language($current_language, 'Administration');
     $module_menu[] = ["index.php?module=Users&action=index&return_module=SecurityGroups&return_action=ListView", $admin_mod_strings['LBL_MANAGE_USERS_TITLE'], "List"];
     $module_menu[] = ["index.php?module=SecurityGroups&action=config&return_module=SecurityGroups&return_action=ListView", $admin_mod_strings['LBL_CONFIG_SECURITYGROUPS_TITLE'], "Security_Groups"];
-    $module_menu[] = ["index.php?module=ACLRoles&action=DisableRole", "Disable Role Permissions", "DisableRole"];
+    $module_menu[] = ["index.php?module=ACLRoles&action=DisableRole", $mod_strings['LBL_DISABLE_ROLE'] ?? "Vô hiệu hóa Role", "DisableRole"];
+    $module_menu[] = ["index.php?module=ACLRoles&action=DisableModuleRole", $mod_strings['LBL_DISABLE_MODULE_ROLE'] ?? "Vô hiệu hóa theo Module", "DisableModuleRole"];
 }

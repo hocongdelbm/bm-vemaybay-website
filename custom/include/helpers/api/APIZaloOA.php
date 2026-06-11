@@ -788,7 +788,9 @@ class APIZaloOA {
             case 'cheap-flight':
                 return "549919"; // Gửi vé giá rẻ booking tham khảo (CSKH)
             case 'otp':
-                return "518686"; // Gửi OTP qua SĐT
+                return "518686"; // Gửi tin tri ân, du lịch hè vi vu
+            case 'promotional-summer':
+                return "588680";
             default:
                 return "";
         }
@@ -824,6 +826,8 @@ class APIZaloOA {
                 return "Gửi OTP";
             case '549919':
                 return "Gửi vé giá rẻ booking tham khảo (CSKH)";
+             case '588680':
+                return "Tri ân, du lịch hè vi vu";
             default:
                 return "";
         }
@@ -849,6 +853,10 @@ class APIZaloOA {
             "549919" => [
                 "phone_number" => 200,
                 "uid" => 140,
+            ],
+            "588680" => [
+                "phone_number" => 400,
+                "uid" => 280,
             ],
         ];
         return $arr[(string)$template_id][$send_by] ?? 200;
@@ -944,7 +952,67 @@ class APIZaloOA {
         return $result;
     }
 
+    /***************  Auto Post  ***************/
+    /** 
+     * Create an article (post)
+     * 
+     * @param array $data
+     * @return string json
+     */
+    public function create_article($data) {
+        $url = "https://openapi.zalo.me/v2.0/article/create";
+        $header = [
+            "Content-Type: application/json",
+            "access_token: ". $this->get_token()
+        ];
+        $curlOptions = [
+            CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+            CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+        ];
+        return $this->send_request("POST", $url, json_encode($data), $header, $curlOptions);
+    }
 
+    /** 
+     * Upload video for article
+     * 
+     * @param string $path
+     * @param string|null $name
+     * @return string json
+     */
+    public function upload_video_article($path, $name = null) {
+        $url = "https://openapi.zalo.me/v2.0/article/upload_video/preparevideo";
+        $header = [
+            "access_token: ". $this->get_token()
+        ];
+        $requestBody = ['file' => new CURLFile($path, null, $name)];
+        $curlOptions = [
+            CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+            CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+        ];
+
+        return $this->send_request("POST", $url, $requestBody, $header, $curlOptions);
+    }
+
+    /** 
+     * Verify video status for article
+     * 
+     * @param string $token
+     * @return string json
+     */
+    public function verify_video_article($token) {
+        $url = "https://openapi.zalo.me/v2.0/article/upload_video/verify";
+        $header = [
+            "Content-Type: application/json",
+            "access_token: ". $this->get_token(),
+            "token: " . $token
+        ];
+        $curlOptions = [
+            CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+            CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+        ];
+
+        return $this->send_request("GET", $url, null, $header, $curlOptions);
+    }
 
     /***************  Utils  ***************/
     /**

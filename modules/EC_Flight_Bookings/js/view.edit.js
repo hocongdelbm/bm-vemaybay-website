@@ -215,16 +215,16 @@ $(document).ready(function () {
 		}
 	}
 
-	// Check flight type
-	if ($('#flight_type').val() == 1) {
-		$(".date_ticket_issue_inbound").addClass('d-none');
+	// Handle flight type
+	if ($('#flight_type').val() == '1') {
 		$(".airline-wrap__inbound").addClass('d-none');
+		$(".date_ticket_issue_inbound").addClass('d-none');
+		$(".psg_baggage_line_inbound").addClass('d-none');
 	} else {
-		$(".date_ticket_issue_inbound").removeClass('d-none');
 		$(".airline-wrap__inbound").removeClass('d-none');
+		$(".date_ticket_issue_inbound").removeClass('d-none');
+		$(".psg_baggage_line_inbound").removeClass('d-none');
 	}
-
-	// Change flight type
 	$('#flight_type').change(function () {
 		if ($('#flight_type :selected').val() == '1') {
 			$('#airline_inbound').val('');
@@ -232,9 +232,12 @@ $(document).ready(function () {
 
 			$(".airline-wrap__inbound").addClass('d-none');
 			$(".date_ticket_issue_inbound").addClass('d-none');
-		} else {
+			$(".psg_baggage_line_inbound").addClass('d-none');
+		}
+		else {
 			$(".airline-wrap__inbound").removeClass('d-none');
 			$(".date_ticket_issue_inbound").removeClass('d-none');
+			$(".psg_baggage_line_inbound").removeClass('d-none');
 		}
 	});
 
@@ -827,6 +830,7 @@ function insertPassengerLine2(ln) {
 	html += '</tr>';
 
 	/**********  Baggages line   **********/
+	let flight_type = $('#flight_type').val();
 	const rounds = ["outbound", "inbound"];
 	rounds.forEach(roundName => {
 		const suffix = roundName === "outbound" ? "" : "_inbound";
@@ -865,7 +869,8 @@ function insertPassengerLine2(ln) {
 			});
 		}
 
-		html += `<tr id="psg_baggage_line_${roundName}_${ln}">
+		let classShowHide = flight_type == '1' && roundName == 'inbound' ? 'd-none' : ''; 
+		html += `<tr id="psg_baggage_line_${roundName}_${ln}" class="psg_baggage_line_${roundName} ${classShowHide}">
 			<td data-label="${roundName} baggage information" class="row_psg_price" colspan="10">
 			<div class="psg_price-wrap d-flex gap-3 align-items-center mb-1">
 				<span class="text-label" style="width:155px;">Hành lý xách tay ${suffixtext}:</span>

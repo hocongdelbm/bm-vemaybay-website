@@ -210,44 +210,44 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 								$point_log->parent_id = $record;
 								$point_log->save();
 
-								// Send point info to customer via Zalo
-								$entry = new entryFactory();
-								$entryOA = $entry->create('entryZaloOAClass');
-								$params = [
-									"phoneNumber" => $con_phone,
-									"type" => "points",
-									"parentId" => $record,
-									"parentType" => "EC_Flight_Bookings",
-									"templateData" => [
-										"name" => "bạn",
-										"booking" => $record_name,
-										"point" => (string)$point,
-										"total_point" => (string)$total_point
-									],
-									'auto' => 1
-								];
-								$sendResult = $entryOA->sendTemplateMessage($params);
+								// // Send point info to customer via Zalo
+								// $entry = new entryFactory();
+								// $entryOA = $entry->create('entryZaloOAClass');
+								// $params = [
+								// 	"phoneNumber" => $con_phone,
+								// 	"type" => "points",
+								// 	"parentId" => $record,
+								// 	"parentType" => "EC_Flight_Bookings",
+								// 	"templateData" => [
+								// 		"name" => "bạn",
+								// 		"booking" => $record_name,
+								// 		"point" => (string)$point,
+								// 		"total_point" => (string)$total_point
+								// 	],
+								// 	'auto' => 1
+								// ];
+								// $sendResult = $entryOA->sendTemplateMessage($params);
 
-								if (isset($sendResult['status']) && $sendResult['status'] == 1) {
-									$content = "⭐️ Đã gửi tin Zalo tích <b>+$point</b> điểm đến khách hàng";
-									$content .= "\nBooking: <b>$record_name</b>";
-									$content .= "\nSĐT: <b>$con_phone</b>";
-									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
-									NotificationService::sendMessage($content, '', ['threadKey' => 'system']);
-								}
-								else {
-									$content = "Gửi tin Zalo tích điểm đến khách hàng chưa thành công";
-									$content .= "\nĐiểm <b>+$point</b>, tổng <b>$total_point</b>";
-									$content .= "\nBooking: <b>$record_name</b>";
-									$content .= "\nSĐT: <b>$con_phone</b>";
-									if(isset($sendResult['message'])) {
-										$content .= "\nNguyên nhân: <b>{$sendResult['message']} ({$sendResult['error']})</b>";
-									}
-									else{
-										$content .= "\n<pre>" . json_encode($sendResult, JSON_UNESCAPED_UNICODE) . "</pre>";
-									}
-									NotificationService::sendWarningMessage($content, '', ['threadKey' => 'logs']);
-								}
+								// if (isset($sendResult['status']) && $sendResult['status'] == 1) {
+								// 	$content = "⭐️ Đã gửi tin Zalo tích <b>+$point</b> điểm đến khách hàng";
+								// 	$content .= "\nBooking: <b>$record_name</b>";
+								// 	$content .= "\nSĐT: <b>$con_phone</b>";
+								// 	$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+								// 	NotificationService::sendMessage($content, '', ['threadKey' => 'system']);
+								// }
+								// else {
+								// 	$content = "Gửi tin Zalo tích điểm đến khách hàng chưa thành công";
+								// 	$content .= "\nĐiểm <b>+$point</b>, tổng <b>$total_point</b>";
+								// 	$content .= "\nBooking: <b>$record_name</b>";
+								// 	$content .= "\nSĐT: <b>$con_phone</b>";
+								// 	if(isset($sendResult['message'])) {
+								// 		$content .= "\nNguyên nhân: <b>{$sendResult['message']} ({$sendResult['error']})</b>";
+								// 	}
+								// 	else{
+								// 		$content .= "\n<pre>" . json_encode($sendResult, JSON_UNESCAPED_UNICODE) . "</pre>";
+								// 	}
+								// 	NotificationService::sendWarningMessage($content, '', ['threadKey' => 'logs']);
+								// }
 							}
 						}
 					}

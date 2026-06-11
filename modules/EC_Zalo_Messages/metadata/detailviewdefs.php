@@ -56,30 +56,64 @@ $viewdefs[$module_name]['DetailView'] = array(
         ),
     ),
 
-    'panels' =>
-        array(
-            'default' =>
+    'panels' => array(
+        'default' => array(
+            array(
+                array('name' => 'message_id', 'label' => 'LBL_MESSAGE_ID'),
+                array('name' => 'src', 'label' => 'LBL_SRC'),
+            ),
+            array(
+                array('name' => 'from_id', 'label' => 'LBL_FROM_ID'),
+                array('name' => 'to_id', 'label' => 'LBL_TO_ID'),
+            ),
+            array(
+                array('name' => 'timestamp_dt', 'label' => 'LBL_TIMESTAMP'),
+                array('name' => 'type', 'label' => 'LBL_TYPE'),
+            ),
+            array(
+                array('name' => 'sub_type', 'label' => 'LBL_SUB_TYPE'),
                 array(
-                    array(
-                        'name',
-                        'assigned_user_name',
-                    ),
-                    array(
-                        array(
-                            'name' => 'date_entered',
-                            'customCode' => '{$fields.date_entered.value} {$APP.LBL_BY} {$fields.created_by_name.value}',
-                            'label' => 'LBL_DATE_ENTERED',
-                        ),
-                        array(
-                            'name' => 'date_modified',
-                            'customCode' => '{$fields.date_modified.value} {$APP.LBL_BY} {$fields.modified_by_name.value}',
-                            'label' => 'LBL_DATE_MODIFIED',
-                        ),
-                    ),
-
-                    array(
-                        'description',
-                    ),
-                )
-        )
+                    'name' => 'thumbnail',
+                    'customCode' => '{$CUSTOM_THUMB}',
+                    'label' => 'LBL_THUMBNAIL',
+                ),
+                ),
+            array(
+                array('name' => 'url', 'label' => 'LBL_URL'),
+                array('name' => 'attached_description', 'label' => 'LBL_ATTACHED_DESCRIPTION'),
+            ),
+            array(
+                array('name' => 'latitude', 'label' => 'LBL_LATITUDE'),
+                array('name' => 'longitude', 'label' => 'LBL_LONGITUDE'),
+            ),
+            array(
+                array('name' => 'quote_message_id', 'label' => 'LBL_QUOTE_MESSAGE_ID'),
+                array('name' => 'template_id', 'label' => 'LBL_TEMPLATE_ID'),
+            ),
+            array(
+                array('name' => 'data', 'label' => 'LBL_DATA'),
+                array('name' => 'response', 'label' => 'LBL_RESPONSE'),
+            ),
+            array(
+                array('name' => 'cost', 'label' => 'LBL_COST'),
+                array('name' => 'booking', 'label' => 'LBL_BOOKING'),
+            ),
+            array(
+                array('name' => 'description', 'label' => 'LBL_DESCRIPTION'),
+                array('name' => 'assigned_user_name', 'label' => 'LBL_ASSIGNED_TO'),
+            ),
+            array(
+                array(
+                    'name' => 'date_entered',
+                    'customCode' => '{$fields.date_entered.value} {$APP.LBL_BY} {$fields.created_by_name.value}',
+                    'label' => 'LBL_DATE_ENTERED',
+                ),
+                array(
+                    'name' => 'date_modified',
+                    'customCode' => '{$fields.date_modified.value} {$APP.LBL_BY} {$fields.modified_by_name.value}',
+                    'label' => 'LBL_DATE_MODIFIED',
+                ),
+            ),
+        ),
+    ),
 );
