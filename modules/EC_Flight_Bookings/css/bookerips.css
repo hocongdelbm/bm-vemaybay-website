@@ -174,6 +174,91 @@
     width: 100%;
 }
 
+.bip-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.bip-toolbar-copy {
+    min-width: 260px;
+}
+
+.bip-toolbar-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.bip-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--uat-text-muted);
+    cursor: pointer;
+}
+
+.bip-filter-toggle input[type="checkbox"] {
+    accent-color: var(--uat-primary);
+}
+
+.bip-domain-panel {
+    margin-bottom: 18px;
+    padding: 16px 18px;
+    border: 1px solid #e5edf9;
+    border-radius: 14px;
+    background:
+        linear-gradient(180deg, rgba(239, 246, 255, 0.9) 0%, rgba(255, 255, 255, 0.98) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.bip-domain-panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.bip-domain-panel-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--uat-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 3px;
+}
+
+.bip-domain-panel-subtitle {
+    font-size: 12px;
+    color: #7c8aa5;
+    line-height: 1.5;
+}
+
+.bip-domain-panel-meta {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--uat-primary);
+    padding: 6px 10px;
+    border-radius: 9999px;
+    background: rgba(59, 130, 246, 0.08);
+    white-space: nowrap;
+}
+
+.bip-domain-panel-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+}
+
 @media (max-width: 768px) {
     .uat-card {
         padding: 16px;
@@ -192,9 +277,11 @@
 
 .uat-table {
     width: 100%;
+    min-width: 900px;
     border-collapse: collapse;
     background: #fff;
     font-size: 13px;
+    table-layout: fixed;
 }
 
 .uat-table th {
@@ -214,12 +301,38 @@
 }
 
 .uat-table td {
-    padding: 12px 16px;
+    padding: 14px 16px;
     border-bottom: 1px solid #f1f5f9;
     color: #334155;
-    vertical-align: middle;
+    vertical-align: top;
     white-space: normal;
     word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.bip-col-index {
+    width: 48px;
+}
+
+.bip-col-ip {
+    width: 132px;
+}
+
+.bip-col-note {
+    width: 42%;
+}
+
+.bip-col-date {
+    width: 120px;
+}
+
+.bip-col-status {
+    width: 108px;
+}
+
+.bip-col-actions {
+    width: 136px;
+    text-align: right !important;
 }
 
 .uat-table tr:last-child td {
@@ -228,6 +341,10 @@
 
 .uat-table tr:hover td {
     background-color: #f8fafc;
+}
+
+.uat-table tbody tr {
+    transition: background-color 0.18s ease;
 }
 
 .uat-empty-cell {
@@ -251,6 +368,11 @@
     .uat-table tbody {
         display: block;
         width: 100%;
+    }
+
+    .uat-table {
+        min-width: 100%;
+        table-layout: auto;
     }
 
     .uat-table thead {
@@ -294,17 +416,6 @@
         padding-top: 2px;
     }
 
-    .uat-table td.bip-domain-cell {
-        flex-wrap: wrap;
-        row-gap: 4px;
-    }
-
-    .uat-table td.bip-domain-cell .bip-domains {
-        flex: 1;
-        min-width: 0;
-        justify-content: flex-end;
-    }
-
     .uat-table td.bip-stt-cell {
         display: none;
     }
@@ -339,27 +450,35 @@
 .badge {
     display: inline-flex;
     align-items: center;
-    padding: 2px 10px;
+    padding: 4px 10px;
     border-radius: 9999px;
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 10px;
+    font-weight: 800;
     text-transform: uppercase;
     white-space: nowrap;
+    line-height: 1.2;
+    max-width: 100%;
+    letter-spacing: 0.02em;
 }
 
 .badge-blue {
-    background: #dbeafe;
-    color: #1e40af;
+    background: #e8f0ff;
+    color: #2f52c8;
 }
 
 .badge-green {
-    background: #d1fae5;
+    background: #d9fbe8;
     color: #065f46;
 }
 
 .badge-red {
     background: #fee2e2;
     color: #991b1b;
+}
+
+.badge-muted {
+    background: #eef2f7;
+    color: #64748b;
 }
 
 /* ── 9. Form Fields ─────────────────────────────────────── */
@@ -496,28 +615,70 @@
     color: #92400e;
 }
 
-/* ── 12. Domain badges container ────────────────────────── */
-.bip-domains {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    align-items: center;
+/* ── 12. IP & Note Cell ─────────────────────────────────── */
+.bip-stt-cell {
+    color: var(--uat-text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+    vertical-align: middle !important;
 }
 
-/* ── 13. IP & Note Cell ─────────────────────────────────── */
 .bip-ip-cell {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     font-weight: 600;
-    color: var(--uat-text);
+    color: #22375f;
     font-size: 13px;
-    word-break: break-all;
-    white-space: normal;
+    line-height: 1.55;
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
 .bip-note-cell {
-    max-width: 250px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    color: var(--uat-text-muted);
+    line-height: 1.6;
+}
+
+.bip-date-cell {
     white-space: nowrap;
     color: var(--uat-text-muted);
+}
+
+.bip-status-cell,
+.bip-action-cell {
+    vertical-align: middle !important;
+}
+
+.bip-action-group {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.bip-empty-text {
+    color: #cbd5e1;
+    font-style: italic;
+}
+
+@media (min-width: 641px) and (max-width: 1180px) {
+    .uat-card {
+        overflow: hidden;
+    }
+
+    .bip-table-wrapper {
+        margin: 0 -4px;
+    }
+}
+
+@media (max-width: 768px) {
+    .bip-domain-panel {
+        padding: 14px;
+        border-radius: 12px;
+    }
+
+    .bip-domain-panel-meta {
+        padding: 4px 8px;
+    }
 }

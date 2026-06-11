@@ -32,18 +32,37 @@
         }, AUTO_HIDE_MS);
     }
 
+    function renderDomainPanel(domains) {
+        const list = document.getElementById('bip-domain-list');
+        const count = document.getElementById('bip-domain-count');
+        const uniqueDomains = Array.from(new Set(
+            (Array.isArray(domains) ? domains : []).filter(Boolean)
+        )).sort((a, b) => a.localeCompare(b));
+
+        if (!uniqueDomains.length) {
+            count.textContent = '0 domain áp dụng';
+            list.innerHTML = '<span class="badge badge-muted">Chưa cấu hình domain áp dụng</span>';
+            return;
+        }
+
+        count.textContent = `${uniqueDomains.length} domain áp dụng`;
+        list.innerHTML = uniqueDomains.map(d => `<span class="badge badge-blue">${esc(d)}</span>`).join('');
+    }
+
     function loadList() {
         const activeOnly = document.getElementById('bip-active-only').checked;
         const tbody = document.getElementById('bip-tbody');
 
-        tbody.innerHTML = '<tr><td colspan="7" class="uat-empty-cell">Đang tải…</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="uat-empty-cell">Đang tải…</td></tr>';
 
         fetch(API_PROXY + (activeOnly ? '&active_only=1' : '&active_only=0'))
             .then(r => r.json())
             .then(json => {
                 const rows = json.data || [];
+                renderDomainPanel(json.domains || []);
+
                 if (!rows.length) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="uat-empty-cell">Không có IP nào.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="uat-empty-cell">Không có IP nào.</td></tr>';
                     return;
                 }
                 tbody.innerHTML = rows.map((r, i) => {
@@ -53,22 +72,18 @@
                     } else if (r.is_active) {
                         badge = '<span class="badge badge-green">Hiệu lực</span>';
                     } else {
-                        badge = '<span class="badge" style="background:#f1f5f9;color:#64748b">Hết hạn</span>';
+                        badge = '<span class="badge badge-muted">Hết hạn</span>';
                     }
                     const delBtn = r.is_deleted ? '' : `<button class="uat-btn-delete bip-del-btn" data-ip="${esc(r.ip)}">Xoá</button>`;
-                    const editBtn = r.is_deleted ? '' : `<button class="uat-btn-ghost bip-edit-btn" data-ip="${esc(r.ip)}" data-note="${esc(r.note)}" style="margin-right:6px">Sửa</button>`;
-
-                    const domainsHtml = (r.domains || []).map(d => `<span class="badge badge-blue">${esc(d)}</span>`).join('');
-                    const domainsCell = domainsHtml ? `<div class="bip-domains">${domainsHtml}</div>` : '<em style="color:var(--uat-border)">—</em>';
+                    const editBtn = r.is_deleted ? '' : `<button class="uat-btn-ghost bip-edit-btn" data-ip="${esc(r.ip)}" data-note="${esc(r.note)}">Sửa</button>`;
                     return `<tr>
-                        <td class="bip-stt-cell" data-label="#" style="color:var(--uat-text-muted); font-weight:600; white-space:nowrap; width:40px;">${i + 1}</td>
+                        <td class="bip-stt-cell" data-label="#">${i + 1}</td>
                         <td class="bip-ip-cell" data-label="IP">${esc(r.ip)}</td>
-                        <td class="bip-domain-cell" data-label="Đồng bộ">${domainsCell}</td>
-                        <td class="bip-note-cell" data-label="Ghi chú" title="${esc(r.note)}">${esc(r.note) || '<em style="color:var(--uat-border)">—</em>'}</td>
-                        <td data-label="Khai báo" style="white-space:nowrap;">${esc(fmtDate(r.created_at))}</td>
-                        <td data-label="Trạng thái">${badge}</td>
+                        <td class="bip-note-cell" data-label="Ghi chú" title="${esc(r.note)}">${esc(r.note) || '<em class="bip-empty-text">—</em>'}</td>
+                        <td class="bip-date-cell" data-label="Khai báo">${esc(fmtDate(r.created_at))}</td>
+                        <td class="bip-status-cell" data-label="Trạng thái">${badge}</td>
                         <td class="bip-action-cell">
-                            <div style="display:flex; gap:8px; justify-content:flex-end; align-items:center; white-space:nowrap;">
+                            <div class="bip-action-group">
                                 ${editBtn}${delBtn}
                             </div>
                         </td>
@@ -95,7 +110,9 @@
                 });
             })
             .catch(err => {
-                tbody.innerHTML = `<tr><td colspan="7" class="uat-empty-cell" style="color:var(--uat-danger)">Lỗi tải dữ liệu: ${esc(err.message)}</td></tr>`;
+                document.getElementById('bip-domain-count').textContent = 'Lỗi tải';
+                document.getElementById('bip-domain-list').innerHTML = '<span class="badge badge-red">Không tải được domain</span>';
+                tbody.innerHTML = `<tr><td colspan="6" class="uat-empty-cell" style="color:var(--uat-danger)">Lỗi tải dữ liệu: ${esc(err.message)}</td></tr>`;
             });
     }
 
