@@ -20,32 +20,33 @@ class Viewsummaryview extends SugarView
      * Authentication: WordPress Application Password (Basic Auth)
      * Header: Authorization: Basic base64(username:app_password)
      */
-    public static $domain_list = [
-        'vietjet.net' => [
-            'label' => 'vietjet.net',
-            'api_base' => 'https://vietjet.net/wp-json/uat/v1',
-            'username' => 'datlnt',
-            'app_password' => 'YFa@jrA5XW4DnDw6q!N0zZRL',
-            'page_api' => 'https://vietjet.net/api',
-            'api_key' => '4F3yBy83DIRuHaFp6ealBkSsb3T3kvZ8MqM',
-        ],
-        'timchuyenbay.vn' => [
-            'label' => 'timchuyenbay.vn',
-            'api_base' => 'https://timchuyenbay.vn/wp-json/uat/v1',
-            'username' => 'datlnt',
-            'app_password' => 'hVr3$43qSskCAg@U7Xq@PJYG',
-            'page_api' => 'https://timchuyenbay.vn/api',
-            'api_key' => '4F3yBy83DIRuHaFp6e@alBkS-sb3T3)kvZ8$-MqM',
-        ],
-        'timchuyenbay.com' => [
-            'label' => 'timchuyenbay.com',
-            'api_base' => 'https://timchuyenbay.com/wp-json/uat/v1',
-            'username' => 'datlnt',
-            'app_password' => 'hVr3$43qSskCAg@U7Xq@PJYG',
-            'page_api' => 'https://timchuyenbay.com/api',
-            'api_key' => '4F3yBy83DIRuHaFp6e@alBkS-sb3T3)kvZ8$-MqM',
-        ],
-    ];
+    // public static $domain_list = [
+    //     'vietjet.net' => [
+    //         'label' => 'vietjet.net',
+    //         'api_base' => 'https://vietjet.net/wp-json/uat/v1',
+    //         'username' => 'datlnt',
+    //         'app_password' => 'YFa@jrA5XW4DnDw6q!N0zZRL',
+    //         'page_api' => 'https://vietjet.net/api',
+    //         'api_key' => '4F3yBy83DIRuHaFp6ealBkSsb3T3kvZ8MqM',
+    //     ],
+    //     'timchuyenbay.vn' => [
+    //         'label' => 'timchuyenbay.vn',
+    //         'api_base' => 'https://timchuyenbay.vn/wp-json/uat/v1',
+    //         'username' => 'datlnt',
+    //         'app_password' => 'hVr3$43qSskCAg@U7Xq@PJYG',
+    //         'page_api' => 'https://timchuyenbay.vn/api',
+    //         'api_key' => '4F3yBy83DIRuHaFp6e@alBkS-sb3T3)kvZ8$-MqM',
+    //     ],
+    //     'timchuyenbay.com' => [
+    //         'label' => 'timchuyenbay.com',
+    //         'api_base' => 'https://timchuyenbay.com/wp-json/uat/v1',
+    //         'username' => 'datlnt',
+    //         'app_password' => 'hVr3$43qSskCAg@U7Xq@PJYG',
+    //         'page_api' => 'https://timchuyenbay.com/api',
+    //         'api_key' => '4F3yBy83DIRuHaFp6e@alBkS-sb3T3)kvZ8$-MqM',
+    //     ],
+    // ];
+
 
     public function __construct()
     {
@@ -53,13 +54,15 @@ class Viewsummaryview extends SugarView
 
     function display()
     {
+        global $sugar_config;
+        $domain_list = $sugar_config['domain_list'] ?? [];
         $smarty = new Sugar_Smarty();
 
         // Build JS config: label + api_base + pre-encoded auth token
         $select_options = [];
         $domain_config = [];
 
-        foreach (self::$domain_list as $key => $info) {
+        foreach ($domain_list as $key => $info) {
             $select_options[$key] = $info['label'];
 
             // Encode credentials server-side → không lộ plain-text password trong HTML

@@ -3,10 +3,12 @@ if (!defined('sugarEntry') || !sugarEntry)
     die('Not A Valid Entry Point');
 
 // Các domain cần đồng bộ Booker IP (phải cài plugin ua-tracker)
-$domains = [
-    'timchuyenbay.vn', // Active
-    'vietjet.net'
-];
+global $sugar_config;
+$domains = $sugar_config['domains'] ?? [];
+// $domains = [
+//     'timchuyenbay.vn', // Active
+//     'vietjet.net'
+// ];
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_REQUEST['action'] ?? ''; // Hỗ trợ workaround POST action=delete
@@ -48,7 +50,10 @@ if ($method === 'GET') {
     $merged_data = array_values($all_ips);
     http_response_code(200);
     header('Content-Type: application/json');
-    echo json_encode(['data' => $merged_data]);
+    echo json_encode([
+        'data' => $merged_data,
+        'domains' => array_values($domains),
+    ]);
     exit;
 }
 

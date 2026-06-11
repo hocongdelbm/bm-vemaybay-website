@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/bookerips.css?v=1.0.3">
+<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/bookerips.css?v=1.0.6">
 
 <div class="uat-wrap">
     <div class="uat-header" style="margin-bottom: 24px;">
@@ -49,17 +49,14 @@
         <!-- ===== DANH SÁCH IP ===== -->
         <div class="uat-col-8">
             <div class="uat-card">
-                <div
-                    style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px;">
-                    <div>
+                <div class="bip-toolbar">
+                    <div class="bip-toolbar-copy">
                         <div class="uat-card-title">Danh sách IP đã khai báo</div>
                         <div class="uat-card-des">IP đang trong trạng thái được theo dõi qua các domain</div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <label
-                            style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--uat-text-muted); cursor:pointer;">
-                            <input type="checkbox" id="bip-active-only" checked
-                                style="accent-color:var(--uat-primary);">
+                    <div class="bip-toolbar-actions">
+                        <label class="bip-filter-toggle">
+                            <input type="checkbox" id="bip-active-only" checked>
                             Chỉ hiện còn hiệu lực
                         </label>
                         <button id="bip-refresh" class="uat-btn-ghost" title="Làm mới danh sách">
@@ -76,17 +73,29 @@
                 </div>
                 <div class="uat-card-divider"></div>
 
+                <div class="bip-domain-panel">
+                    <div class="bip-domain-panel-head">
+                        <div>
+                            <div class="bip-domain-panel-title">Domain áp dụng</div>
+                            <div class="bip-domain-panel-subtitle">Tất cả IP khai báo sẽ tự động đồng bộ trên các domain này</div>
+                        </div>
+                        <div class="bip-domain-panel-meta" id="bip-domain-count">Đang tải…</div>
+                    </div>
+                    <div class="bip-domain-panel-list" id="bip-domain-list">
+                        <span class="badge badge-muted">Đang tải…</span>
+                    </div>
+                </div>
+
                 <div class="bip-table-wrapper">
                     <table class="uat-table" id="bip-table">
                         <thead>
                             <tr>
-                                <th style="width:40px">#</th>
-                                <th>IP</th>
-                                <th>Đồng bộ trên</th>
-                                <th>Ghi chú</th>
-                                <th>Khai báo lúc</th>
-                                <th style="width:80px">Trạng thái</th>
-                                <th style="min-width:130px; text-align:right;">Hành động</th>
+                                <th class="bip-col-index">#</th>
+                                <th class="bip-col-ip">IP</th>
+                                <th class="bip-col-note">Ghi chú</th>
+                                <th class="bip-col-date">Khai báo lúc</th>
+                                <th class="bip-col-status">Trạng thái</th>
+                                <th class="bip-col-actions">Hành động</th>
                             </tr>
                         </thead>
                         <tbody id="bip-tbody">
@@ -101,4 +110,4 @@
     </div>
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/bookerips.js?v=1.0.2"></script>
+<script src="modules/EC_Flight_Bookings/js/bookerips.js?v=1.0.5"></script>
