@@ -152,23 +152,7 @@ $(document).ready(function () {
 		}
 	});
 
-	// Thông tin hành trình sau khi đổi ngày bay
-	$.ajax({
-		url: "index.php?entryPoint=entryPointFlightBookings",
-		type: "POST",
-		data: {
-			id: $("form[name='DetailView']>input[name='record']").val(),
-			for: "showEditedFlightTime"
-		},
-		success: function (response) {
-			if (response != '') {
-				$("div[data-id='LBL_LINEITINERARIES_PANEL'] table#itinerary_tbl>tbody").append(response);
-			} else {
-				// $("div[data-id='LBL_LINEITINERARIES_PANEL'] table#itinerary_tbl").append("<tr class='edited_iti_line'><td colspan='13' style='border: 1px solid #ccc; padding: 5px 3px;'>Không có thông tin đổi ngày bay.</td></tr>");
-				$("div[data-id='LBL_LINEITINERARIES_PANEL'] table#itinerary_tbl #no-change__edit-iti").append(" Không có thông tin thay đổi ngày bay.");
-			}
-		}
-	});
+	renderPreloadedChangeState();
 
 	// Sửa thông tin hành trình thay đổi nếu có nhập sai
 	$(document).on('click', '.edit_iti_row', function () {
@@ -194,23 +178,6 @@ $(document).ready(function () {
 			modal: true,
 			resizable: false,
 		});
-	});
-
-	// Thông tin hành khách sau khi thay đổi
-	$.ajax({
-		url: "index.php?entryPoint=entryPointFlightBookings",
-		type: "POST",
-		data: {
-			id: $("form[name='DetailView']>input[name='record']").val(),
-			for: "showChangedPassenger"
-		},
-		success: function (response) {
-			if (response != '') {
-				$("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax tbody").append(response);
-			} else {
-				$("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax #no-change__edit-pass").append("Chưa có hành khách nào thay đổi thông tin.");
-			}
-		}
 	});
 
 	// Booking ở trạng thái "hoàn tất", "xuất vé" không đc edit và delete ngoại trừ kế toán trưởng và admin
@@ -2080,6 +2047,18 @@ function getAirLineInf() {
 	}
 
 	return iti_airline;
+}
+
+function renderPreloadedChangeState() {
+	var $itineraryTable = $("div[data-id='LBL_LINEITINERARIES_PANEL'] table#itinerary_tbl");
+	if ($itineraryTable.length && $itineraryTable.find("tbody .edited_iti_line").length === 0) {
+		$itineraryTable.find("#no-change__edit-iti").text(" Không có thông tin thay đổi ngày bay.");
+	}
+
+	var $passengerTable = $("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax");
+	if ($passengerTable.length && $passengerTable.find("tbody .edited_pass_line, tbody .edited_pass_group, tbody .psg-line[data-times-change]").length === 0) {
+		$passengerTable.find("#no-change__edit-pass").text("Chưa có hành khách nào thay đổi thông tin.");
+	}
 }
 
 function updateAmountInUrl(url, newAmount) {
