@@ -19,9 +19,6 @@ $viewdefs[$module_name]['EditView'] = array(
             array(
                 'file' => 'custom/jqueryui/plugins/fromPopupReturn.js',
             ),
-            array(
-                'file' => 'modules/EC_Receipt_Voucher/js/view.edit.js',
-            ),
         ),
     ),
 

@@ -25,7 +25,10 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit {
 	}
 	
 	function displayJS(){
-		$js = '<script>
+		$js_file = 'modules/EC_Receipt_Voucher/js/view.edit.js';
+		$v = file_exists($js_file) ? filemtime($js_file) : time();
+		$js = '<script type="text/javascript" src="'.$js_file.'?v='.$v.'"></script>';
+		$js .= '<script>
 			var record = "'.$this->bean->id.'";
 			var loai_thu = "'.$this->bean->loai_thu.'";
 			var amount_type = "'.$this->bean->amount_type.'";
