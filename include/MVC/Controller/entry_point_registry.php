@@ -115,5 +115,4 @@ $entry_point_registry = array(
     'epZaloPost'                => ['file' => 'custom/entrypoints/epZaloPost.php', 'auth' => false],
 
     //Add categories and tags
-    'epCreateTaxonomy' => ['file' => 'custom/entrypoints/epCreateTaxonomy.php', 'auth' => true],
 );
