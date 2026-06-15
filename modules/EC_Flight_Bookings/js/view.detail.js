@@ -1,6 +1,22 @@
 $(document).ready(function () {
 	const formDetailView = $('#formDetailView');
 	const bookingId = formDetailView.find('input[name="record"]').val();
+	const getResponsiveDialogOptions = function (preferredWidth) {
+		const horizontalMargin = 48;
+		const verticalMargin = 48;
+		const viewportWidth = $(window).width();
+		const viewportHeight = $(window).height();
+
+		return {
+			width: Math.min(preferredWidth, viewportWidth - horizontalMargin),
+			maxWidth: viewportWidth - horizontalMargin,
+			maxHeight: viewportHeight - verticalMargin,
+			position: { my: 'center', at: 'center', of: window },
+			modal: true,
+			resizable: false,
+			draggable: true
+		};
+	};
 
 	// Hover button RECALL
 	$(document).on('mouseenter', '.btn-calling--wrap', function () {
@@ -160,10 +176,8 @@ $(document).ready(function () {
 		getItiLine($("form[name='DetailView']>input[name='record']").val(), $(this).attr("data-id"));
 
 		$("#tbl_change_flight_time").dialog({
+			...getResponsiveDialogOptions(900),
 			title: "Sửa thông tin hành trình",
-			width: 900,
-			modal: true,
-			resizable: false,
 		});
 	});
 
@@ -173,10 +187,8 @@ $(document).ready(function () {
 		getPassengerLine($("form[name='DetailView']>input[name='record']").val(), $(this).attr("data-id"), 'edit');
 
 		$("#tbl_change_flight_time").dialog({
+			...getResponsiveDialogOptions(1023),
 			title: "Sửa thông tin hành khách / hành lý / số vé",
-			width: 1023,
-			modal: true,
-			resizable: false,
 		});
 	});
 
@@ -928,10 +940,8 @@ $(document).ready(function () {
 		});
 
 		$("#bkg_detail").dialog({
+			...getResponsiveDialogOptions(1350),
 			title: "Chi tiết booking",
-			width: 1350,
-			modal: true,
-			resizable: false,
 		});
 	});
 	// End edit booking detail
@@ -1064,10 +1074,8 @@ $(document).ready(function () {
 		});
 
 		$("#tbl_change_flight_time").dialog({
+			...getResponsiveDialogOptions(1023),
 			title: "Đối ngày bay / hành trình / hành khách / hành lý / số vé / code vé",
-			width: 1023,
-			modal: true,
-			resizable: false,
 		});
 	});
 
