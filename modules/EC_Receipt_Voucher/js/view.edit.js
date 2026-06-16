@@ -21,7 +21,7 @@ $(document).ready(function () {
 	var html_customer = $('#span_customer').html();
 	var html_supplier = $('#span_supplier').html();
 	var loai_thu = $('#loai_thu :selected').val();
-	var loai_thu_arr = ['4', '5', '11', '12', '13', '14', '16', '27'];
+	var loai_thu_arr = ['4', '5', '11', '12', '13', '14', '16', '21', '27'];
 
 	if (!loai_thu_arr.includes(loai_thu)) {
 		$('#span_supplier').html('');
