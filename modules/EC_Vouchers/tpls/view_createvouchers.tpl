@@ -101,7 +101,6 @@
 								<textarea class="box-textarea" id="voucher_phone_manual" rows="5" placeholder="Nhập danh sách SĐT, mỗi số một dòng..."></textarea>
 								<div class="voucher-phone-main-actions">
 									<button type="button" class="btn btn-success" id="btn-import-voucher-phones">Áp dụng và Cập nhật</button>
-									<button type="button" class="btn btn-secondary" id="btn-cancel-voucher-phones">Hủy bỏ</button>
 								</div>
 							</div>
 							<div class="voucher-phone-right">

@@ -170,7 +170,7 @@ input {width: 100%;}
 }
 .voucher-phone-left textarea {
     width: 100%;
-    min-height: 116px;
+    min-height: 126px;
     resize: vertical;
     border-color: #cbd8cc;
     border-radius: 6px;
@@ -188,19 +188,23 @@ input {width: 100%;}
     box-shadow: 0 6px 14px rgba(0, 122, 77, 0.24);
     font-weight: 700;
 }
-.voucher-phone-left #btn-cancel-voucher-phones {
-    min-width: 92px;
-    font-weight: 600;
-}
 .voucher-phone-result {
+    display: flex;
+    flex-direction: column;
     margin-top: 0;
     border: 1px solid #cbd8cc;
     border-radius: 8px;
     background: #fff;
     overflow: hidden;
 }
+.voucher-phone-right {
+    display: flex;
+    min-height: 314px;
+    flex-direction: column;
+}
 .voucher-phone-preview-table {
     width: 100%;
+    flex: 1;
     border-collapse: collapse;
     table-layout: fixed;
     font-size: 13px;
@@ -216,17 +220,16 @@ input {width: 100%;}
 }
 .voucher-phone-preview-table thead th:first-child,
 .voucher-phone-preview-table tbody td:first-child {
-    width: 54px;
+    width: 64px;
 }
 .voucher-phone-preview-table thead th:last-child,
 .voucher-phone-preview-table tbody td:last-child {
-    width: 50px;
+    width: 44px;
     text-align: center;
 }
 .voucher-phone-preview-table tbody {
     display: block;
-    min-height: 126px;
-    max-height: 178px;
+    max-height: 245px;
     overflow-y: auto;
 }
 .voucher-phone-preview-table thead,
@@ -238,13 +241,20 @@ input {width: 100%;}
 .voucher-phone-preview-table tbody tr {
     border-bottom: 1px solid #d9e2da;
 }
+.voucher-phone-preview-table tbody tr:last-child {
+    border-bottom: 0;
+}
 .voucher-phone-preview-table tbody td {
     padding: 10px 12px;
     color: #202124;
+    vertical-align: middle;
 }
 .voucher-phone-empty {
-    padding: 45px 14px !important;
+    height: 160px;
+    padding: 0 14px !important;
+    border-bottom: 0 !important;
     text-align: center;
+    vertical-align: middle !important;
     color: #7b8794;
 }
 .voucher-phone-delete {
@@ -258,8 +268,9 @@ input {width: 100%;}
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 10px;
-    padding: 9px 12px;
+    gap: 8px;
+    min-height: 28px;
+    padding: 4px 10px;
     border-top: 1px solid #d9e2da;
     color: #475467;
     font-size: 12px;
@@ -268,12 +279,13 @@ input {width: 100%;}
     margin-right: auto;
 }
 .voucher-phone-page-btn {
-    width: 28px;
-    height: 24px;
+    width: 22px;
+    height: 20px;
     border: 0;
-    border-radius: 4px;
+    border-radius: 5px;
     background: #f1f3f5;
     color: #4a5560;
+    line-height: 1;
 }
 .voucher-phone-page-btn:disabled {
     opacity: .45;
@@ -282,6 +294,7 @@ input {width: 100%;}
     border: 0;
     background: transparent;
     color: #007a4d;
+    font-size: 12px;
     font-weight: 700;
 }
 

@@ -275,7 +275,6 @@ $(document).ready(function () {
     $("#btn-download-voucher-phone-sample").on('click', downloadVoucherPhoneSample);
     $("#voucher_phone_file").on('change', importVoucherPhones);
     $("#btn-clear-voucher-phones").on('click', clearVoucherPhones);
-    $("#btn-cancel-voucher-phones").on('click', clearVoucherPhones);
     $("#voucher_phone_manual").on('input', updateVoucherPhoneCounters);
     $("#voucher_phone_prev").on('click', function () {
         voucherPhonePage--;
