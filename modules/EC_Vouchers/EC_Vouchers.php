@@ -59,8 +59,9 @@ class EC_Vouchers extends Basic {
 		$reduce_percent 	= isset($_POST['reduce_percent']) && $_POST['reduce_percent'] > 0 ? preg_replace('/\D/', '', $_POST['reduce_percent']) : 0;
 		$max_discount 		= isset($_POST['max_discount']) ? preg_replace('/\D/', '', $_POST['max_discount']) : 0;
 		$voucher_quantity 	= isset($_POST['voucher_qty']) ? preg_replace('/\D/', '', $_POST['voucher_qty']) : 0;
-		$voucher_description = $_POST['voucher_description'] ?? '';
+		$voucher_description = $_POST['voucher_description'] ?? ($_POST['description'] ?? '');
 		$voucher_website	= $_POST['website'] ?? '';
+		$voucher_phones     = $this->parseVoucherPhones($_POST['voucher_phones'] ?? '');
 		
 		// Start time
 		$start_date 	= isset($_POST['start_date']) ? date("Y-m-d", strtotime(str_replace("/", "-", $_POST['start_date']))) : "";
@@ -98,41 +99,36 @@ class EC_Vouchers extends Basic {
 		if($voucher_type == 'group') {
 			$voucher_code = isset($_POST['voucher_code']) ? strtoupper(myRemoveUnicodeChars(trim($_POST['voucher_code']))) : '';
 
-			if(!$this->isVoucherExisted($voucher_code)) {
-				if(!empty($voucher_code)) $this->name = $voucher_code;
-				else {
-					$prefix = dechex($this->countCampaign($voucher_type) + 1);
-					$r = $this->generateRandomString(6);
-					$suffix = 'G' . $this->countVoucher($voucher_type);
-					$this->name = strtoupper($prefix . $r . $suffix);
-				}
-				if(isset($_POST['is_hidden']) && $_POST['is_hidden'] == '1') $this->is_hidden = 1;
-				$this->campaign_name 	= $campaign_name;
-				$this->campaign_id 		= $this->generateUniqueId();
-				$this->website 			= $voucher_website;
-				if($reduce_amount > 0) $this->reduce_amount = $reduce_amount;
-				elseif($reduce_percent > 0) $this->reduce_percent = $reduce_percent;
-				$this->max_discount 	= $max_discount;
-				$this->start_time 		= $voucher_start_time;
-				$this->end_time 	 	= $voucher_end_time;
-				$this->quantity 		= $voucher_quantity;
-				$this->condition_voucher = $voucher_condition;
-				$this->description 		= $voucher_description;
-				$this->status 			= 'new';
-				$this->assigned_user_id = $current_user->id;
-				parent::save();
+			if(!empty($voucher_code)) $this->name = $voucher_code;
+			else {
+				$prefix = dechex($this->countCampaign($voucher_type) + 1);
+				$r = $this->generateRandomString(6);
+				$suffix = 'G' . $this->countVoucher($voucher_type);
+				$this->name = strtoupper($prefix . $r . $suffix);
 			}
+			if(isset($_POST['is_hidden']) && $_POST['is_hidden'] == '1') $this->is_hidden = 1;
+			$this->campaign_name 	= $campaign_name;
+			$this->campaign_id 		= $this->generateUniqueId();
+			$this->website 			= $voucher_website;
+			if($reduce_amount > 0) $this->reduce_amount = $reduce_amount;
+			elseif($reduce_percent > 0) $this->reduce_percent = $reduce_percent;
+			$this->max_discount 	= $max_discount;
+			$this->start_time 		= $voucher_start_time;
+			$this->end_time 	 	= $voucher_end_time;
+			$this->quantity 		= $voucher_quantity;
+			$this->condition_voucher = $voucher_condition;
+			$this->description 		= $voucher_description;
+			$this->status 			= 'new';
+			$this->assigned_user_id = $current_user->id;
+			parent::save();
 		}
 		elseif($voucher_type == 'single') {
-			$prefix = dechex($this->countCampaign($voucher_type) + 1);
+			foreach ($voucher_phones as $phone) {
+				$phone_condition = $conditions;
+				$phone_condition['for_phone_value'] = $phone;
 
-			$Voucher = new EC_Vouchers();
-			for ($i = 0; $i < $voucher_quantity; $i++) {
-				$r = $this->generateRandomString(6);
-				$suffix = "S$i";
-
-				$Voucher->id = '';
-				$Voucher->name 				= strtoupper($prefix . $r . $suffix);
+				$Voucher = new EC_Vouchers();
+				$Voucher->name 				= $phone;
 				$Voucher->type				= $voucher_type;
 				$Voucher->campaign_name		= $campaign_name;
 				$Voucher->campaign_id 		= $campaign_id;
@@ -143,7 +139,7 @@ class EC_Vouchers extends Basic {
 				$Voucher->start_time 		= $voucher_start_time;
 				$Voucher->end_time 			= $voucher_end_time;
 				$Voucher->quantity 			= 1;
-				$Voucher->condition_voucher = $voucher_condition;
+				$Voucher->condition_voucher = json_encode($phone_condition);
 				$Voucher->description 		= $voucher_description;
 				$Voucher->assigned_user_id 	= $current_user->id;
 				$Voucher->save2();
@@ -231,16 +227,37 @@ class EC_Vouchers extends Basic {
         }
 	}
 
-	/**
-	 * Check voucher code is exist
-	 * 
-	 * @param string $code
-	 * @return bool
-	 */
-	public function isVoucherExisted($code) {
-		$sql = "SELECT COUNT(id) FROM ec_vouchers WHERE name = '$code'";
-		$count = $this->db->getOne($sql);
-		return $count > 0;
+	private function parseVoucherPhones($phoneText) {
+		$phones = [];
+		$items = preg_split('/[\s,;]+/', (string)$phoneText);
+
+		foreach ($items as $item) {
+			$phone = $this->normalizeVoucherPhone($item);
+			if ($phone === '') {
+				continue;
+			}
+			$phones[$phone] = $phone;
+		}
+
+		return array_values($phones);
+	}
+
+	private function normalizeVoucherPhone($phone) {
+		$phone = preg_replace('/\D/', '', (string)$phone);
+
+		if (strpos($phone, '0084') === 0) {
+			$phone = '0' . substr($phone, 4);
+		} elseif (strpos($phone, '84') === 0 && strlen($phone) >= 11) {
+			$phone = '0' . substr($phone, 2);
+		} elseif (strlen($phone) === 9) {
+			$phone = '0' . $phone;
+		}
+
+		if (strlen($phone) < 10 || strlen($phone) > 11) {
+			return '';
+		}
+
+		return $phone;
 	}
 
 	/**
