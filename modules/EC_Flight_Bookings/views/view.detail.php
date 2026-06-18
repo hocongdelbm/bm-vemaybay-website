@@ -756,25 +756,34 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUSTOM_TRANSACTION_HISTORY', $transactionHistory);
 
 		// Giảm giá
-		$discount_html = '<span class="discount_value">' . format_number($this->bean->discount_amount) . '</span>';
+		$discount_html = '<div class="discount-summary"><span class="discount_value">' . format_number($this->bean->discount_amount) . '</span>';
 		// Giảm giá voucher
 		$vouchers = $this->getVoucherApplied();
+		$appliedVouchersData = base64_encode(rawurlencode(json_encode($vouchers, JSON_UNESCAPED_UNICODE)));
 		if (!empty($vouchers)) {
 			$discount_html .= '<div class="wrap-voucher">';
 			foreach ($vouchers as $v) {
-				$discount_html .= '<a class="' . $v['type'] . '-voucher voucher" for="dialog_voucher_detail_' . $v['code'] . '" title="Xem chi tiết">
-					<span class="code">' . $v['code'] . '</span>
+				$voucherId = htmlspecialchars((string)$v['voucher_id'], ENT_QUOTES, 'UTF-8');
+				$voucherCode = htmlspecialchars((string)$v['code'], ENT_QUOTES, 'UTF-8');
+				$voucherType = htmlspecialchars((string)$v['type'], ENT_QUOTES, 'UTF-8');
+				$campaignName = htmlspecialchars((string)$v['campaign_name'], ENT_QUOTES, 'UTF-8');
+				$discountAmount = format_number($v['discount_amount']);
+				$invalidReason = htmlspecialchars((string)$v['applied_invalid_reason'], ENT_QUOTES, 'UTF-8');
+				$invalidBadge = $invalidReason !== '' ? '<span class="voucher-invalid-badge" title="' . $invalidReason . '">!</span>' : '';
+				$discount_html .= '<a class="' . $voucherType . '-voucher voucher" for="dialog_voucher_detail_' . $voucherId . '" title="Xem chi tiết">
+					<span class="code">' . $voucherCode . '</span>
+					' . $invalidBadge . '
 				</a>
-				<dialog id="dialog_voucher_detail_' . $v['code'] . '" class="dialog dialog-voucher-detail" style="display:none; border-radius:0">
+				<dialog id="dialog_voucher_detail_' . $voucherId . '" class="dialog dialog-voucher-detail" style="display:none; border-radius:0">
 					<ul class="voucher-list-items">
 						<li class="voucher-item">
 							<span class="label">Sự kiện/Chiến dịch:</span>
-							<span class="value">' . $v['campaign_name'] . '</span>
+							<span class="value">' . $campaignName . '</span>
 						</li>
 						<li class="voucher-item voucher-item-code">
 							<span class="label">Mã giảm giá:</span>
-							<a class="value" href="index.php?module=EC_Vouchers&action=DetailView&record=' . $v['voucher_id'] . '" target="_blank">
-								<span class="me-1">' . $v['code'] . '</span>
+							<a class="value" href="index.php?module=EC_Vouchers&action=DetailView&record=' . $voucherId . '" target="_blank">
+								<span class="me-1">' . $voucherCode . '</span>
 								<svg width="14px" height="14px" viewBox="0 0 24 24" stroke-width="2.3" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000333">
 									<path d="M21 3L15 3M21 3L12 12M21 3V9" stroke="#000333" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>
 									<path d="M21 13V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H11" stroke="#000333" stroke-width="2.3" stroke-linecap="round"></path>
@@ -783,21 +792,48 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						</li>
 						<li class="voucher-item voucher-item-discount-amount">
 							<span class="label">Số tiền được giảm:</span>
-							<span class="value">' . format_number($v['discount_amount']) . ' VND</span>
-						</li>
+							<span class="value">' . $discountAmount . ' VND</span>
+						</li>'
+						. ($invalidReason !== '' ? '<li class="voucher-item voucher-item-invalid">
+							<span class="label">Cảnh báo:</span>
+							<span class="value">' . $invalidReason . '</span>
+						</li>' : '') . '
 					</ul>
 				</dialog>';
 			}
 			$discount_html .= '</div>';
 		}
+		$discount_html .= '</div>';
 		if (in_array((int)$this->bean->booking_status, [1, 2, 6])) {
+			$discount_html .= <<<HTML
+				<div class="discount-actions">
+				<div class="wrap-voucher-apply">
+					<button class="discount-action-btn btn-use-voucher" type="button" for="dialog_apply_voucher" booking_id="{$this->bean->id}" title="Chọn mã giảm giá">Voucher</button>
+					<dialog id="dialog_apply_voucher" class="dialog dialog-booking-voucher" style="display:none" booking_id="{$this->bean->id}" data-applied-vouchers="{$appliedVouchersData}">
+						<div class="booking-voucher-list" id="apply_voucher_message">
+							<p>Đang tải danh sách mã giảm giá phù hợp...</p>
+						</div>
+						<div class="booking-voucher-footer">
+							<div>
+								<p>Đã chọn <span id="booking_voucher_selected_count">0</span> mã</p>
+								<strong>Giảm giá: <span id="booking_voucher_selected_amount">0đ</span></strong>
+							</div>
+							<div class="booking-voucher-actions">
+								<button type="button" class="btn btn-secondary" id="btn_cancel_booking_voucher">Trở lại</button>
+								<button type="button" class="btn btn-primary" id="btn_apply_booking_voucher" booking_id="{$this->bean->id}">Xác nhận</button>
+							</div>
+						</div>
+					</dialog>
+				</div>
+			HTML;
+
 			// Giảm giá tích điểm
 			$points = (int)($this->bean->db->getOne("SELECT points FROM contacts WHERE id = '{$this->bean->contact_id}' AND deleted = 0") ?? 0);
 			if ($points && $points > 0) {
 				$max_point = (int) ($points / $this->bean->point_step) * $this->bean->point_step;
 				$discount_html .= <<<HTML
 					<div class="wrap-points">
-						<button class="btn btn btn-primary-2 btn-sm btn-use-point" for="dialog_use_point" title="Dùng điểm tích lũy">Dùng điểm</button>
+						<button class="discount-action-btn btn-use-point" type="button" for="dialog_use_point" title="Dùng điểm tích lũy">Dùng điểm</button>
 						<dialog id="dialog_use_point" class="dialog dialog-use-point" style="display:none">
 							<div class="content">
 								<div class="point">
@@ -824,6 +860,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					</div>
 				HTML;
 			}
+			$discount_html .= '</div>';
 		}
 		$this->ss->assign('CUS_DISCOUNT_AMOUNT', $discount_html);
 
@@ -2092,6 +2129,11 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					v.type,
 					v.status,
 					v.campaign_name,
+					v.end_time,
+					v.reduce_amount,
+					v.reduce_percent,
+					v.max_discount,
+					v.condition_voucher,
 					bv.discount_amount
 				FROM bookings_vouchers bv
 					LEFT JOIN ec_vouchers v ON v.id = bv.voucher_id
@@ -2100,7 +2142,34 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$res = $this->bean->db->query($sql);
 		$results = [];
+		$bookingPhone = preg_replace('/\D/', '', (string)$this->bean->phone);
+		if (strpos($bookingPhone, '0084') === 0) {
+			$bookingPhone = '0' . substr($bookingPhone, 4);
+		} elseif (strpos($bookingPhone, '84') === 0 && strlen($bookingPhone) >= 11) {
+			$bookingPhone = '0' . substr($bookingPhone, 2);
+		} elseif (strlen($bookingPhone) === 9) {
+			$bookingPhone = '0' . $bookingPhone;
+		}
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
+			$row['reduce_amount'] = (int)$row['reduce_amount'];
+			$row['reduce_percent'] = (int)$row['reduce_percent'];
+			$row['max_discount'] = (int)$row['max_discount'];
+			$row['discount_type'] = (int)$row['reduce_percent'] > 0 ? 'percent' : 'amount';
+			$row['condition_voucher'] = json_decode(html_entity_decode(trim((string)$row['condition_voucher'])), true) ?: [];
+			$row['selectable'] = true;
+			$voucherPhone = empty($row['condition_voucher']['for_phone_value'])
+				? ''
+				: preg_replace('/\D/', '', (string)$row['condition_voucher']['for_phone_value']);
+			if (strpos($voucherPhone, '0084') === 0) {
+				$voucherPhone = '0' . substr($voucherPhone, 4);
+			} elseif (strpos($voucherPhone, '84') === 0 && strlen($voucherPhone) >= 11) {
+				$voucherPhone = '0' . substr($voucherPhone, 2);
+			} elseif (strlen($voucherPhone) === 9) {
+				$voucherPhone = '0' . $voucherPhone;
+			}
+			$row['applied_invalid_reason'] = ($voucherPhone !== '' && $bookingPhone !== '' && $voucherPhone !== $bookingPhone)
+				? 'Không còn hợp lệ do đổi SĐT'
+				: '';
 			$results[] = $row;
 		}
 		return $results;

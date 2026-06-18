@@ -68,7 +68,10 @@
 					</td>
 				</tr>
 				<tr class="row-phone-list" style="display:none;">
-					<td class="label align-top">Danh sách SĐT:</td>
+					<td class="label align-top">
+						Danh sách SĐT:
+						<p class="voucher-phone-note text-secondary fw-light fst-italic">(Mã voucher sẽ là số điện thoại)</p>
+					</td>
 					<td class="value">
 						<div class="voucher-phone-panel">
 							<div class="voucher-phone-header">
@@ -130,7 +133,6 @@
 							<div class="voucher-phone-import-status" id="voucher_phone_import_status"></div>
 						</div>
 						<textarea id="voucher_phones" name="voucher_phones" style="display:none"></textarea>
-						<p class="text-secondary fw-light fst-italic pt-1">* Mã voucher sẽ là số điện thoại sau khi chuẩn hóa.</p>
 					</td>
 				</tr>
 				<tr class="row-website">
