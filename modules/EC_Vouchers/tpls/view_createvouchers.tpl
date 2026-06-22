@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="modules/EC_Vouchers/css/createvouchers.css">
+<link rel="stylesheet" href="modules/EC_Vouchers/css/createvouchers.css?v=20260615-phone-compact">
 
 <h1 class="title">PHÁT HÀNH VOUCHER</h1>
 
@@ -67,6 +67,74 @@
 						<input type="text" class="allow-number-only box-input" id="voucher_qty" name="voucher_qty" required />
 					</td>
 				</tr>
+				<tr class="row-phone-list" style="display:none;">
+					<td class="label align-top">
+						Danh sách SĐT:
+						<p class="voucher-phone-note text-secondary fw-light fst-italic">(Mã voucher sẽ là số điện thoại)</p>
+					</td>
+					<td class="value">
+						<div class="voucher-phone-panel">
+							<div class="voucher-phone-header">
+								<div class="voucher-phone-title">
+									<span class="voucher-phone-title-icon">
+										<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+											<path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+										</svg>
+									</span>
+									<strong>Danh sách người nhận</strong>
+								</div>
+								<button type="button" class="btn btn-secondary btn-sm voucher-phone-sample" id="btn-download-voucher-phone-sample">
+									<span>&#8595;</span> File mẫu
+								</button>
+							</div>
+							<div class="voucher-phone-left">
+								<label class="voucher-phone-section-label">Tải lên danh sách</label>
+								<label class="voucher-phone-dropzone" for="voucher_phone_file">
+									<input type="file" id="voucher_phone_file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+									<span class="voucher-phone-upload-icon">
+										<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+											<path d="M4.406 1.342A5.53 5.53 0 0 1 8 0c2.69 0 4.923 2 5.166 4.579C14.758 4.804 16 6.137 16 7.773 16 9.569 14.502 11 12.687 11H10a.5.5 0 0 1 0-1h2.688C13.979 10 15 8.988 15 7.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 2.825 10.328 1 8 1a4.53 4.53 0 0 0-2.941 1.1c-.757.652-1.153 1.438-1.153 2.055v.448l-.445.049C2.064 4.805 1 5.952 1 7.318 1 8.785 2.23 10 3.781 10H6a.5.5 0 0 1 0 1H3.781C1.708 11 0 9.366 0 7.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383Z"/>
+											<path d="M7.646 4.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V14.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3Z"/>
+										</svg>
+									</span>
+									<span>Kéo thả <b>.xlsx</b> hoặc bấm để chọn</span>
+								</label>
+								<div class="voucher-phone-file-name" id="voucher_phone_file_name"></div>
+								<label class="voucher-phone-section-label voucher-phone-manual-label" for="voucher_phone_manual">Nhập thủ công</label>
+								<textarea class="box-textarea" id="voucher_phone_manual" rows="5" placeholder="Nhập danh sách SĐT, mỗi số một dòng..."></textarea>
+								<div class="voucher-phone-main-actions">
+									<button type="button" class="btn btn-success" id="btn-import-voucher-phones">Áp dụng và Cập nhật</button>
+								</div>
+							</div>
+							<div class="voucher-phone-right">
+								<div class="voucher-phone-preview-head">
+									<strong id="voucher_phone_manual_label">Xem trước danh sách (0)</strong>
+								</div>
+								<div class="voucher-phone-result">
+									<table class="voucher-phone-preview-table">
+										<thead>
+											<tr>
+												<th>STT</th>
+												<th>SĐT</th>
+												<th></th>
+											</tr>
+										</thead>
+										<tbody id="voucher_phone_preview"></tbody>
+									</table>
+									<div class="voucher-phone-pager">
+										<span id="voucher_phone_preview_note">Chỉ hiển thị 10 bản ghi đầu tiên</span>
+										<button type="button" class="voucher-phone-page-btn" id="voucher_phone_prev">‹</button>
+										<button type="button" class="voucher-phone-page-btn" id="voucher_phone_next">›</button>
+										<button type="button" class="voucher-phone-clear-link" id="btn-clear-voucher-phones">Xóa tất cả</button>
+									</div>
+								</div>
+							</div>
+							<button type="button" class="btn btn-success btn-sm" id="btn-update-voucher-phones" style="display:none">+0</button>
+							<div class="voucher-phone-import-status" id="voucher_phone_import_status"></div>
+						</div>
+						<textarea id="voucher_phones" name="voucher_phones" style="display:none"></textarea>
+					</td>
+				</tr>
 				<tr class="row-website">
 					<td class="label">Website áp dụng: <span class="fw-bold color-red">*</span></td>
 					<td class="value">
@@ -122,7 +190,7 @@
 					<td class="label align-top">Điều kiện áp dụng:</td>
 					<td class="value">
 						<div class="list_condition">
-							<div class="condition">
+							<div class="condition condition-for-phone">
 								<div class="condition-name">Cho SĐT:</div>
 								<div class="condition-value">
 									<input type="text" name="for_phone_value" class="box-input allow-number-only" value="" />
@@ -202,4 +270,4 @@
 </div>
 
 <script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
-<script src="modules/EC_Vouchers/js/createvouchers.js"></script>
+<script src="modules/EC_Vouchers/js/createvouchers.js?v=20260615-phone-confirm-delete"></script>

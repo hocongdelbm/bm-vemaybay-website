@@ -103,7 +103,7 @@ class EC_VouchersViewDetail extends ViewDetail {
 			</li>';
 		}
 
-		if(isset($condition['number_of_tickets']) && $condition['number_of_tickets'] > 6) {
+		if(isset($condition['number_of_tickets']) && (int)$condition['number_of_tickets'] > 0) {
 			$html .= '<li>
 				Booking từ <b>'. $condition['number_of_tickets'] .' vé</b> trở lên
 			</li>';

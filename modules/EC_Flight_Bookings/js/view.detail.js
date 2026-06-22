@@ -1,6 +1,22 @@
 $(document).ready(function () {
 	const formDetailView = $('#formDetailView');
 	const bookingId = formDetailView.find('input[name="record"]').val();
+	const getResponsiveDialogOptions = function (preferredWidth) {
+		const horizontalMargin = 48;
+		const verticalMargin = 48;
+		const viewportWidth = $(window).width();
+		const viewportHeight = $(window).height();
+
+		return {
+			width: Math.min(preferredWidth, viewportWidth - horizontalMargin),
+			maxWidth: viewportWidth - horizontalMargin,
+			maxHeight: viewportHeight - verticalMargin,
+			position: { my: 'center', at: 'center', of: window },
+			modal: true,
+			resizable: false,
+			draggable: true
+		};
+	};
 
 	// Hover button RECALL
 	$(document).on('mouseenter', '.btn-calling--wrap', function () {
@@ -152,23 +168,7 @@ $(document).ready(function () {
 		}
 	});
 
-	// Thông tin hành trình sau khi đổi ngày bay
-	$.ajax({
-		url: "index.php?entryPoint=entryPointFlightBookings",
-		type: "POST",
-		data: {
-			id: $("form[name='DetailView']>input[name='record']").val(),
-			for: "showEditedFlightTime"
-		},
-		success: function (response) {
-			if (response != '') {
-				$("div[data-id='LBL_LINEITINERARIES_PANEL'] table#itinerary_tbl>tbody").append(response);
-			} else {
-				// $("div[data-id='LBL_LINEITINERARIES_PANEL'] table#itinerary_tbl").append("<tr class='edited_iti_line'><td colspan='13' style='border: 1px solid #ccc; padding: 5px 3px;'>Không có thông tin đổi ngày bay.</td></tr>");
-				$("div[data-id='LBL_LINEITINERARIES_PANEL'] table#itinerary_tbl #no-change__edit-iti").append(" Không có thông tin thay đổi ngày bay.");
-			}
-		}
-	});
+	renderPreloadedChangeState();
 
 	// Sửa thông tin hành trình thay đổi nếu có nhập sai
 	$(document).on('click', '.edit_iti_row', function () {
@@ -176,10 +176,8 @@ $(document).ready(function () {
 		getItiLine($("form[name='DetailView']>input[name='record']").val(), $(this).attr("data-id"));
 
 		$("#tbl_change_flight_time").dialog({
+			...getResponsiveDialogOptions(900),
 			title: "Sửa thông tin hành trình",
-			width: 900,
-			modal: true,
-			resizable: false,
 		});
 	});
 
@@ -189,28 +187,9 @@ $(document).ready(function () {
 		getPassengerLine($("form[name='DetailView']>input[name='record']").val(), $(this).attr("data-id"), 'edit');
 
 		$("#tbl_change_flight_time").dialog({
+			...getResponsiveDialogOptions(1023),
 			title: "Sửa thông tin hành khách / hành lý / số vé",
-			width: 1023,
-			modal: true,
-			resizable: false,
 		});
-	});
-
-	// Thông tin hành khách sau khi thay đổi
-	$.ajax({
-		url: "index.php?entryPoint=entryPointFlightBookings",
-		type: "POST",
-		data: {
-			id: $("form[name='DetailView']>input[name='record']").val(),
-			for: "showChangedPassenger"
-		},
-		success: function (response) {
-			if (response != '') {
-				$("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax tbody").append(response);
-			} else {
-				$("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax #no-change__edit-pass").append("Chưa có hành khách nào thay đổi thông tin.");
-			}
-		}
 	});
 
 	// Booking ở trạng thái "hoàn tất", "xuất vé" không đc edit và delete ngoại trừ kế toán trưởng và admin
@@ -961,10 +940,8 @@ $(document).ready(function () {
 		});
 
 		$("#bkg_detail").dialog({
+			...getResponsiveDialogOptions(1350),
 			title: "Chi tiết booking",
-			width: 1350,
-			modal: true,
-			resizable: false,
 		});
 	});
 	// End edit booking detail
@@ -1097,10 +1074,8 @@ $(document).ready(function () {
 		});
 
 		$("#tbl_change_flight_time").dialog({
+			...getResponsiveDialogOptions(1023),
 			title: "Đối ngày bay / hành trình / hành khách / hành lý / số vé / code vé",
-			width: 1023,
-			modal: true,
-			resizable: false,
 		});
 	});
 
@@ -1323,7 +1298,7 @@ $(document).ready(function () {
 			}
 		});
 	});
-	
+
 	// Clicking a suggestion row populates the input and stores link state
 	$(document).on('click', '.suggest-call-item', function () {
 		let callName = $(this).attr('data-call-name');
@@ -1333,7 +1308,7 @@ $(document).ready(function () {
 	});
 
 	// Voucher
-	$('.voucher').on('click', function () {
+	$(document).on('click', '.voucher', function () {
 		let id = $(this).attr('for');
 
 		$(`#${id}`).dialog({
@@ -1343,6 +1318,667 @@ $(document).ready(function () {
 			closeOnEscape: false,
 			title: "Chi tiết voucher"
 		});
+	});
+
+	$('.btn-use-voucher').on('click', function () {
+		let id = $(this).attr('for');
+		let bookingId = $(this).attr('booking_id') || $('#btn_apply_booking_voucher').attr('booking_id') || $(`#${id}`).attr('booking_id');
+
+		if (!bookingId) {
+			showBookingVoucherToast("error", "Không lấy được thông tin booking. Vui lòng tải lại trang và thử lại.");
+			return;
+		}
+
+		$('#apply_voucher_code').val('');
+		resetBookingVoucherState(bookingId);
+		setBookingVoucherMessage('<p class="booking-voucher-empty">Đang tải danh sách mã giảm giá phù hợp...</p>');
+
+		$(`#${id}`).dialog({
+			width: 390,
+			modal: true,
+			resizable: false,
+			closeOnEscape: false,
+			title: "Chọn Voucher"
+		});
+
+		loadBookingVoucherOptions(bookingId);
+	});
+
+	function escapeBookingVoucherHtml(text) {
+		return $('<div>').text(text || '').html();
+	}
+
+	function setBookingVoucherMessage(html) {
+		$('#apply_voucher_message').html(html);
+	}
+
+	function showBookingVoucherToast(type, message) {
+		if (typeof showToastNotify === 'function') {
+			showToastNotify(type, message);
+			return;
+		}
+
+		if (typeof showToastWarning === 'function') {
+			showToastWarning(message);
+			return;
+		}
+
+		alert(message);
+	}
+
+	const BOOKING_VOUCHER_ENDPOINT = "index.php?entryPoint=entryPointVoucher";
+	const BOOKING_VOUCHER_ACTIONS = {
+		list: "list_booking_vouchers",
+		validate: "validate_booking_voucher",
+		apply: "apply_booking_voucher",
+		remove: "remove_booking_voucher",
+		save: "save_booking_vouchers"
+	};
+	const BOOKING_VOUCHER_SELECTORS = {
+		dialog: '#dialog_apply_voucher',
+		discountValue: '#discount_amount span.discount_value',
+		totalAmount: '#total_amount',
+		selectedCount: '#booking_voucher_selected_count',
+		selectedAmount: '#booking_voucher_selected_amount'
+	};
+
+	let bookingVoucherState = {
+		bookingId: '',
+		applied: {},
+		selected: {},
+		options: {}
+	};
+
+	function decodeBookingVoucherPayload(payload) {
+		try {
+			return JSON.parse(decodeURIComponent(atob(payload || ''))) || [];
+		} catch (e) {
+			return [];
+		}
+	}
+
+	function encodeBookingVoucherPayload(vouchers) {
+		try {
+			return btoa(encodeURIComponent(JSON.stringify(vouchers || [])));
+		} catch (e) {
+			return '';
+		}
+	}
+
+	function normalizeBookingVoucherItem(voucher) {
+		let discountAmount = parseInt(voucher.discount_amount || 0, 10);
+		let voucherId = voucher.voucher_id || voucher.id || '';
+		return {
+			key: voucherId || voucher.code || voucher.name || '',
+			voucher_id: voucherId,
+			code: voucher.code || voucher.name || '',
+			type: voucher.type || 'single',
+			campaign_name: voucher.campaign_name || '',
+			end_time: voucher.end_time || '',
+			reduce_amount: parseInt(voucher.reduce_amount || 0, 10) || 0,
+			reduce_percent: parseInt(voucher.reduce_percent || 0, 10) || 0,
+			max_discount: parseInt(voucher.max_discount || 0, 10) || 0,
+			discount_type: voucher.discount_type || (parseInt(voucher.reduce_percent || 0, 10) > 0 ? 'percent' : 'amount'),
+			discount_amount: isNaN(discountAmount) ? 0 : discountAmount,
+			selectable: voucher.selectable !== false,
+			disabled_reason: voucher.disabled_reason || '',
+			condition_voucher: voucher.condition_voucher || {},
+			applied_invalid_reason: voucher.applied_invalid_reason || '',
+			applied: !!voucher.applied
+		};
+	}
+
+	function getBookingVoucherByKey(voucherKey) {
+		return bookingVoucherState.options[voucherKey] || null;
+	}
+
+	function formatBookingVoucherExpiry(endTime) {
+		if (!endTime) {
+			return 'Không giới hạn';
+		}
+
+		let datePart = String(endTime).split(' ')[0];
+		let parts = datePart.split('-');
+		if (parts.length !== 3) {
+			return escapeBookingVoucherHtml(endTime);
+		}
+
+		return `${parts[2]}-${parts[1]}-${parts[0]}`;
+	}
+
+	function formatBookingVoucherConditionLines(condition) {
+		let lines = [];
+		condition = condition || {};
+
+		if (condition.for_phone_value) {
+			lines.push(`Áp dụng cho SĐT ${escapeBookingVoucherHtml(condition.for_phone_value)}`);
+		}
+		if (parseInt(condition.min_order_value || 0, 10) > 0) {
+			lines.push(`Đơn tối thiểu ${formatNumber(condition.min_order_value)} VND`);
+		}
+		if (parseInt(condition.number_of_tickets || 0, 10) > 0) {
+			lines.push(`Booking từ ${escapeBookingVoucherHtml(condition.number_of_tickets)} vé trở lên`);
+		}
+		if (condition.flight_type) {
+			lines.push(`Chỉ áp dụng cho chuyến ${condition.flight_type === 'domestic' ? 'Nội địa' : 'Quốc tế'}`);
+		}
+		if (parseInt(condition.ticket_type || 0, 10) > 0) {
+			lines.push(`Chỉ áp dụng cho vé ${parseInt(condition.ticket_type, 10) === 2 ? 'Khứ hồi' : 'Một chiều'}`);
+		}
+		if (condition.journey && String(condition.journey).length > 6) {
+			lines.push(`Hành trình áp dụng: ${escapeBookingVoucherHtml(String(condition.journey).replace(/,/g, ', '))}`);
+		}
+
+		return lines;
+	}
+
+	function getBookingVoucherDiscountLabel(voucher) {
+		if (voucher.discount_type === 'percent' && voucher.reduce_percent > 0) {
+			let label = `Giảm ${formatNumber(voucher.reduce_percent)}%`;
+			if (voucher.max_discount > 0) {
+				label += `, tối đa ${formatNumber(voucher.max_discount)}đ`;
+			}
+			return label;
+		}
+
+		return `Giảm ${formatNumber(voucher.reduce_amount || voucher.discount_amount || 0)}đ`;
+	}
+
+	function getBookingVoucherTypeClass(voucher) {
+		return voucher.discount_type === 'percent' ? 'percent' : 'amount';
+	}
+
+	function getBookingVoucherTypeIcon(voucher) {
+		return voucher.discount_type === 'percent' ? '%' : '₫';
+	}
+
+	function renderBookingVoucherBadge(condition, className, label) {
+		return condition ? `<span class="${className}">${label}</span>` : '';
+	}
+
+	function renderBookingVoucherCondition(voucherKey) {
+		let voucher = getBookingVoucherByKey(voucherKey);
+		if (!voucher) {
+			return;
+		}
+
+		let title = escapeBookingVoucherHtml(voucher.campaign_name || voucher.code || '');
+		let code = escapeBookingVoucherHtml(voucher.code || '');
+		let expiryDate = escapeBookingVoucherHtml(formatBookingVoucherExpiry(voucher.end_time || ''));
+		let discountLabel = escapeBookingVoucherHtml(getBookingVoucherDiscountLabel(voucher));
+		let conditionLines = formatBookingVoucherConditionLines(voucher.condition_voucher);
+		let conditionHtml = conditionLines.length > 0
+			? conditionLines.map(function (line) {
+				return `<li>${line}</li>`;
+			}).join('')
+			: '<li>Không có điều kiện bổ sung.</li>';
+
+		setBookingVoucherMessage(`
+			<div class="booking-voucher-condition-view">
+				<button type="button" class="booking-voucher-back" id="btn_back_booking_voucher_list">← Quay lại</button>
+				<div class="booking-voucher-condition-card">
+					<div class="booking-voucher-condition-heading">
+						<span class="booking-voucher-type ${getBookingVoucherTypeClass(voucher)}">${getBookingVoucherTypeIcon(voucher)}</span>
+						<div>
+							<strong>${title}</strong>
+							<p>Mã: ${code}</p>
+						</div>
+					</div>
+					<ul class="booking-voucher-condition-lines">
+						<li>${discountLabel}</li>
+						<li>HSD: ${expiryDate}</li>
+						${conditionHtml}
+					</ul>
+				</div>
+			</div>
+		`);
+	}
+
+	function upsertBookingVoucherOption(voucher, selected) {
+		let item = normalizeBookingVoucherItem(voucher);
+		if (!item.key || !item.code) return;
+
+		let existing = bookingVoucherState.options[item.key];
+		let isAlreadyApplied = !!(existing && existing.applied) || !!bookingVoucherState.applied[item.key];
+		if (isAlreadyApplied) {
+			item.selectable = true;
+			item.disabled_reason = '';
+		}
+
+		bookingVoucherState.options[item.key] = $.extend({}, existing || {}, item, {
+			applied: isAlreadyApplied
+		});
+
+		if (selected && item.selectable) {
+			selectBookingVoucherItem(item.key);
+		} else if (bookingVoucherState.selected[item.key]) {
+			bookingVoucherState.selected[item.key] = bookingVoucherState.options[item.key];
+		}
+	}
+
+	function selectBookingVoucherItem(voucherKey) {
+		let voucher = getBookingVoucherByKey(voucherKey);
+		if (!voucher || voucher.selectable === false) {
+			return;
+		}
+
+		// Only one voucher per code can be selected.
+		Object.keys(bookingVoucherState.selected).forEach(function (selectedKey) {
+			let selectedVoucher = bookingVoucherState.selected[selectedKey];
+			if (selectedVoucher.code === voucher.code) {
+				delete bookingVoucherState.selected[selectedKey];
+			}
+		});
+
+		bookingVoucherState.selected[voucherKey] = voucher;
+	}
+
+	function resetBookingVoucherState(bookingId) {
+		bookingVoucherState = {
+			bookingId: bookingId,
+			applied: {},
+			selected: {},
+			options: {}
+		};
+
+		let appliedVouchers = decodeBookingVoucherPayload($(BOOKING_VOUCHER_SELECTORS.dialog).attr('data-applied-vouchers'));
+		appliedVouchers.forEach(function (voucher) {
+			let item = normalizeBookingVoucherItem(voucher);
+			if (!item.key || !item.code) {
+				return;
+			}
+
+			item.applied = true;
+			bookingVoucherState.applied[item.key] = item;
+			bookingVoucherState.options[item.key] = item;
+			bookingVoucherState.selected[item.key] = item;
+		});
+
+		updateBookingVoucherFooter();
+	}
+
+	function getBookingVoucherItems() {
+		return Object.keys(bookingVoucherState.options).map(function (voucherKey) {
+			return bookingVoucherState.options[voucherKey];
+		}).sort(function (firstVoucher, secondVoucher) {
+			let firstApplied = bookingVoucherState.applied[firstVoucher.key] ? 1 : 0;
+			let secondApplied = bookingVoucherState.applied[secondVoucher.key] ? 1 : 0;
+			if (firstApplied !== secondApplied) {
+				return secondApplied - firstApplied;
+			}
+
+			let firstSelectable = firstVoucher.selectable !== false ? 1 : 0;
+			let secondSelectable = secondVoucher.selectable !== false ? 1 : 0;
+			if (firstSelectable !== secondSelectable) {
+				return secondSelectable - firstSelectable;
+			}
+
+			let firstDiscount = parseInt(firstVoucher.discount_amount || 0, 10) || 0;
+			let secondDiscount = parseInt(secondVoucher.discount_amount || 0, 10) || 0;
+			if (firstDiscount !== secondDiscount) {
+				return secondDiscount - firstDiscount;
+			}
+
+			return String(firstVoucher.code || '').localeCompare(String(secondVoucher.code || ''));
+		});
+	}
+
+	function updateBookingVoucherFooter() {
+		let selectedItems = Object.keys(bookingVoucherState.selected).map(function (voucherKey) {
+			return bookingVoucherState.selected[voucherKey];
+		});
+		let totalDiscount = selectedItems.reduce(function (sum, item) {
+			return sum + (parseInt(item.discount_amount || 0, 10) || 0);
+		}, 0);
+
+		$(BOOKING_VOUCHER_SELECTORS.selectedCount).text(selectedItems.length);
+		$(BOOKING_VOUCHER_SELECTORS.selectedAmount).text(formatNumber(totalDiscount) + 'đ');
+	}
+
+	function buildAppliedBookingVoucherTags(vouchers) {
+		if (!vouchers || vouchers.length === 0) {
+			return '';
+		}
+
+		let html = '<div class="wrap-voucher">';
+		vouchers.forEach(function (voucher) {
+			let voucherId = escapeBookingVoucherHtml(voucher.voucher_id || '');
+			let code = escapeBookingVoucherHtml(voucher.code || '');
+			let type = escapeBookingVoucherHtml(voucher.type || 'single');
+			let campaignName = escapeBookingVoucherHtml(voucher.campaign_name || '');
+			let discountAmount = formatNumber(voucher.discount_amount || 0);
+			let invalidReason = escapeBookingVoucherHtml(voucher.applied_invalid_reason || '');
+			let invalidBadge = invalidReason
+				? `<span class="voucher-invalid-badge" title="${invalidReason}">!</span>`
+				: '';
+			let dialogId = `dialog_voucher_detail_${voucherId}`;
+			html += `
+				<a class="${type}-voucher voucher" for="${dialogId}" title="Xem chi tiết">
+					<span class="code">${code}</span>
+					${invalidBadge}
+				</a>
+				<dialog id="${dialogId}" class="dialog dialog-voucher-detail" style="display:none; border-radius:0">
+					<ul class="voucher-list-items">
+						<li class="voucher-item">
+							<span class="label">Sự kiện/Chiến dịch:</span>
+							<span class="value">${campaignName}</span>
+						</li>
+						<li class="voucher-item voucher-item-code">
+							<span class="label">Mã giảm giá:</span>
+							<a class="value" href="index.php?module=EC_Vouchers&action=DetailView&record=${voucherId}" target="_blank">
+								<span class="me-1">${code}</span>
+							</a>
+						</li>
+						<li class="voucher-item voucher-item-discount-amount">
+							<span class="label">Số tiền được giảm:</span>
+							<span class="value">${discountAmount} VND</span>
+						</li>
+						${invalidReason ? `
+							<li class="voucher-item voucher-item-invalid">
+								<span class="label">Cảnh báo:</span>
+								<span class="value">${invalidReason}</span>
+							</li>
+						` : ''}
+					</ul>
+				</dialog>
+			`;
+		});
+		html += '</div>';
+
+		return html;
+	}
+
+	function updateBookingVoucherStateAfterSave(data) {
+		let appliedVouchers = data.applied_vouchers || [];
+		$(BOOKING_VOUCHER_SELECTORS.dialog).attr('data-applied-vouchers', encodeBookingVoucherPayload(appliedVouchers));
+		let discountValue = $(BOOKING_VOUCHER_SELECTORS.discountValue);
+		if (!discountValue.length) {
+			discountValue = $('span.discount_value').first();
+		}
+		let discountContainer = discountValue.closest('#discount_amount');
+		if (!discountContainer.length) {
+			discountContainer = discountValue.parent();
+		}
+		discountValue.text(formatNumber(data.discount_amount || 0));
+		discountContainer.find('.wrap-voucher').remove();
+		discountValue.after(buildAppliedBookingVoucherTags(appliedVouchers));
+
+		let totalAmount = formatNumber(data.total_amount || 0);
+		let totalAmountField = $(BOOKING_VOUCHER_SELECTORS.totalAmount);
+		if (totalAmountField.is('input')) {
+			totalAmountField.val(totalAmount);
+		} else if (totalAmountField.find('.sugar_field').length) {
+			totalAmountField.find('.sugar_field').text(totalAmount);
+		} else {
+			totalAmountField.text(totalAmount);
+		}
+		resetBookingVoucherState(data.booking_id || bookingVoucherState.bookingId);
+		renderBookingVoucherList();
+	}
+
+	function renderBookingVoucherItem(voucher) {
+		let title = escapeBookingVoucherHtml(voucher.campaign_name || voucher.code || '');
+		let voucherKey = escapeBookingVoucherHtml(voucher.key || '');
+		let isSelected = !!bookingVoucherState.selected[voucher.key];
+		let isDisabled = voucher.selectable === false;
+		let disabledReason = escapeBookingVoucherHtml(voucher.disabled_reason || 'Không áp dụng cho booking này');
+		let bestBadge = renderBookingVoucherBadge(voucher.is_best_in_group, 'booking-voucher-best-badge', 'Tốt nhất');
+		let appliedBadge = renderBookingVoucherBadge(voucher.applied, 'booking-voucher-applied-badge', 'Đang áp dụng');
+		let invalidReason = escapeBookingVoucherHtml(voucher.applied_invalid_reason || '');
+		let invalidBadge = renderBookingVoucherBadge(invalidReason, 'booking-voucher-invalid-badge', invalidReason);
+		let appliedStatusBadge = appliedBadge
+			? `<div class="booking-voucher-status-badges">${appliedBadge}</div>`
+			: '';
+		let invalidStatusBadge = invalidBadge
+			? `<div class="booking-voucher-bottom-badges">${invalidBadge}</div>`
+			: '';
+
+		return `
+			<li class="booking-voucher-item ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}"
+				data-voucher-key="${voucherKey}"
+				title="${isDisabled ? disabledReason : ''}">
+				${appliedStatusBadge}
+				${invalidStatusBadge}
+				<div class="booking-voucher-icon ${getBookingVoucherTypeClass(voucher)}">${getBookingVoucherTypeIcon(voucher)}</div>
+				<div class="booking-voucher-info">
+					<strong>${title} ${bestBadge}</strong>
+					<small>${escapeBookingVoucherHtml(getBookingVoucherDiscountLabel(voucher))}</small>
+					<em>HSD: ${escapeBookingVoucherHtml(formatBookingVoucherExpiry(voucher.end_time || ''))}
+						<button type="button" class="booking-voucher-condition-link" data-voucher-key="${voucherKey}">Điều kiện</button>
+					</em>
+					${isDisabled ? `<b>${disabledReason}</b>` : ''}
+				</div>
+				<button type="button" class="booking-voucher-check ${isSelected ? 'selected' : ''}"
+					data-voucher-key="${voucherKey}"
+					title="${isDisabled ? disabledReason : (isSelected ? 'Bỏ chọn' : 'Chọn')}"
+					${isDisabled ? 'disabled' : ''}>
+					<span class="booking-voucher-check-icon">${isSelected ? '✓' : '+'}</span>
+					<span class="booking-voucher-check-text">Bỏ chọn</span>
+				</button>
+			</li>
+		`;
+	}
+
+	function renderBookingVoucherList() {
+		let vouchers = getBookingVoucherItems();
+		if (vouchers.length === 0) {
+			setBookingVoucherMessage('<p class="booking-voucher-empty">Không có mã giảm giá phù hợp.</p>');
+			updateBookingVoucherFooter();
+			return;
+		}
+
+		let html = '<ul class="booking-voucher-items">';
+		vouchers.forEach(function (voucher) {
+			html += renderBookingVoucherItem(voucher);
+		});
+		html += '</ul>';
+		setBookingVoucherMessage(html);
+		updateBookingVoucherFooter();
+	}
+
+	function renderBookingVoucherOptions(obj) {
+		if (obj.error != 0) {
+			setBookingVoucherMessage(`<p class="booking-voucher-empty text-danger">${escapeBookingVoucherHtml(obj.message || 'Không tải được danh sách mã giảm giá')}</p>`);
+			return;
+		}
+
+		(obj.data || []).forEach(function (voucher) {
+			upsertBookingVoucherOption(voucher, false);
+		});
+
+		// Đảm bảo applied vouchers luôn có trong options dù API không trả về
+		Object.keys(bookingVoucherState.applied).forEach(function (key) {
+			if (!bookingVoucherState.options[key]) {
+				bookingVoucherState.options[key] = bookingVoucherState.applied[key];
+			}
+		});
+
+		renderBookingVoucherList();
+	}
+
+	function loadBookingVoucherOptions(bookingId) {
+		$.ajax({
+			url: BOOKING_VOUCHER_ENDPOINT,
+			data: {
+				action: BOOKING_VOUCHER_ACTIONS.list,
+				booking_id: bookingId
+			},
+			type: "POST",
+			dataType: "json",
+			cache: false,
+			success: function (obj) {
+				renderBookingVoucherOptions(obj);
+			},
+			error: function () {
+				setBookingVoucherMessage('<p class="text-danger">Không tải được danh sách mã giảm giá. Bạn có thể nhập mã để kiểm tra thủ công.</p>');
+			}
+		});
+	}
+
+	$(document).on('click', '.booking-voucher-condition-link', function (event) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		let voucherKey = $(this).attr('data-voucher-key');
+		renderBookingVoucherCondition(voucherKey);
+	});
+
+	$(document).on('click', '#btn_back_booking_voucher_list', function (event) {
+		event.preventDefault();
+		renderBookingVoucherList();
+	});
+
+	$(document).on('click', '.booking-voucher-item, .booking-voucher-check', function (event) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		if ($(event.target).closest('.booking-voucher-condition-link').length) {
+			return;
+		}
+
+		let voucherKey = $(this).attr('data-voucher-key') || $(this).closest('.booking-voucher-item').attr('data-voucher-key');
+		if (!voucherKey || !bookingVoucherState.options[voucherKey]) {
+			return;
+		}
+
+		if (bookingVoucherState.options[voucherKey].selectable === false) {
+			showBookingVoucherToast("warning", bookingVoucherState.options[voucherKey].disabled_reason || "Mã giảm giá không áp dụng cho booking này");
+			return;
+		}
+
+		if (bookingVoucherState.selected[voucherKey]) {
+			delete bookingVoucherState.selected[voucherKey];
+		} else {
+			selectBookingVoucherItem(voucherKey);
+		}
+
+		renderBookingVoucherList();
+	});
+
+	$('#btn_check_booking_voucher').click(function () {
+		let voucherCode = $.trim($('#apply_voucher_code').val()).toUpperCase();
+		let bookingId = $(this).attr('booking_id');
+
+		if (!voucherCode) {
+			showBookingVoucherToast("warning", "Vui lòng nhập mã giảm giá");
+			return false;
+		}
+
+		$.ajax({
+			url: BOOKING_VOUCHER_ENDPOINT,
+			data: {
+				action: BOOKING_VOUCHER_ACTIONS.validate,
+				booking_id: bookingId,
+				voucher_code: voucherCode
+			},
+			type: "POST",
+			dataType: "json",
+			cache: false,
+			beforeSend: function () { $('.container-waiting').show(); },
+			success: function (obj) {
+				$('.container-waiting').hide();
+				if (obj.error == 0) {
+					upsertBookingVoucherOption(obj.data || {}, true);
+					$('#apply_voucher_code').val('');
+					renderBookingVoucherList();
+					showBookingVoucherToast("success", "Đã chọn mã giảm giá");
+					return;
+				}
+
+				showBookingVoucherToast("error", obj.message || "Mã giảm giá không hợp lệ");
+			},
+			error: function (XMLHttpRequest, textStatus, errorThrown) {
+				$('.container-waiting').hide();
+				console.error("Status: " + textStatus);
+				console.error("Error: " + errorThrown);
+				showBookingVoucherToast("error", "Lỗi! Liên hệ IT để được hỗ trợ.");
+			}
+		});
+	});
+
+	$('#apply_voucher_code').on('input', function () {
+		$(this).val($(this).val().toUpperCase());
+	});
+
+	$('#btn_cancel_booking_voucher').click(function () {
+		$(BOOKING_VOUCHER_SELECTORS.dialog).dialog('close');
+	});
+
+	$('#btn_apply_booking_voucher').click(function () {
+		let bookingId = $(this).attr('booking_id');
+		let selectedVoucherIds = [];
+		let hasChanges = false;
+
+		Object.keys(bookingVoucherState.selected).forEach(function (voucherKey) {
+			if (bookingVoucherState.selected[voucherKey].voucher_id) {
+				selectedVoucherIds.push(bookingVoucherState.selected[voucherKey].voucher_id);
+			}
+		});
+
+		Object.keys(bookingVoucherState.applied).forEach(function (voucherKey) {
+			if (!bookingVoucherState.selected[voucherKey]) {
+				hasChanges = true;
+			}
+		});
+		Object.keys(bookingVoucherState.selected).forEach(function (voucherKey) {
+			if (!bookingVoucherState.applied[voucherKey]) {
+				hasChanges = true;
+			}
+		});
+
+		if (!hasChanges) {
+			showBookingVoucherToast("warning", "Danh sách mã giảm giá chưa thay đổi");
+			return false;
+		}
+
+		if (Object.keys(bookingVoucherState.selected).length > 0 && selectedVoucherIds.length === 0) {
+			showBookingVoucherToast("error", "Không lấy được ID mã giảm giá. Vui lòng tải lại trang và thử lại.");
+			return false;
+		}
+
+		$.ajax({
+			url: BOOKING_VOUCHER_ENDPOINT,
+			data: {
+				action: BOOKING_VOUCHER_ACTIONS.save,
+				booking_id: bookingId,
+				voucher_ids: selectedVoucherIds
+			},
+			type: "POST",
+			dataType: "json",
+			cache: false,
+			beforeSend: function () {
+				$('.container-waiting').show();
+				$('#btn_apply_booking_voucher').prop('disabled', true).text('Đang lưu...');
+			},
+			success: function (obj) {
+				$('.container-waiting').hide();
+				$('#btn_apply_booking_voucher').prop('disabled', false).text('Xác nhận');
+				if (obj.error != 0) {
+					showBookingVoucherToast("error", obj.message || "Thao tác không thành công. Liên hệ IT để được hỗ trợ.");
+					return;
+				}
+
+				updateBookingVoucherStateAfterSave(obj.data || {});
+				$(BOOKING_VOUCHER_SELECTORS.dialog).dialog('close');
+				showBookingVoucherToast("success", obj.message || "Cập nhật mã giảm giá thành công");
+			},
+			error: function (XMLHttpRequest, textStatus, errorThrown) {
+				$('.container-waiting').hide();
+				$('#btn_apply_booking_voucher').prop('disabled', false).text('Xác nhận');
+				console.error("Status: " + textStatus);
+				console.error("Error: " + errorThrown);
+				showBookingVoucherToast("error", "Lỗi! Liên hệ IT để được hỗ trợ.");
+			}
+		});
+	});
+
+	$(document).ajaxError(function (event, jqxhr, settings, thrownError) {
+		if (settings && settings.url === BOOKING_VOUCHER_ENDPOINT) {
+			if ($('.container-waiting').is(':visible')) {
+				$('.container-waiting').hide();
+			}
+			console.error("Error: " + thrownError);
+		}
 	});
 
 	// Points
@@ -2080,6 +2716,18 @@ function getAirLineInf() {
 	}
 
 	return iti_airline;
+}
+
+function renderPreloadedChangeState() {
+	var $itineraryTable = $("div[data-id='LBL_LINEITINERARIES_PANEL'] table#itinerary_tbl");
+	if ($itineraryTable.length && $itineraryTable.find("tbody .edited_iti_line").length === 0) {
+		$itineraryTable.find("#no-change__edit-iti").text(" Không có thông tin thay đổi ngày bay.");
+	}
+
+	var $passengerTable = $("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax");
+	if ($passengerTable.length && $passengerTable.find("tbody .edited_pass_line, tbody .edited_pass_group, tbody .psg-line[data-times-change]").length === 0) {
+		$passengerTable.find("#no-change__edit-pass").text("Chưa có hành khách nào thay đổi thông tin.");
+	}
 }
 
 function updateAmountInUrl(url, newAmount) {

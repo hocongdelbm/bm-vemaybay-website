@@ -520,19 +520,23 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeFlightTime') {
 	exit;
 }
 
-// Hiện thông tin hành trình sau khi thay đổi (nếu có)
-if (isset($_POST['for']) && $_POST['for'] == 'showEditedFlightTime' && isset($_POST['id'])) {
-	$edited_iti_detail = populateEditedLineItineraries($_POST['id']);
-	echo $edited_iti_detail;
-	exit;
-}
+/*
+ * Deprecated after refactor: changed itinerary/passenger history is rendered
+ * directly by ViewDetail PHP. Keep these AJAX actions disabled so an old
+ * cached view.detail.js cannot append duplicate rows on top of PHP-rendered
+ * rows.
+ */
+// if (isset($_POST['for']) && $_POST['for'] == 'showEditedFlightTime' && isset($_POST['id'])) {
+// 	$edited_iti_detail = populateEditedLineItineraries($_POST['id']);
+// 	echo $edited_iti_detail;
+// 	exit;
+// }
 
-// Hiện thông tin hành khách sau khi thay đổi (nếu có)
-if (isset($_POST['for']) && $_POST['for'] == 'showChangedPassenger' && isset($_POST['id'])) {
-	$edited_pass_detail = populateEditedLinePassenger($_POST['id']);
-	echo $edited_pass_detail;
-	exit;
-}
+// if (isset($_POST['for']) && $_POST['for'] == 'showChangedPassenger' && isset($_POST['id'])) {
+// 	$edited_pass_detail = populateEditedLinePassenger($_POST['id']);
+// 	echo $edited_pass_detail;
+// 	exit;
+// }
 
 // lấy thông tin yêu cầu xuất hoá đơn
 if (isset($_POST['for']) && $_POST['for'] == 'getInvoiceInf') {
@@ -1249,8 +1253,12 @@ function checkNewLineItineraries($parent_id)
 	return $row;
 }
 
+// Deprecated: detail view now renders edited itinerary history in
+// EC_Flight_BookingsViewDetail::populateEditedLineItineraries().
 function populateEditedLineItineraries($booking_id)
 {
+	return '';
+
 	global $app_list_strings, $timedate, $db;
 	$date_format = $timedate->get_date_format(); // d-m-Y
 	$user_list = get_user_array(true, '', '', true);
@@ -1513,8 +1521,12 @@ function populatePassLuggage($airline, $ticket_class, $pass_type, $luggage_index
 	return $luggage_arr;
 }
 
+// Deprecated: detail view now renders edited passenger history in
+// EC_Flight_BookingsViewDetail::populateEditedLinePassenger().
 function populateEditedLinePassenger($booking_id)
 {
+	return '';
+
 	global $app_list_strings, $db;
 
 	$booking = new EC_Flight_Bookings;
