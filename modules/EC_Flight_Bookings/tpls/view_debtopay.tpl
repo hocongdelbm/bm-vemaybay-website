@@ -38,6 +38,7 @@
                 $('#frmSearch').attr('target', '_self');
                 $('#frmSearch').attr('action', 'index.php');
                 $('#frmSearch input:hidden[name="print"]').remove();
+                $('#frmSearch .custom-supplier-input').remove(); // Clean up custom supplier inputs
             });
 
             $('#btnViewDetail').on('click', function () {
@@ -57,6 +58,14 @@
                     $('#to_date').focus();
                     return false;
                 }
+                // NOTE: (Dành cho sau này) Nếu muốn GỘP CHUNG (chọn cả NCC ở bảng trên và NCC ở khung dưới rồi Xem chi tiết 1 lần):
+                // 1. Comment hoặc xóa dòng remove('.custom-supplier-input') bên dưới đi (để giữ lại lựa chọn ở khung dưới).
+                // 2. Comment hoặc xóa dòng slideUp('#customSupplierInlineContainer') để khung dưới không bị thu lại.
+                // 3. Trong hàm CustomSupplierManager.submit(), thay vì gọi $form.submit(), bạn chỉ cần gọi nó để gen ra các input ẩn, rồi gom chung với các checkbox ở bảng trên.
+                
+                $('#frmSearch .custom-supplier-input').remove(); // Clean up custom supplier inputs trước khi check
+                $('#customSupplierInlineContainer').slideUp(300); // Thu lại khung chọn NCC ở dưới để UX gọn gàng hơn
+                
                 if ($('input:checkbox[name="supplier_id[]"]:checked').length == 0) {
                     let text_warning = 'Bạn chưa chọn đối tượng để tiếp tục.';
                     showToastWarning(text_warning);
@@ -64,6 +73,102 @@
                 }
             });
         });
+        
+        // Clean Architecture - Module cho việc quản lý Custom Supplier
+        var CustomSupplierManager = (function($) {
+            // DOM Elements
+            var DOM = {
+                container: '#customSupplierInlineContainer',
+                select: '#custom_supplier_select',
+                btnToggle: '#btnViewCustomSupplier',
+                form: '#frmSearch',
+                fromDate: '#from_date',
+                toDate: '#to_date'
+            };
+
+            // State
+            var isSelect2Initialized = false;
+
+            // Methods
+            function validateDates() {
+                if ($(DOM.fromDate).val().length === 0) {
+                    showToastWarning('Vui lòng chọn từ ngày.');
+                    $(DOM.fromDate).focus();
+                    return false;
+                }
+                if ($(DOM.toDate).val().length === 0) {
+                    showToastWarning('Vui lòng chọn đến ngày.');
+                    $(DOM.toDate).focus();
+                    return false;
+                }
+                return true;
+            }
+
+            function toggleInlineContainer() {
+                if (!validateDates()) return;
+
+                $(DOM.container).slideToggle(300, function() {
+                    // Init Select2 if container is visible and Select2 isn't initialized yet
+                    if ($(DOM.container).is(':visible') && !isSelect2Initialized && $.fn.select2) {
+                        $(DOM.select).select2({
+                            placeholder: "-- Tìm và chọn nhiều Nhà cung cấp --",
+                            allowClear: true,
+                            width: '100%'
+                        });
+                        isSelect2Initialized = true;
+                    }
+                });
+            }
+
+            function submitSelectedSuppliers() {
+                var $select = $(DOM.select);
+                var selectedValues = $select.val();
+                
+                if (!selectedValues || selectedValues.length === 0) {
+                    showToastWarning('Vui lòng chọn ít nhất một Nhà cung cấp.');
+                    return false;
+                }
+
+                var $form = $(DOM.form);
+                
+                // Clean up previous dynamic inputs
+                $form.find('.custom-supplier-input').remove();
+                
+                // Append hidden inputs for each selected supplier
+                $select.find('option:selected').each(function() {
+                    var id = $(this).val();
+                    if (id) {
+                        var code = $(this).data('supcode');
+                        var name = $(this).data('supname');
+                        
+                        $form.append('<input type="hidden" class="custom-supplier-input" name="supplier_id[]" value="' + id + '" />');
+                        $form.append('<input type="hidden" class="custom-supplier-input" name="supcode_' + id + '" value="' + code + '" />');
+                        $form.append('<input type="hidden" class="custom-supplier-input" name="supname_' + id + '" value="' + name + '" />');
+                        $form.append('<input type="hidden" class="custom-supplier-input" name="acc_code_' + id + '" value="" />');
+                    }
+                });
+                
+                // Add hidden submit action
+                $form.append('<input type="hidden" class="custom-supplier-input" name="btnViewDetail" value="Xem chi tiết" />');
+                
+                // Reset main table checkboxes
+                $('input:checkbox[name="supplier_id[]"]:not(.custom-supplier-input)').prop('checked', false);
+                
+                // Submit form to new tab
+                $form.attr('target', '_blank');
+                $form.attr('action', 'index.php');
+                $form.submit();
+                
+                // Cleanup trigger action to avoid conflict with normal searches
+                $form.find('input[type="hidden"][name="btnViewDetail"]').remove();
+            }
+
+            // Expose public API
+            return {
+                toggle: toggleInlineContainer,
+                submit: submitSelectedSuppliers
+            };
+        })(jQuery);
     </script>
 {/literal}
 
@@ -191,12 +296,35 @@
             </tr>
             <tr class="footer-tr">
                 <td class="text-start" colspan="5">
-                    <input type="submit" class="btn btn-primary" name="btnViewDetail" id="btnViewDetail" value="Xem chi tiết" title="Xem chi tiết"/>
+                    <div class="d-flex gap-2">
+                        <input type="submit" class="btn btn-primary" name="btnViewDetail" id="btnViewDetail" value="Xem chi tiết" title="Xem chi tiết"/>
+                        <button type="button" class="btn btn-info" id="btnViewCustomSupplier" onclick="CustomSupplierManager.toggle()">Xem chi tiết NCC khác</button>
+                    </div>
                 </td>
             </tr>
         </table>
     </form>
+
+    <!-- Slide-down Container for Zero Debt Suppliers -->
+    <div id="customSupplierInlineContainer" style="display: none; margin-top: 15px; padding: 20px; background-color: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <h4 style="margin: 0 0 15px 0; color: #1e5eb0; font-weight: bold; font-size: 16px; border-bottom: 2px solid #1e5eb0; padding-bottom: 8px; display: inline-block;">CHỌN NHÀ CUNG CẤP (SỐ DƯ = 0)</h4>
+        
+        <p style="margin-bottom: 12px; color: #555; font-size: 14px; line-height: 1.5;">
+            Danh sách dưới đây là các Nhà cung cấp chưa phát sinh nợ trong kỳ.<br>
+            Bạn có thể <b>gõ tên để tìm kiếm</b> và <b>chọn nhiều Nhà cung cấp</b> cùng lúc.
+        </p>
+        
+        <div style="margin-bottom: 15px;">
+            {$ZERO_DEBT_SUPPLIERS}
+        </div>
+        
+        <div class="d-flex gap-2 justify-content-end">
+            <button type="button" class="btn btn-secondary" onclick="CustomSupplierManager.toggle()">Đóng</button>
+            <button type="button" class="btn btn-primary" onclick="CustomSupplierManager.submit()">Xem chi tiết</button>
+        </div>
+    </div>
 </div>
+
 {php}
     }
 {/php}

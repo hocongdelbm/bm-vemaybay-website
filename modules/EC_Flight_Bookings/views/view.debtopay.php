@@ -150,6 +150,7 @@ class Viewdebtopay extends SugarView
 		$smartyobj->assign('TOTAL_DEBT', format_number($sup_arr['total_debt']));
 		$smartyobj->assign('POST_FROM_DATE', $post_fdate);
 		$smartyobj->assign('POST_TO_DATE', $post_tdate);
+		$smartyobj->assign('ZERO_DEBT_SUPPLIERS', $sup_arr['zero_debt_html']);
 	}
 
 	function getSupplierList($opening_year, $post_fdate, $post_tdate)
@@ -341,6 +342,7 @@ class Viewdebtopay extends SugarView
 		$res = $db->query($sql);
 		$total_debt = 0;
 		$html = '';
+		$in_table_ids = array();
 		while ($row = $db->fetchByAssoc($res)) {
 			if($row['total_debt'] != 0){
 				$html .= '<tr>
@@ -354,6 +356,7 @@ class Viewdebtopay extends SugarView
 					<td align="left">' . $row['supplier_name'] . '</td>
 					<td align="right" data-realnumber="' . $row['total_debt'] . '">' . format_number($row['total_debt']) . '</td>
 				</tr>';
+				$in_table_ids[] = "'" . $row['supplier_id'] . "'";
 			}
 
 			//========== Begin close opening amount ==========//
@@ -390,7 +393,16 @@ class Viewdebtopay extends SugarView
 			$total_debt += $row['total_debt'];
 		}
 
-		return array('html' => $html, 'total_debt' => abs($total_debt));
+		$exclude_cond = !empty($in_table_ids) ? "AND id NOT IN (" . implode(',', $in_table_ids) . ")" : "";
+		$sql_zero_debt = "SELECT id, ticker_symbol, name FROM accounts WHERE deleted=0 AND account_type='Supplier' AND is_stop_tracking=0 $exclude_cond ORDER BY name";
+		$res_zero = $db->query($sql_zero_debt);
+		$zero_debt_html = '<select id="custom_supplier_select" class="form-control box-select select2" style="width: 100%;" multiple="multiple" data-placeholder="Chọn một hoặc nhiều NCC">';
+		while ($r = $db->fetchByAssoc($res_zero)) {
+			$zero_debt_html .= '<option value="' . $r['id'] . '" data-supcode="' . $r['ticker_symbol'] . '" data-supname="' . $r['name'] . '">' . $r['ticker_symbol'] . ' - ' . $r['name'] . '</option>';
+		}
+		$zero_debt_html .= '</select>';
+
+		return array('html' => $html, 'total_debt' => abs($total_debt), 'zero_debt_html' => $zero_debt_html);
 	}
 
 	public function getVoucherList($opening_year, $accounting_code, $supplier_id, $post_fdate, $post_tdate) {
