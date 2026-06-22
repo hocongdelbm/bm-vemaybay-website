@@ -813,9 +813,7 @@ $GLOBALS['app_list_strings']['vietnamair_luggage_price_list2'] = array(
   1 => 'Không mang hành lý ký gửi ',
   2 => '1 kiện 32kg (0 VND/khách)',
   190000  => '1 kiện 10kg (190.000 VND/Khách)',
-  // 380000 => '2 kiện 10kg (380.000 VND/Khách)',
   440000  => '2 kiện 10kg (440.000 VND/Khách)',
-  // 570000 => '3 kiện 10kg (570.000 VND/Khách)',
   660000  => '3 kiện 10kg (660.000 VND/Khách)',
   760000  => '4 kiện 10kg (760.000 VND/Khách)',
   950000  => '5 kiện 10kg (950.000 VND/Khách)',
@@ -971,12 +969,6 @@ $GLOBALS['app_list_strings']['new_vietravelair_luggage_price_list1'] = array(
 $GLOBALS['app_list_strings']['new_vietravelair_luggage_price_list2'] = array(
   0 => 'Không mang hành lý ký gửi ',
   200000 => 'Thêm 15kg hành lý (200.000 VND/Khách)',
-  // 220000 => 'Thêm 20kg hành lý (220.000 VND/Khách)',
-  // 270000 => 'Thêm 25kg hành lý (270.000 VND/Khách)',
-  // 320000 => 'Thêm 30kg hành lý (320.000 VND/Khách)',
-  // 380000 => 'Thêm 35kg hành lý (380.000 VND/Khách)',
-  // 420000 => 'Thêm 40kg hành lý (420.000 VND/Khách)',
-
   250000 => 'Thêm 20kg hành lý (250.000 VND/Khách)',
   300000 => 'Thêm 25kg hành lý (300.000 VND/Khách)',
   350000 => 'Thêm 30kg hành lý (350.000 VND/Khách)',
@@ -993,3 +985,7 @@ $app_list_strings['booking_status_list']=array (
   7 => 'Ticket Exported',
   8 => 'Completed',
 );
+
+/*********************************************************************/
+/********  STOP! DON'T ADD MORE ANY THING FROM THIS POSITION  ********/
+/*********************************************************************/

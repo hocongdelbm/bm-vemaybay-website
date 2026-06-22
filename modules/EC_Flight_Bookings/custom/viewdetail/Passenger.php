@@ -81,21 +81,22 @@ trait PassengerTrait
 	private function renderPassengerTableHeader()
 	{
 		return '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-pax table-details__booking">
-				<thead>
-					<tr>
-						<th scope="col" width="2%"><input type="checkbox" id="select-all-passengers"/></th>
-						<th scope="col" width="3%">STT</th>
-						<th scope="col" width="7%">Loại</th>
-						<th scope="col" width="7%">Giới tính</th>
-						<th scope="col" width="16%">Họ tên</th>
-						<th scope="col" width="8%">Ngày sinh</th>
-						<th scope="col" width="12%">CCCD/Passport</th>
-						<th scope="col" width="10%">Số vé đi</th>
-						<th scope="col" width="10%">Số vé về</th>
-						<th scope="col" width="7%">PNR đi</th>
-						<th scope="col" width="7%">PNR về</th>
-					</tr>
-				</thead><tbody>';
+			<thead>
+				<tr>
+					<th scope="col" width="2%"><input type="checkbox" id="select-all-passengers"/></th>
+					<th scope="col" width="3%">STT</th>
+					<th scope="col" width="7%">Loại</th>
+					<th scope="col" width="7%">Giới tính</th>
+					<th scope="col" width="16%">Họ tên</th>
+					<th scope="col" width="8%">Ngày sinh</th>
+					<th scope="col" width="12%">CCCD/Passport</th>
+					<th scope="col" width="10%">Số vé đi</th>
+					<th scope="col" width="10%">Số vé về</th>
+					<th scope="col" width="7%">PNR đi</th>
+					<th scope="col" width="7%">PNR về</th>
+				</tr>
+			</thead>
+			<tbody>';
 	}
 
 	private function queryPassengerRowsForDetail()
@@ -231,7 +232,7 @@ trait PassengerTrait
 
 			// Line 2 (Baggage)
 			$row['bookingName']         = $this->bean->name ?? '';
-			$row['createdBy']             = $this->bean->created_by ?? '';
+			$row['createdBy']           = $this->bean->created_by ?? '';
 			$row['airlineCodeOutbound'] = $this->_outbound_airline ?? '';
 			$row['ticketClassOutbound'] = $this->_outbound_ticket_class ?? '';
 			$row['airlineCodeInbound']  = $this->_inbound_airline ?? '';

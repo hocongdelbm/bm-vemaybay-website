@@ -1,5 +1,5 @@
 <?php
-date_default_timezone_set('Asia/Ho_Chi_Minh');
+// date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 class EC_Flight_Bookings extends Basic
 {
@@ -445,6 +445,7 @@ class EC_Flight_Bookings extends Basic
 		if ($deliveryManChanged) {
 			myRemoveWorkingProcess($this->module_dir, $this->id, 'ticket_delivery');
 
+			/** @var EC_Working_Process **/
 			$work = BeanFactory::newBean('EC_Working_Process');
 			$work->name = $this->name;
 			$work->description = trim($this->delivery_man ?? '');
@@ -509,8 +510,8 @@ class EC_Flight_Bookings extends Basic
 		];
 	}
 
-	private function _saveItineraryRow(array $data)
-	{
+	private function _saveItineraryRow(array $data) {
+		/** @var EC_Booking_Itineraries **/
 		$iti = BeanFactory::newBean('EC_Booking_Itineraries');
 
 		// Load existing record nếu đang edit
@@ -639,8 +640,8 @@ class EC_Flight_Bookings extends Basic
 	 * Save data detail and return total bought price
 	 * @return float total_bought_price của row này
 	 */
-	private function _saveDetailRow(array $data, array $app_list_strings): float
-	{
+	private function _saveDetailRow(array $data, array $app_list_strings): float {
+		/** @var EC_Booking_Details **/
 		$bkd = BeanFactory::newBean('EC_Booking_Details');
 
 		if (!empty($data['id'])) {
@@ -762,6 +763,7 @@ class EC_Flight_Bookings extends Basic
 
 	private function _savePassengerRow(array $data)
 	{
+		/** @var EC_Booking_Passengers **/
 		$psg = BeanFactory::newBean('EC_Booking_Passengers');
 
 		if (!empty($data['id'])) {
