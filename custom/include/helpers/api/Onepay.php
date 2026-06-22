@@ -19,7 +19,7 @@ class Onepay {
             $hashValidated  = $this->verifyResponseHash($responseData);
             $resDescription = $this->getResponseDescription($vpc_TxnResponseCode);
 
-            if($vpc_TxnResponseCode == "0") {
+            if($vpc_TxnResponseCode === "0") {
                 if($hashValidated) {
                     $status = true;
                     $message = "Giao dịch thành công";
