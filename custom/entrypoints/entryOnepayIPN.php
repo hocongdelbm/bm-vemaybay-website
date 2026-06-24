@@ -65,7 +65,7 @@ try {
                 }
 
                 if($status) {
-                    $amount = number_format(($data['vpc_Amount'] ?? 0) / 10);
+                    $amount = number_format((int)($data['vpc_Amount'] ?? 0) / 100);
                     $messageNoti = "✌️ <b>Onepay</b> +$amount VND luc $payment_date_format Booking $bookingName $transNo";
                     NotificationService::sendMessage($messageNoti, "payment");
                 }
