@@ -56,7 +56,6 @@ class entryLiveChatMessageClass extends entryClass {
                     'data'    => null,
                 ];
             }
-
             $bean->name               = $this->cleanInput($params['title'] ?? '');
             $bean->description        = $message;
             $bean->src                = $src;
@@ -77,6 +76,64 @@ class entryLiveChatMessageClass extends entryClass {
                 'message' => 'Message saved successfully',
                 'data'    => [
                     'id' => $id,
+                ],
+            ];
+        }
+        catch(Throwable $th) {
+            return [
+                'status'    => 0,
+                'message'   => "Exception error",
+                'error'     => "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}",
+                'data'      => null,
+            ];
+        }
+    }
+
+    /**
+     * Update the seen_at field of an existing message to the current time.
+     *
+     * Uses a direct SQL UPDATE instead of the bean (no relationship/audit
+     * overhead) for best performance on this high-frequency call.
+     *
+     * @param array $params {
+     *     @type string $id   Record id - required
+     * }
+     * @return array
+     * @author DucPham
+     */
+    public function markSeen($params = []) {
+        $id = $this->cleanInput($params['id'] ?? '');
+
+        if($id === '') {
+            return [
+                'status'  => 0,
+                'message' => 'Missing record id',
+                'data'    => null,
+            ];
+        }
+
+        try {
+            global $db;
+            $seenAt    = date('Y-m-d H:i:s');
+            $idQuoted  = $db->quoted($id);
+            $nowQuoted = $db->quoted($seenAt);
+
+            // Idempotent: only set seen_at the first time (guarded in WHERE).
+            $result = $db->query("UPDATE ec_live_chat_messages SET seen_at = $nowQuoted, date_modified = $nowQuoted WHERE id = $idQuoted AND deleted = 0 AND (seen_at IS NULL OR seen_at = '')");
+            if($result === false) {
+                return [
+                    'status'  => 0,
+                    'message' => 'Failed to update seen status',
+                    'data'    => null,
+                ];
+            }
+
+            return [
+                'status'  => 1,
+                'message' => 'Message marked as seen',
+                'data'    => [
+                    'id'      => $id,
+                    'seen_at' => $seenAt
                 ],
             ];
         }
