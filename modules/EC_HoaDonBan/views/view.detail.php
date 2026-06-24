@@ -31,7 +31,9 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 				}
 				$hoadonban->is_signed = isset($arr['data'][0]['invIsSigned']) ? $arr['data'][0]['invIsSigned'] : 0;
 				$hoadonban->invoice_data = $json;
-				$hoadonban->save();
+				if($hoadonban->save()) {
+					$this->bean->sohoadon = $hoadonban->sohoadon;
+				}
 			}
 		}
 
