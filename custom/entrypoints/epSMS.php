@@ -28,18 +28,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $arr = json_decode($json, true);
         if(isset($arr['status']) && $arr['status'] == 1) {
             $mess = new EC_Messages();
-            $mess->id          = '';
             $mess->send_from   = $sms->SENDER;
             $mess->send_to     = $phone;
             $mess->content     = $messessage;
-            $mess->type        = 'sms';
-            $mess->category    = 'transaction';
-            $mess->send_time   = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
+            $mess->type        = "sms";
+            $mess->category    = "transaction";
+            $mess->send_time   = date("Y-m-d H:i:s");
             $mess->parent_type = $parent_type;
             $mess->parent_id   = $parent_id;
             $mess->response    = $json;
-            $mess->const       = $sms->caculate_fee('sms', $messessage);
-            $mess->status      = 'done';
+            $mess->cost        = $sms->caculate_fee('sms', $messessage);
+            $mess->status      = "done";
             $mess->description = "Gửi tin nhắn " . ($direction == '0' ? "lượt đi" : "lượt về");
             $mess->assigned_user_id = $current_user->id;
             $mess->save();
