@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Ho_Chi_Minh');
 use custom\services\Notification\NotificationService;
 
 try {
@@ -27,6 +28,7 @@ try {
 
                 // Add custom data
                 $data['payment_date'] = date("Y-m-d H:i:s");
+                $payment_date_format  = date("d/m/Y H:i:s"); // Use to send to notification
 
                 // Get payment history of booking
                 $sql = "SELECT bk.id, bk.nganluong_info
@@ -62,9 +64,11 @@ try {
                     }
                 }
 
-                $amount = number_format($data['vpc_Amount'] ?? 0);
-                $messageNoti = "✌️ <b>Onepay</b> +$amount VND - {$data['payment_date']} Booking $bookingName $transNo";
-                NotificationService::sendMessage($messageNoti, "payment");
+                if($status) {
+                    $amount = number_format((int)($data['vpc_Amount'] ?? 0) / 100);
+                    $messageNoti = "✌️ <b>Onepay</b> +$amount VND luc $payment_date_format Booking $bookingName $transNo";
+                    NotificationService::sendMessage($messageNoti, "payment");
+                }
 
                 echo "responsecode=1&desc=confirm-success";
                 exit();

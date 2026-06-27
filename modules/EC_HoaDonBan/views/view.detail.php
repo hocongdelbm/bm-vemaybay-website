@@ -12,7 +12,10 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 		$this->populateReceiptVoucherPanel();
 
 		// Cập nhật thông tin hóa đơn mới nhất từ hệ thống Wininvoice 
-		if ($this->bean->tinhtrang == '2' && $this->bean->company_unit == 'MHV' && (!$this->bean->sohoadon || empty($this->bean->sohoadon))) {
+		if ($this->bean->tinhtrang == '2'
+			&& $this->bean->company_unit == 'MHV'
+			&& (!$this->bean->sohoadon || empty($this->bean->sohoadon) || (int)$this->bean->sohoadon == 0)
+		) {
 			$winInv = new WinInvoice();
 			$json = $winInv->get($this->bean->name);
 
@@ -28,7 +31,9 @@ class EC_HoaDonBanViewDetail extends ViewDetail
 				}
 				$hoadonban->is_signed = isset($arr['data'][0]['invIsSigned']) ? $arr['data'][0]['invIsSigned'] : 0;
 				$hoadonban->invoice_data = $json;
-				$hoadonban->save();
+				if($hoadonban->save()) {
+					$this->bean->sohoadon = $hoadonban->sohoadon;
+				}
 			}
 		}
 
