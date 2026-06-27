@@ -70,35 +70,92 @@
 }
 
 .dialog_qr_code {
-    min-width: 350px;
+    min-width: 380px;
+    max-width: 420px;
     border: none;
-    border-radius: 5px;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
-    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+    padding: 20px;
+    background: white;
 }
 
 .dialog_qr_code .title {
-    margin-bottom: 12px;
-    font-size: 18px;
-    line-height: 22px;
+    margin: 0 0 16px;
+    font-size: 16px;
+    line-height: 20px;
     text-transform: uppercase;
-    color: var(--bs-dark);
+    color: #333;
     font-weight: 600;
+    text-align: center;
 }
 
 .dialog_qr_code .select_bank {
     display: block;
     width: 100%;
+    margin-bottom: 12px;
+    padding: 8px 10px;
+    font-size: 13px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+}
+
+.dialog_qr_code .wrap-qr-amount {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.dialog_qr_code .wrap-qr-amount input {
+    min-width: 0;
+}
+
+.dialog_qr_code .qr-placeholder {
+    width: 100%;
+    min-height: 140px;
+    margin: 14px 0;
+    border: 2px dashed #e0e0e0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    font-size: 12px;
+    text-align: center;
+    padding: 16px;
+    background: #fafafa;
+    box-sizing: border-box;
 }
 
 .dialog_qr_code .img_qr_code {
+    display: none;
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    margin: 14px auto;
+    border-radius: 12px;
+    border: 2px solid #f0f0f0;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.dialog_qr_code .img_qr_code[src]:not([src=""]) {
     display: block;
-    width: 330px;
-    border: 1px solid grey;
-    margin: 15px auto;
-    border-radius: 18px;
-    padding: 5px;
-    background-image: linear-gradient(144deg, #AF40FF, #5B42F3 50%, var(--primary-color));
+}
+
+.dialog_qr_code .flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dialog_qr_code .mt-2 {
+    margin-top: 10px;
+}
+
+.dialog_qr_code .gap-2 {
+    gap: 8px;
 }
 
 /* Button call & Dialog mapping */

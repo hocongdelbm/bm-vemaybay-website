@@ -1143,48 +1143,75 @@ $(document).ready(function () {
 		$('#frmChangeStatus').submit();
 	});
 
-	// Icon get QR code
+	// QR code dialog
 	$('#get_qr_code').on('click', function () {
+		// Reset về trạng thái ban đầu mỗi lần mở dialog
+		$('#select_bank_get_qr_code').val('');
+		$('#img_qr_code').attr('src', '');
+		$('#qr_placeholder').show();
+		$('#copyQRCodeImage').prop('disabled', true);
 		showDialog("dialog_qr_code");
 	});
+
+	// Khi đổi ngân hàng: reset QR, yêu cầu tạo lại
 	$('#select_bank_get_qr_code').change(function () {
-		let selectedValue = $(this).val();
-		if (selectedValue) {
-			$("#img_qr_code").attr('src', selectedValue);
-			$("#copyQRCodeImage").show();
-			$(".wrap-redo").show();
-		}
+		$('#img_qr_code').attr('src', '');
+		$('#qr_placeholder').show();
+		$('#copyQRCodeImage').prop('disabled', true);
 	});
 
+	// Tạo mã QR: build URL VietQR từ bank data-attributes + số tiền
+	$(document).on("click", "#btnRenderQRCode", function () {
+		const $option = $('#select_bank_get_qr_code option:selected');
+		const bankID     = $option.val();
+		const accountNo  = $option.data('account');
+		const accountName = $option.data('name');
+		const addInfo    = $('#dialog_qr_code').data('addinfo') || '';
+		const amount     = parseInt($('#new_payment_amount').val()) || 0;
+
+		if (!bankID) {
+			showToastNotify('error', 'Vui lòng chọn tài khoản ngân hàng');
+			return;
+		}
+		if (!amount || amount < 1000) {
+			showToastNotify('error', 'Số tiền không hợp lệ (tối thiểu 1.000 VND)');
+			return;
+		}
+
+		const url = `https://img.vietqr.io/image/${bankID}-${accountNo}-compact2.jpg`
+			+ `?amount=${amount}`
+			+ `&addInfo=${encodeURIComponent(addInfo)}`
+			+ `&accountName=${encodeURIComponent(accountName)}`;
+
+		const $img = $('#img_qr_code');
+		$img.off('load error').on('load', function () {
+			$('#qr_placeholder').hide();
+			$('#copyQRCodeImage').prop('disabled', false);
+			showToastNotify('success', 'Tạo mã QR thành công');
+		}).on('error', function () {
+			showToastNotify('error', 'Không thể tải mã QR từ VietQR, kiểm tra lại');
+			$('#qr_placeholder').show();
+			$('#copyQRCodeImage').prop('disabled', true);
+		});
+		$img.attr('src', url);
+	});
+
+	// Sao chép ảnh QR vào clipboard
 	$(document).on("click", "#copyQRCodeImage", async function () {
-		let img = document.getElementById("img_qr_code");
-
+		const img = document.getElementById("img_qr_code");
+		if (!img || !img.src || !img.src.startsWith('http')) {
+			showToastNotify("error", "Chưa có mã QR để sao chép");
+			return;
+		}
 		try {
-			if (img) {
-				const response = await fetch(img.src);
-				const blob = await response.blob();
-				const clipboardItem = new ClipboardItem({ "image/png": blob });
-				await navigator.clipboard.write([clipboardItem]);
-
-				showToastNotify("success", "Đã sao chép ảnh QR Code");
-			} else {
-				showToastNotify("error", "Không tìm thấy QR Code");
-			}
+			const response = await fetch(img.src);
+			const blob = await response.blob();
+			await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+			showToastNotify("success", "Đã sao chép ảnh QR Code");
 		} catch (error) {
 			showToastNotify("error", "Không thể sao chép ảnh!");
-			console.error("Lỗi copy ảnh:", error);
+			console.error("Lỗi:", error);
 		}
-	});
-
-	$(document).on("click", "#btnRenderQRCode", async function () {
-		let qrcode = $('#img_qr_code').attr("src");
-		let new_amount = parseInt($('#new_payment_amount').val().trim() ?? 0);
-		if (!new_amount || !Number.isInteger(new_amount) || new_amount < 1000) {
-			alert("Số tiền không hợp lệ");
-			return false;
-		}
-		$('#img_qr_code').attr("src", updateAmountInUrl(qrcode, new_amount));
-		$('#new_payment_amount').val('');
 	});
 
 	// GET THÔNG TIN BANK - SEND CUSTOMER
@@ -2730,8 +2757,3 @@ function renderPreloadedChangeState() {
 	}
 }
 
-function updateAmountInUrl(url, newAmount) {
-	const urlObj = new URL(url);
-	urlObj.searchParams.set('amount', newAmount);
-	return urlObj.toString();
-}

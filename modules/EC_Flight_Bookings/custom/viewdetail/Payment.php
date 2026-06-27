@@ -86,6 +86,7 @@ trait PaymentTrait
 			WHERE ba.deleted = 0 AND ba.unfollow = 0
 			ORDER BY IF(ba.sort IS NULL OR ba.sort = "", 100, ba.sort)';
 
+		$banks = [];
 		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$banks[] = [
@@ -118,43 +119,50 @@ trait PaymentTrait
 
 	public function generateDialogGetQRCode($amount, $phone)
 	{
-		// Popup lấy QR thanh toán: tạo danh sách ngân hàng và URL VietQR theo số tiền/số điện thoại booking.
-		$addInfo = urlencode("Thanh toan $phone");
+		// Popup lấy QR thanh toán: tạo danh sách ngân hàng, JS sẽ build URL VietQR khi user bấm "Tạo mã QR".
+		$addInfo = "Thanh toan $phone"; // max 25 ký tự theo spec VietQR Quick Link
+		$defaultAmount = (int)$amount;
 
-		// Lấy những stk đang theo dõi
 		$sql = 'SELECT ba.account_number AS account,
 				ba.account_holder AS owner,
 				b.short_name AS short_name,
-				ba.name 
-			FROM ec_bank_account ba 
+				ba.name
+			FROM ec_bank_account ba
 				INNER JOIN ec_banks b ON b.id = ba.bank_id AND is_sms = 1
 			WHERE ba.deleted = 0 AND ba.unfollow = 0
 			ORDER BY IF(ba.sort IS NULL OR ba.sort = "", 100, ba.sort)';
 
-		$options = '<option value="#">Chọn tài khoản ngân hàng</option>';
+		$options = '<option value="">-- Chọn tài khoản ngân hàng --</option>';
 		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			$bankID = str_replace(' ', '', $row['short_name']);
-			$accountNo = $row['account'];
-			$accountName = urlencode($row['owner']);
+			$bankID     = str_replace(' ', '', $row['short_name']);
+			$accountNo  = $row['account'];
+			$accountName = strtoupper(myRemoveUnicodeChars($row['owner'])); // VietQR yêu cầu uppercase, không dấu
 
-			$url = "https://api.vietqr.io/image/$bankID-$accountNo-J49B6oY.jpg?amount=$amount&accountName=$accountName&addInfo=$addInfo";
-			$options .= '<option value="' . $url . '">' . $row['name'] . '</option>';
+			$options .= '<option'
+				. ' value="' . htmlspecialchars($bankID) . '"'
+				. ' data-account="' . htmlspecialchars($accountNo) . '"'
+				. ' data-name="' . htmlspecialchars($accountName) . '">'
+				. htmlspecialchars($row['name'])
+				. '</option>';
 		}
 
-		return '<dialog id="dialog_qr_code" class="dialog_qr_code">
-					<h3 class="title">QR thanh toán booking</h3>
+		return '<dialog id="dialog_qr_code" class="dialog_qr_code" data-addinfo="' . htmlspecialchars($addInfo) . '">
+					<h3 class="title">QR THANH TOÁN BOOKING</h3>
 					<select id="select_bank_get_qr_code" class="select_bank">' . $options . '</select>
-					<img id="img_qr_code" class="img_qr_code" src="" />
-					<div class="wrap-redo flex-center p-3" style="display:none;">
-						<input type="text" name="new_payment_amount" id="new_payment_amount" placeholder="Nhập số tiền" />
-						<button class="btn btn-primary" id="btnRenderQRCode">Tạo lại mã</button>
+					<div class="wrap-qr-amount">
+						<input type="number" id="new_payment_amount" class="box-input" placeholder="Nhập số tiền" value="' . $defaultAmount . '" min="1000" />
+						<button class="btn btn-primary" id="btnRenderQRCode">Tạo mã QR</button>
 					</div>
-					<div class="flex-center">
+					<div id="qr_placeholder" class="qr-placeholder">
+						<span>Chọn ngân hàng & nhập số tiền, sau đó bấm <b>Tạo mã QR</b></span>
+					</div>
+					<img id="img_qr_code" class="img_qr_code" src="" alt="QR thanh toán" />
+					<div class="flex-center mt-2 gap-2">
 						<button class="btn btn-secondary" onclick="closeDialog(\'dialog_qr_code\')">Đóng</button>
-						<button class="btn btn-primary" style="display: none;" id="copyQRCodeImage">Sao chép QR</button>
+						<button class="btn btn-primary" id="copyQRCodeImage" disabled>Sao chép QR</button>
 					</div>
-				</dialog';
+				</dialog>';
 	}
 
 	/**
