@@ -226,8 +226,7 @@ class EC_HoaDonBan extends Basic
 				,total_amount
 			FROM ec_flight_bookings
 			WHERE id = '{$bookingId}' AND deleted = 0";
-		$resBooking = $this->db->query($sqlBooking);
-		$bookingInfo = $this->db->fetchByAssoc($resBooking);
+		$bookingInfo = $this->db->fetchByAssoc($this->db->query($sqlBooking));
 
 		foreach ($listBookingTickets as $times => $listValue) {
 			$additionalSecond++;

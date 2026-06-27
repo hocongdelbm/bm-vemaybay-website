@@ -1880,13 +1880,15 @@ class EC_Flight_Bookings extends Basic
 		$outputInvQty = $this->db->getOne($sqloutinv) ?? 0;
 
 		$goWithArray = [];
-		$resPaymentReceipt = $this->db->query("SELECT DISTINCT IFNULL(go_with, 0)
-				FROM ec_receipt_voucher
-				WHERE booking_id = '{$bookingId}'
-					AND rv_status != '0'
-					AND deleted = 0");
+		$resPaymentReceipt = $this->db->query(
+			"SELECT DISTINCT IFNULL(go_with, 0)
+			FROM ec_receipt_voucher
+			WHERE booking_id = '{$bookingId}'
+				AND rv_status != '0'
+				AND deleted = 0"
+		);
 		while ($rowPaymentReceipt = $this->db->fetchByAssoc($resPaymentReceipt))
-			$goWithArray[] = (int) $rowPaymentReceipt['go_with'];
+			$goWithArray[] = (int) ($rowPaymentReceipt['go_with'] ?? 0);
 
 		$sqltk = "SELECT p.id
 				,p.name
