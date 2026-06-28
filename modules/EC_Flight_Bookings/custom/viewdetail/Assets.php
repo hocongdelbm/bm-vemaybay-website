@@ -24,12 +24,12 @@ trait AssetsTrait
 	{
 		global $app_list_strings, $current_user;
 
-		$version = '1.0.9';
+		$version = '1.1.9';
 
 		// Load các file JS riêng của detail view: xử lý popup, autobook, Zalo/SMS, tài liệu, in vé.
 		$js = '
 			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=' . $version . '"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.0.9"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=' . $version . '"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=' . $version . '"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=' . $version . '"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=' . $version . '"></script>
