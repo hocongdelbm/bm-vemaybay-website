@@ -13,10 +13,10 @@ trait AssetsTrait
 	{
 		// Load CSS riêng cho detail view và các plugin/feature liên quan như Select2, Zalo, autobook.
 		echo <<<HTML
-			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.8">
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0">
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0">
+			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css" />
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.1.0" />
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0.0" />
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0.0" />
 		HTML;
 	}
 

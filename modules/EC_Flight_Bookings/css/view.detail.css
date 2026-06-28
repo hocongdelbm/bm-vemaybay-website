@@ -9,6 +9,11 @@
     margin: 0;
 }
 
+form.tbl-change-flight-time {
+    display:none;
+    background-color:#fff;
+}
+
 .table-change-passengers .select2-container .select2-selection--single .select2-selection__rendered {
     font-size: 14px;
 }

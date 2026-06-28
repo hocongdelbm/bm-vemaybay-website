@@ -7,15 +7,11 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * Used by EC_Flight_BookingsViewEdit. Methods are kept close to the
  * legacy implementation to preserve the old business behavior.
  */
-trait ECFlightBookingEditAssetsTrait
-{
-
-	function displayCSS()
-	{
-		// Load CSS riêng cho form tạo/sửa booking.
-		$css = '';
-		$css .= '<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.edit.css?v=1.1">';
-		echo $css;
+trait ECFlightBookingEditAssetsTrait {
+	function displayCSS() {
+		echo <<<HTML
+			<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.edit.css?v=1.2.0" />
+		HTML;
 	}
 
 	function displayJS()
