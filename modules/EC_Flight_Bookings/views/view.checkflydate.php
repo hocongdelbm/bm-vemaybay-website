@@ -77,6 +77,8 @@ class Viewcheckflydate extends SugarView
             $_POST['airlines'] ?? ''
         ));
         $smarty->assign('CURRENT_PAGE', $page);
+        $smarty->assign('PREV_PAGE', $page - 1);
+        $smarty->assign('NEXT_PAGE', $page + 1);
         $smarty->assign('TOTAL_PAGES', $totalPages);
         $smarty->assign('TOTAL_RECORDS', $totalRecords);
         $smarty->assign('START_RECORD', $startRecord);
