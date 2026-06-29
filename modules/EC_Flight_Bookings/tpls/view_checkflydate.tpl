@@ -148,7 +148,7 @@
             <!-- Hành trình -->
             <div class="filter-group">
                 <label for="search_route">Hành trình</label>
-                <input type="text" class="box-input" id="search_route" name="search_route" placeholder="SGN-HPH" value="{$SEARCH_ROUTE}" maxlength="7" style="text-transform: uppercase;">
+                <input type="text" class="box-input text-uppercase" id="search_route" name="search_route" placeholder="SGN-HPH" value="{$SEARCH_ROUTE}" maxlength="7">
             </div>
 
             <!-- Số điện thoại -->
@@ -166,7 +166,7 @@
             <!-- Tên khách -->
             <div class="filter-group">
                 <label for="search_passenger">Tên khách</label>
-                <input type="text" class="box-input" id="search_passenger" name="search_passenger" placeholder="Nguyễn Văn A" value="{$SEARCH_PASSENGER}" maxlength="100">
+                <input type="text" class="box-input" id="search_passenger" name="search_passenger" placeholder="Nguyễn Văn ABC" value="{$SEARCH_PASSENGER}" maxlength="100">
             </div>
             
             <!-- Action Buttons -->
