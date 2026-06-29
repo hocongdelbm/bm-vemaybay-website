@@ -66,7 +66,7 @@
              debug: true
          };
      </script>
-     <script src="custom/include/javascript/chatbot/admin_widget.js?v=2"></script>
+     <script src="custom/services/widget/admin_widget.js?v=2"></script>
 {/if}
 </body>
 </html>
