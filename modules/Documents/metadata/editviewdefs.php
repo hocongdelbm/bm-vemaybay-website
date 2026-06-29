@@ -75,6 +75,9 @@ $viewdefs['Documents'] =
             array(
               'name' => 'template_type',
               'label' => 'LBL_DET_TEMPLATE_TYPE',
+              'displayParams' => array (
+                  'required' => true,
+              ),
             ),
             array(
               'name' => 'is_template',
