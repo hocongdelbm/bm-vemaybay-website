@@ -38,6 +38,7 @@
                 $("#denngay").val(todayStr);
                 $("#airlines").val("").trigger("change");
                 $("#user_id").val("").trigger("change");
+                $("#search_route").val("");
                 $("#search_phone").val("");
                 $("#search_email").val("");
                 $("#search_passenger").val("");
@@ -142,6 +143,12 @@
             <div class="filter-group">
                 <label for="user_id">User</label>
                 <select id="user_id" class="box-select" name="user_id"><option value="">-không-</option>{$USER_LIST}</select>
+            </div>
+
+            <!-- Hành trình -->
+            <div class="filter-group">
+                <label for="search_route">Hành trình</label>
+                <input type="text" class="box-input" id="search_route" name="search_route" placeholder="SGN-HPH" value="{$SEARCH_ROUTE}" maxlength="7" style="text-transform: uppercase;">
             </div>
 
             <!-- Số điện thoại -->

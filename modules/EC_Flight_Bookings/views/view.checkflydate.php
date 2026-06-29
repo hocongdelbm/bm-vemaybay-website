@@ -48,7 +48,7 @@ class Viewcheckflydate extends SugarView
         $page = !empty($_POST['page']) ? max(1, (int)$_POST['page']) : 1;
         $offset = ($page - 1) * self::RECORDS_PER_PAGE;
 
-        $filters = ['phone' => '', 'passenger' => '', 'user_id' => '', 'email' => ''];
+        $filters = ['phone' => '', 'passenger' => '', 'user_id' => '', 'email' => '', 'route' => ''];
         $searchClause = $this->buildSearchClause($tungay, $denngay, $filters);
 
         $airlineXml = $this->getAirlineData();
@@ -66,6 +66,7 @@ class Viewcheckflydate extends SugarView
         $smarty->assign('SEARCH_PHONE', $filters['phone']);
         $smarty->assign('SEARCH_PASSENGER', $filters['passenger']);
         $smarty->assign('SEARCH_EMAIL', $filters['email']);
+        $smarty->assign('SEARCH_ROUTE', $filters['route']);
         $smarty->assign('USER_LIST', myGetSelectOptionsWithDb(
             'Users',
             $filters['user_id'],
@@ -143,6 +144,18 @@ class Viewcheckflydate extends SugarView
             if ($passenger !== '') {
                 $clause .= " AND i.booking_id IN (SELECT DISTINCT booking_id FROM ec_booking_passengers"
                     . " WHERE deleted = 0 AND name LIKE '" . $db->quote('%' . $passenger . '%') . "')";
+            }
+        }
+
+        // Route (e.g. SGN-HPH).
+        if (!empty($_POST['search_route'])) {
+            $route = strtoupper(preg_replace('/[^A-Za-z\-]/', '', trim($_POST['search_route'])));
+            $filters['route'] = $route;
+            if ($route !== '' && strpos($route, '-') !== false) {
+                [$dep, $arr] = explode('-', $route, 2);
+                if ($dep !== '' && $arr !== '') {
+                    $clause .= " AND i.departure = '" . $db->quote($dep) . "' AND i.arrival = '" . $db->quote($arr) . "'";
+                }
             }
         }
 
