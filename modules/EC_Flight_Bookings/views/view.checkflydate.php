@@ -36,32 +36,36 @@ class Viewcheckflydate extends SugarView
             exit;
         }
 
-        // Dùng range thay vì DATE() để tận dụng index trên departure_date
         $sql_search .= " AND i.departure_date >= '{$tungay_db} 00:00:00' AND i.departure_date <= '{$denngay_db} 23:59:59'";
 
         if (!empty($_POST['airlines'])) {
             $airline = $_POST['airlines'];
-            if ($airline === 'VJ' || $airline === 'VJA') {
-                $sql_search .= " AND i.airline_code IN ('VJ', 'VJA')";
-            } elseif ($airline === 'VN' || $airline === 'VNA') {
-                $sql_search .= " AND i.airline_code IN ('VN', 'VNA')";
+            $airline_mapping = [
+                'VJ' => ['VJ', 'VJA'],
+                'VJA' => ['VJ', 'VJA'],
+                'VN' => ['VN', 'VNA'],
+                'VNA' => ['VN', 'VNA']
+            ];
+
+            if (isset($airline_mapping[$airline])) {
+                $codes = $airline_mapping[$airline];
+                $quoted_codes = array_map([$db, 'quote'], $codes);
+                $sql_search .= " AND i.airline_code IN (" . implode(',', $quoted_codes) . ")";
             } else {
-                $sql_search .= " AND i.airline_code='" . $db->quote($airline) . "'";
+                $sql_search .= " AND i.airline_code=" . $db->quote($airline);
             }
         }
 
         $user_id = '';
         if (!empty($_POST['user_id'])) {
             $user_id = preg_replace('/[^0-9a-zA-Z\-]/', '', $_POST['user_id']);
-            $sql_search .= " AND b.assigned_user_id='{$user_id}'";
+            $sql_search .= " AND b.assigned_user_id=" . $db->quote($user_id);
         }
 
-        $aircode_inter_arr  = [];
+        $aircode_inter_arr  = $this->getAirlineData();
         $aircode_inter_arr2 = [];
-        $aircode_inter_xml  = simplexml_load_file('custom/airlines.xml');
-        foreach (json_decode(json_encode($aircode_inter_xml), true)['RECORD'] as $item) {
-            $aircode_inter_arr[$item['code']]  = $item['name'] . ' (' . $item['code'] . ')';
-            $aircode_inter_arr2[$item['code']] = $item['code'];
+        foreach ($aircode_inter_arr as $code => $_) {
+            $aircode_inter_arr2[$code] = $code;
         }
 
         $aircode = array_merge(
@@ -69,7 +73,6 @@ class Viewcheckflydate extends SugarView
             $aircode_inter_arr2
         );
 
-        // LEFT JOIN thay correlated EXISTS để tránh subquery lặp lại mỗi row
         $sql = "SELECT b.id AS booking_id,
                     b.name AS booking,
                     b.contact_name,
@@ -85,17 +88,8 @@ class Viewcheckflydate extends SugarView
                     b.date_ticket_issue,
                     i.checkin_status,
                     i.is_remind,
-                    (
-                        SELECT SUM(IFNULL(d.quantity, 0))
-                        FROM ec_booking_details d
-                        WHERE d.booking_id = i.booking_id AND d.direction = i.direction AND d.deleted = 0
-                    ) AS total_qty,
-                    (
-                        SELECT DATE_ADD(p.date_entered, INTERVAL 7 HOUR)
-                        FROM ec_working_process p
-                        WHERE p.parent_id = b.id AND p.completed = 1 AND p.deleted = 0
-                        LIMIT 1
-                    ) AS complete_time
+                    COALESCE(d_sum.total_qty, 0) AS total_qty,
+                    p_max.complete_time
                 FROM ec_booking_itineraries i
                 LEFT JOIN ec_flight_bookings b ON i.booking_id = b.id AND b.deleted = 0
                 LEFT JOIN (
@@ -103,11 +97,25 @@ class Viewcheckflydate extends SugarView
                     FROM ec_booking_itineraries
                     WHERE add_type = 3 AND deleted = 0
                 ) i_chg ON i_chg.booking_id = i.booking_id
+                LEFT JOIN (
+                    SELECT booking_id, direction, SUM(IFNULL(quantity, 0)) AS total_qty
+                    FROM ec_booking_details
+                    WHERE deleted = 0
+                    GROUP BY booking_id, direction
+                ) d_sum ON d_sum.booking_id = i.booking_id AND d_sum.direction = i.direction
+                LEFT JOIN (
+                    SELECT parent_id, MAX(DATE_ADD(date_entered, INTERVAL 7 HOUR)) AS complete_time
+                    FROM ec_working_process
+                    WHERE completed = 1 AND deleted = 0
+                    GROUP BY parent_id
+                ) p_max ON p_max.parent_id = b.id
                 WHERE b.booking_status IN ('7','8')" . $sql_search . "
                     AND i.deleted = 0
                     AND (i.add_type != 0 OR i_chg.booking_id IS NULL)
-                GROUP BY i.booking_id
-                ORDER BY b.date_ticket_issue, complete_time";
+                GROUP BY i.booking_id, b.id, b.name, b.contact_name, b.phone, i.departure, i.arrival,
+                         i.departure_date, i.arrival_date, i.airline_code, i.flight_number, i.base_price,
+                         i.ticket_class, b.date_ticket_issue, i.checkin_status, i.is_remind, d_sum.total_qty, p_max.complete_time
+                ORDER BY b.date_ticket_issue, p_max.complete_time";
 
         $res  = $db->query($sql);
         $i    = 0;
@@ -163,6 +171,24 @@ class Viewcheckflydate extends SugarView
         $smartyobj->assign('POST_DENNGAY', $post_denngay);
         $smartyobj->assign('USER_LIST', myGetSelectOptionsWithDb('Users', $user_id, 'id', " AND title IN ('Booker','KeToan','Leader') AND status='Active' ORDER BY first_name ASC "));
         $smartyobj->assign('AIRLINES', get_select_options_with_id(($app_list_strings['aircode_list'] + $aircode_inter_arr), $_POST['airlines'] ?? ''));
+    }
+
+    private function getAirlineData()
+    {
+        static $aircode_cache = null;
+
+        if ($aircode_cache === null) {
+            $aircode_cache = [];
+            if (file_exists('custom/airlines.xml')) {
+                $aircode_inter_xml = simplexml_load_file('custom/airlines.xml');
+                $records = json_decode(json_encode($aircode_inter_xml), true)['RECORD'] ?? [];
+                foreach ($records as $item) {
+                    $aircode_cache[$item['code']] = $item['name'] . ' (' . $item['code'] . ')';
+                }
+            }
+        }
+
+        return $aircode_cache;
     }
 
     function getHourList($val)
