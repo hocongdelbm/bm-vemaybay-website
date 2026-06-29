@@ -830,6 +830,32 @@ if (isset($_POST['for']) && $_POST['for'] == 'updateRevenueBooking') {
 	exit();
 }
 
+// Save itinerary notes
+if (isset($_POST['for']) && $_POST['for'] == 'saveItineraryNotes') {
+	header('Content-Type: application/json');
+
+	$itinerary_id = !empty($_POST['itinerary_id']) ? trim($_POST['itinerary_id']) : '';
+	$notes = isset($_POST['notes']) ? trim($_POST['notes']) : '';
+
+	if (empty($itinerary_id)) {
+		echo json_encode(['success' => false, 'message' => 'Invalid itinerary ID']);
+		exit();
+	}
+
+	$notes_escaped = $db->quote($notes);
+	$itinerary_id_escaped = $db->quote($itinerary_id);
+
+	$sql = "UPDATE ec_booking_itineraries SET description = '{$notes_escaped}' WHERE id = '{$itinerary_id_escaped}' AND deleted = 0";
+	$result = $db->query($sql);
+
+	if ($result !== false) {
+		echo json_encode(['success' => true]);
+	} else {
+		echo json_encode(['success' => false, 'message' => 'Failed to save notes']);
+	}
+	exit();
+}
+
 function populateLineDetails($booking_id)
 {
 	global $app_list_strings, $db;

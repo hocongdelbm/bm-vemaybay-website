@@ -149,16 +149,11 @@ $viewdefs[$module_name]['EditView'] = array(
 
             array(
                 array(
-                    'name'          => 'country',
-                    'studio'        => 'visible',
-                    'label'         => 'LBL_COUNTRY',
-                    'customCode'    => '{$LOCATION_BOOKING}',
+                    'name'      => 'city',
+                    'studio'    => 'visible',
+                    'label'     => 'LBL_CITY',
+                    'customCode'=> '{$LOCATION_BOOKING}',
                 ),
-                // array(
-                //     'name' => 'city',
-                //     'studio' => 'visible',
-                //     'label' => 'LBL_CITY',
-                // ),
                 array(
                     'name' => 'address',
                     'label' => 'LBL_ADDRESS',

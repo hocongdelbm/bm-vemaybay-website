@@ -6,6 +6,14 @@ if (!defined('sugarEntry') || !sugarEntry) {
 $module_name = 'EC_Zalo_Contacts';
 $searchFields[$module_name] = array(
     'name' => array('query_type' => 'default'),
+
+    'phone_mobile_search' => array(
+        'query_type' => 'format',
+        'operator' => 'subquery',
+        'subquery' => "SELECT id FROM contacts WHERE deleted = 0 AND phone_mobile = '{0}'",
+        'db_field' => array('contact_id'),
+    ),
+
     'current_user_only' => array(
         'query_type' => 'default',
         'db_field' => array('assigned_user_id'),
