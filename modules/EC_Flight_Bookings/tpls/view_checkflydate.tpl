@@ -38,6 +38,7 @@
                 $("#denngay").val(todayStr);
                 $("#airlines").val("").trigger("change");
                 $("#user_id").val("").trigger("change");
+                $("#search_route").val("");
                 $("#search_phone").val("");
                 $("#search_email").val("");
                 $("#search_passenger").val("");
@@ -144,6 +145,12 @@
                 <select id="user_id" class="box-select" name="user_id"><option value="">-không-</option>{$USER_LIST}</select>
             </div>
 
+            <!-- Hành trình -->
+            <div class="filter-group">
+                <label for="search_route">Hành trình</label>
+                <input type="text" class="box-input text-uppercase" id="search_route" name="search_route" placeholder="SGN-HPH" value="{$SEARCH_ROUTE}" maxlength="7">
+            </div>
+
             <!-- Số điện thoại -->
             <div class="filter-group">
                 <label for="search_phone">Điện thoại</label>
@@ -159,7 +166,7 @@
             <!-- Tên khách -->
             <div class="filter-group">
                 <label for="search_passenger">Tên khách</label>
-                <input type="text" class="box-input" id="search_passenger" name="search_passenger" placeholder="Nguyễn Văn A" value="{$SEARCH_PASSENGER}" maxlength="100">
+                <input type="text" class="box-input" id="search_passenger" name="search_passenger" placeholder="Nguyễn Văn ABC" value="{$SEARCH_PASSENGER}" maxlength="100">
             </div>
             
             <!-- Action Buttons -->
@@ -201,7 +208,6 @@
     <!-- Pagination -->
     {if $TOTAL_PAGES > 1}
     <div class="pagination-section">
-        <!-- Hidden inputs for keyboard navigation -->
         <input type="hidden" name="current_page" value="{$CURRENT_PAGE}">
         <input type="hidden" name="total_pages" value="{$TOTAL_PAGES}">
 
@@ -218,7 +224,7 @@
             <ul class="pagination">
                 {if $CURRENT_PAGE > 1}
                     <li><a href="#" class="pagination-link" data-page="1" title="Trang đầu">«</a></li>
-                    <li><a href="#" class="pagination-link" data-page="{$CURRENT_PAGE - 1}" title="Trang trước">‹</a></li>
+                    <li><a href="#" class="pagination-link" data-page="{$PREV_PAGE}" title="Trang trước">‹</a></li>
                 {else}
                     <li><a href="#" class="pagination-link disabled" title="Trang đầu">«</a></li>
                     <li><a href="#" class="pagination-link disabled" title="Trang trước">‹</a></li>
@@ -238,10 +244,10 @@
                 {/section}
 
                 {if $CURRENT_PAGE < $TOTAL_PAGES}
-                    <li><a href="#" class="pagination-link" data-page="{$CURRENT_PAGE + 1}" title="Trang tiếp">›</a></li>
+                    <li><a href="#" class="pagination-link" data-page="{$NEXT_PAGE}" title="Trang tiếp">›</a></li>
                     <li><a href="#" class="pagination-link" data-page="{$TOTAL_PAGES}" title="Trang cuối">»</a></li>
                 {else}
-                    <li><a href="#" class="pagination-link disabled" title="Trang cuối">›</a></li>
+                    <li><a href="#" class="pagination-link disabled" title="Trang tiếp">›</a></li>
                     <li><a href="#" class="pagination-link disabled" title="Trang cuối">»</a></li>
                 {/if}
             </ul>

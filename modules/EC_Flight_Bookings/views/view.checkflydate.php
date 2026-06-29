@@ -3,7 +3,7 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class Viewcheckflydate extends SugarView
 {
-    private const ASSET_VERSION = '1.3.1';
+    private const ASSET_VERSION = '1.3.2';
 
     private const RECORDS_PER_PAGE = 20;
 
@@ -48,14 +48,14 @@ class Viewcheckflydate extends SugarView
         $page = !empty($_POST['page']) ? max(1, (int)$_POST['page']) : 1;
         $offset = ($page - 1) * self::RECORDS_PER_PAGE;
 
-        $filters = ['phone' => '', 'passenger' => '', 'user_id' => '', 'email' => ''];
+        $filters = ['phone' => '', 'passenger' => '', 'user_id' => '', 'email' => '', 'route' => ''];
         $searchClause = $this->buildSearchClause($tungay, $denngay, $filters);
 
         $airlineXml = $this->getAirlineData();
         $iconMap    = $this->buildAirlineIconMap($airlineXml);
 
         [$html, $totalRecords] = $this->renderRows($searchClause, $iconMap, $offset);
-        $totalPages = ceil($totalRecords / self::RECORDS_PER_PAGE);
+        $totalPages = $totalRecords > 0 ? ceil($totalRecords / self::RECORDS_PER_PAGE) : 1;
         $startRecord = ($page - 1) * self::RECORDS_PER_PAGE + 1;
         $endRecord = min($page * self::RECORDS_PER_PAGE, $totalRecords);
 
@@ -66,6 +66,7 @@ class Viewcheckflydate extends SugarView
         $smarty->assign('SEARCH_PHONE', $filters['phone']);
         $smarty->assign('SEARCH_PASSENGER', $filters['passenger']);
         $smarty->assign('SEARCH_EMAIL', $filters['email']);
+        $smarty->assign('SEARCH_ROUTE', $filters['route']);
         $smarty->assign('USER_LIST', myGetSelectOptionsWithDb(
             'Users',
             $filters['user_id'],
@@ -77,6 +78,8 @@ class Viewcheckflydate extends SugarView
             $_POST['airlines'] ?? ''
         ));
         $smarty->assign('CURRENT_PAGE', $page);
+        $smarty->assign('PREV_PAGE', $page - 1);
+        $smarty->assign('NEXT_PAGE', $page + 1);
         $smarty->assign('TOTAL_PAGES', $totalPages);
         $smarty->assign('TOTAL_RECORDS', $totalRecords);
         $smarty->assign('START_RECORD', $startRecord);
@@ -146,6 +149,18 @@ class Viewcheckflydate extends SugarView
             }
         }
 
+        // Route (e.g. SGN-HPH).
+        if (!empty($_POST['search_route'])) {
+            $route = strtoupper(preg_replace('/[^A-Za-z\-]/', '', trim($_POST['search_route'])));
+            $filters['route'] = $route;
+            if ($route !== '' && strpos($route, '-') !== false) {
+                [$dep, $arr] = explode('-', $route, 2);
+                if ($dep !== '' && $arr !== '') {
+                    $clause .= " AND i.departure = '" . $db->quote($dep) . "' AND i.arrival = '" . $db->quote($arr) . "'";
+                }
+            }
+        }
+
         // Email.
         if (!empty($_POST['search_email'])) {
             $email = trim($_POST['search_email']);
@@ -181,12 +196,7 @@ class Viewcheckflydate extends SugarView
                     COALESCE(d_sum.total_qty, 0) AS total_qty,
                     p_max.complete_time
                 FROM ec_booking_itineraries i
-                LEFT JOIN ec_flight_bookings b ON i.booking_id = b.id AND b.deleted = 0
-                LEFT JOIN (
-                    SELECT DISTINCT booking_id
-                    FROM ec_booking_itineraries
-                    WHERE add_type = 3 AND deleted = 0
-                ) i_chg ON i_chg.booking_id = i.booking_id
+                INNER JOIN ec_flight_bookings b ON i.booking_id = b.id AND b.deleted = 0
                 LEFT JOIN (
                     SELECT booking_id, direction, SUM(IFNULL(quantity, 0)) AS total_qty
                     FROM ec_booking_details
@@ -201,11 +211,14 @@ class Viewcheckflydate extends SugarView
                 ) p_max ON p_max.parent_id = b.id
                 WHERE b.booking_status IN ('7','8')" . $searchClause . "
                     AND i.deleted = 0
-                    AND (i.add_type != 0 OR i_chg.booking_id IS NULL)
+                    AND (i.add_type = 0 OR NOT EXISTS (
+                        SELECT 1 FROM ec_booking_itineraries
+                        WHERE booking_id = i.booking_id AND add_type = 3 AND deleted = 0
+                    ))
                 GROUP BY i.id, i.booking_id, b.id, b.name, b.contact_name, b.phone, b.email, i.departure, i.arrival,
                          i.departure_date, i.arrival_date, i.airline_code, i.flight_number, i.base_price,
                          i.ticket_class, b.date_ticket_issue, i.checkin_status, i.is_remind, i.description, d_sum.total_qty, p_max.complete_time
-                ORDER BY b.date_ticket_issue, p_max.complete_time
+                ORDER BY b.date_ticket_issue DESC, p_max.complete_time DESC
                 LIMIT " . self::RECORDS_PER_PAGE . " OFFSET " . (int)$offset;
     }
 
@@ -232,15 +245,13 @@ class Viewcheckflydate extends SugarView
         global $db;
 
         $sql = "SELECT COUNT(DISTINCT i.id) as total FROM ec_booking_itineraries i
-                LEFT JOIN ec_flight_bookings b ON i.booking_id = b.id AND b.deleted = 0
-                LEFT JOIN (
-                    SELECT DISTINCT booking_id
-                    FROM ec_booking_itineraries
-                    WHERE add_type = 3 AND deleted = 0
-                ) i_chg ON i_chg.booking_id = i.booking_id
+                INNER JOIN ec_flight_bookings b ON i.booking_id = b.id AND b.deleted = 0
                 WHERE b.booking_status IN ('7','8')" . $searchClause . "
                     AND i.deleted = 0
-                    AND (i.add_type != 0 OR i_chg.booking_id IS NULL)";
+                    AND (i.add_type = 0 OR NOT EXISTS (
+                        SELECT 1 FROM ec_booking_itineraries
+                        WHERE booking_id = i.booking_id AND add_type = 3 AND deleted = 0
+                    ))";
 
         $res = $db->query($sql);
         if (!$res) {
