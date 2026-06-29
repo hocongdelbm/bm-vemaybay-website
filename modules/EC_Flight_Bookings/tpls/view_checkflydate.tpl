@@ -201,7 +201,6 @@
     <!-- Pagination -->
     {if $TOTAL_PAGES > 1}
     <div class="pagination-section">
-        <!-- Hidden inputs for keyboard navigation -->
         <input type="hidden" name="current_page" value="{$CURRENT_PAGE}">
         <input type="hidden" name="total_pages" value="{$TOTAL_PAGES}">
 
