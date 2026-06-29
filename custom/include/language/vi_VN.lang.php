@@ -2395,6 +2395,10 @@ $app_list_strings['document_subcategory_dom'] = array(
 
 $app_list_strings['document_template_type_dom'] = array(
   '' => '',
+  'passport' => 'Hộ chiếu',
+  'id_card' => 'CCCD',
+  'birth_certificate' => 'Giấy khai sinh',
+  'flight_ticket' => 'Vé máy bay',
   'license' => 'Thỏa thuận cấp phép',
   'contract' => 'Hợp đồng',
   'proposal' => 'Đề xuất',

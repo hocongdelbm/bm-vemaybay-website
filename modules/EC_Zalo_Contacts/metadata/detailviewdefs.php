@@ -5,9 +5,9 @@ $viewdefs[$module_name]['DetailView'] = array(
         'form' => array(
             'buttons' => array(
                 'EDIT',
-                'DUPLICATE',
-                'DELETE',
-                'FIND_DUPLICATES',
+                // 'DELETE',
+                // 'DUPLICATE',
+                // 'FIND_DUPLICATES',
             )
         ),
         'maxColumns' => '2',
@@ -21,8 +21,61 @@ $viewdefs[$module_name]['DetailView'] = array(
         'default' => array(
             array(
                 'name',
-                'assigned_user_name',
+                array(
+                    'name' => 'zalo_id',
+                    'label' => 'LBL_ZALO_ID',
+                    'customCode' => '{$CUSTOM_ZALO_ID}',
+                ),
             ),
+
+            array(
+                'alias',
+                array(
+                    'name' => 'status',
+                    'label' => 'LBL_STATUS',
+                    'customCode' => '{$CUSTOM_STATUS}',
+                ),
+            ),
+
+            array(
+                'contact_name',
+                array(
+                    'name' => 'is_follower',
+                    'label' => 'LBL_IS_FOLLOWER',
+                    'customCode' => '{$CUSTOM_FOLLOWER}',
+                ),
+            ),
+
+            array(
+                array(
+                    'name' => 'avatar',
+                    'label' => 'LBL_AVATAR',
+                    'customCode' => '{$CUSTOM_AVATAR}',
+                ),
+                array(
+                    'name' => 'address',
+                    'label' => 'LBL_ADDRESS',
+                    'customCode' => '{$CUSTOM_ADDRESS}',
+                ),
+            ),
+
+            array(
+                'last_interaction',
+                'birth_date',
+            ),
+
+            array(
+                array(
+                    'name' => 'description',
+                    'label' => 'LBL_DESCRIPTION',
+                ),
+                array(
+                    'name' => 'tags',
+                    'label' => 'LBL_TAGS',
+                    'customCode' => '{$CUSTOM_TAGS}',
+                ),
+            ),
+
             array(
                 array(
                     'name' => 'date_entered',
@@ -35,9 +88,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'label' => 'LBL_DATE_MODIFIED',
                 ),
             ),
-            array(
-                'description',
-            ),
-        )
+        ),
     )
 );

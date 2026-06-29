@@ -210,6 +210,7 @@ $viewdefs['Contacts'] = array(
 					),
 				),
 			),
+			
 			// 'LBL_PANEL_ADVANCED' => array(
 			// 	array(
 			// 		array(
