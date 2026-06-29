@@ -39,8 +39,8 @@ class EC_Zalo_Contacts_Helper {
         $last_interaction = self::format_datetime($user_data['user_last_interaction_date'] ?? '', "$dateFormat $timeFormat");
 
         // Phone
-        $phone = $zaloOA->get_phone_by_alias($user_alias);
-        if(empty($phone)) $phone = $zaloOA->unformat_zalo_phone($user_data['shared_info']['phone'] ?? '');
+        $phone = $zaloOA->unformat_zalo_phone($user_data['shared_info']['phone'] ?? '');
+        if(empty($phone)) $phone = $zaloOA->get_phone_by_alias($user_alias);
 
         // Contact
         $contact_id = '';
@@ -194,7 +194,8 @@ class EC_Zalo_Contacts_Helper {
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
         $userData = [];
 
-        $sql = "SELECT zc.id AS user_external_id
+        $sql = 
+        "SELECT zc.id AS user_external_id
             ,zc.contact_id
             ,c.phone_mobile AS phone_number
             ,zc.name AS display_name
@@ -223,10 +224,7 @@ class EC_Zalo_Contacts_Helper {
         $refresh_time = 86400*7; // 7 days
 
         // Receive data from database
-        if(is_array($dbInfo) && !empty($dbInfo) 
-            && 
-            ($only_db == true || time() - strtotime($dbInfo['date_modified']) < $refresh_time)
-        ) {
+        if(is_array($dbInfo) && !empty($dbInfo) && ($only_db == true || time() - strtotime($dbInfo['date_modified']) < $refresh_time)) {
             $zalo_display_name  = $dbInfo['display_name'] ?? '';
             $zalo_user_alias    = $dbInfo['user_alias'] ?? '';
             $zalo_avatar        = $dbInfo['avatar'] ?? '';

@@ -128,7 +128,6 @@ $mod_strings = array(
   'LBL_IS_TICKET_EXPORTED' => 'Đã xuất vé',
   'LBL_IS_REQUEST_TICKET' => 'Cần xuất vé',
   'LBL_SALUTATION' => 'Danh xưng',
-  'LBL_COUNTRY' => 'Nơi đặt vé',
   'LBL_EMAIL' => 'Email',
   'LBL_CITY' => 'Nơi đặt vé',
   'LBL_PHONE' => 'Điện thoại',

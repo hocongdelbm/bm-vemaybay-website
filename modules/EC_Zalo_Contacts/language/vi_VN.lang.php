@@ -46,8 +46,11 @@ $mod_strings = array (
   'LBL_BIRTH_DATE' => 'Ngày sinh',
   'LBL_LAST_INTERACTION' => 'Tương tác cuối',
   'LBL_IS_FOLLOWER' => 'Quan tâm',
+  'LBL_TAGS' => 'Thẻ',
+  'LBL_STATUS' => 'Trạng thái',
   'LBL_PROVINCE_CITY' => 'Tỉnh/Thành phố',
   'LBL_WARD_COMMUNE' => 'Phường/Xã',
   'LBL_ADDRESS' => 'Địa chỉ',
   'LBL_QUOTA_INFO' => 'Hạn ngạch gửi tin',
+  'LBL_PHONE_MOBILE_SEARCH' => 'Số điện thoại',
 );

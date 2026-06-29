@@ -1095,7 +1095,7 @@ class APIZaloOA {
         }
     }
 
-    public function get_phone_by_alias($alias) {
+    public function get_phone_by_alias(string $alias) {
         if(is_null($alias) || empty($alias)) return '';
         preg_match_all('!\d+!', $alias, $matches);
         if(isset($matches[0]) && !empty($matches[0])) {

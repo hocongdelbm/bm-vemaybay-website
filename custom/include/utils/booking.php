@@ -1030,7 +1030,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = [])
             , bk.is_ctv as is_ctv
             , bk.is_reference as is_reference
             , bk.phone as contact_mobile
-            , bk.country
+            , bk.city
         FROM ec_booking_details bkd 
         LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id AND bk.deleted=0 
         WHERE bk.booking_status IN ('3', '7', '8')
@@ -1072,7 +1072,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = [])
                 , 0 as is_ctv
                 , 0 as is_reference
                 , '' as contact_mobile
-                , '' AS country
+                , '' AS city
             FROM ec_receipt_voucher p
             LEFT JOIN ec_flight_bookings bk ON bk.id = p.booking_id AND bk.deleted = 0
             WHERE 
@@ -1109,7 +1109,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = [])
                 , 0 as is_ctv
                 , 0 as is_reference
                 , '' as contact_mobile
-                , '' AS country
+                , '' AS city
             FROM 
             (
                 -- hoan ve < 0

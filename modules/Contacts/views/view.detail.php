@@ -266,11 +266,12 @@ class ContactsViewDetail extends ViewDetail {
                 ,last_interaction
                 ,is_follower
                 ,tags
-                ,province_city
-                ,ward_commune
-                ,address
+                -- ,province_city
+                -- ,ward_commune
+                -- ,address
             FROM ec_zalo_contacts
-            WHERE contact_id = '{$this->bean->id}' AND status = '' AND deleted = 0";
+            WHERE contact_id = '{$this->bean->id}' AND deleted = 0";
+
         $res = $this->bean->db->query($sql);
         while($row = $this->bean->db->fetchByAssoc($res)) {
             $is_follower_html = $row['is_follower'] ? '<span class="text-primary">Đã quan tâm</span>' : '<span>Chưa quan tâm</span>';
@@ -280,10 +281,10 @@ class ContactsViewDetail extends ViewDetail {
             $is_send_consultation = EC_Zalo_Contacts_Helper::check_zalo_contact_action_by_data('send_consultation', $row['last_interaction'], $row['is_follower']);
 
             $action_html = '';
-            if($is_call) $action_html .= "<h6><span class='badge rounded-pill bg-primary'>Có thể gọi</span></h6>";
-            else $action_html .= "<h6><span class='badge rounded-pill bg-light text-dark fw-normal'><s>Có thể gọi</s></span></h6>";
-            if($is_send_consultation) $action_html .= "<h6><span class='badge rounded-pill bg-primary'>Có thể chat</span></h6>";
-            else $action_html .= "<h6><span class='badge rounded-pill bg-light text-dark fw-normal'><s>Có thể chat</s></span></h6>";
+            if($is_call) $action_html .= "<span class='badge rounded-pill bg-primary'>Có thể gọi</span>";
+            else $action_html .= "<span class='badge rounded-pill bg-light text-dark fw-normal'><s>Có thể gọi</s></span>";
+            if($is_send_consultation) $action_html .= "<span class='badge rounded-pill bg-primary ms-1'>Có thể chat</span>";
+            else $action_html .= "<span class='badge rounded-pill bg-light text-dark fw-normal ms-1'><s>Có thể chat</s></span>";
 
             $tbody .= "<tr>
                 <td>
@@ -296,7 +297,6 @@ class ContactsViewDetail extends ViewDetail {
                 </td>
                 <td>{$is_follower_html}</td>
                 <td>{$row['tags']}</td>
-                <td>{$row['address']} {$row['ward_commune']} {$row['province_city']}</td>
                 <td>{$action_html}</td>
                 <td>{$last_interaction}</td>
             </tr>";
@@ -309,7 +309,6 @@ class ContactsViewDetail extends ViewDetail {
                     <th width='30%'></th>
                     <th width='10%'>Trạng thái</th>
                     <th>Thẻ</th>
-                    <th width='30%'>Địa chỉ</th>
                     <th>Hành động</th>
                     <th width='12%'>Tương tác cuối</th>
                 </tr>
@@ -318,7 +317,7 @@ class ContactsViewDetail extends ViewDetail {
         </table>");
     }
 
-    public function isRefund($record_id) {
+    public function isRefund(string $record_id) {
         return $this->bean->db->getOne("SELECT COUNT(pl.id)
             FROM ec_contact_points_log pl
             WHERE pl.parent_id = '{$record_id}'

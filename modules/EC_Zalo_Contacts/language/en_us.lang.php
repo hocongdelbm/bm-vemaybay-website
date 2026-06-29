@@ -46,8 +46,11 @@ $mod_strings = array (
   'LBL_BIRTH_DATE' => 'Date of birth',
   'LBL_LAST_INTERACTION' => 'Last interaction',
   'LBL_IS_FOLLOWER' => 'Is follower',
+  'LBL_TAGS' => 'Tags',
+  'LBL_STATUS' => 'Status',
   'LBL_PROVINCE_CITY' => 'Province/City',
   'LBL_WARD_COMMUNE' => 'Ward/Commune',
   'LBL_ADDRESS' => 'Address',
   'LBL_QUOTA_INFO' => 'Quota',
+  'LBL_PHONE_MOBILE_SEARCH' => 'Phone number',
 );

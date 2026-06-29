@@ -5,6 +5,21 @@ require 'vendor/autoload.php';
 use WebSocket\Client;
 use custom\services\Notification\NotificationService;
 
+/**
+ * Trả về HTTP status code (+ body JSON nếu có) rồi kết thúc request.
+ */
+if (!function_exists('zaloWebhookRespond')) {
+    function zaloWebhookRespond($httpCode, $payload = null)
+    {
+        http_response_code($httpCode);
+        if ($payload !== null) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+        }
+        exit();
+    }
+}
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     global $sugar_config, $current_user;
     // Get format date and time configs
@@ -20,7 +35,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $timestamp  = $data['timestamp'];
     $app_id     = $data['app_id'] ?? $sugar_config['zalo_config']['app_id_default'] ?? '';
 
+    $zaloApp = null;
     if(!empty($app_id)) {
+        /** @var EC_Zalo_Apps **/
         $zaloApp = new EC_Zalo_Apps();
         $zaloApp->retrieve($app_id);
     }
@@ -151,8 +168,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     else $zalomes->save();
 
                     // Update quota, last interaction
+                    $quota_user = $quota_oa = [];
                     try {
-                        $quota_user = $quota_oa = [];
                         // Database format
                         $last_interaction = date($datetimeDbFormat, (int)($timestamp / 1000) - 7*3600);
 
@@ -253,8 +270,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     NotificationService::sendErrorMessage($m, "default", ['threadKey' => 'logs']);
                 }
                 finally {
-                    header("HTTP/1.1 200 OK");
-                    exit();
+                    zaloWebhookRespond(200, ["error" => 0, "message" => "OK"]);
                 }
             }
             else if($event == 'widget_interaction_accepted') {
@@ -308,8 +324,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     }
                 }
 
-                header("HTTP/1.1 200 OK");
-                exit();
+                zaloWebhookRespond(200, ["error" => 0, "message" => "OK"]);
             }
             else if(in_array($event, ['follow', 'unfollow'])) {
                 // Update quota
@@ -354,16 +369,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     }
 
-                    header("HTTP/1.1 200 OK");
-                    exit();
+                    zaloWebhookRespond(200, ["error" => 0, "message" => "OK"]);
                 }
                 catch (Throwable $th) {
-                    echo json_encode([
+                    zaloWebhookRespond(500, [
                         "error"     => 1,
                         "message"   => "Error: " . $th->getMessage(),
                         "data"      => $data
                     ]);
-                    exit();
                 }
             }
             else if($event == 'change_template_quality') {
@@ -382,32 +395,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $message .= "\nChất lượng: " . ($arr_map_quality[$quality] ?? '');
                 NotificationService::sendMessage($message, '', ['threadKey' => 'system']);
 
-                echo json_encode(["error" => 0, "message" => "Done"]);
-                exit();
+                zaloWebhookRespond(200, ["error" => 0, "message" => "Done"]);
             }
             else if($event == 'update_user_info') {
-                echo json_encode(["error" => 0, "message" => "Nothing"]);
-                exit();
+                zaloWebhookRespond(200, ["error" => 0, "message" => "Nothing"]);
             }
             else {
-                echo json_encode(["error" => 0, "message" => "Nothing"]);
-                exit();
+                zaloWebhookRespond(200, ["error" => 0, "message" => "Nothing"]);
             }
         }
         catch (Exception $e) {
-            echo json_encode([
+            zaloWebhookRespond(500, [
                 "error"     => 1,
                 "message"   => "Error: " . $e->getMessage(),
                 "data"      => $data
             ]);
-            exit();
         }
     }
 
-    echo json_encode(["error" => 1, "code" => 400, "message" => "Bad request"]);
-    exit();
+    // Sai chữ ký (X-Zevent-Signature không khớp) -> không xác thực được nguồn gửi
+    zaloWebhookRespond(401, ["error" => 1, "code" => 401, "message" => "Unauthorized"]);
 }
 
-echo json_encode(["error" => 1, "code" => 404, "message" => "Not found"]);
-exit();
+// Không phải POST
+header('Allow: POST');
+zaloWebhookRespond(405, ["error" => 1, "code" => 405, "message" => "Method Not Allowed"]);
 ?>
