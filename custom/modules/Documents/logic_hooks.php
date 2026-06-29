@@ -14,6 +14,14 @@ $hook_array['before_save'][] = array(
     'assign'
 );
 
+$hook_array['before_save'][] = array(
+    2,
+    'Auto generate document name',
+    'custom/modules/Documents/DocumentNameLogicHook.php',
+    'DocumentNameLogicHook',
+    'handleDocumentName'
+);
+
 $hook_array['after_save'] = array();
 $hook_array['after_save'][] = array(
     1,
