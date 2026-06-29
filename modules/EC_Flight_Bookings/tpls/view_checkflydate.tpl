@@ -224,7 +224,7 @@
             <ul class="pagination">
                 {if $CURRENT_PAGE > 1}
                     <li><a href="#" class="pagination-link" data-page="1" title="Trang đầu">«</a></li>
-                    <li><a href="#" class="pagination-link" data-page="{$CURRENT_PAGE - 1}" title="Trang trước">‹</a></li>
+                    <li><a href="#" class="pagination-link" data-page="{$PREV_PAGE}" title="Trang trước">‹</a></li>
                 {else}
                     <li><a href="#" class="pagination-link disabled" title="Trang đầu">«</a></li>
                     <li><a href="#" class="pagination-link disabled" title="Trang trước">‹</a></li>
@@ -244,7 +244,7 @@
                 {/section}
 
                 {if $CURRENT_PAGE < $TOTAL_PAGES}
-                    <li><a href="#" class="pagination-link" data-page="{$CURRENT_PAGE + 1}" title="Trang tiếp">›</a></li>
+                    <li><a href="#" class="pagination-link" data-page="{$NEXT_PAGE}" title="Trang tiếp">›</a></li>
                     <li><a href="#" class="pagination-link" data-page="{$TOTAL_PAGES}" title="Trang cuối">»</a></li>
                 {else}
                     <li><a href="#" class="pagination-link disabled" title="Trang cuối">›</a></li>
