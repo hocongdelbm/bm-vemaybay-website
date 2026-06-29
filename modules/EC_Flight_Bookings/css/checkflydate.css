@@ -1,0 +1,254 @@
+.checkfly-filters {
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.checkfly-filters form {
+  width: 100%;
+}
+
+/* Grid layout: auto-fit columns flow & wrap evenly */
+.checkfly-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  align-items: end;
+  width: 100%;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.filter-group label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.filter-group input::placeholder {
+  color: #b4bcc8;
+  font-size: 12px;
+}
+
+/* Normalize control heights so everything lines up */
+.checkfly-filters .box-input,
+.checkfly-filters .box-select,
+.checkfly-filters .date_input {
+  height: 35px;
+  box-sizing: border-box;
+}
+
+.checkfly-filters .dateTime {
+  width: 100%;
+}
+
+.checkfly-filters .dateTime .date_input {
+  flex: 1;
+  width: 100%;
+}
+
+/* Select2 single control height match */
+.checkfly-filters .select2-container--default .select2-selection--single {
+  height: 35px;
+}
+
+/* Action Buttons */
+.filter-actions {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.filter-actions .btn {
+  height: 35px;
+  flex: 1;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .checkfly-filters {
+    padding: 14px;
+  }
+
+  .checkfly-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .hide-mobile {
+    display: none !important;
+  }
+
+  /* ---- Table -> Card layout ---- */
+  .box-section {
+    overflow-x: visible;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .table-details__booking,
+  .table-details__booking tbody,
+  .table-details__booking tr,
+  .table-details__booking td {
+    display: block;
+    width: 100%;
+  }
+
+  .table-details__booking thead {
+    display: none;
+  }
+
+  .table-details__booking tr {
+    margin-bottom: 12px;
+    padding: 4px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  .table-details__booking tr.remind {
+    background: #eaf6ff;
+    border-color: #b7defc;
+  }
+
+  .table-details__booking td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: right !important;
+    padding: 9px 0;
+    border: none;
+    border-bottom: 1px solid #f1f5f9;
+    min-height: 0;
+  }
+
+  .table-details__booking td:last-child {
+    border-bottom: none;
+  }
+
+  /* Label from data-label */
+  .table-details__booking td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-align: left;
+  }
+
+  /* Booking = card header (no label, full-width, prominent) */
+  .table-details__booking td.cell-booking {
+    display: block;
+    text-align: center !important;
+    padding: 10px 0;
+    margin-bottom: 2px;
+    border-bottom: 2px solid #edf1f5;
+  }
+
+  .table-details__booking td.cell-booking::before {
+    display: none;
+  }
+
+  .table-details__booking td.cell-booking a {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  /* Checkin = stacked (status + note below) */
+  .table-details__booking td.cell-checkin {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left !important;
+  }
+
+  .table-details__booking td.cell-checkin::before {
+    margin-bottom: 4px;
+  }
+
+  .table-details__booking td.cell-checkin .checkin-cell {
+    justify-content: flex-start;
+  }
+
+  .table-details__booking td .note-display {
+    min-width: 0 !important;
+    width: 100%;
+    margin-top: 4px;
+    padding: 6px 8px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border-left: 3px solid #4299e1;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkfly-filters {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .checkfly-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .filter-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Checkin cell layout */
+.checkin-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.note-display {
+  text-align: left;
+  line-height: 1.3;
+  margin-top: 3px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-display.note-empty {
+  display: none;
+}
+
+/* Notes Feature */
+.btn-notes {
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  color: #4299e1;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 4px;
+  transition: color 0.2s ease;
+}
+
+.btn-notes:hover {
+  color: #3182ce;
+}
