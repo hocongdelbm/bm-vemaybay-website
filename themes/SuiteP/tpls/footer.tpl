@@ -57,9 +57,9 @@
      <script>
          window.ECChatbotWidgetConfig = {
              role: 'admin',
-             wsUrl: '{$sugar_config.chat_widget.wsUrl|escape:'javascript'}',
-             restUrl: '{$sugar_config.chat_widget.restUrl|escape:'javascript'}',
-             restKey: '{$sugar_config.chat_widget.restKey|escape:'javascript'}',
+             wsUrl: '{$APP_CONFIG.chat_widget.wsUrl|escape:'javascript'}',
+             restUrl: '{$APP_CONFIG.chat_widget.restUrl|escape:'javascript'}',
+             restKey: '{$APP_CONFIG.chat_widget.restKey|escape:'javascript'}',
              adminId: '{$CURRENT_USER_ID|escape:'javascript'}',
              adminName: '{$CURRENT_USER|escape:'javascript'}',
              autoConnect: true,
