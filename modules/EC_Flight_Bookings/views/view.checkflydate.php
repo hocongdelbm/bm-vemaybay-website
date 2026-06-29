@@ -3,7 +3,7 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class Viewcheckflydate extends SugarView
 {
-    private const ASSET_VERSION = '1.3.1';
+    private const ASSET_VERSION = '1.3.2';
 
     private const RECORDS_PER_PAGE = 20;
 
