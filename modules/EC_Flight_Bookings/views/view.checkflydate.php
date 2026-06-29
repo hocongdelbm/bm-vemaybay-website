@@ -3,74 +3,145 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class Viewcheckflydate extends SugarView
 {
-    function display()
+    private const ASSET_VERSION = '1.3.0';
+
+    private const MAX_RANGE_DAYS = 30;
+
+    private const AIRLINE_GROUPS = [
+        'VJ'  => ['VJ', 'VJA'],
+        'VJA' => ['VJ', 'VJA'],
+        'VN'  => ['VN', 'VNA'],
+        'VNA' => ['VN', 'VNA'],
+    ];
+
+    private const AIRLINE_ICON_MAP = [
+        'VNA' => 'VN',
+        'VN'  => 'VNA',
+        'VJA' => 'VJ',
+        'JET' => 'BL',
+        'BBA' => 'QH',
+        'VNP' => 'VNP',
+        'VTA' => 'VTA',
+    ];
+
+    public function display()
     {
-        if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) {
-            $smartyCont = new Sugar_Smarty();
-            $this->populateContent($smartyCont);
-            $smartyCont->display('modules/EC_Flight_Bookings/tpls/view_checkflydate.tpl');
-        } else {
-            header("Location: index.php?module=EC_Flight_Bookings&action=Error&error_string=" . urlencode("Bạn không được quyền truy cập vào mục này"));
+        if (!ACLController::checkAccess($this->bean->object_name, 'list', true)) {
+            header('Location: index.php?module=' . $this->bean->object_name . '&action=Error&error_string='
+                . urlencode('Bạn không được quyền truy cập vào mục này'));
             exit();
         }
+
+        $smarty = new Sugar_Smarty();
+        $this->populateContent($smarty);
+        $smarty->display('modules/' . $this->bean->object_name . '/tpls/view_checkflydate.tpl');
     }
 
-    function populateContent($smartyobj)
+    public function populateContent($smarty)
     {
-        global $db, $app_list_strings;
-        $sql_search = "";
+        global $app_list_strings;
 
-        $post_tungay  = !empty($_POST['tungay'])  ? $_POST['tungay']  : date('d-m-Y');
-        $post_denngay = !empty($_POST['denngay']) ? $_POST['denngay'] : date('d-m-Y');
+        $tungay  = !empty($_POST['tungay'])  ? $_POST['tungay']  : date('d-m-Y');
+        $denngay = !empty($_POST['denngay']) ? $_POST['denngay'] : date('d-m-Y');
+        $this->validateDateRange($tungay, $denngay);
 
-        $tungay_db  = date('Y-m-d', strtotime($post_tungay));
-        $denngay_db = date('Y-m-d', strtotime($post_denngay));
+        $filters = ['phone' => '', 'passenger' => '', 'user_id' => ''];
+        $searchClause = $this->buildSearchClause($tungay, $denngay, $filters);
 
-        $khoangcach = (strtotime($post_denngay) - strtotime($post_tungay)) / 86400;
-        if ($khoangcach < 0) {
+        $airlineXml = $this->getAirlineData();
+        $iconMap    = $this->buildAirlineIconMap($airlineXml);
+
+        $smarty->assign('DATA', $this->renderRows($searchClause, $iconMap));
+        $smarty->assign('VERSION', self::ASSET_VERSION);
+        $smarty->assign('POST_TUNGAY', $tungay);
+        $smarty->assign('POST_DENNGAY', $denngay);
+        $smarty->assign('SEARCH_PHONE', $filters['phone']);
+        $smarty->assign('SEARCH_PASSENGER', $filters['passenger']);
+        $smarty->assign('USER_LIST', myGetSelectOptionsWithDb(
+            'Users',
+            $filters['user_id'],
+            'id',
+            " AND title IN ('Booker','KeToan','Leader') AND status='Active' ORDER BY first_name ASC "
+        ));
+        $smarty->assign('AIRLINES', get_select_options_with_id(
+            ($app_list_strings['aircode_list'] + $airlineXml),
+            $_POST['airlines'] ?? ''
+        ));
+
+        $this->assignDatePresets($smarty);
+    }
+
+    private function validateDateRange($tungay, $denngay)
+    {
+        $days = (strtotime($denngay) - strtotime($tungay)) / 86400;
+
+        if ($days < 0) {
             echo '<p class="error">Đến ngày phải lớn hơn hoặc bằng Từ ngày</p>';
             exit;
         }
-        if ($khoangcach > 30) {
-            echo '<p class="error">Khoảng thời gian tối đa được phép xem là 30 ngày</p>';
+        if ($days > self::MAX_RANGE_DAYS) {
+            echo '<p class="error">Khoảng thời gian tối đa được phép xem là ' . self::MAX_RANGE_DAYS . ' ngày</p>';
             exit;
         }
+    }
 
-        // Dùng range thay vì DATE() để tận dụng index trên departure_date
-        $sql_search .= " AND i.departure_date >= '{$tungay_db} 00:00:00' AND i.departure_date <= '{$denngay_db} 23:59:59'";
+    /**
+     * Builds the dynamic WHERE fragment from the POSTed filters and writes the
+     * sanitized values back into $filters for redisplay.
+     */
+    private function buildSearchClause($tungay, $denngay, array &$filters)
+    {
+        global $db;
+
+        $from = date('Y-m-d', strtotime($tungay));
+        $to   = date('Y-m-d', strtotime($denngay));
+        $clause = " AND i.departure_date >= '{$from} 00:00:00' AND i.departure_date <= '{$to} 23:59:59'";
 
         if (!empty($_POST['airlines'])) {
             $airline = $_POST['airlines'];
-            if ($airline === 'VJ' || $airline === 'VJA') {
-                $sql_search .= " AND i.airline_code IN ('VJ', 'VJA')";
-            } elseif ($airline === 'VN' || $airline === 'VNA') {
-                $sql_search .= " AND i.airline_code IN ('VN', 'VNA')";
+            if (isset(self::AIRLINE_GROUPS[$airline])) {
+                $quoted = [];
+                foreach (self::AIRLINE_GROUPS[$airline] as $code) {
+                    $quoted[] = "'" . $db->quote($code) . "'";
+                }
+                $clause .= " AND i.airline_code IN (" . implode(',', $quoted) . ")";
             } else {
-                $sql_search .= " AND i.airline_code='" . $db->quote($airline) . "'";
+                $clause .= " AND i.airline_code='" . $db->quote($airline) . "'";
             }
         }
 
-        $user_id = '';
+        // Assigned user.
         if (!empty($_POST['user_id'])) {
-            $user_id = preg_replace('/[^0-9a-zA-Z\-]/', '', $_POST['user_id']);
-            $sql_search .= " AND b.assigned_user_id='{$user_id}'";
+            $filters['user_id'] = preg_replace('/[^0-9a-zA-Z\-]/', '', $_POST['user_id']);
+            $clause .= " AND b.assigned_user_id='" . $db->quote($filters['user_id']) . "'";
         }
 
-        $aircode_inter_arr  = [];
-        $aircode_inter_arr2 = [];
-        $aircode_inter_xml  = simplexml_load_file('custom/airlines.xml');
-        foreach (json_decode(json_encode($aircode_inter_xml), true)['RECORD'] as $item) {
-            $aircode_inter_arr[$item['code']]  = $item['name'] . ' (' . $item['code'] . ')';
-            $aircode_inter_arr2[$item['code']] = $item['code'];
+        // Booking phone.
+        if (!empty($_POST['search_phone'])) {
+            $phone = preg_replace('/[^0-9\+\-\(\)\s]/', '', trim($_POST['search_phone']));
+            $filters['phone'] = $phone;
+            if ($phone !== '') {
+                $clause .= " AND b.phone LIKE '" . $db->quote('%' . $phone . '%') . "'";
+            }
         }
 
-        $aircode = array_merge(
-            ['VNA' => 'VN', 'VN' => 'VNA', 'VJA' => 'VJ', 'JET' => 'BL', 'BBA' => 'QH', 'VNP' => 'VNP', 'VTA' => 'VTA'],
-            $aircode_inter_arr2
-        );
+        // Passenger name.
+        if (!empty($_POST['search_passenger'])) {
+            $passenger = trim($_POST['search_passenger']);
+            $filters['passenger'] = $passenger;
+            if ($passenger !== '') {
+                $clause .= " AND i.booking_id IN (SELECT DISTINCT booking_id FROM ec_booking_passengers"
+                    . " WHERE deleted = 0 AND name LIKE '" . $db->quote('%' . $passenger . '%') . "')";
+            }
+        }
 
-        // LEFT JOIN thay correlated EXISTS để tránh subquery lặp lại mỗi row
-        $sql = "SELECT b.id AS booking_id,
+        return $clause;
+    }
+
+    private function buildSql($searchClause)
+    {
+        return "SELECT i.id AS itinerary_id,
+                    b.id AS booking_id,
                     b.name AS booking,
                     b.contact_name,
                     b.phone,
@@ -85,17 +156,9 @@ class Viewcheckflydate extends SugarView
                     b.date_ticket_issue,
                     i.checkin_status,
                     i.is_remind,
-                    (
-                        SELECT SUM(IFNULL(d.quantity, 0))
-                        FROM ec_booking_details d
-                        WHERE d.booking_id = i.booking_id AND d.direction = i.direction AND d.deleted = 0
-                    ) AS total_qty,
-                    (
-                        SELECT DATE_ADD(p.date_entered, INTERVAL 7 HOUR)
-                        FROM ec_working_process p
-                        WHERE p.parent_id = b.id AND p.completed = 1 AND p.deleted = 0
-                        LIMIT 1
-                    ) AS complete_time
+                    i.description AS notes,
+                    COALESCE(d_sum.total_qty, 0) AS total_qty,
+                    p_max.complete_time
                 FROM ec_booking_itineraries i
                 LEFT JOIN ec_flight_bookings b ON i.booking_id = b.id AND b.deleted = 0
                 LEFT JOIN (
@@ -103,85 +166,135 @@ class Viewcheckflydate extends SugarView
                     FROM ec_booking_itineraries
                     WHERE add_type = 3 AND deleted = 0
                 ) i_chg ON i_chg.booking_id = i.booking_id
-                WHERE b.booking_status IN ('7','8')" . $sql_search . "
+                LEFT JOIN (
+                    SELECT booking_id, direction, SUM(IFNULL(quantity, 0)) AS total_qty
+                    FROM ec_booking_details
+                    WHERE deleted = 0
+                    GROUP BY booking_id, direction
+                ) d_sum ON d_sum.booking_id = i.booking_id AND d_sum.direction = i.direction
+                LEFT JOIN (
+                    SELECT parent_id, MAX(DATE_ADD(date_entered, INTERVAL 7 HOUR)) AS complete_time
+                    FROM ec_working_process
+                    WHERE completed = 1 AND deleted = 0
+                    GROUP BY parent_id
+                ) p_max ON p_max.parent_id = b.id
+                WHERE b.booking_status IN ('7','8')" . $searchClause . "
                     AND i.deleted = 0
                     AND (i.add_type != 0 OR i_chg.booking_id IS NULL)
-                GROUP BY i.booking_id
-                ORDER BY b.date_ticket_issue, complete_time";
+                GROUP BY i.id, i.booking_id, b.id, b.name, b.contact_name, b.phone, i.departure, i.arrival,
+                         i.departure_date, i.arrival_date, i.airline_code, i.flight_number, i.base_price,
+                         i.ticket_class, b.date_ticket_issue, i.checkin_status, i.is_remind, i.description, d_sum.total_qty, p_max.complete_time
+                ORDER BY b.date_ticket_issue, p_max.complete_time";
+    }
 
-        $res  = $db->query($sql);
-        $i    = 0;
+    private function renderRows($searchClause, array $iconMap)
+    {
+        global $db, $app_list_strings;
+
+        $res  = $db->query($this->buildSql($searchClause));
         $html = '';
+        $stt  = 0;
 
         while ($row = $db->fetchByAssoc($res)) {
-            $complete_time = empty($row['complete_time']) ? '' : date('d/m/Y H:i:s', strtotime($row['complete_time']));
+            $html .= $this->renderRow($row, ++$stt, $iconMap, $app_list_strings);
+        }
 
-            if ($row['is_remind'] == 1) {
-                $row_style = 'background: #cfeafe';
-                $row_class = 'remind';
-            } else {
-                $row_style = '';
-                $row_class = '';
-            }
+        return $html;
+    }
 
-            $checkin_class = '';
-            if ($row['checkin_status'] == 1) {
-                $checkin_class = 'text-danger';
-            } elseif ($row['checkin_status'] == 2) {
-                $checkin_class = 'text-success';
-            }
+    private function renderRow(array $row, $stt, array $iconMap, array $app_list_strings)
+    {
+        $complete_time = empty($row['complete_time']) ? '' : date('d/m/Y H:i:s', strtotime($row['complete_time']));
 
-            $ticket_class = strpos($row['ticket_class'], '-') !== false
-                ? substr($row['ticket_class'], strpos($row['ticket_class'], '-') + 1)
-                : $row['ticket_class'];
+        $row_style = '';
+        $row_class = '';
+        if ($row['is_remind'] == 1) {
+            $row_style = 'background: #cfeafe';
+            $row_class = 'remind';
+        }
 
-            $airline_icon = $aircode[$row['airline_code']] ?? $row['airline_code'];
+        $checkin_class = '';
+        if ($row['checkin_status'] == 1) {
+            $checkin_class = 'text-danger';
+        } elseif ($row['checkin_status'] == 2) {
+            $checkin_class = 'text-success';
+        }
 
-            $html .= '<tr class="' . $row_class . '" style="' . $row_style . '">
-                        <td class="fw-semibold hide-mobile" align="center">' . ($i + 1) . '</td>
-                        <td class="fw-semibold" align="center"><a target="_blank" href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '">' . $row['booking'] . '</a></td>
-                        <td align="left">' . $row['contact_name'] . '</td>
-                        <td align="center" class="fw-semibold ' . $checkin_class . '">' . $app_list_strings['booking_checkin_status_list'][$row['checkin_status']] . '</td>
-                        <td align="center">' . $row['phone'] . '</td>
+        $ticket_class = strpos($row['ticket_class'], '-') !== false
+            ? substr($row['ticket_class'], strpos($row['ticket_class'], '-') + 1)
+            : $row['ticket_class'];
+
+        $airline_icon = $iconMap[$row['airline_code']] ?? $row['airline_code'];
+
+        $note_html = !empty($row['notes'])
+            ? '<div class="note-display min-w-150 text-justify" data-itinerary-id="' . $row['itinerary_id'] . '">' . htmlspecialchars($row['notes']) . '</div>'
+            : '<div class="note-display note-empty" data-itinerary-id="' . $row['itinerary_id'] . '"></div>';
+
+        return '<tr class="' . $row_class . '" style="' . $row_style . '" data-itinerary-id="' . $row['itinerary_id'] . '" data-notes="' . htmlspecialchars($row['notes']) . '">
+                        <td class="fw-semibold hide-mobile" align="center">' . $stt . '</td>
+                        <td class="fw-semibold cell-booking" data-label="Booking" align="center"><a target="_blank" href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '">' . $row['booking'] . '</a></td>
+                        <td data-label="Liên hệ" align="left">' . $row['contact_name'] . '</td>
+                        <td class="cell-checkin" data-label="Checkin" align="left">
+                            <div class="checkin-cell">
+                                <span class="fw-semibold ' . $checkin_class . '">' . $app_list_strings['booking_checkin_status_list'][$row['checkin_status']] . '</span>
+                                <button type="button" class="btn-notes" data-itinerary-id="' . $row['itinerary_id'] . '" title="Thêm/sửa ghi chú"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/></svg></button>
+                            </div>
+                            ' . $note_html . '
+                        </td>
+                        <td data-label="Điện thoại" align="center">' . $row['phone'] . '</td>
                         <td align="center" class="hide-mobile">
                             <img style="width:40px;" src="custom/themes/default/images/airline-icon-100x100/' . $airline_icon . '.png" border="0" />
                         </td>
                         <td align="center" class="hide-mobile">' . $row['flight_number'] . '</td>
                         <td align="center" class="hide-mobile">' . $row['departure'] . '-' . $row['arrival'] . '</td>
-                        <td align="center">' . date('d/m/Y', strtotime($row['departure_date'])) . '<br>' . date('H:i', strtotime($row['departure_date'])) . ' - ' . date('H:i', strtotime($row['arrival_date'])) . '</td>
+                        <td data-label="Ngày giờ bay" align="center">' . date('d/m/Y', strtotime($row['departure_date'])) . '<br>' . date('H:i', strtotime($row['departure_date'])) . ' - ' . date('H:i', strtotime($row['arrival_date'])) . '</td>
                         <td align="center" class="hide-mobile">' . $ticket_class . '</td>
                         <td align="right" class="hide-mobile">' . format_number($row['base_price']) . '</td>
                         <td align="center" class="hide-mobile">' . format_number($row['total_qty']) . '</td>
                         <td align="center" class="hide-mobile">' . date('d/m/Y', strtotime($row['date_ticket_issue'])) . '</td>
                         <td align="center" class="hide-mobile">' . $complete_time . '</td>
                     </tr>';
-            $i++;
-        }
-
-        $smartyobj->assign('DATA', $html);
-        $smartyobj->assign('POST_TUNGAY', $post_tungay);
-        $smartyobj->assign('POST_DENNGAY', $post_denngay);
-        $smartyobj->assign('USER_LIST', myGetSelectOptionsWithDb('Users', $user_id, 'id', " AND title IN ('Booker','KeToan','Leader') AND status='Active' ORDER BY first_name ASC "));
-        $smartyobj->assign('AIRLINES', get_select_options_with_id(($app_list_strings['aircode_list'] + $aircode_inter_arr), $_POST['airlines'] ?? ''));
     }
 
-    function getHourList($val)
+    private function assignDatePresets($smarty)
     {
-        $html = '';
-        for ($i = 0; $i < 24; $i++) {
-            $pad = str_pad($i, 2, '0', STR_PAD_LEFT);
-            $html .= '<option ' . ($i == $val ? 'selected' : '') . ' value="' . $pad . '">' . $pad . '</option>';
-        }
-        return $html;
+        $smarty->assign('TODAY', date('d-m-Y'));
+        $smarty->assign('YESTERDAY', date('d-m-Y', strtotime('-1 day')));
+        $smarty->assign('THISWEEK_FROMDATE', date('d-m-Y', strtotime('monday this week')));
+        $smarty->assign('THISWEEK_TODATE', date('d-m-Y', strtotime('sunday this week')));
+        $smarty->assign('LAST7_FROMDATE', date('d-m-Y', strtotime('-7 days')));
+        $smarty->assign('LAST7_TODATE', date('d-m-Y'));
+        $smarty->assign('THISMONTH_FROMDATE', date('d-m-Y', strtotime('first day of this month')));
+        $smarty->assign('THISMONTH_TODATE', date('d-m-Y', strtotime('last day of this month')));
+        $smarty->assign('PREVMONTH_FROMDATE', date('d-m-Y', strtotime('first day of last month')));
+        $smarty->assign('PREVMONTH_TODATE', date('d-m-Y', strtotime('last day of last month')));
     }
 
-    function getMinuteList($val)
+    private function buildAirlineIconMap(array $airlineXml)
     {
-        $html = '';
-        for ($i = 0; $i < 60; $i++) {
-            $pad = str_pad($i, 2, '0', STR_PAD_LEFT);
-            $html .= '<option ' . ($i == $val ? 'selected' : '') . ' value="' . $pad . '">' . $pad . '</option>';
+        $xmlCodes = [];
+        foreach ($airlineXml as $code => $_) {
+            $xmlCodes[$code] = $code;
         }
-        return $html;
+
+        return array_merge(self::AIRLINE_ICON_MAP, $xmlCodes);
+    }
+
+    private function getAirlineData()
+    {
+        static $aircode_cache = null;
+
+        if ($aircode_cache === null) {
+            $aircode_cache = [];
+            if (file_exists('custom/airlines.xml')) {
+                $aircode_inter_xml = simplexml_load_file('custom/airlines.xml');
+                $records = json_decode(json_encode($aircode_inter_xml), true)['RECORD'] ?? [];
+                foreach ($records as $item) {
+                    $aircode_cache[$item['code']] = $item['name'] . ' (' . $item['code'] . ')';
+                }
+            }
+        }
+
+        return $aircode_cache;
     }
 }
