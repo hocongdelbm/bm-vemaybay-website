@@ -1,3 +1,4 @@
+
 <!-- END of container-fluid, pageContainer divs -->
 </div>
 </div>
@@ -52,5 +53,20 @@
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div>
+    {if $AUTHENTICATED}
+     <script>
+         window.ECChatbotWidgetConfig = {
+             role: 'admin',
+             wsUrl: '{$sugar_config.chat_widget.wsUrl|escape:'javascript'}',
+             restUrl: '{$sugar_config.chat_widget.restUrl|escape:'javascript'}',
+             restKey: '{$sugar_config.chat_widget.restKey|escape:'javascript'}',
+             adminId: '{$CURRENT_USER_ID|escape:'javascript'}',
+             adminName: '{$CURRENT_USER|escape:'javascript'}',
+             autoConnect: true,
+             debug: true
+         };
+     </script>
+     <script src="custom/include/javascript/chatbot/admin_widget.js?v=2"></script>
+{/if}
 </body>
 </html>
