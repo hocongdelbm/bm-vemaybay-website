@@ -3,9 +3,9 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class Viewcheckflydate extends SugarView
 {
-    private const ASSET_VERSION = '1.3.0';
+    private const ASSET_VERSION = '1.3.1';
 
-    private const MAX_RANGE_DAYS = 30;
+    private const RECORDS_PER_PAGE = 20;
 
     private const AIRLINE_GROUPS = [
         'VJ'  => ['VJ', 'VJA'],
@@ -45,18 +45,27 @@ class Viewcheckflydate extends SugarView
         $denngay = !empty($_POST['denngay']) ? $_POST['denngay'] : date('d-m-Y');
         $this->validateDateRange($tungay, $denngay);
 
-        $filters = ['phone' => '', 'passenger' => '', 'user_id' => ''];
+        $page = !empty($_POST['page']) ? max(1, (int)$_POST['page']) : 1;
+        $offset = ($page - 1) * self::RECORDS_PER_PAGE;
+
+        $filters = ['phone' => '', 'passenger' => '', 'user_id' => '', 'email' => ''];
         $searchClause = $this->buildSearchClause($tungay, $denngay, $filters);
 
         $airlineXml = $this->getAirlineData();
         $iconMap    = $this->buildAirlineIconMap($airlineXml);
 
-        $smarty->assign('DATA', $this->renderRows($searchClause, $iconMap));
+        [$html, $totalRecords] = $this->renderRows($searchClause, $iconMap, $offset);
+        $totalPages = ceil($totalRecords / self::RECORDS_PER_PAGE);
+        $startRecord = ($page - 1) * self::RECORDS_PER_PAGE + 1;
+        $endRecord = min($page * self::RECORDS_PER_PAGE, $totalRecords);
+
+        $smarty->assign('DATA', $html);
         $smarty->assign('VERSION', self::ASSET_VERSION);
         $smarty->assign('POST_TUNGAY', $tungay);
         $smarty->assign('POST_DENNGAY', $denngay);
         $smarty->assign('SEARCH_PHONE', $filters['phone']);
         $smarty->assign('SEARCH_PASSENGER', $filters['passenger']);
+        $smarty->assign('SEARCH_EMAIL', $filters['email']);
         $smarty->assign('USER_LIST', myGetSelectOptionsWithDb(
             'Users',
             $filters['user_id'],
@@ -67,6 +76,12 @@ class Viewcheckflydate extends SugarView
             ($app_list_strings['aircode_list'] + $airlineXml),
             $_POST['airlines'] ?? ''
         ));
+        $smarty->assign('CURRENT_PAGE', $page);
+        $smarty->assign('TOTAL_PAGES', $totalPages);
+        $smarty->assign('TOTAL_RECORDS', $totalRecords);
+        $smarty->assign('START_RECORD', $startRecord);
+        $smarty->assign('END_RECORD', $endRecord);
+        $smarty->assign('RECORDS_PER_PAGE', self::RECORDS_PER_PAGE);
 
         $this->assignDatePresets($smarty);
     }
@@ -77,10 +92,6 @@ class Viewcheckflydate extends SugarView
 
         if ($days < 0) {
             echo '<p class="error">Đến ngày phải lớn hơn hoặc bằng Từ ngày</p>';
-            exit;
-        }
-        if ($days > self::MAX_RANGE_DAYS) {
-            echo '<p class="error">Khoảng thời gian tối đa được phép xem là ' . self::MAX_RANGE_DAYS . ' ngày</p>';
             exit;
         }
     }
@@ -135,16 +146,26 @@ class Viewcheckflydate extends SugarView
             }
         }
 
+        // Email.
+        if (!empty($_POST['search_email'])) {
+            $email = trim($_POST['search_email']);
+            $filters['email'] = $email;
+            if ($email !== '') {
+                $clause .= " AND b.email LIKE '" . $db->quote('%' . $email . '%') . "'";
+            }
+        }
+
         return $clause;
     }
 
-    private function buildSql($searchClause)
+    private function buildSql($searchClause, $offset = 0)
     {
         return "SELECT i.id AS itinerary_id,
                     b.id AS booking_id,
                     b.name AS booking,
                     b.contact_name,
                     b.phone,
+                    b.email,
                     i.departure,
                     i.arrival,
                     i.departure_date,
@@ -181,25 +202,52 @@ class Viewcheckflydate extends SugarView
                 WHERE b.booking_status IN ('7','8')" . $searchClause . "
                     AND i.deleted = 0
                     AND (i.add_type != 0 OR i_chg.booking_id IS NULL)
-                GROUP BY i.id, i.booking_id, b.id, b.name, b.contact_name, b.phone, i.departure, i.arrival,
+                GROUP BY i.id, i.booking_id, b.id, b.name, b.contact_name, b.phone, b.email, i.departure, i.arrival,
                          i.departure_date, i.arrival_date, i.airline_code, i.flight_number, i.base_price,
                          i.ticket_class, b.date_ticket_issue, i.checkin_status, i.is_remind, i.description, d_sum.total_qty, p_max.complete_time
-                ORDER BY b.date_ticket_issue, p_max.complete_time";
+                ORDER BY b.date_ticket_issue, p_max.complete_time
+                LIMIT " . self::RECORDS_PER_PAGE . " OFFSET " . (int)$offset;
     }
 
-    private function renderRows($searchClause, array $iconMap)
+    private function renderRows($searchClause, array $iconMap, $offset = 0)
     {
         global $db, $app_list_strings;
 
-        $res  = $db->query($this->buildSql($searchClause));
+        $totalRecords = $this->getTotalRecords($searchClause);
+        $res  = $db->query($this->buildSql($searchClause, $offset));
         $html = '';
-        $stt  = 0;
+        $stt  = $offset + 1;
 
-        while ($row = $db->fetchByAssoc($res)) {
-            $html .= $this->renderRow($row, ++$stt, $iconMap, $app_list_strings);
+        if ($res) {
+            while ($row = $db->fetchByAssoc($res)) {
+                $html .= $this->renderRow($row, $stt++, $iconMap, $app_list_strings);
+            }
         }
 
-        return $html;
+        return [$html, $totalRecords];
+    }
+
+    private function getTotalRecords($searchClause)
+    {
+        global $db;
+
+        $sql = "SELECT COUNT(DISTINCT i.id) as total FROM ec_booking_itineraries i
+                LEFT JOIN ec_flight_bookings b ON i.booking_id = b.id AND b.deleted = 0
+                LEFT JOIN (
+                    SELECT DISTINCT booking_id
+                    FROM ec_booking_itineraries
+                    WHERE add_type = 3 AND deleted = 0
+                ) i_chg ON i_chg.booking_id = i.booking_id
+                WHERE b.booking_status IN ('7','8')" . $searchClause . "
+                    AND i.deleted = 0
+                    AND (i.add_type != 0 OR i_chg.booking_id IS NULL)";
+
+        $res = $db->query($sql);
+        if (!$res) {
+            return 0;
+        }
+        $row = $db->fetchByAssoc($res);
+        return $row ? (int)$row['total'] : 0;
     }
 
     private function renderRow(array $row, $stt, array $iconMap, array $app_list_strings)
@@ -241,7 +289,12 @@ class Viewcheckflydate extends SugarView
                             </div>
                             ' . $note_html . '
                         </td>
-                        <td data-label="Điện thoại" align="center">' . $row['phone'] . '</td>
+                        <td data-label="Điện thoại">
+                            <div class="lh-lg">
+                                <div class="fw-semibold">' . $row['phone'] . '</div>
+                                <div class="small text-dark text-break">' . (!empty($row['email']) ? $row['email'] : '') . '</div>
+                            </div>
+                        </td>
                         <td align="center" class="hide-mobile">
                             <img style="width:40px;" src="custom/themes/default/images/airline-icon-100x100/' . $airline_icon . '.png" border="0" />
                         </td>

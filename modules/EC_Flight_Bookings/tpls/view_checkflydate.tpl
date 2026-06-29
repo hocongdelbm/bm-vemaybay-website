@@ -39,10 +39,40 @@
                 $("#airlines").val("").trigger("change");
                 $("#user_id").val("").trigger("change");
                 $("#search_phone").val("");
+                $("#search_email").val("");
                 $("#search_passenger").val("");
+
+                // Remove any existing page input and set to 1
+                $('input[name="page"]').remove();
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'page',
+                    value: 1
+                }).appendTo('#ec_search_form');
 
                 // Submit form to refresh with default filters
                 $("#ec_search_form").submit();
+            });
+
+            // Pagination click handler with smooth scroll
+            $(document).on('click', '.pagination-link', function(e) {
+                e.preventDefault();
+                if ($(this).hasClass('loading') || $(this).hasClass('disabled')) return;
+
+                var page = $(this).data('page');
+                $(this).addClass('loading');
+
+                $('input[name="page"]').remove();
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'page',
+                    value: page
+                }).appendTo('#ec_search_form');
+
+                // Scroll to top smoothly
+                $('html, body').animate({ scrollTop: 0 }, 300, function() {
+                    $("#ec_search_form").submit();
+                });
             });
         });
     </script>
@@ -120,6 +150,12 @@
                 <input type="text" class="box-input" id="search_phone" name="search_phone" placeholder="0123456789" value="{$SEARCH_PHONE}" maxlength="20">
             </div>
 
+            <!-- Email -->
+            <div class="filter-group">
+                <label for="search_email">Email</label>
+                <input type="text" class="box-input" id="search_email" name="search_email" placeholder="email@example.com" value="{$SEARCH_EMAIL}" maxlength="100">
+            </div>
+
             <!-- Tên khách -->
             <div class="filter-group">
                 <label for="search_passenger">Tên khách</label>
@@ -141,15 +177,15 @@
     <table class="table-details__booking" cellpadding="0" cellspacing="0" border="0">
         <thead>
             <tr>
-                <th width="2%" class="hide-mobile">STT</th>
+                <th width="2%" class="hide-mobile">#</th>
                 <th width="7%">Booking</th>
-                <th width="10%">Liên hệ</th>
-                <th width="10%">Checkin</th>
-                <th width="7%">Điện thoại</th>
-                <th width="7%" class="hide-mobile">Hãng</th>
-                <th width="7%" class="hide-mobile">Mã chuyến</th>
-                <th width="7%" class="hide-mobile">Hành trình</th>
-                <th width="11%">Ngày giờ bay</th>
+                <th width="8%">Liên hệ</th>
+                <th width="8%">Checkin / Ghi chú</th>
+                <th width="10%">Điện thoại / Email</th>
+                <th width="6%" class="hide-mobile">Hãng</th>
+                <th width="6%" class="hide-mobile">Mã chuyến</th>
+                <th width="6%" class="hide-mobile">Hành trình</th>
+                <th width="8%">Ngày giờ bay</th>
                 <th width="6%" class="hide-mobile">Hạng vé</th>
                 <th width="6%" class="hide-mobile">Giá cơ bản</th>
                 <th width="3%" class="hide-mobile">SL</th>
@@ -161,6 +197,57 @@
             {$DATA}
         </tbody>
     </table>
+
+    <!-- Pagination -->
+    {if $TOTAL_PAGES > 1}
+    <div class="pagination-section">
+        <!-- Hidden inputs for keyboard navigation -->
+        <input type="hidden" name="current_page" value="{$CURRENT_PAGE}">
+        <input type="hidden" name="total_pages" value="{$TOTAL_PAGES}">
+
+        <!-- Info Section -->
+        <div class="pagination-info">
+            <div class="pagination-info-main">Trang {$CURRENT_PAGE} / {$TOTAL_PAGES}</div>
+            <div class="pagination-info-secondary">
+                Bản ghi {$START_RECORD} - {$END_RECORD} / {$TOTAL_RECORDS}
+            </div>
+        </div>
+
+        <!-- Pagination Buttons -->
+        <nav aria-label="Pagination Navigation">
+            <ul class="pagination">
+                {if $CURRENT_PAGE > 1}
+                    <li><a href="#" class="pagination-link" data-page="1" title="Trang đầu">«</a></li>
+                    <li><a href="#" class="pagination-link" data-page="{$CURRENT_PAGE - 1}" title="Trang trước">‹</a></li>
+                {else}
+                    <li><a href="#" class="pagination-link disabled" title="Trang đầu">«</a></li>
+                    <li><a href="#" class="pagination-link disabled" title="Trang trước">‹</a></li>
+                {/if}
+
+                {section name=page loop=$TOTAL_PAGES start=1 step=1}
+                    {assign var="page_num" value=$smarty.section.page.index}
+                    {if $page_num >= $CURRENT_PAGE - 2 && $page_num <= $CURRENT_PAGE + 2}
+                        {if $page_num == $CURRENT_PAGE}
+                            <li><span>{$page_num}</span></li>
+                        {else}
+                            <li><a href="#" class="pagination-link" data-page="{$page_num}" title="Trang {$page_num}">{$page_num}</a></li>
+                        {/if}
+                    {elseif $page_num == $CURRENT_PAGE - 3 || $page_num == $CURRENT_PAGE + 3}
+                        <li><span class="ellipsis">…</span></li>
+                    {/if}
+                {/section}
+
+                {if $CURRENT_PAGE < $TOTAL_PAGES}
+                    <li><a href="#" class="pagination-link" data-page="{$CURRENT_PAGE + 1}" title="Trang tiếp">›</a></li>
+                    <li><a href="#" class="pagination-link" data-page="{$TOTAL_PAGES}" title="Trang cuối">»</a></li>
+                {else}
+                    <li><a href="#" class="pagination-link disabled" title="Trang cuối">›</a></li>
+                    <li><a href="#" class="pagination-link disabled" title="Trang cuối">»</a></li>
+                {/if}
+            </ul>
+        </nav>
+    </div>
+    {/if}
 </div>
 
 <!-- Notes Modal -->
