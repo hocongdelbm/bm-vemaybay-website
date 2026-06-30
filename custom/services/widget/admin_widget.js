@@ -18,8 +18,18 @@
 		selectedImage: null,
 		subWs: null,
 		subReconnectTimer: null,
+		subReconnectAttempt: 0,
+		lastSubscriberActivityAt: 0,
 		conversationSockets: {},
+		conversationReconnectTimers: {},
+		conversationReconnectAttempts: {},
+		conversationActivityAt: {},
 		joinedConversations: {},
+		realtimeWatchdogTimer: null,
+		lastRecoveryAt: 0,
+		realtimeReconnectingByKey: {},
+		realtimeReconnectedByKey: {},
+		realtimeReconnectHideTimers: {},
 		typingTimer: null,
 		typingDebounce: null,
 		typingByConversation: {},
@@ -40,7 +50,8 @@
 		customerSeenObserver: null,
 		lastCustomerSeenMessageId: null,
 		sessionId: getSessionId(),
-		expandedReceiptId: null
+		expandedReceiptId: null,
+		pendingMessageTimers: {}
 	};
 
 	var data = mergeData(defaultData, config);
@@ -75,6 +86,13 @@
 			apiKey: custom.apiKey || custom.restKey || custom.restApiKey || getUrlParam('restKey') || getUrlParam('apiKey') || '',
 			initialConversationLimit: Number(custom.initialConversationLimit || 15),
 			initialMessageLimit: Number(custom.initialMessageLimit || 15),
+			apiTimeoutMs: Number(custom.apiTimeoutMs || 8000),
+			apiRetryCount: Number(custom.apiRetryCount || 2),
+			realtimeReconnectMaxDelayMs: Number(custom.realtimeReconnectMaxDelayMs || 15000),
+			realtimeWatchdogIntervalMs: Number(custom.realtimeWatchdogIntervalMs || 10000),
+			realtimeStaleMs: Number(custom.realtimeStaleMs || 45000),
+			realtimeRecoveryCooldownMs: Number(custom.realtimeRecoveryCooldownMs || 5000),
+			messageAckTimeoutMs: Number(custom.messageAckTimeoutMs || 10000),
 			autoConnect: custom.autoConnect !== false,
 			debug: !!custom.debug,
 			adminId: custom.adminId || '',
@@ -177,6 +195,14 @@
 			.replace(/>/g, '&gt;')
 			.replace(/"/g, '&quot;')
 			.replace(/'/g, '&#039;');
+	}
+
+	function toPlainText(value) {
+		if (value === undefined || value === null) return '';
+		return String(value)
+			.replace(/\u0000/g, '')
+			.replace(/\r\n/g, '\n')
+			.replace(/\r/g, '\n');
 	}
 
 	function truncateText(value, maxLength) {
@@ -769,7 +795,8 @@
 			message.createdAtRaw || message.createdAt || message.timestamp || '',
 			message.seenAtRaw || message.seenAt || '',
 			message.deliveredAtRaw || message.deliveredAt || '',
-			message.delivered ? '1' : '0'
+			message.delivered ? '1' : '0',
+			message.deliveryState || ''
 		].join('|');
 	}
 
@@ -854,18 +881,170 @@
 		return message;
 	}
 
+	function getMessageById(messageId) {
+		if (!messageId) return null;
+		for (var i = 0; i < data.messages.length; i++) {
+			if (data.messages[i].id === messageId) return data.messages[i];
+		}
+		return null;
+	}
+
+	function clearPendingMessageTimer(messageId) {
+		clearTimeout(state.pendingMessageTimers[messageId]);
+		delete state.pendingMessageTimers[messageId];
+	}
+
+	function refreshMessageUi(message) {
+		if (!message) return;
+		saveCachedConversationMessages(message.conversationId);
+		if (isSameConversationId(state.selectedConversationId, message.conversationId)) {
+			renderThread({ focus: true });
+		}
+		renderList();
+	}
+
+	function markPendingMessageSent(messageId) {
+		var message = getMessageById(messageId);
+		if (!message) return;
+		clearPendingMessageTimer(messageId);
+		message.deliveryState = 'sent';
+		message.delivered = true;
+		refreshMessageUi(message);
+	}
+
+	function markPendingMessageFailed(messageId) {
+		var message = getMessageById(messageId);
+		if (!message || message.deliveryState !== 'sending') return;
+		clearPendingMessageTimer(messageId);
+		message.deliveryState = 'failed';
+		refreshMessageUi(message);
+	}
+
+	function startPendingMessageTimer(message) {
+		if (!message || !message.id) return;
+		clearPendingMessageTimer(message.id);
+		state.pendingMessageTimers[message.id] = setTimeout(function () {
+			markPendingMessageFailed(message.id);
+		}, config.messageAckTimeoutMs || 10000);
+	}
+
+	function sendRealtimeMessagePayload(message) {
+		if (!message || !isRealtimeEnabled()) return false;
+		var selectedConversationId = message.conversationId || state.selectedConversationId;
+		var selectedSent = false;
+		getTargetConversationIds().forEach(function (targetId) {
+			var ws = state.conversationSockets[targetId];
+			if (!ws || ws.readyState !== WebSocket.OPEN) {
+				joinRealtimeConversation(targetId, { force: true });
+				return;
+			}
+			var targetMsgId = targetId === selectedConversationId
+				? message.id
+				: createClientMessageId();
+			ws.send(JSON.stringify({
+				type: 'message',
+				id: targetMsgId,
+				conversationId: targetId,
+				text: message.content || '',
+				imageUrl: message.imageUrl || null,
+				sessionId: state.sessionId
+			}));
+			if (targetId === selectedConversationId) selectedSent = true;
+		});
+		return selectedSent;
+	}
+
+	function retryFailedMessage(messageId) {
+		var message = getMessageById(messageId);
+		if (!message || message.deliveryState !== 'failed') return;
+		message.deliveryState = 'sending';
+		refreshMessageUi(message);
+		if (!sendRealtimeMessagePayload(message)) {
+			markPendingMessageFailed(message.id);
+			return;
+		}
+		startPendingMessageTimer(message);
+	}
+
 	function isApiEnabled() {
 		return !!(config.apiUrl && !isCustomerMode() && window.fetch);
+	}
+
+	function sleep(ms) {
+		return new Promise(function (resolve) {
+			setTimeout(resolve, ms);
+		});
+	}
+
+	function getRetryDelay(attempt, maxDelay) {
+		var base = Math.min(maxDelay || 15000, 500 * Math.pow(2, Math.max(0, attempt)));
+		return base + Math.floor(Math.random() * 200);
+	}
+
+	function isRetryableApiError(error) {
+		if (!error) return true;
+		if (error.name === 'AbortError' || error.isTimeout) return true;
+		if (!error.status) return true;
+		return error.status >= 500 || error.status === 408 || error.status === 429;
+	}
+
+	function fetchWithTimeout(url, options, timeoutMs) {
+		options = options || {};
+		var controller = window.AbortController ? new AbortController() : null;
+		var timeoutId = null;
+		var requestOptions = Object.assign({}, options);
+		if (controller) {
+			requestOptions.signal = controller.signal;
+			timeoutId = setTimeout(function () {
+				controller.abort();
+			}, timeoutMs || 8000);
+		}
+		return fetch(url, requestOptions).catch(function (error) {
+			if (error && error.name === 'AbortError') error.isTimeout = true;
+			throw error;
+		}).then(function (response) {
+			return response;
+		}).finally(function () {
+			if (timeoutId) clearTimeout(timeoutId);
+		});
+	}
+
+	function fetchWithRetry(url, options, retryOptions) {
+		retryOptions = retryOptions || {};
+		var retries = Number(retryOptions.retries || 0);
+		var timeoutMs = Number(retryOptions.timeoutMs || 8000);
+
+		function run(attempt) {
+			return fetchWithTimeout(url, options, timeoutMs).then(function (response) {
+				if (!response.ok && response.status >= 500 && attempt < retries) {
+					var error = new Error('Retryable API status ' + response.status);
+					error.status = response.status;
+					throw error;
+				}
+				return response;
+			}).catch(function (error) {
+				if (attempt >= retries || !isRetryableApiError(error)) throw error;
+				debugLog('api retry', url, 'attempt', attempt + 1, error && error.message ? error.message : error);
+				return sleep(getRetryDelay(attempt, 3000)).then(function () {
+					return run(attempt + 1);
+				});
+			});
+		}
+
+		return run(0);
 	}
 
 	function callLiveChatApi(method, params) {
 		if (!isApiEnabled()) return Promise.resolve(null);
 		var request = buildMongoApiRequest(method, params || {});
 		if (!request) return Promise.resolve({});
-		return fetch(request.url, {
+		return fetchWithRetry(request.url, {
 			method: request.method || 'GET',
 			credentials: 'same-origin',
 			headers: getMongoApiHeaders()
+		}, {
+			timeoutMs: config.apiTimeoutMs,
+			retries: config.apiRetryCount
 		}).then(function (response) {
 			return response.text().then(function (text) {
 				var payload;
@@ -877,7 +1056,9 @@
 				if (!response.ok) {
 					var errorText = (payload && (payload.error || payload.message)) || 'Live chat Mongo API error';
 					if (response.status === 401) errorText += ' - missing/invalid restKey';
-					throw new Error(errorText);
+					var apiError = new Error(errorText);
+					apiError.status = response.status;
+					throw apiError;
 				}
 				return payload || {};
 			});
@@ -954,7 +1135,7 @@
 			id: id,
 			customerName: conversation.customerName || conversation.customer_name || phone || id,
 			phone: phone,
-			lastMessage: conversation.lastMessage || '',
+			lastMessage: toPlainText(conversation.lastMessage || ''),
 			lastMessageSenderType: conversation.lastMessageSenderType || latestSenderType || '',
 			lastMessageAdminName: conversation.lastMessageAdminName || (latestMessage && latestSenderType === 'staff' ? normalizeStaffDisplayName(latestMessage.adminName) : ''),
 			unreadCount: Number(conversation.unreadCount || 0),
@@ -971,7 +1152,7 @@
 		var messageConversationId = normalizePhoneLike(message.client_phone || message.customerPhone || '') || getCanonicalConversationId(rawConversationId, conversationId);
 		var senderType = message.senderType || roleToSenderType(message.role);
 		var rawCreatedAt = message.createdAtRaw || message.timestamp || message.createdAt || message.date_entered || '';
-		var text = message.content || message.message || message.description || message.text || '';
+		var text = toPlainText(message.content || message.message || message.description || message.text || '');
 		return {
 			id: message.id || message._id || ('api_' + Date.now() + '_' + Math.random().toString(36).slice(2)),
 			conversationId: messageConversationId || conversationId,
@@ -1143,8 +1324,9 @@
 		attrs = attrs || {};
 		var phone = normalizePhoneLike(attrs.phone || attrs.customerPhone || attrs.client_phone || '');
 		var canonicalId = getCanonicalConversationId(conversationId) || phone;
-		// Phone-based lookup only for old bare-phone convIds (new unique IDs must stay separate).
-		var byPhone = (canonicalId === phone && !!phone) ? getConversationByPhone(phone) : null;
+		// Phone lookup is always enabled: when a new unique convId arrives for the same phone,
+		// the existing entry's id is updated in-place (merge) rather than creating a duplicate card.
+		var byPhone = phone ? getConversationByPhone(phone) : null;
 		var conversation = getConversation(canonicalId) || getConversation(conversationId) || byPhone;
 		if (conversation) {
 			var oldId = conversation.id;
@@ -1237,7 +1419,7 @@
 	function updateLastMessage(conversationId, content, resetUnread, updatedAt) {
 		var conversation = getConversation(conversationId);
 		if (!conversation) return;
-		conversation.lastMessage = content;
+		conversation.lastMessage = toPlainText(content);
 		conversation.updatedAt = updatedAt || formatCurrentTime();
 		if (resetUnread !== false) conversation.unreadCount = 0;
 	}
@@ -1316,6 +1498,7 @@
 			'@keyframes ecCwSlideInRight{from{opacity:0;transform:translateX(20px) scale(.95)}to{opacity:1;transform:translateX(0) scale(1)}}',
 			'@keyframes ecCwSlideInLeft{from{opacity:0;transform:translateX(-20px) scale(.95)}to{opacity:1;transform:translateX(0) scale(1)}}',
 			'@keyframes ecCwSlideUpFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}',
+			'@keyframes ecCwReconnectSpin{to{transform:rotate(360deg)}}',
 
 			/* toggle button */
 			'.ec-cw__toggle{align-items:center!important;background:var(--chat-primary)!important;border:1px solid rgba(255,255,255,.3)!important;border-radius:50%!important;box-shadow:0 10px 28px rgba(10,88,202,.28),0 2px 8px rgba(0,0,0,.08)!important;color:#fff!important;cursor:pointer;display:flex!important;font-size:0!important;font-weight:600;height:58px!important;justify-content:center!important;min-height:58px!important;min-width:58px!important;overflow:visible!important;padding:0!important;position:relative;transition:transform .2s ease,opacity .2s,box-shadow .2s;width:58px!important}',
@@ -1442,6 +1625,12 @@
 			'.ec-cw.has-thread .ec-cw__thread{display:flex;grid-column:2;grid-row:2;order:2}',
 			'.ec-cw--customer .ec-cw__thread{display:flex}',
 			'.ec-cw--customer .ec-cw__back{display:none!important}',
+			'.ec-cw__reconnect-status{align-items:center;background:#eff6ff;border-bottom:1px solid #bfdbfe;color:#1d4ed8;display:none;flex:0 0 auto;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:12px;font-weight:700;gap:8px;justify-content:center;line-height:1.25;padding:9px 14px;text-align:center}',
+			'.ec-cw__thread.is-reconnecting .ec-cw__reconnect-status,.ec-cw__thread.is-reconnected .ec-cw__reconnect-status{display:flex}',
+			'.ec-cw__thread.is-reconnected .ec-cw__reconnect-status{background:#ecfdf3;border-bottom-color:#bbf7d0;color:#15803d;opacity:0;transform:translateY(-8px);transition:opacity .28s ease,transform .28s ease}',
+			'.ec-cw__thread.is-reconnected-show .ec-cw__reconnect-status{opacity:1;transform:translateY(0)}',
+			'.ec-cw__reconnect-icon{animation:ecCwReconnectSpin .9s linear infinite;color:#2563eb;display:inline-flex;flex:0 0 auto;height:16px;width:16px}',
+			'.ec-cw__thread.is-reconnected .ec-cw__reconnect-icon{animation:none;color:#16a34a}',
 
 			/* back button */
 			'.ec-cw__back{display:none;align-items:center;background:#fff;border:none;border-bottom:1px solid var(--chat-border);color:var(--chat-primary);cursor:pointer;font-size:12px;font-weight:600;gap:6px;padding:8px 12px;text-align:left;width:100%}',
@@ -1505,11 +1694,19 @@
 			'.ec-cw__receipt-time{color:rgba(255,255,255,.72)}',
 			'.ec-cw__msg--customer .ec-cw__receipt-time,.ec-cw__msg--agent .ec-cw__receipt-time,.ec-cw__msg--ai .ec-cw__receipt-time{color:#64748b}',
 			'.ec-cw__receipt-tick{align-items:center;display:flex;flex:0 0 auto}',
+			'.ec-cw__receipt[data-retry="1"]{cursor:pointer}',
+			'.ec-cw__receipt-tick--failed{color:#fecaca}',
+			'.ec-cw__receipt-error-mark{align-items:center;border:1px solid currentColor;border-radius:50%;display:inline-flex;font-size:10px;font-weight:800;height:14px;justify-content:center;line-height:14px;width:14px}',
+			'.ec-cw__receipt-sending-mark{animation:ecCwTypingDot 1.2s infinite ease-in-out;color:rgba(255,255,255,.78);font-size:14px;font-weight:800;line-height:10px}',
 
 			'.ec-cw__sys-note{background:transparent;border:none;border-radius:8px;color:var(--chat-muted);font-size:12px;font-style:italic;max-width:90%;padding:4px 12px;text-align:center}',
 			'.ec-cw__sys-note .ec-cw__time-s{text-align:center}',
 			'.ec-cw__typing{align-items:flex-end;display:flex;gap:8px;margin:2px 0 0;width:100%}',
+			'.ec-cw__typing--staff{flex-direction:row-reverse}',
+			'.ec-cw__typing--staff .ec-cw__typing-bubble{background:var(--chat-primary);border-color:var(--chat-primary);border-bottom-left-radius:18px;border-bottom-right-radius:4px}',
+			'.ec-cw__typing--staff .ec-cw__typing-dot{background:rgba(255,255,255,.82)}',
 			'.ec-cw__typing-avatar{align-items:center;border-radius:50%;display:flex;flex:0 0 28px;font-size:10px;font-weight:800;height:28px;justify-content:center;letter-spacing:0;text-transform:uppercase;width:28px}',
+			'.ec-cw__typing-avatar img{border-radius:50%;display:block;height:28px;object-fit:cover;width:28px}',
 			'.ec-cw__typing-bubble{align-items:center;background:#f4f7fb;border:1px solid var(--chat-border);border-radius:18px;border-bottom-left-radius:4px;display:flex;gap:4px;height:34px;padding:0 14px}',
 			'.ec-cw__typing-dot{animation:ecCwTypingDot 1.2s infinite ease-in-out;background:var(--chat-muted);border-radius:50%;display:block;height:5px;width:5px}',
 			'.ec-cw__typing-dot:nth-child(2){animation-delay:.16s}',
@@ -1646,6 +1843,10 @@
 			'<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M15 19l-7-7 7-7"/></svg>',
 			'Danh sách hội thoại',
 			'</button>',
+			'<div class="ec-cw__reconnect-status" aria-live="polite" aria-hidden="true">',
+			'<svg class="ec-cw__reconnect-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v6h6M20 20v-6h-6"/><path stroke-linecap="round" stroke-linejoin="round" d="M20 9a8 8 0 0 0-13.66-3.66L4 7.68M4 15a8 8 0 0 0 13.66 3.66L20 16.32"/></svg>',
+			'<span class="ec-cw__reconnect-label">Đang kết nối lại...</span>',
+			'</div>',
 			'<div class="ec-cw__customer"></div>',
 			'<div class="ec-cw__messages"></div>',
 			'<div class="ec-cw__img-preview"></div>',
@@ -1686,24 +1887,30 @@
 
 	function renderTickSvg(status) {
 		var normalized = status === true ? 'read' : (status || 'sent');
+		if (normalized === 'failed') {
+			return '<span class="ec-cw__receipt-error-mark">!</span>';
+		}
+		if (normalized === 'sending') {
+			return '<span class="ec-cw__receipt-sending-mark">…</span>';
+		}
 		var isRead = normalized === 'read';
 		var isDelivered = normalized === 'delivered';
-		var color1 = isRead ? 'var(--chat-success)' : '#94a3b8';
-		var color2 = isRead ? 'var(--chat-success)' : '#94a3b8';
-		if (isRead || isDelivered) {
+		if (isRead) {
 			return [
 				'<svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">',
-				'<path class="tick-first" d="M1 6l3.5 3.5L11 2" stroke="' + color1 + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
-				'<path class="tick-second" d="M5 6l3.5 3.5L15 2" stroke="' + color2 + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
-				'</svg>'
-			].join('');
-		} else {
-			return [
-				'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">',
-				'<path class="tick-first" d="M1 6l3.5 3.5L11 2" stroke="' + color1 + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+				'<path class="tick-first" d="M1 6l3.5 3.5L11 2" stroke="var(--chat-success)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+				'<path class="tick-second" d="M5 6l3.5 3.5L15 2" stroke="var(--chat-success)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
 				'</svg>'
 			].join('');
 		}
+		if (isDelivered) {
+			return [
+				'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">',
+				'<path class="tick-first" d="M1 6l3.5 3.5L11 2" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+				'</svg>'
+			].join('');
+		}
+		return '';
 	}
 
 	function renderConvTick(message) {
@@ -1900,12 +2107,16 @@
 	}
 
 	function getReceiptStatus(message) {
+		if (message.deliveryState === 'failed') return 'failed';
+		if (message.deliveryState === 'sending') return 'sending';
 		if (message.seenAt) return 'read';
 		if (message.deliveredAt || message.receivedAt || message.delivered) return 'delivered';
 		return 'sent';
 	}
 
 	function getReceiptLabel(message, status) {
+		if (status === 'failed') return 'Gửi lỗi - bấm để thử lại';
+		if (status === 'sending') return 'Đang gửi';
 		if (status === 'read') return 'Đã xem';
 		if (status === 'delivered') return 'Đã nhận';
 		return 'Đã gửi';
@@ -1915,10 +2126,11 @@
 		if (shouldRenderReceipt(message)) {
 			var status = getReceiptStatus(message);
 			var labelText = getReceiptLabel(message, status);
-			var tickClass = status === 'read' ? 'ec-cw__receipt-tick--seen' : 'ec-cw__receipt-tick--sent';
+			var tickClass = status === 'read' ? 'ec-cw__receipt-tick--seen' : (status === 'failed' ? 'ec-cw__receipt-tick--failed' : 'ec-cw__receipt-tick--sent');
 			var wrapperClass = insideBubble ? ' ec-cw__receipt--bubble' : '';
+			var retryAttr = status === 'failed' ? ' data-retry="1" role="button" tabindex="0"' : '';
 			return [
-				'<span class="ec-cw__receipt' + wrapperClass + '" data-msg-id="' + escapeHtml(message.id) + '" data-tooltip="' + escapeHtml(labelText) + '">',
+				'<span class="ec-cw__receipt' + wrapperClass + '" data-msg-id="' + escapeHtml(message.id) + '" data-tooltip="' + escapeHtml(labelText) + '"' + retryAttr + '>',
 				'<span class="ec-cw__receipt-time">' + escapeHtml(message.createdAt || '') + '</span>',
 				'<span class="ec-cw__receipt-tick ' + tickClass + '">' + renderTickSvg(status) + '</span>',
 				'</span>'
@@ -1941,7 +2153,7 @@
 			return [
 				'<div class="ec-cw__msg ec-cw__msg--system' + newClass + '">',
 				'<div class="ec-cw__sys-note">',
-				escapeHtml(message.content),
+				escapeHtml(toPlainText(message.content)),
 				'<span class="ec-cw__time-s">' + escapeHtml(message.createdAt) + '</span>',
 				'</div>',
 				'</div>'
@@ -1958,7 +2170,7 @@
 			: view.avatarText;
 
 		var bubbleReceipt = renderMessageMeta(message, false, true);
-		var content = escapeHtml(message.content) + (image ? '' : bubbleReceipt);
+		var content = escapeHtml(toPlainText(message.content)) + (image ? '' : bubbleReceipt);
 		var imageReceipt = image ? bubbleReceipt : '';
 		var seenTrackAttr = isCustomerMode() && message.senderType === 'staff' && message.id
 			? ' data-message-id="' + escapeHtml(message.id) + '"'
@@ -1998,6 +2210,7 @@
 			customer.innerHTML = '';
 			messages.innerHTML = '<div class="ec-cw__empty"><div class="ec-cw__empty-icon">💬</div><span>Chọn một hội thoại để tham gia.</span></div>';
 			replyText.value = '';
+			replyText.placeholder = 'Nhập tin nhắn…';
 			resizeReplyText(replyText);
 			replyText.disabled = true;
 			updateSendButtonState();
@@ -2039,10 +2252,12 @@
 		if (!options || !options.force) {
 			if (state.threadRenderKey === renderKey && messages.getAttribute('data-conversation-id') === conversation.id) {
 				replyText.disabled = false;
+				replyText.placeholder = 'Nhập tin nhắn…';
 				if (replyText.value !== draft) {
 					replyText.value = draft;
 					resizeReplyText(replyText);
 				}
+				updateReconnectUi();
 				updateHeader(conversation);
 				updateSendButtonState();
 				renderList();
@@ -2055,8 +2270,10 @@
 		messages.classList.add('is-settling');
 		messages.innerHTML = renderMessageThread(threadMessages) || '<div class="ec-cw__empty"><div class="ec-cw__empty-icon">💬</div><span>Chưa có tin nhắn.</span></div>';
 		replyText.disabled = false;
+		replyText.placeholder = 'Nhập tin nhắn…';
 		replyText.value = draft;
 		resizeReplyText(replyText);
+		updateReconnectUi();
 		updateSendButtonState();
 		renderList();
 		settleThreadView(options);
@@ -2194,6 +2411,8 @@
 			var message = conversationMessages[j];
 			if (message.senderType === 'staff') {
 				message.seenAt = seenAt;
+				message.deliveryState = 'sent';
+				clearPendingMessageTimer(message.id);
 			}
 		}
 
@@ -2225,6 +2444,8 @@
 			if (message.senderType === 'staff' && !message.seenAt) {
 				message.deliveredAt = deliveredAt;
 				message.delivered = true;
+				message.deliveryState = 'sent';
+				clearPendingMessageTimer(message.id);
 			}
 		}
 
@@ -2232,6 +2453,216 @@
 			renderThread();
 		}
 		renderList();
+	}
+
+	function getReconnectDelay(attempt) {
+		return Math.min(config.realtimeReconnectMaxDelayMs || 15000, 1000 * Math.pow(2, Math.max(0, attempt))) + Math.floor(Math.random() * 250);
+	}
+
+	function scheduleSubscriberReconnect() {
+		if (!isRealtimeEnabled() || isCustomerMode()) return;
+		clearTimeout(state.subReconnectTimer);
+		var attempt = state.subReconnectAttempt || 0;
+		var delay = getReconnectDelay(attempt);
+		state.subReconnectAttempt = attempt + 1;
+		state.subReconnectTimer = setTimeout(connectSubscriber, delay);
+	}
+
+	function scheduleConversationReconnect(conversationId) {
+		if (!isRealtimeEnabled() || !conversationId) return;
+		if (!isCustomerMode() && !isSameConversationId(state.selectedConversationId, conversationId)) return;
+		clearTimeout(state.conversationReconnectTimers[conversationId]);
+		setRealtimeReconnecting(conversationId, true);
+		var attempt = state.conversationReconnectAttempts[conversationId] || 0;
+		var delay = getReconnectDelay(attempt);
+		state.conversationReconnectAttempts[conversationId] = attempt + 1;
+		state.conversationReconnectTimers[conversationId] = setTimeout(function () {
+			delete state.conversationReconnectTimers[conversationId];
+			joinRealtimeConversation(conversationId, { force: true });
+		}, delay);
+	}
+
+	function clearConversationReconnect(conversationId) {
+		clearTimeout(state.conversationReconnectTimers[conversationId]);
+		delete state.conversationReconnectTimers[conversationId];
+		delete state.conversationReconnectAttempts[conversationId];
+	}
+
+	function markSubscriberActivity() {
+		state.lastSubscriberActivityAt = Date.now();
+	}
+
+	function markConversationActivity(conversationId) {
+		if (!conversationId) return;
+		state.conversationActivityAt[conversationId] = Date.now();
+	}
+
+	function isSocketOpen(ws) {
+		return !!(ws && ws.readyState === WebSocket.OPEN);
+	}
+
+	function getReconnectKey(conversationId) {
+		return 'conversation:' + conversationId;
+	}
+
+	function isConversationReconnecting(conversationId) {
+		return !!(conversationId && state.realtimeReconnectingByKey[getReconnectKey(conversationId)]);
+	}
+
+	function isConversationReconnected(conversationId) {
+		return !!(conversationId && state.realtimeReconnectedByKey[getReconnectKey(conversationId)]);
+	}
+
+	function isActiveThreadReconnecting() {
+		return isConversationReconnecting(state.selectedConversationId);
+	}
+
+	function isActiveThreadReconnected() {
+		return isConversationReconnected(state.selectedConversationId);
+	}
+
+	function setRealtimeReconnecting(conversationId, active) {
+		if (!conversationId) return;
+		var key = getReconnectKey(conversationId);
+		clearTimeout(state.realtimeReconnectHideTimers[key]);
+		delete state.realtimeReconnectHideTimers[key];
+		if (active) {
+			state.realtimeReconnectingByKey[key] = true;
+			delete state.realtimeReconnectedByKey[key];
+		} else {
+			delete state.realtimeReconnectingByKey[key];
+		}
+		updateReconnectUi();
+	}
+
+	function setRealtimeReconnected(conversationId) {
+		if (!conversationId) return;
+		var key = getReconnectKey(conversationId);
+		clearTimeout(state.realtimeReconnectHideTimers[key]);
+		delete state.realtimeReconnectingByKey[key];
+		state.realtimeReconnectedByKey[key] = true;
+		updateReconnectUi();
+		state.realtimeReconnectHideTimers[key] = setTimeout(function () {
+			delete state.realtimeReconnectedByKey[key];
+			delete state.realtimeReconnectHideTimers[key];
+			updateReconnectUi();
+		}, 1200);
+	}
+
+	function clearRealtimeReconnectState(conversationId) {
+		if (!conversationId) return;
+		var key = getReconnectKey(conversationId);
+		clearTimeout(state.realtimeReconnectHideTimers[key]);
+		delete state.realtimeReconnectHideTimers[key];
+		delete state.realtimeReconnectingByKey[key];
+		delete state.realtimeReconnectedByKey[key];
+		updateReconnectUi();
+	}
+
+	function updateReconnectUi() {
+		var root = document.getElementById(WIDGET_ID);
+		if (!root) return;
+		var thread = qs('.ec-cw__thread', root);
+		var status = qs('.ec-cw__reconnect-status', root);
+		var reconnecting = isActiveThreadReconnecting();
+		var reconnected = isActiveThreadReconnected();
+
+		if (thread) {
+			thread.classList.toggle('is-reconnecting', reconnecting);
+			thread.classList.toggle('is-reconnected', reconnected);
+			thread.classList.toggle('is-reconnected-show', reconnected);
+		}
+		if (status) {
+			status.setAttribute('aria-hidden', (reconnecting || reconnected) ? 'false' : 'true');
+			var label = status.querySelector('.ec-cw__reconnect-label');
+			if (label) label.textContent = reconnected ? 'Đã kết nối' : 'Đang kết nối lại...';
+		}
+		updateSendButtonState();
+	}
+
+	function reconnectSubscriberNow(reason) {
+		if (!isRealtimeEnabled() || isCustomerMode()) return;
+		debugLog('subscriber recovery', reason || 'reconnect');
+		clearTimeout(state.subReconnectTimer);
+		if (state.subWs) {
+			state.subWs.onclose = null;
+			try { state.subWs.close(); } catch (e) { }
+			state.subWs = null;
+		}
+		state.lastSubscriberActivityAt = 0;
+		connectSubscriber();
+	}
+
+	function reconnectConversationNow(conversationId, reason) {
+		if (!isRealtimeEnabled() || !conversationId) return;
+		if (!isCustomerMode() && !isSameConversationId(state.selectedConversationId, conversationId)) return;
+		debugLog('conversation recovery', conversationId, reason || 'reconnect');
+		setRealtimeReconnecting(conversationId, true);
+		clearConversationReconnect(conversationId);
+		var ws = state.conversationSockets[conversationId];
+		if (ws) {
+			ws.onclose = null;
+			try { ws.close(); } catch (e) { }
+		}
+		delete state.conversationSockets[conversationId];
+		delete state.joinedConversations[conversationId];
+		delete state.conversationActivityAt[conversationId];
+		joinRealtimeConversation(conversationId, { force: true });
+	}
+
+	function refreshActiveRealtimeData() {
+		if (!isCustomerMode()) loadInitialConversations();
+		if (state.selectedConversationId) {
+			delete state.loadedMessagesByConversation[state.selectedConversationId];
+			loadConversationMessages(state.selectedConversationId);
+		}
+	}
+
+	function recoverRealtime(reason) {
+		if (!isRealtimeEnabled() || config.autoConnect === false) return;
+		if (document.visibilityState && document.visibilityState === 'hidden') return;
+		var now = Date.now();
+		if (now - (state.lastRecoveryAt || 0) < (config.realtimeRecoveryCooldownMs || 5000)) return;
+		state.lastRecoveryAt = now;
+
+		if (!isCustomerMode() && !isSocketOpen(state.subWs)) {
+			reconnectSubscriberNow(reason || 'recovery');
+		}
+		if (state.selectedConversationId && !isSocketOpen(state.conversationSockets[state.selectedConversationId])) {
+			reconnectConversationNow(state.selectedConversationId, reason || 'recovery');
+		}
+		refreshActiveRealtimeData();
+		if (isCustomerMode()) setTimeout(checkVisibleCustomerSeenMessages, 250);
+	}
+
+	function checkRealtimeStaleness() {
+		if (!isRealtimeEnabled() || config.autoConnect === false) return;
+		if (document.visibilityState && document.visibilityState === 'hidden') return;
+		var now = Date.now();
+		var staleMs = config.realtimeStaleMs || 45000;
+
+		if (!isCustomerMode() && state.subWs) {
+			if (isSocketOpen(state.subWs) && state.lastSubscriberActivityAt && now - state.lastSubscriberActivityAt > staleMs) {
+				reconnectSubscriberNow('stale');
+			} else if (state.subWs.readyState === WebSocket.CLOSED || state.subWs.readyState === WebSocket.CLOSING) {
+				reconnectSubscriberNow('closed-stale');
+			}
+		}
+
+		var conversationId = state.selectedConversationId;
+		var ws = conversationId ? state.conversationSockets[conversationId] : null;
+		if (!conversationId || !ws) return;
+		var lastActivity = state.conversationActivityAt[conversationId] || 0;
+		if (isSocketOpen(ws) && lastActivity && now - lastActivity > staleMs) {
+			reconnectConversationNow(conversationId, 'stale');
+		} else if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+			reconnectConversationNow(conversationId, 'closed-stale');
+		}
+	}
+
+	function startRealtimeWatchdog() {
+		if (state.realtimeWatchdogTimer || !isRealtimeEnabled()) return;
+		state.realtimeWatchdogTimer = setInterval(checkRealtimeStaleness, config.realtimeWatchdogIntervalMs || 10000);
 	}
 
 	function connectSubscriber() {
@@ -2244,12 +2675,15 @@
 
 		ws.onopen = function () {
 			debugLog('subscriber open');
+			state.subReconnectAttempt = 0;
+			markSubscriberActivity();
 			ws.send(JSON.stringify({ type: 'subscribe', adminId: getAdminId() }));
 		};
 
 		ws.onmessage = function (event) {
 			var msg;
 			try { msg = JSON.parse(event.data); } catch (e) { return; }
+			markSubscriberActivity();
 
 			if (msg.type === 'ping') {
 				ws.send(JSON.stringify({ type: 'pong' }));
@@ -2271,8 +2705,7 @@
 			debugLog('subscriber closed');
 			if (state.subWs === ws) state.subWs = null;
 			setConnectionStatus('Đang kết nối lại');
-			clearTimeout(state.subReconnectTimer);
-			state.subReconnectTimer = setTimeout(connectSubscriber, 3000);
+			scheduleSubscriberReconnect();
 		};
 
 		ws.onerror = function () { };
@@ -2297,7 +2730,7 @@
 	function handleRealtimeNotify(msg) {
 		var phone = normalizePhoneLike(msg.phone || msg.customerPhone || '');
 		var conversationId = msg.conversationId || phone;
-		var preview = msg.preview || '';
+		var preview = toPlainText(msg.preview || '');
 
 		// Build display name from phone; conversation entry gets phone stored for later use
 		var customerName = phone ? ('+' + phone) : 'Khách hàng';
@@ -2316,8 +2749,30 @@
 			conversation.unreadCount = Number(conversation.unreadCount || 0) + 1;
 		}
 
+		// Session-takeover transition: the admin may still hold a socket for an old convId
+		// that was just merged away (renamed to conversation.id). If the merged conversation
+		// is now the selected one but has no socket, clean up stale sockets and join it so
+		// the admin receives full messages without a limbo period.
+		if (isSameConversationId(conversation.id, state.selectedConversationId) && !state.conversationSockets[conversation.id]) {
+			_cleanupStaleSocketsExcept(conversation.id);
+			joinRealtimeConversation(conversation.id);
+		}
+
 		renderList();
 		renderBadge();
+	}
+
+	// Close and remove every conversation socket whose convId is no longer in data.conversations
+	// (i.e. was merged away into another entry) except for the given keepId.
+	function _cleanupStaleSocketsExcept(keepId) {
+		Object.keys(state.conversationSockets).forEach(function (oldId) {
+			if (oldId === keepId) return;
+			if (getConversation(oldId)) return; // still valid
+			var staleWs = state.conversationSockets[oldId];
+			if (staleWs) { try { staleWs.close(); } catch (e) {} }
+			delete state.conversationSockets[oldId];
+			delete state.joinedConversations[oldId];
+		});
 	}
 
 	function handleRealtimeClaimed(msg) {
@@ -2334,18 +2789,25 @@
 		renderList();
 	}
 
-	function joinRealtimeConversation(conversationId) {
+	function joinRealtimeConversation(conversationId, options) {
+		options = options || {};
 		if (!isRealtimeEnabled() || !conversationId) return;
-		if (state.joinedConversations[conversationId] || state.conversationSockets[conversationId]) return;
+		if (!options.force && (state.joinedConversations[conversationId] || state.conversationSockets[conversationId])) return;
 
 		var conversation = ensureConversation(conversationId);
 		conversationId = conversation.id;
+		if (options.force) {
+			delete state.joinedConversations[conversationId];
+			delete state.conversationSockets[conversationId];
+		}
 		var ws = new WebSocket(config.wsUrl);
 		state.conversationSockets[conversationId] = ws;
 		debugLog('conversation connecting', conversationId);
 
 		ws.onopen = function () {
 			debugLog('conversation open', conversationId);
+			clearConversationReconnect(conversationId);
+			markConversationActivity(conversationId);
 
 			var joinPayload = {
 				type: 'join',
@@ -2362,6 +2824,7 @@
 				}
 				joinPayload.adminId = getAdminId();
 				joinPayload.adminName = getAdminName();
+				joinPayload.adminAvatarUrl = config.adminAvatarUrl || '';
 			}
 
 			ws.send(JSON.stringify(joinPayload));
@@ -2370,6 +2833,7 @@
 		ws.onmessage = function (event) {
 			var msg;
 			try { msg = JSON.parse(event.data); } catch (e) { return; }
+			markConversationActivity(conversationId);
 			handleRealtimeConversationMessage(conversationId, ws, msg);
 		};
 
@@ -2377,11 +2841,13 @@
 			if (state.conversationSockets[conversationId] === ws) {
 				delete state.conversationSockets[conversationId];
 				delete state.joinedConversations[conversationId];
+				delete state.conversationActivityAt[conversationId];
 			}
 			if (!isCustomerMode()) {
 				setLiveAdminParticipants(conversationId, []);
 				if (isSameConversationId(state.selectedConversationId, conversationId)) updateHeader(getConversation(conversationId));
 			}
+			scheduleConversationReconnect(conversationId);
 		};
 
 		ws.onerror = function () { };
@@ -2394,6 +2860,9 @@
 			var ws = state.conversationSockets[conversationId];
 			delete state.conversationSockets[conversationId];
 			delete state.joinedConversations[conversationId];
+			delete state.conversationActivityAt[conversationId];
+			clearConversationReconnect(conversationId);
+			clearRealtimeReconnectState(conversationId);
 			setLiveAdminParticipants(conversationId, []);
 			if (ws) ws.close();
 		});
@@ -2407,6 +2876,11 @@
 
 		if (msg.type === 'joined') {
 			debugLog('joined', conversationId, msg);
+			if (isConversationReconnecting(conversationId)) {
+				setRealtimeReconnected(conversationId);
+			} else {
+				clearRealtimeReconnectState(conversationId);
+			}
 			state.joinedConversations[conversationId] = true;
 			var joinedConversation = ensureConversation(conversationId, {
 				peerOnline: !!msg.peerOnline,
@@ -2429,6 +2903,7 @@
 
 		if (msg.type === 'message') {
 			var normalized = normalizeRealtimeMessage(conversationId, msg);
+			if (normalized.id) markPendingMessageSent(normalized.id);
 			if (msg.sessionId && msg.sessionId === state.sessionId && findDuplicateMessage(normalized)) {
 				debugLog('echo suppressed', conversationId, msg.sessionId);
 				return;
@@ -2438,6 +2913,11 @@
 				updateHeader(getConversation(conversationId));
 			}
 			appendMessage(normalized);
+			return;
+		}
+
+		if (msg.type === 'sent') {
+			markPendingMessageSent(msg.messageId || msg.id);
 			return;
 		}
 
@@ -2458,7 +2938,17 @@
 				msg.text === 'Khách hàng đã tham gia cuộc trò chuyện' ||
 				msg.text === 'Khách hàng đã ngắt kết nối'
 			) {
-				var presenceConversation = ensureConversation(conversationId);
+				// If the conversation was merged into a newer session (id changed by ensureConversation),
+				// getConversation returns null here. Clean up the stale socket and join the current
+				// selected conversation (the merged target) rather than creating a phantom card.
+				var presenceConversation = getConversation(conversationId);
+				if (!presenceConversation) {
+					_cleanupStaleSocketsExcept(state.selectedConversationId);
+					if (state.selectedConversationId && !state.conversationSockets[state.selectedConversationId]) {
+						joinRealtimeConversation(state.selectedConversationId);
+					}
+					return;
+				}
 				var isCustomerJoined = msg.code === 'customer_joined' || msg.text === 'Khách hàng đã tham gia cuộc trò chuyện';
 				presenceConversation.peerOnline = isCustomerJoined;
 				if (isSameConversationId(state.selectedConversationId, conversationId)) updateHeader(presenceConversation);
@@ -2477,6 +2967,8 @@
 						// Pick the most recently active session among remaining browsers
 						var fallback = sortConversationsByActivity(samePhoneOthers)[0] || null;
 						if (fallback) {
+							// Remove the phantom entry created for the now-merged old convId
+							data.conversations = data.conversations.filter(function (c) { return c.id !== conversationId; });
 							selectConversation(fallback.id);
 						} else {
 							// Not in local data yet — chain on the in-flight load (or start a new one).
@@ -2489,7 +2981,10 @@
 									return c.id !== conversationId && cPhone && cPhone === disconnectedPhone;
 								});
 								var refreshed = sortConversationsByActivity(candidates)[0] || null;
-								if (refreshed) selectConversation(refreshed.id);
+								if (refreshed) {
+									data.conversations = data.conversations.filter(function (c) { return c.id !== conversationId; });
+									selectConversation(refreshed.id);
+								}
 							}).catch(function () {});
 						}
 					}
@@ -2504,7 +2999,7 @@
 			appendMessage({
 				conversationId: conversationId,
 				senderType: 'system',
-				content: msg.text || '',
+				content: toPlainText(msg.text || ''),
 				createdAt: formatCurrentTime()
 			});
 			return;
@@ -2541,7 +3036,7 @@
 			adminId: msg.adminId || '',
 			adminName: senderType === 'staff' ? (msg.adminName || msg.senderName || '') : '',
 			adminAvatarUrl: msg.adminAvatarUrl || '',
-			content: msg.text || msg.content || '',
+			content: toPlainText(msg.text || msg.content || ''),
 			imageUrl: msg.imageUrl || '',
 			imageData: msg.imageData || '',
 			imageName: msg.imageName || '',
@@ -2590,13 +3085,25 @@
 		var existing = qs('.ec-cw__typing', messages);
 		var isCustomerTyping = !typing || typing.role === 'customer';
 		var conversation = getConversation(conversationId);
+		var adminKey = isCustomerTyping ? '' : getAdminParticipantKey(typing);
+		var adminParticipant = !isCustomerTyping && state.adminParticipantsByConversation[conversationId]
+			? state.adminParticipantsByConversation[conversationId][adminKey]
+			: null;
+		var adminLabel = (adminParticipant && adminParticipant.label) || (typing && (typing.adminName || typing.senderName || typing.name)) || 'Tư vấn viên';
+		var adminAvatarUrl = (adminParticipant && adminParticipant.avatarUrl) || (typing && (typing.adminAvatarUrl || typing.avatarUrl)) || '';
+		var adminColorKey = (adminParticipant && adminParticipant.colorKey) || getAdminAvatarColorKey(adminKey || adminLabel);
 		var colors = isCustomerTyping
 			? getAvatarColor(getCustomerAvatarColorKey(conversation))
-			: getAvatarColor(getAdminAvatarColorKey(typing.adminName || 'admin'));
-		var avatarText = isCustomerTyping ? getCustomerAvatarText() : getAdminInitials(typing.adminName || 'NV', 'NV');
+			: getAvatarColor(adminColorKey);
+		var avatarText = isCustomerTyping ? getCustomerAvatarText() : ((adminParticipant && adminParticipant.initials) || getAdminInitials(adminLabel, 'NV'));
 		var label = isCustomerTyping ? 'Khách hàng đang nhập' : ((typing.adminName || 'Tư vấn viên') + ' đang nhập');
+		var isStaffTypingOnRight = !isCustomerTyping && !isCustomerMode();
+		var typingClass = 'ec-cw__typing' + (isStaffTypingOnRight ? ' ec-cw__typing--staff' : '');
+		var avatarHtml = adminAvatarUrl && !isCustomerTyping
+			? '<img src="' + escapeHtml(adminAvatarUrl) + '" alt="' + escapeHtml(adminLabel) + '">'
+			: escapeHtml(avatarText);
 		var html = [
-			'<div class="ec-cw__typing-avatar" style="background:' + colors.bg + ';color:' + colors.text + '" title="' + escapeHtml(label) + '">' + escapeHtml(avatarText) + '</div>',
+			'<div class="ec-cw__typing-avatar" style="background:' + colors.bg + ';color:' + colors.text + '" title="' + escapeHtml(label) + '">' + avatarHtml + '</div>',
 			'<div class="ec-cw__typing-bubble" title="' + escapeHtml(label) + '">',
 			'<span class="ec-cw__typing-dot"></span>',
 			'<span class="ec-cw__typing-dot"></span>',
@@ -2604,9 +3111,10 @@
 			'</div>'
 		].join('');
 		if (!existing) {
-			messages.insertAdjacentHTML('beforeend', '<div class="ec-cw__typing"></div>');
+			messages.insertAdjacentHTML('beforeend', '<div class="' + typingClass + '"></div>');
 			existing = qs('.ec-cw__typing', messages);
 		}
+		existing.className = typingClass;
 		existing.innerHTML = html;
 		settleThreadView({ smooth: true });
 		clearTimeout(state.typingTimersByConversation[conversationId]);
@@ -2643,7 +3151,13 @@
 		}, 2000);
 		var ws = state.conversationSockets[state.selectedConversationId];
 		if (!ws || ws.readyState !== WebSocket.OPEN) return;
-		ws.send(JSON.stringify({ type: 'typing', conversationId: state.selectedConversationId }));
+		ws.send(JSON.stringify({
+			type: 'typing',
+			conversationId: state.selectedConversationId,
+			adminId: isCustomerMode() ? '' : getAdminId(),
+			adminName: isCustomerMode() ? '' : getAdminName(),
+			adminAvatarUrl: isCustomerMode() ? '' : (config.adminAvatarUrl || '')
+		}));
 	}
 
 		function canCustomerSendSeen(conversationId) {
@@ -2771,6 +3285,11 @@
 			state.subWs = null;
 		}
 		clearTimeout(state.subReconnectTimer);
+		state.subReconnectAttempt = 0;
+		state.lastSubscriberActivityAt = 0;
+		Object.keys(state.conversationReconnectTimers).forEach(function (conversationId) {
+			clearConversationReconnect(conversationId);
+		});
 		Object.keys(state.conversationSockets).forEach(function (conversationId) {
 			var ws = state.conversationSockets[conversationId];
 			if (ws) {
@@ -2780,6 +3299,14 @@
 		});
 		state.conversationSockets = {};
 		state.joinedConversations = {};
+		state.conversationActivityAt = {};
+		Object.keys(state.realtimeReconnectHideTimers).forEach(function (key) {
+			clearTimeout(state.realtimeReconnectHideTimers[key]);
+		});
+		state.realtimeReconnectingByKey = {};
+		state.realtimeReconnectedByKey = {};
+		state.realtimeReconnectHideTimers = {};
+		updateReconnectUi();
 	}
 
 	// Returns the list of conversation IDs that an outbound admin message should be sent to.
@@ -2804,7 +3331,7 @@
 	function addActiveMessage() {
 		var replyText = qs('.ec-cw__reply-text');
 		var upload = qs('.ec-cw__image-upload');
-		var content = replyText ? replyText.value.trim() : '';
+		var content = replyText ? toPlainText(replyText.value).trim() : '';
 		if (state.sendLocked) return;
 		if (!canUploadImages()) state.selectedImage = null;
 		if ((!content && !state.selectedImage) || !state.selectedConversationId) return;
@@ -2831,42 +3358,24 @@
 			imageData: state.selectedImage ? state.selectedImage.data : '',
 			imageName: state.selectedImage ? state.selectedImage.name : '',
 			createdAt: formatCurrentTime(),
-			createdAtRaw: Date.now()
+			createdAtRaw: Date.now(),
+			deliveryState: isRealtimeEnabled() ? 'sending' : 'sent'
 		};
 
 		if (isRealtimeEnabled()) {
-			var ws = state.conversationSockets[state.selectedConversationId];
-			if (!ws || ws.readyState !== WebSocket.OPEN) {
-				state.sendLocked = false;
-				joinRealtimeConversation(state.selectedConversationId);
-				alert('Đang kết nối hội thoại, vui lòng gửi lại sau vài giây.');
-				return;
-			}
-			// Fan out to all target conversations (today: selected only; broadcast mode: all same-phone sessions)
-			getTargetConversationIds().forEach(function (targetId) {
-				var targetWs = state.conversationSockets[targetId];
-				if (!targetWs || targetWs.readyState !== WebSocket.OPEN) {
-					joinRealtimeConversation(targetId);
-					return;
+			try {
+				if (!sendRealtimeMessagePayload(message)) {
+					message.deliveryState = 'failed';
 				}
-				// Each target needs its own unique ID so MongoDB stores an independent record
-				// per conversation. The selected conversation reuses message.id for local rendering.
-				var targetMsgId = targetId === state.selectedConversationId
-					? message.id
-					: createClientMessageId();
-				targetWs.send(JSON.stringify({
-					type: 'message',
-					id: targetMsgId,
-					conversationId: targetId,
-					text: finalContent,
-					imageUrl: null,
-					sessionId: state.sessionId
-				}));
-			});
+			} catch (error) {
+				debugLog('send message failed', error && error.message ? error.message : error);
+				message.deliveryState = 'failed';
+			}
 		}
 
 		upsertMessage(message);
 		saveCachedConversationMessages(message.conversationId);
+		if (message.deliveryState === 'sending') startPendingMessageTimer(message);
 		if (message.senderType === 'staff') {
 			rememberAdminParticipant(message.conversationId, message);
 			updateHeader(getConversation(message.conversationId));
@@ -2890,7 +3399,7 @@
 		if (!message || !message.conversationId) return;
 		message.id = message.id || ('m' + Date.now());
 		message.senderType = message.senderType || 'customer';
-		message.content = message.content || message.text || '';
+		message.content = toPlainText(message.content || message.text || '');
 		message.createdAt = message.createdAt || formatCurrentTime();
 		if (isPresenceSystemMessage(message)) return;
 		clearTimeout(state.typingTimersByConversation[message.conversationId]);
@@ -3022,6 +3531,12 @@
 		});
 
 		root.addEventListener('click', function (event) {
+			var retryReceipt = event.target.closest('.ec-cw__receipt[data-retry="1"]');
+			if (retryReceipt) {
+				event.preventDefault();
+				retryFailedMessage(retryReceipt.getAttribute('data-msg-id'));
+				return;
+			}
 			var avatars = event.target.closest('.ec-cw__header-admin-avatars');
 			var popover = event.target.closest('.ec-cw__admin-participants-popover');
 
@@ -3037,6 +3552,14 @@
 				state.isAdminParticipantsOpen = false;
 				updateHeader(getConversation(state.selectedConversationId));
 			}
+		});
+
+		root.addEventListener('keydown', function (event) {
+			if (event.key !== 'Enter' && event.key !== ' ') return;
+			var retryReceipt = event.target.closest('.ec-cw__receipt[data-retry="1"]');
+			if (!retryReceipt) return;
+			event.preventDefault();
+			retryFailedMessage(retryReceipt.getAttribute('data-msg-id'));
 		});
 
 		qs('.ec-cw__send', root).addEventListener('click', addActiveMessage);
@@ -3108,12 +3631,21 @@
 				state.customerWindowFocused = document.hasFocus();
 				checkVisibleCustomerSeenMessages();
 			}
+			if (document.visibilityState === 'visible') {
+				recoverRealtime('visible');
+			}
 		});
 
 		window.addEventListener('focus', function () {
-			if (!isCustomerMode()) return;
-			state.customerWindowFocused = true;
-			checkVisibleCustomerSeenMessages();
+			recoverRealtime('focus');
+			if (isCustomerMode()) {
+				state.customerWindowFocused = true;
+				checkVisibleCustomerSeenMessages();
+			}
+		});
+
+		window.addEventListener('online', function () {
+			recoverRealtime('online');
 		});
 
 		window.addEventListener('blur', function () {
@@ -3143,7 +3675,11 @@
 			renderList();
 		}
 		if (!isCustomerMode()) loadInitialConversations();
-		if (config.autoConnect) connectSubscriber();
+		if (config.autoConnect) {
+			connectSubscriber();
+			if (state.selectedConversationId) joinRealtimeConversation(state.selectedConversationId);
+			startRealtimeWatchdog();
+		}
 	}
 
 	if (document.readyState === 'loading') {
@@ -3165,7 +3701,11 @@
 				renderList();
 			}
 			if (!isCustomerMode()) loadInitialConversations();
-			if (config.autoConnect) connectSubscriber();
+			if (config.autoConnect) {
+				connectSubscriber();
+				if (state.selectedConversationId) joinRealtimeConversation(state.selectedConversationId);
+				startRealtimeWatchdog();
+			}
 		},
 		appendMessage: appendMessage,
 		selectConversation: selectConversation,
