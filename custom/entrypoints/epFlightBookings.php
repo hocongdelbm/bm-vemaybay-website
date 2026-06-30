@@ -3589,6 +3589,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 								<th class="hide-mobile">Hành trình</th>
 								<th class="hide-mobile">Tình trạng</th>
 								<th>Ngày đặt</th>
+						<th>Ngày xuất v�</th>
 								<th>Liên hệ</th>
 								<th>Số vé</th>
 								<th>Doanh thu</th>
@@ -3937,10 +3938,26 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 	$departure     = $_POST['departure'] ?? '';
 	$arrival       = $_POST['arrival'] ?? '';
 	$status_filter = isset($_POST['status_filter']) && ctype_digit((string)$_POST['status_filter']) ? (int)$_POST['status_filter'] : null;
+	$scope         = $_POST['scope'] ?? '';
 
 	$user_list = get_user_array(true, 'Active', '', true);
 
 	$status_where = $status_filter !== null ? "AND bk.booking_status = '{$status_filter}'" : '';
+
+	if ($scope === 'domestic') {
+		$dom_keys = array_keys($app_list_strings['domestic_airport_list']);
+		$dom_in   = "'" . implode("','", $dom_keys) . "'";
+		$itin_filter = "AND i.direction = 0 AND i.add_type = 0
+			AND i.departure IN ({$dom_in}) AND i.arrival IN ({$dom_in})";
+	} elseif ($scope === 'international') {
+		$dom_keys = array_keys($app_list_strings['domestic_airport_list']);
+		$dom_in   = "'" . implode("','", $dom_keys) . "'";
+		$itin_filter = "AND i.direction = 0 AND i.add_type = 0 AND i.transit_order = 0
+			AND (i.departure NOT IN ({$dom_in}) OR i.arrival NOT IN ({$dom_in}))";
+	} else {
+		$itin_filter = "AND i.departure = '{$departure}' AND i.arrival = '{$arrival}'
+			AND i.direction = 0 AND i.add_type = 0";
+	}
 
 	$sql = "
 		SELECT
@@ -3949,18 +3966,16 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 			bk.booking_status,
 			bk.contact_name,
 			bk.date_entered,
+			bk.date_ticket_issue,
 			bk.total_qty,
 			bk.created_by
 		FROM ec_flight_bookings bk
-		INNER JOIN ec_booking_itineraries i ON i.booking_id = bk.id
-			AND i.deleted = 0
-			AND i.departure = '{$departure}'
-			AND i.arrival = '{$arrival}'
-			AND i.direction = 0
-			AND i.add_type = 0
+		INNER JOIN ec_booking_itineraries i ON i.booking_id = bk.id AND i.deleted = 0
+			{$itin_filter}
 		WHERE DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$from_date}' AND '{$to_date}'
 		AND bk.deleted = 0
 		{$status_where}
+		GROUP BY bk.id
 		ORDER BY bk.created_by, bk.date_entered DESC
 	";
 	$res = $db->query($sql);
@@ -3972,6 +3987,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 						<th>Booking</th>
 						<th class="hide-mobile">Tình trạng</th>
 						<th>Ngày đặt</th>
+						<th>Ngày xuất vé</th>
 						<th>Đặt bởi</th>
 						<th>Liên hệ</th>
 						<th>Số vé</th>
@@ -4006,6 +4022,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 					<td class=""><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a></td>
 					<td class=" hide-mobile text-center fw-bold ' . $class_color . '">' . $app_list_strings['booking_status_list'][(int) $row['booking_status']] . '</td>
 					<td class=" text-center">' . date('H:i d-m-Y', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
+					<td class=" text-center">' . (!empty($row['date_ticket_issue']) ? date('d-m-Y', strtotime($row['date_ticket_issue'])) : '') . '</td>
 					<td class="">' . $user_list[$row['created_by']] . '</td>
 					<td class="">' . $row['contact_name'] . '</td>
 					<td class=" text-center fw-bold">' . $row['total_qty'] . '</td>
@@ -4017,7 +4034,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 	$html .= '</tbody>
 			<tfoot>
 				<tr class="fw-bold">
-					<td colspan="6" class="text-end"><i>Tổng cộng</i></td>
+					<td colspan="7" class="text-end"><i>Tổng cộng</i></td>
 					<td class="text-center">' . format_number($total_qty) . '</td>
 					<td class="text-end">' . format_number($total_revenue) . '</td>
 				</tr>
