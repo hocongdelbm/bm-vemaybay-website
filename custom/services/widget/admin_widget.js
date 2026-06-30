@@ -807,6 +807,37 @@
 		].join('::');
 	}
 
+	function getDeliveryStateRank(stateValue) {
+		if (stateValue === 'failed') return 0;
+		if (stateValue === 'sending') return 1;
+		if (stateValue === 'sent') return 2;
+		return -1;
+	}
+
+	function preserveReceiptState(existing, incoming, previous) {
+		if (!existing || !incoming) return;
+		previous = previous || {};
+		var previousSeenAt = previous.seenAt || '';
+		var previousSeenAtRaw = previous.seenAtRaw || '';
+		var previousDeliveredAt = previous.deliveredAt || '';
+		var previousDeliveredAtRaw = previous.deliveredAtRaw || '';
+		var previousReceivedAt = previous.receivedAt || '';
+		var previousReceivedAtRaw = previous.receivedAtRaw || '';
+		var previousDelivered = !!previous.delivered;
+		var previousDeliveryState = previous.deliveryState || '';
+
+		if (!incoming.seenAt && previousSeenAt) existing.seenAt = previousSeenAt;
+		if (!incoming.seenAtRaw && previousSeenAtRaw) existing.seenAtRaw = previousSeenAtRaw;
+		if (!incoming.deliveredAt && previousDeliveredAt) existing.deliveredAt = previousDeliveredAt;
+		if (!incoming.deliveredAtRaw && previousDeliveredAtRaw) existing.deliveredAtRaw = previousDeliveredAtRaw;
+		if (!incoming.receivedAt && previousReceivedAt) existing.receivedAt = previousReceivedAt;
+		if (!incoming.receivedAtRaw && previousReceivedAtRaw) existing.receivedAtRaw = previousReceivedAtRaw;
+		if (!incoming.delivered && previousDelivered && (existing.deliveredAt || existing.receivedAt)) existing.delivered = true;
+		if (previousDeliveryState && getDeliveryStateRank(previousDeliveryState) > getDeliveryStateRank(existing.deliveryState)) {
+			existing.deliveryState = previousDeliveryState;
+		}
+	}
+
 	function findDuplicateMessage(message) {
 		if (!message) return null;
 		if (message.id) {
@@ -815,6 +846,7 @@
 			}
 		}
 
+		var incomingStableId = getStableMessageId(message);
 		var messageTime = getMessageTimeMs(message);
 		var content = String(message.content || message.text || '').trim();
 		var imageUrl = String(message.imageUrl || '').trim();
@@ -822,6 +854,8 @@
 
 		for (var j = 0; j < data.messages.length; j++) {
 			var existing = data.messages[j];
+			var existingStableId = getStableMessageId(existing);
+			if (incomingStableId && existingStableId && incomingStableId !== existingStableId) continue;
 			if (!isSameConversationId(existing.conversationId, message.conversationId)) continue;
 			if ((existing.senderType || 'customer') !== (message.senderType || 'customer')) continue;
 			if (!isSameDuplicateActor(existing, message)) continue;
@@ -839,6 +873,12 @@
 		}
 
 		return null;
+	}
+
+	function getStableMessageId(message) {
+		var id = String((message && message.id) || '').trim();
+		if (!id || /^api_/i.test(id)) return '';
+		return id;
 	}
 
 	function isSameDuplicateActor(existing, incoming) {
@@ -866,7 +906,18 @@
 			var existingAdminId = existing.adminId || '';
 			var existingSessionId = existing.sessionId || '';
 			var incomingAdminName = message.adminName || message.senderName || '';
+			var previousReceiptState = {
+				seenAt: existing.seenAt || '',
+				seenAtRaw: existing.seenAtRaw || '',
+				deliveredAt: existing.deliveredAt || '',
+				deliveredAtRaw: existing.deliveredAtRaw || '',
+				receivedAt: existing.receivedAt || '',
+				receivedAtRaw: existing.receivedAtRaw || '',
+				delivered: !!existing.delivered,
+				deliveryState: existing.deliveryState || ''
+			};
 			Object.assign(existing, message);
+			preserveReceiptState(existing, message, previousReceiptState);
 			if (message.senderType === 'staff' && !isGenericAdminName(existingAdminName) && isGenericAdminName(incomingAdminName)) {
 				existing.adminName = existingAdminName;
 				existing.senderName = existing.senderName || existingAdminName;
@@ -908,7 +959,7 @@
 		if (!message) return;
 		clearPendingMessageTimer(messageId);
 		message.deliveryState = 'sent';
-		message.delivered = true;
+		if (!message.deliveredAt && !message.receivedAt) message.delivered = false;
 		refreshMessageUi(message);
 	}
 
@@ -1148,8 +1199,9 @@
 		message = message || {};
 		var seenAtRaw = message.seenAtRaw || message.seen_at_raw || message.seen_at || '';
 		var deliveredAtRaw = message.deliveredAtRaw || message.delivered_at_raw || message.delivered_at || '';
-		var rawConversationId = message.conversationId || message.conversation_id || message.client_phone || message.customerPhone || conversationId;
-		var messageConversationId = normalizePhoneLike(message.client_phone || message.customerPhone || '') || getCanonicalConversationId(rawConversationId, conversationId);
+		var rawConversationId = message.conversationId || message.conversation_id || '';
+		var phoneConversationId = normalizePhoneLike(message.client_phone || message.customerPhone || '');
+		var messageConversationId = String(rawConversationId || conversationId || phoneConversationId || '').trim();
 		var senderType = message.senderType || roleToSenderType(message.role);
 		var rawCreatedAt = message.createdAtRaw || message.timestamp || message.createdAt || message.date_entered || '';
 		var text = toPlainText(message.content || message.message || message.description || message.text || '');
@@ -2107,10 +2159,10 @@
 	}
 
 	function getReceiptStatus(message) {
+		if (message.seenAt) return 'read';
+		if (message.deliveredAt || message.receivedAt) return 'delivered';
 		if (message.deliveryState === 'failed') return 'failed';
 		if (message.deliveryState === 'sending') return 'sending';
-		if (message.seenAt) return 'read';
-		if (message.deliveredAt || message.receivedAt || message.delivered) return 'delivered';
 		return 'sent';
 	}
 
