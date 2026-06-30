@@ -108,8 +108,12 @@ class Viewairportstatistics extends SugarView
                         SUM(IFNULL(bkd_agg.qty, 0)) AS total_ticket,
                         SUM(CASE WHEN b.booking_status = '8' THEN 1 ELSE 0 END) AS bk_completed,
                         SUM(CASE WHEN b.booking_status = '8' THEN IFNULL(bkd_agg.qty, 0) ELSE 0 END) AS ticket_completed
-                    FROM
-                        ec_booking_itineraries i
+                    FROM (
+                        SELECT DISTINCT booking_id, departure, arrival, airline_code
+                        FROM ec_booking_itineraries
+                        WHERE direction = 0 AND add_type = 0 AND deleted = 0
+                            AND departure IN ({$airport_in}) AND arrival IN ({$airport_in})
+                    ) i
                         LEFT JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
                         LEFT JOIN (
                             SELECT booking_id, SUM(quantity) AS qty
@@ -117,11 +121,6 @@ class Viewairportstatistics extends SugarView
                             GROUP BY booking_id
                         ) bkd_agg ON bkd_agg.booking_id = b.id
                     WHERE b.date_entered BETWEEN '{$from_utc_dom}' AND '{$to_utc_dom}'
-                        AND i.direction = 0
-                        AND i.add_type = 0
-                        AND i.deleted = 0
-                        AND i.departure IN ({$airport_in})
-                        AND i.arrival IN ({$airport_in})
                     GROUP BY
                         CONCAT(i.departure, i.arrival),
                         i.airline_code
@@ -141,7 +140,8 @@ class Viewairportstatistics extends SugarView
                 AND i.add_type = 0
                 AND i.deleted = 0
                 AND i.departure IN ({$airport_in})
-                AND i.arrival IN ({$airport_in})";
+                AND i.arrival IN ({$airport_in})
+            GROUP BY b.id, CONCAT(i.departure, i.arrival)";
 
         $dom_route_booking_ids = [];
         $res_dom_ids = $db->query($sql_dom_completed_ids);
@@ -336,7 +336,13 @@ class Viewairportstatistics extends SugarView
                     SUM(IFNULL(bkd_agg.qty, 0)) AS total_ticket,
                     SUM(CASE WHEN b.booking_status = '8' THEN 1 ELSE 0 END) AS bk_completed,
                     SUM(CASE WHEN b.booking_status = '8' THEN IFNULL(bkd_agg.qty, 0) ELSE 0 END) AS ticket_completed
-                FROM ec_booking_itineraries i
+                FROM (
+                    SELECT DISTINCT booking_id, departure, arrival, airline_code
+                    FROM ec_booking_itineraries
+                    WHERE direction = 0 AND add_type = 0 AND deleted = 0
+                        AND transit_order = 0
+                        AND (departure NOT IN ({$domestic_in}) OR arrival NOT IN ({$domestic_in}))
+                ) i
                     LEFT JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
                     LEFT JOIN (
                         SELECT booking_id, SUM(quantity) AS qty
@@ -344,11 +350,6 @@ class Viewairportstatistics extends SugarView
                         GROUP BY booking_id
                     ) bkd_agg ON bkd_agg.booking_id = b.id
                 WHERE b.date_entered BETWEEN '{$from_utc}' AND '{$to_utc}'
-                    AND i.direction = 0
-                    AND i.add_type = 0
-                    AND i.deleted = 0
-                    AND i.transit_order = 0
-                    AND (i.departure NOT IN ({$domestic_in}) OR i.arrival NOT IN ({$domestic_in}))
                 GROUP BY CONCAT(i.departure, i.arrival), i.airline_code
             ) AS t
             GROUP BY CONCAT(departure, arrival)
@@ -366,7 +367,8 @@ class Viewairportstatistics extends SugarView
                 AND i.add_type = 0
                 AND i.deleted = 0
                 AND i.transit_order = 0
-                AND (i.departure NOT IN ({$domestic_in}) OR i.arrival NOT IN ({$domestic_in}))";
+                AND (i.departure NOT IN ({$domestic_in}) OR i.arrival NOT IN ({$domestic_in}))
+            GROUP BY b.id, CONCAT(i.departure, i.arrival)";
 
         $route_booking_ids = [];
         $res_ids = $db->query($sql_completed_ids);
