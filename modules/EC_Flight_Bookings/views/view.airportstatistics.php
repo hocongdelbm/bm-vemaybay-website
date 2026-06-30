@@ -381,7 +381,7 @@ class Viewairportstatistics extends SugarView
             ) i
             WHERE (i.departure NOT IN ({$domestic_in}) OR i.arrival NOT IN ({$domestic_in}))";
 
-        pr($sql_completed_ids);
+        // pr($sql_completed_ids);
 
         $route_booking_ids = [];
         $res_ids = $db->query($sql_completed_ids);
