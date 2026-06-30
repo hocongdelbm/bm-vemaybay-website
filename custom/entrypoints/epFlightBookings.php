@@ -3971,10 +3971,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 						<th>Đặt bởi</th>
 						<th>Liên hệ</th>
 						<th>Số vé</th>
+						<th>Doanh số</th>
 					</tr>
 				</thead>
 				<tbody>';
-	$i = 1;
+	$i             = 1;
+	$total_qty     = 0;
+	$total_revenue = 0;
 	while ($row = $db->fetchByAssoc($res)) {
 		if ($row['booking_status'] == 2) { // CHỜ THANH TOÁN
 			$class_color = 'text-warning';
@@ -3990,6 +3993,10 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 			$class_color = 'text-dark';
 		}
 
+		$bk_revenue     = (int)calculateBKTotalAmt($row['id']);
+		$total_qty     += (int)$row['total_qty'];
+		$total_revenue += $bk_revenue;
+
 		$html .= '<tr>
 					<td class=" hide-mobile fw-bold text-center">' . $i . '</td>
 					<td class=""><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a></td>
@@ -3998,11 +4005,20 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 					<td class="">' . $user_list[$row['created_by']] . '</td>
 					<td class="">' . $row['contact_name'] . '</td>
 					<td class=" text-center fw-bold">' . $row['total_qty'] . '</td>
+					<td class=" text-end fw-bold">' . format_number($bk_revenue) . '</td>
 				</tr>';
 		$i++;
 	}
 
-	$html .= '</tbody></table>';
+	$html .= '</tbody>
+			<tfoot>
+				<tr class="fw-bold">
+					<td colspan="6" class="text-end"><i>Tổng cộng</i></td>
+					<td class="text-center">' . format_number($total_qty) . '</td>
+					<td class="text-end">' . format_number($total_revenue) . '</td>
+				</tr>
+			</tfoot>
+		</table>';
 	echo $html;
 	exit();
 }
