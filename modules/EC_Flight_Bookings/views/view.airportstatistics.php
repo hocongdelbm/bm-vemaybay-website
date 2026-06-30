@@ -324,7 +324,7 @@ class Viewairportstatistics extends SugarView
         $to_utc   = gmdate('Y-m-d H:i:s', strtotime($to_date . ' 23:59:59'));
 
         // Hành trình transit đang lấy hành trình đầu tiên
-        
+
         $sql_inter = "
             SELECT departure, arrival,
                 SUM(bk_qty) AS bk_qty,
@@ -382,7 +382,7 @@ class Viewairportstatistics extends SugarView
                 AND b.booking_status = '8'
             GROUP BY b.id";
 
-        pr($sql_completed_ids);
+        // pr($sql_completed_ids);
 
         $route_booking_ids = [];
         $res_ids = $db->query($sql_completed_ids);
