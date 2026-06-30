@@ -944,7 +944,7 @@
 		conversation = conversation || {};
 		var phone = normalizePhoneLike(conversation.phone || conversation.customerPhone || conversation.client_phone || '');
 		var rawId = conversation.conversationId || conversation.id || conversation._id || phone;
-		var id = phone || getCanonicalConversationId(rawId);
+		var id = getCanonicalConversationId(rawId) || phone;
 		if (!id) return null;
 		var latestMessage = conversation.latestMessage || null;
 		var latestSenderType = latestMessage
@@ -1142,8 +1142,10 @@
 	function ensureConversation(conversationId, attrs) {
 		attrs = attrs || {};
 		var phone = normalizePhoneLike(attrs.phone || attrs.customerPhone || attrs.client_phone || '');
-		var canonicalId = phone || getCanonicalConversationId(conversationId);
-		var conversation = getConversation(canonicalId) || getConversation(conversationId) || getConversationByPhone(phone);
+		var canonicalId = getCanonicalConversationId(conversationId) || phone;
+		// Phone-based lookup only for old bare-phone convIds (new unique IDs must stay separate).
+		var byPhone = (canonicalId === phone && !!phone) ? getConversationByPhone(phone) : null;
+		var conversation = getConversation(canonicalId) || getConversation(conversationId) || byPhone;
 		if (conversation) {
 			var oldId = conversation.id;
 			if (canonicalId && oldId !== canonicalId) {
@@ -2294,7 +2296,7 @@
 	// Updated protocol: notify includes `phone` (raw digits) alongside conversationId (UUID).
 	function handleRealtimeNotify(msg) {
 		var phone = normalizePhoneLike(msg.phone || msg.customerPhone || '');
-		var conversationId = phone || msg.conversationId;
+		var conversationId = msg.conversationId || phone;
 		var preview = msg.preview || '';
 
 		// Build display name from phone; conversation entry gets phone stored for later use
