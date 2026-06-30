@@ -7,11 +7,8 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * Used by EC_Flight_BookingsViewDetail. Methods are kept close to the
  * legacy implementation to preserve the old business behavior.
  */
-trait AssetsTrait
-{
-	private function displayCSS()
-	{
-		// Load CSS riêng cho detail view và các plugin/feature liên quan như Select2, Zalo, autobook.
+trait AssetsTrait {
+	private function displayCSS() {
 		echo <<<HTML
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css" />
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.4.0" />
@@ -20,21 +17,18 @@ trait AssetsTrait
 		HTML;
 	}
 
-	private function displayJS()
-	{
+	private function displayJS() {
 		global $app_list_strings, $current_user;
 
-		$version = '1.1.9';
-
 		// Load các file JS riêng của detail view: xử lý popup, autobook, Zalo/SMS, tài liệu, in vé.
-		$js = '
-			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=' . $version . '"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=' . $version . '"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=' . $version . '"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=' . $version . '"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=' . $version . '"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/print_ticket.js?v=' . $version . '"></script>
-		';
+		$js = <<<HTML
+			<script src="modules/{$this->bean->module_dir}/js/view.detail.js?v=1.2.0"></script>
+			<script src="modules/{$this->bean->module_dir}/js/autobook.js?v=1.2.0"></script>
+			<script src="modules/{$this->bean->module_dir}/js/api_zalo.js?v=1.2.0"></script>
+			<script src="modules/{$this->bean->module_dir}/js/api_sms.js?v=1.2.0"></script>
+			<script src="modules/{$this->bean->module_dir}/js/doc_list.js?v=1.2.0"></script>
+			<script src="modules/{$this->bean->module_dir}/js/print_ticket.js?v=1.2.0"></script>
+		HTML;
 
 		// Inject biến PHP sang JS để các script phía client dùng đúng trạng thái booking và cấu hình hiện tại.
 		$js .= '<script>

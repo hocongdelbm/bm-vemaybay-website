@@ -103,29 +103,6 @@ trait ZaloSmsTrait
 		return $this->bean->db->getOne("SELECT zalo_id FROM contacts WHERE phone_mobile = '$phone' AND deleted = 0 ORDER BY date_entered LIMIT 1") ?? '';
 	}
 
-
-	public function htmlZaloInfo($data)
-	{
-		// Render khối thông tin Zalo của khách: avatar, tên, trạng thái quan tâm, tương tác gần nhất.
-		if (is_null($data) || empty($data))
-			return '<p class="text-secondary" style="text-align:center; font-style:italic">Chưa có thông tin Zalo</p>';
-
-		$follow = $data['is_follow'] ? '<b class="text-primary" style="float:right;margin-left:20px;">Đã quan tâm</b>' : '<span class="text-secondary" style="float:right;margin-left:20px;">Chưa quan tâm</span>';
-		$html = '<div class="wrap-zalo-info" style="display:flex; justify-content:center; padding:10px 0; margin-bottom:15px; gap:20px; box-shadow: rgba(17, 17, 26, 0.05) 0px 1px 0px, rgba(17, 17, 26, 0.1) 0px 0px 8px;">
-			<div>
-				<div class="wrap-avatar" style="background-image: url(' . $data['avatar'] . '); background-size:contain; width:85px; height:85px; border-radius:50%; margin:0 auto;"></div>
-				<p class="mt-1">' . $data['name'] . '</p>
-			</div>
-			<div style="font-weight:normal">
-				<p><b>Zalo ID: </b>' . $data['id'] . $follow . '</p>
-				<p><b>Số điện thoại: </b>' . $data['phone'] . '</p>
-				<p><b>Tương tác lần cuối: </b> ' . $data['last_interaction'] . '</p>
-			</div>
-		</div>';
-
-		return $html;
-	}
-
 	/**
 	 * Get history sending ZBS messages
 	 * 

@@ -31,18 +31,14 @@ class entryBookingClass extends entryClass {
             $bookingBean->retrieve($bookingId);
             foreach ($fields as $name => $value) {
                 if (in_array($name, $list_allowed_fields)) {
-                    // Người dùng có thể dán nguyên link chat Zalo (vd: https://oa.zalo.me/chat?uid=123&oaid=456)
-                    // -> chỉ lưu uid làm zalo_id.
-                    if ($name === 'zalo_id' && !empty($value) && preg_match('/\buid=(\d+)/i', (string) $value, $matches)) {
-                        $value = $matches[1];
-                    }
                     $bookingBean->$name = $value;
                 }
             }
             if ($bookingBean->save2())
                 return ['status' => 1, 'message' => 'Thao tác thành công'];
             return ['status' => 0, 'message' => 'Thao tác không thành công, vui lòng thử lại'];
-        } catch (Throwable $th) {
+        }
+        catch (Throwable $th) {
             $GLOBALS['log']->fatal("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             return ["status" => 0, "message" => "Có lỗi xảy ra trong quá trình thao tác"];
         }

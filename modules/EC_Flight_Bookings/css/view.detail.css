@@ -30,10 +30,20 @@ form.tbl-change-flight-time {
 .nganluong__wrap {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
     align-items: center;
-    gap: 5px;
+    gap: 1rem;
 }
+.nganluong__wrap button {
+    background: transparent;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    min-width: 90px;
+    padding: 4px 7px;
+    overflow: hidden;
+    outline: none;
+}
+.nganluong__wrap button:hover {transform:scale(1.1);}
+.nganluong__wrap button span {font-weight:600;}
 
 #copy_payment_link {
     outline: none;
@@ -46,32 +56,11 @@ form.tbl-change-flight-time {
     overflow: hidden;
     padding: 4px 7px;
 }
-
 #copy_payment_link img {
     height: auto;
     max-width: 76%;
     background-repeat: no-repeat;
     object-fit: cover;
-}
-
-#copy_payment_link:hover {
-    transform: scale(1.1);
-}
-
-#get_qr_code {
-    outline: none;
-    background: transparent;
-    border: 1px solid #dee2e6;
-    border-radius: 0.375rem;
-    display: inline-block;
-    vertical-align: middle;
-    min-width: 95px;
-    overflow: hidden;
-    padding: 4px 7px;
-}
-
-#get_qr_code span {
-    font-weight: 600;
 }
 
 .dialog_qr_code {
