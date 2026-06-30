@@ -51,40 +51,7 @@ class Viewairportstatistics extends SugarView
             $booking_status = $_POST['booking_status'];
         }
 
-        switch (ceil(date('n') / 3)) {
-            case 1:
-                $quater_fromdate = '01-01-' . date('Y');
-                $quater_todate = '31-03-' . date('Y');
-                break;
-            case 2:
-                $quater_fromdate = '01-04-' . date('Y');
-                $quater_todate = '30-06-' . date('Y');
-                break;
-            case 3:
-                $quater_fromdate = '01-07-' . date('Y');
-                $quater_todate = '30-09-' . date('Y');
-                break;
-            case 4:
-                $quater_fromdate = '01-10-' . date('Y');
-                $quater_todate = '31-12-' . date('Y');
-                break;
-            default:
-                break;
-        }
-
-        $arr_date = array(
-            '<option value="" fromdate="" todate="">---Trống---</option>',
-            '<option value="this_month" fromdate="' . date('d-m-Y', strtotime('first day of this month')) . '" todate="' . date('d-m-Y', strtotime('last day of this month')) . '">Tháng này</option>',
-            '<option value="previous_month" fromdate="' . date('d-m-Y', strtotime('first day of last month')) . '" todate="' . date('d-m-Y', strtotime('last day of last month')) . '">Tháng trước</option>',
-            '<option value="quater_this_month" fromdate="' . $quater_fromdate . '" todate="' . $quater_todate . '">Quý này</option>',
-            '<option value="quater_previous_month" fromdate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_fromdate))) . '" todate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_todate))) . '">Quý trước</option>',
-            '<option value="this_year" fromdate="' . date('01-01-Y') . '" todate="' . date('31-12-Y') . '">Năm nay</option>',
-            '<option value="previous_year" fromdate="' . date('01-01-Y', strtotime('-1 year')) . '" todate="' . date('31-12-Y', strtotime('-1 year')) . '">Năm trước</option>',
-            '<option value="previous_2year" fromdate="' . date('01-01-Y', strtotime('-2 year')) . '" todate="' . date('31-12-Y', strtotime('-2 year')) . '">2 Năm trước</option>',
-            '<option value="previous_3year" fromdate="' . date('01-01-Y', strtotime('-3 year')) . '" todate="' . date('31-12-Y', strtotime('-3 year')) . '">3 Năm trước</option>',
-        );
-        // $smartyobj->assign('TEST_DATE', date('d-m-Y H:i:s'));
-        $smartyobj->assign('DATE_OPTION', implode('', $arr_date));
+        $smartyobj->assign('DATE_OPTION', myGetNewReportTerms($_POST['date_select'] ?? ''));
 
         // OTPION DATE - RADIO
         $smartyobj->assign('YESTERDAY_FROMDATE', date('d-m-Y', strtotime('-1 day')));
@@ -116,13 +83,19 @@ class Viewairportstatistics extends SugarView
         $res_return = $this->bean->db->query($sql_return);
         $return_inf = $this->bean->db->fetchByAssoc($res_return);
 
+        $date_from_sql_dom = date('Y-m-d', strtotime($from_date));
+        $date_to_sql_dom   = date('Y-m-d', strtotime($to_date));
+        $airport_in        = "'" . implode("','", $airport) . "'";
+
         $sql = "
             SELECT
                 departure,
                 arrival,
                 SUM(bk_qty) AS bk_qty,
                 SUM(total_ticket) AS total_ticket,
-                GROUP_CONCAT(CONCAT_WS(',', departure, arrival, bk_qty, total_ticket, airline_code) ORDER BY bk_qty DESC, airline_code SEPARATOR '|') AS dt_line
+                SUM(bk_completed) AS bk_completed,
+                SUM(ticket_completed) AS ticket_completed,
+                GROUP_CONCAT(CONCAT_WS(',', departure, arrival, bk_qty, total_ticket, airline_code, bk_completed, ticket_completed) ORDER BY bk_qty DESC, airline_code SEPARATOR '|') AS dt_line
                 FROM
                 (
                     SELECT
@@ -130,17 +103,19 @@ class Viewairportstatistics extends SugarView
                         i.departure,
                         i.arrival,
                         i.airline_code,
-                        SUM((SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = b.id AND deleted = 0)) AS total_ticket
+                        SUM((SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = b.id AND deleted = 0)) AS total_ticket,
+                        SUM(CASE WHEN b.booking_status = '8' THEN 1 ELSE 0 END) AS bk_completed,
+                        SUM(CASE WHEN b.booking_status = '8' THEN IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = b.id AND deleted = 0), 0) ELSE 0 END) AS ticket_completed
                     FROM
                         ec_booking_itineraries i
                         LEFT JOIN ec_flight_bookings b ON b.id = i.booking_id
                         AND b.deleted = 0
-                    WHERE DATE_FORMAT(DATE_ADD(b.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                    WHERE DATE_FORMAT(DATE_ADD(b.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$date_from_sql_dom}' AND '{$date_to_sql_dom}'
                         AND i.direction = 0
                         AND i.add_type = 0
                         AND i.deleted = 0
-                        AND i.departure IN ('" . implode($airport, "','") . "')
-                        AND i.arrival IN ('" . implode($airport, "','") . "')
+                        AND i.departure IN ({$airport_in})
+                        AND i.arrival IN ({$airport_in})
                     GROUP BY
                         CONCAT(i.departure, i.arrival),
                         i.airline_code
@@ -148,15 +123,38 @@ class Viewairportstatistics extends SugarView
                 GROUP BY CONCAT(departure, arrival)
                 ORDER BY bk_qty DESC";
 
+        // Lấy booking ID (status=8) theo từng route để tính doanh số qua calculateBKTotalAmt
+        $sql_dom_completed_ids = "
+            SELECT b.id AS booking_id,
+                CONCAT(i.departure, i.arrival) AS route_key
+            FROM ec_booking_itineraries i
+                JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
+            WHERE DATE_FORMAT(DATE_ADD(b.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$date_from_sql_dom}' AND '{$date_to_sql_dom}'
+                AND b.booking_status = '8'
+                AND i.direction = 0
+                AND i.add_type = 0
+                AND i.deleted = 0
+                AND i.departure IN ({$airport_in})
+                AND i.arrival IN ({$airport_in})";
+
+        $dom_route_booking_ids = [];
+        $res_dom_ids = $db->query($sql_dom_completed_ids);
+        while ($id_row = $db->fetchByAssoc($res_dom_ids)) {
+            $dom_route_booking_ids[$id_row['route_key']][] = $id_row['booking_id'];
+        }
+
         // if($current_user->user_name == 'hungnh'){
         //     pr($sql);
         // }
 
-        $res                = $db->query($sql);
-        $html               = '';
-        $i                  = 0;
-        $total_qty          = 0;
-        $total_ticket       = 0;
+        $res                    = $db->query($sql);
+        $html                   = '';
+        $i                      = 0;
+        $total_qty              = 0;
+        $total_ticket           = 0;
+        $total_bk_completed     = 0;
+        $total_ticket_completed = 0;
+        $total_revenue          = 0;
 
         $label_journey_arr  = array();
         $total_ticket_arr   = array();
@@ -170,7 +168,13 @@ class Viewairportstatistics extends SugarView
         $row_count  = $db->countRows($res);
         while ($row = $db->fetchByAssoc($res)) {
             $departure = $row['departure'];
-            $arrival = $row['arrival'];
+            $arrival   = $row['arrival'];
+
+            $route_key     = $departure . $arrival;
+            $route_revenue = 0;
+            foreach ($dom_route_booking_ids[$route_key] ?? [] as $bid) {
+                $route_revenue += (int)calculateBKTotalAmt($bid);
+            }
 
             $html .= '<tr class="main-line">
                 <td class="text-center fw-bold">' . ($i + 1) . '</td>
@@ -182,15 +186,18 @@ class Viewairportstatistics extends SugarView
                     </a>
                 </td>
                 <td class="text-center fw-bold">' . format_number($row['total_ticket']) . '</td>
+                <td class="text-center fw-bold">' . format_number($row['bk_completed']) . '</td>
+                <td class="text-center fw-bold">' . format_number($row['ticket_completed']) . '</td>
+                <td class="text-end fw-bold">' . format_number($route_revenue) . '</td>
                 <td class="text-center fw-bold"></td>
             </tr>';
 
             $label_journey_arr[($i + 1)] = $departure . ' - ' . $arrival;
             $total_ticket_arr[($i + 1)]  = $row['total_ticket'];
-            $total_qty_arr[($i + 1)]  = $row['bk_qty'];
+            $total_qty_arr[($i + 1)]     = $row['bk_qty'];
 
             // hiện chi tiết theo hãng bay
-            $dt_arr         = explode('|', $row['dt_line']);
+            $dt_arr = explode('|', $row['dt_line']);
             for ($k = 0; $k < count($dt_arr); $k++) {
                 $dt_val = explode(',', $dt_arr[$k]);
                 $html .= '<tr>
@@ -201,12 +208,18 @@ class Viewairportstatistics extends SugarView
                         ' . format_number($dt_val[2]) . '
                     </td>
                     <td class="text-center">' . format_number($dt_val[3]) . '</td>
+                    <td class="text-center">' . format_number($dt_val[5]) . '</td>
+                    <td class="text-center">' . format_number($dt_val[6]) . '</td>
+                    <td class="text-end"></td>
                     <td class="text-center">' . $app_list_strings['aircode_list'][$dt_val[4]] . '</td>
                 </tr>';
             }
 
-            $total_qty      += $row['bk_qty'];
-            $total_ticket   += $row['total_ticket'];
+            $total_qty              += $row['bk_qty'];
+            $total_ticket           += $row['total_ticket'];
+            $total_bk_completed     += $row['bk_completed'];
+            $total_ticket_completed += $row['ticket_completed'];
+            $total_revenue          += $route_revenue;
             $i++;
         }
 
@@ -264,6 +277,9 @@ class Viewairportstatistics extends SugarView
         $smartyobj->assign('TOTAL_ROW', $i);
         $smartyobj->assign('TOTAL_QTY', format_number($total_qty));
         $smartyobj->assign('TOTAL_TICKET', format_number($total_ticket - $return_inf['tt_return_ticket']));
+        $smartyobj->assign('TOTAL_BK_COMPLETED', format_number($total_bk_completed));
+        $smartyobj->assign('TOTAL_TICKET_COMPLETED', format_number($total_ticket_completed));
+        $smartyobj->assign('TOTAL_REVENUE', format_number($total_revenue));
         $smartyobj->assign('RETURN_BK', format_number($return_inf['tt_return_booking']));
         $smartyobj->assign('RETURN_TICKET', format_number($return_inf['tt_return_ticket']));
         $smartyobj->assign('RETURN_AMT', format_number($return_inf['tt_return']));
@@ -274,6 +290,9 @@ class Viewairportstatistics extends SugarView
         $smartyobj->assign('DATA_INTER', $html_inter['html_inter']);
         $smartyobj->assign('TOTAL_QTY_INTER', format_number($html_inter['total_qty']));
         $smartyobj->assign('TOTAL_TICKET_INTER', format_number($html_inter['total_ticket']));
+        $smartyobj->assign('TOTAL_BK_COMPLETED_INTER', format_number($html_inter['total_bk_completed']));
+        $smartyobj->assign('TOTAL_TICKET_COMPLETED_INTER', format_number($html_inter['total_ticket_completed']));
+        $smartyobj->assign('TOTAL_REVENUE_INTER', format_number($html_inter['total_revenue']));
     }
 
     function populateBookingInter($from_date, $to_date)
@@ -283,35 +302,66 @@ class Viewairportstatistics extends SugarView
         $airport_key_domestic    = array_keys($app_list_strings['domestic_airport_list']);
         $airport_arr             = array_merge($app_list_strings['domestic_airport_list'], $app_list_strings['southeast_asia_airport_list'], $app_list_strings['northeast_asia_airport_list'], $app_list_strings['europe_airport_list'], $app_list_strings['americas_airport_list'], $app_list_strings['australia_airport_list'], $app_list_strings['africa_airport_list']);
 
+        $date_from_sql = date('Y-m-d', strtotime($from_date));
+        $date_to_sql   = date('Y-m-d', strtotime($to_date));
+        $domestic_in   = "'" . implode("','", $airport_key_domestic) . "'";
+
         $sql_inter = "
             SELECT departure, arrival,
                 SUM(bk_qty) AS bk_qty,
                 SUM(total_ticket) AS total_ticket,
-                GROUP_CONCAT(CONCAT_WS(',', departure, arrival, bk_qty, total_ticket, airline_code) ORDER BY bk_qty DESC, airline_code SEPARATOR '|') AS dt_line
+                SUM(bk_completed) AS bk_completed,
+                SUM(ticket_completed) AS ticket_completed,
+                GROUP_CONCAT(CONCAT_WS(',', departure, arrival, bk_qty, total_ticket, airline_code, bk_completed, ticket_completed) ORDER BY bk_qty DESC, airline_code SEPARATOR '|') AS dt_line
             FROM (
                 SELECT COUNT(b.id) AS bk_qty,
                     i.departure,
                     i.arrival,
                     i.airline_code,
-                    SUM((SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = b.id AND deleted = 0)) AS total_ticket
+                    SUM((SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = b.id AND deleted = 0)) AS total_ticket,
+                    SUM(CASE WHEN b.booking_status = '8' THEN 1 ELSE 0 END) AS bk_completed,
+                    SUM(CASE WHEN b.booking_status = '8' THEN IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = b.id AND deleted = 0), 0) ELSE 0 END) AS ticket_completed
                 FROM ec_booking_itineraries i
                     LEFT JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
-                WHERE DATE_FORMAT(DATE_ADD(b.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                WHERE DATE_FORMAT(DATE_ADD(b.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$date_from_sql}' AND '{$date_to_sql}'
                     AND i.direction = 0
                     AND i.add_type = 0
                     AND i.deleted = 0
                     AND i.transit_order = 0
-                    AND (i.departure NOT IN ('" . implode($airport_key_domestic, "','") . "') OR i.arrival NOT IN ('" . implode($airport_key_domestic, "','") . "'))
+                    AND (i.departure NOT IN ({$domestic_in}) OR i.arrival NOT IN ({$domestic_in}))
                 GROUP BY CONCAT(i.departure, i.arrival), i.airline_code
             ) AS t
             GROUP BY CONCAT(departure, arrival)
             ORDER BY bk_qty DESC";
 
+        // Lấy booking ID (status=8) theo từng route để tính doanh số qua calculateBKTotalAmt
+        $sql_completed_ids = "
+            SELECT b.id AS booking_id,
+                CONCAT(i.departure, i.arrival) AS route_key
+            FROM ec_booking_itineraries i
+                JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
+            WHERE DATE_FORMAT(DATE_ADD(b.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$date_from_sql}' AND '{$date_to_sql}'
+                AND b.booking_status = '8'
+                AND i.direction = 0
+                AND i.add_type = 0
+                AND i.deleted = 0
+                AND i.transit_order = 0
+                AND (i.departure NOT IN ({$domestic_in}) OR i.arrival NOT IN ({$domestic_in}))";
+
+        $route_booking_ids = [];
+        $res_ids = $db->query($sql_completed_ids);
+        while ($id_row = $db->fetchByAssoc($res_ids)) {
+            $route_booking_ids[$id_row['route_key']][] = $id_row['booking_id'];
+        }
+
         $res = $db->query($sql_inter);
         $row_count = $db->countRows($res);
 
-        $total_qty      = 0;
-        $total_ticket   = 0;
+        $total_qty              = 0;
+        $total_ticket           = 0;
+        $total_bk_completed     = 0;
+        $total_ticket_completed = 0;
+        $total_revenue          = 0;
 
         // chartjs
         $label_journey_inter_arr  = array();
@@ -326,12 +376,25 @@ class Viewairportstatistics extends SugarView
         $i    = 0;
 
         while ($row = $db->fetchByAssoc($res)) {
+            $route_key    = $row['departure'] . $row['arrival'];
+            $route_revenue = 0;
+            foreach ($route_booking_ids[$route_key] ?? [] as $bid) {
+                $route_revenue += (int)calculateBKTotalAmt($bid);
+            }
+
             $html .= '<tr class="main-inter-line">
                 <td class="text-center fw-bold">' . ($i + 1) . '</td>
                 <td class="text-center fw-bold">' . $airport_arr[$row['departure']] . '</td>
                 <td class="text-center fw-bold">' . $airport_arr[$row['arrival']] . '</td>
-                <td class="text-center fw-bold">' . format_number($row['bk_qty']) . '</td>
+                <td class="text-center fw-bold">
+                    <a href="#" class="text-primary text-decoration-underline" data-bs-toggle="modal" data-bs-target="#mainLineModal" data-fromdate="' . $from_date . '" data-todate="' . $to_date . '" data-departure="' . $row['departure'] . '" data-arrival="' . $row['arrival'] . '">
+                        ' . format_number($row['bk_qty']) . '
+                    </a>
+                </td>
                 <td class="text-center fw-bold">' . format_number($row['total_ticket']) . '</td>
+                <td class="text-center fw-bold">' . format_number($row['bk_completed']) . '</td>
+                <td class="text-center fw-bold">' . format_number($row['ticket_completed']) . '</td>
+                <td class="text-end fw-bold">' . format_number($route_revenue) . '</td>
                 <td class="text-center fw-bold"></td>
             </tr>';
 
@@ -350,12 +413,18 @@ class Viewairportstatistics extends SugarView
                     <td class="text-end">' . $airport_arr[$dt_val[1]] . '</td>
                     <td class="text-center">' . format_number($dt_val[2]) . '</td>
                     <td class="text-center">' . format_number($dt_val[3]) . '</td>
+                    <td class="text-center">' . format_number($dt_val[5]) . '</td>
+                    <td class="text-center">' . format_number($dt_val[6]) . '</td>
+                    <td class="text-end"></td>
                     <td class="text-center">' . $GLOBALS['app_list_strings']['ma_hang'][$dt_val[4]] . '</td>
                 </tr>';
             }
 
-            $total_qty      += $row['bk_qty'];
-            $total_ticket   += $row['total_ticket'];
+            $total_qty              += $row['bk_qty'];
+            $total_ticket           += $row['total_ticket'];
+            $total_bk_completed     += $row['bk_completed'];
+            $total_ticket_completed += $row['ticket_completed'];
+            $total_revenue          += $route_revenue;
             $i++;
         }
 
@@ -406,9 +475,12 @@ class Viewairportstatistics extends SugarView
         }
 
         return array(
-            "html_inter" => $html,
-            "total_qty" => $total_qty,
-            "total_ticket" => $total_ticket,
+            "html_inter"             => $html,
+            "total_qty"              => $total_qty,
+            "total_ticket"           => $total_ticket,
+            "total_bk_completed"     => $total_bk_completed,
+            "total_ticket_completed" => $total_ticket_completed,
+            "total_revenue"          => $total_revenue,
         );
     }
 }
