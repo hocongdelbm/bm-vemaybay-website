@@ -24,7 +24,7 @@ trait AssetsTrait
 	{
 		global $app_list_strings, $current_user;
 
-		$version = '1.1.9';
+		$version = '1.2.0';
 
 		// Load các file JS riêng của detail view: xử lý popup, autobook, Zalo/SMS, tài liệu, in vé.
 		$js = '

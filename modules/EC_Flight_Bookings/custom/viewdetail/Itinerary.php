@@ -346,6 +346,9 @@ trait ItineraryTrait
 		/* POPUP REMIND */
 		$html .= $this->populateRemindTemplate();
 
+		/* POPUP CHECKIN NOTE */
+		$html .= $this->populateCheckinNoteModal();
+
 		return $html;
 	}
 

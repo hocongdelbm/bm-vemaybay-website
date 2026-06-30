@@ -28,6 +28,30 @@ trait TemplatesTrait
 		return;
 	}
 
+	function populateCheckinNoteModal()
+	{
+		// Modal nhập ghi chú khi chuyển hành trình sang trạng thái "Cần checkin".
+		$html = '
+		<div class="modal fade" id="checkinNoteModal" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Ghi chú hành trình</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<textarea id="checkinNoteText" class="form-control" rows="5" placeholder="Nhập ghi chú..."></textarea>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+						<button type="button" class="btn btn-primary" id="btnSaveCheckinNote">Lưu</button>
+					</div>
+				</div>
+			</div>
+		</div>';
+		return $html;
+	}
+
 	function populateRemindTemplate()
 	{
 		// Popup xác nhận nội dung nhắc lịch bay trước khi lưu trạng thái đã nhắc khách.
