@@ -3947,15 +3947,20 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 
 	$status_where = $status_filter !== null ? "AND bk.booking_status = '{$status_filter}'" : '';
 
-	// Subquery: tính hành trình thực tế (điểm đầu → điểm cuối) theo logic fillJourneyForBooking
+	// Chuyển khoảng ngày sang UTC để dùng index trên date_entered (stored in UTC)
+	$from_utc_detail = gmdate('Y-m-d H:i:s', strtotime($from_date . ' 00:00:00'));
+	$to_utc_detail   = gmdate('Y-m-d H:i:s', strtotime($to_date . ' 23:59:59'));
+
+	// Subquery: pre-filter booking theo date trước, rồi mới tính route qua window function
 	$route_subquery = "
-		SELECT
-			iti.booking_id,
-			CASE WHEN SUM(iti.stops = 1) > 0 THEN MIN(CASE WHEN iti.stops = 1 THEN iti.departure END) ELSE MIN(iti.departure) END AS departure,
-			CASE WHEN SUM(iti.stops = 1) > 0 THEN MAX(CASE WHEN iti.stops = 1 THEN iti.arrival END) ELSE MAX(iti.arrival) END AS arrival
-		FROM ec_booking_itineraries iti
-		WHERE iti.direction = 0 AND iti.add_type = 0 AND iti.deleted = 0
-		GROUP BY iti.booking_id
+		SELECT DISTINCT
+			i.booking_id,
+			FIRST_VALUE(i.departure) OVER (PARTITION BY i.booking_id ORDER BY i.departure_date ASC) AS departure,
+			LAST_VALUE(i.arrival) OVER (PARTITION BY i.booking_id ORDER BY i.departure_date ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS arrival
+		FROM ec_booking_itineraries i
+		JOIN ec_flight_bookings b_f ON b_f.id = i.booking_id AND b_f.deleted = 0
+			AND b_f.date_entered BETWEEN '{$from_utc_detail}' AND '{$to_utc_detail}'
+		WHERE i.direction=0 AND i.add_type=0 AND i.deleted=0
 	";
 
 	if ($scope === 'domestic') {

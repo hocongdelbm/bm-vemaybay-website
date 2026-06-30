@@ -51,7 +51,7 @@ class Viewairportstatistics extends SugarView
             $booking_status = $_POST['booking_status'];
         }
 
-        $smartyobj->assign('DATE_OPTION', myGetNewReportTerms($_POST['date_select'] ?? ''));
+        $smartyobj->assign('DATE_OPTION', myGetNewReportTerms($_POST['date_select'] ?? 'today'));
 
         // OTPION DATE - RADIO
         $smartyobj->assign('YESTERDAY_FROMDATE', date('d-m-Y', strtotime('-1 day')));
@@ -90,67 +90,60 @@ class Viewairportstatistics extends SugarView
         $to_utc_dom   = gmdate('Y-m-d H:i:s', strtotime($to_date . ' 23:59:59'));
 
         $sql = "
-            SELECT
-                departure,
-                arrival,
+            SELECT departure, arrival,
                 SUM(bk_qty) AS bk_qty,
                 SUM(total_ticket) AS total_ticket,
                 SUM(bk_completed) AS bk_completed,
                 SUM(ticket_completed) AS ticket_completed,
                 GROUP_CONCAT(CONCAT_WS(',', departure, arrival, bk_qty, total_ticket, airline_code, bk_completed, ticket_completed) ORDER BY bk_qty DESC, airline_code SEPARATOR '|') AS dt_line
-                FROM
-                (
-                    SELECT
-                        COUNT(b.id) AS bk_qty,
-                        i.departure,
-                        i.arrival,
-                        i.airline_code,
-                        SUM(IFNULL(bkd_agg.qty, 0)) AS total_ticket,
-                        SUM(CASE WHEN b.booking_status = '8' THEN 1 ELSE 0 END) AS bk_completed,
-                        SUM(CASE WHEN b.booking_status = '8' THEN IFNULL(bkd_agg.qty, 0) ELSE 0 END) AS ticket_completed
-                    FROM (
-                        SELECT
-                            iti.booking_id,
-                            CASE WHEN SUM(iti.stops = 1) > 0 THEN MIN(CASE WHEN iti.stops = 1 THEN iti.departure END) ELSE MIN(iti.departure) END AS departure,
-                            CASE WHEN SUM(iti.stops = 1) > 0 THEN MAX(CASE WHEN iti.stops = 1 THEN iti.arrival END) ELSE MAX(iti.arrival) END AS arrival,
-                            CASE WHEN SUM(iti.stops = 1) > 0 THEN MIN(CASE WHEN iti.stops = 1 THEN iti.airline_code END) ELSE MIN(iti.airline_code) END AS airline_code
-                        FROM ec_booking_itineraries iti
-                        WHERE iti.direction = 0 AND iti.add_type = 0 AND iti.deleted = 0
-                        GROUP BY iti.booking_id
-                        HAVING departure IN ({$airport_in}) AND arrival IN ({$airport_in})
-                    ) i
-                        LEFT JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
-                        LEFT JOIN (
-                            SELECT booking_id, SUM(quantity) AS qty
-                            FROM ec_booking_details WHERE deleted = 0
-                            GROUP BY booking_id
-                        ) bkd_agg ON bkd_agg.booking_id = b.id
-                    WHERE b.date_entered BETWEEN '{$from_utc_dom}' AND '{$to_utc_dom}'
-                    GROUP BY
-                        CONCAT(i.departure, i.arrival),
-                        i.airline_code
-                ) AS t
-                GROUP BY CONCAT(departure, arrival)
-                ORDER BY bk_qty DESC";
+            FROM (
+                SELECT
+                    COUNT(i.booking_id) AS bk_qty,
+                    i.departure,
+                    i.arrival,
+                    i.airline_code,
+                    SUM(IFNULL(bkd_agg.qty, 0)) AS total_ticket,
+                    SUM(CASE WHEN i.booking_status = '8' THEN 1 ELSE 0 END) AS bk_completed,
+                    SUM(CASE WHEN i.booking_status = '8' THEN IFNULL(bkd_agg.qty, 0) ELSE 0 END) AS ticket_completed
+                FROM (
+                    SELECT DISTINCT
+                        i.booking_id,
+                        b.booking_status,
+                        FIRST_VALUE(i.departure) OVER (PARTITION BY i.booking_id ORDER BY i.departure_date ASC) AS departure,
+                        FIRST_VALUE(i.airline_code) OVER (PARTITION BY i.booking_id ORDER BY i.departure_date ASC) AS airline_code,
+                        LAST_VALUE(i.arrival) OVER (PARTITION BY i.booking_id ORDER BY i.departure_date ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS arrival
+                    FROM ec_booking_itineraries i
+                    JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
+                        AND b.date_entered BETWEEN '{$from_utc_dom}' AND '{$to_utc_dom}'
+                    WHERE i.direction=0 AND i.add_type=0 AND i.deleted=0
+                ) i
+                LEFT JOIN (
+                    SELECT booking_id, SUM(quantity) AS qty
+                    FROM ec_booking_details WHERE deleted=0
+                    GROUP BY booking_id
+                ) bkd_agg ON bkd_agg.booking_id = i.booking_id
+                WHERE i.departure IN ({$airport_in}) AND i.arrival IN ({$airport_in})
+                GROUP BY CONCAT(i.departure, i.arrival), i.airline_code
+            ) AS t
+            GROUP BY CONCAT(departure, arrival)
+            ORDER BY bk_qty DESC";
 
         // Lấy booking ID (status=8) theo từng route để tính doanh số qua calculateBKTotalAmtBatch
         $sql_dom_completed_ids = "
-            SELECT b.id AS booking_id,
-                CONCAT(route.departure, route.arrival) AS route_key
+            SELECT i.booking_id,
+                CONCAT(i.departure, i.arrival) AS route_key
             FROM (
-                SELECT
-                    iti.booking_id,
-                    CASE WHEN SUM(iti.stops = 1) > 0 THEN MIN(CASE WHEN iti.stops = 1 THEN iti.departure END) ELSE MIN(iti.departure) END AS departure,
-                    CASE WHEN SUM(iti.stops = 1) > 0 THEN MAX(CASE WHEN iti.stops = 1 THEN iti.arrival END) ELSE MAX(iti.arrival) END AS arrival
-                FROM ec_booking_itineraries iti
-                WHERE iti.direction = 0 AND iti.add_type = 0 AND iti.deleted = 0
-                GROUP BY iti.booking_id
-                HAVING departure IN ({$airport_in}) AND arrival IN ({$airport_in})
-            ) route
-            JOIN ec_flight_bookings b ON b.id = route.booking_id AND b.deleted = 0
-            WHERE b.date_entered BETWEEN '{$from_utc_dom}' AND '{$to_utc_dom}'
-                AND b.booking_status = '8'
-            GROUP BY b.id";
+                SELECT DISTINCT
+                    i.booking_id,
+                    FIRST_VALUE(i.departure) OVER (PARTITION BY i.booking_id ORDER BY i.departure_date ASC) AS departure,
+                    LAST_VALUE(i.arrival) OVER (PARTITION BY i.booking_id ORDER BY i.departure_date ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS arrival
+                FROM ec_booking_itineraries i
+                JOIN ec_flight_bookings b ON b.id=i.booking_id AND b.deleted=0
+                    AND b.date_entered BETWEEN '{$from_utc_dom}' AND '{$to_utc_dom}'
+                    AND b.booking_status='8'
+                WHERE i.direction=0 AND i.add_type=0 AND i.deleted=0
+            ) i
+            WHERE i.departure IN ({$airport_in}) AND i.arrival IN ({$airport_in})";
 
         $dom_route_booking_ids = [];
         $res_dom_ids = $db->query($sql_dom_completed_ids);
@@ -338,31 +331,32 @@ class Viewairportstatistics extends SugarView
                 SUM(ticket_completed) AS ticket_completed,
                 GROUP_CONCAT(CONCAT_WS(',', departure, arrival, bk_qty, total_ticket, airline_code, bk_completed, ticket_completed) ORDER BY bk_qty DESC, airline_code SEPARATOR '|') AS dt_line
             FROM (
-                SELECT COUNT(b.id) AS bk_qty,
+                SELECT
+                    COUNT(i.booking_id) AS bk_qty,
                     i.departure,
                     i.arrival,
                     i.airline_code,
                     SUM(IFNULL(bkd_agg.qty, 0)) AS total_ticket,
-                    SUM(CASE WHEN b.booking_status = '8' THEN 1 ELSE 0 END) AS bk_completed,
-                    SUM(CASE WHEN b.booking_status = '8' THEN IFNULL(bkd_agg.qty, 0) ELSE 0 END) AS ticket_completed
+                    SUM(CASE WHEN i.booking_status = '8' THEN 1 ELSE 0 END) AS bk_completed,
+                    SUM(CASE WHEN i.booking_status = '8' THEN IFNULL(bkd_agg.qty, 0) ELSE 0 END) AS ticket_completed
                 FROM (
-                    SELECT
-                        iti.booking_id,
-                        CASE WHEN SUM(iti.stops = 1) > 0 THEN MIN(CASE WHEN iti.stops = 1 THEN iti.departure END) ELSE MIN(iti.departure) END AS departure,
-                        CASE WHEN SUM(iti.stops = 1) > 0 THEN MAX(CASE WHEN iti.stops = 1 THEN iti.arrival END) ELSE MAX(iti.arrival) END AS arrival,
-                        CASE WHEN SUM(iti.stops = 1) > 0 THEN MIN(CASE WHEN iti.stops = 1 THEN iti.airline_code END) ELSE MIN(iti.airline_code) END AS airline_code
-                    FROM ec_booking_itineraries iti
-                    WHERE iti.direction = 0 AND iti.add_type = 0 AND iti.deleted = 0
-                    GROUP BY iti.booking_id
-                    HAVING (departure NOT IN ({$domestic_in}) OR arrival NOT IN ({$domestic_in}))
+                    SELECT DISTINCT
+                        i.booking_id,
+                        b.booking_status,
+                        FIRST_VALUE(i.departure) OVER (PARTITION BY i.booking_id ORDER BY i.departure_date ASC) AS departure,
+                        FIRST_VALUE(i.airline_code) OVER (PARTITION BY i.booking_id ORDER BY i.departure_date ASC) AS airline_code,
+                        LAST_VALUE(i.arrival) OVER (PARTITION BY i.booking_id ORDER BY i.departure_date ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS arrival
+                    FROM ec_booking_itineraries i
+                    JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
+                        AND b.date_entered BETWEEN '{$from_utc}' AND '{$to_utc}'
+                    WHERE i.direction=0 AND i.add_type=0 AND i.deleted=0
                 ) i
-                    LEFT JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
-                    LEFT JOIN (
-                        SELECT booking_id, SUM(quantity) AS qty
-                        FROM ec_booking_details WHERE deleted = 0
-                        GROUP BY booking_id
-                    ) bkd_agg ON bkd_agg.booking_id = b.id
-                WHERE b.date_entered BETWEEN '{$from_utc}' AND '{$to_utc}'
+                LEFT JOIN (
+                    SELECT booking_id, SUM(quantity) AS qty
+                    FROM ec_booking_details WHERE deleted=0
+                    GROUP BY booking_id
+                ) bkd_agg ON bkd_agg.booking_id = i.booking_id
+                WHERE (i.departure NOT IN ({$domestic_in}) OR i.arrival NOT IN ({$domestic_in}))
                 GROUP BY CONCAT(i.departure, i.arrival), i.airline_code
             ) AS t
             GROUP BY CONCAT(departure, arrival)
@@ -372,24 +366,22 @@ class Viewairportstatistics extends SugarView
 
         // Lấy booking ID (status=8) theo từng route để tính doanh số qua calculateBKTotalAmtBatch
         $sql_completed_ids = "
-            SELECT b.id AS booking_id,
-                CONCAT(route.departure, route.arrival) AS route_key
+            SELECT i.booking_id,
+                CONCAT(i.departure, i.arrival) AS route_key
             FROM (
-                SELECT
-                    iti.booking_id,
-                    CASE WHEN SUM(iti.stops = 1) > 0 THEN MIN(CASE WHEN iti.stops = 1 THEN iti.departure END) ELSE MIN(iti.departure) END AS departure,
-                    CASE WHEN SUM(iti.stops = 1) > 0 THEN MAX(CASE WHEN iti.stops = 1 THEN iti.arrival END) ELSE MAX(iti.arrival) END AS arrival
-                FROM ec_booking_itineraries iti
-                WHERE iti.direction = 0 AND iti.add_type = 0 AND iti.deleted = 0
-                GROUP BY iti.booking_id
-                HAVING (departure NOT IN ({$domestic_in}) OR arrival NOT IN ({$domestic_in}))
-            ) route
-            JOIN ec_flight_bookings b ON b.id = route.booking_id AND b.deleted = 0
-            WHERE b.date_entered BETWEEN '{$from_utc}' AND '{$to_utc}'
-                AND b.booking_status = '8'
-            GROUP BY b.id";
+                SELECT DISTINCT
+                    i.booking_id,
+                    FIRST_VALUE(i.departure) OVER (PARTITION BY i.booking_id ORDER BY i.departure_date ASC) AS departure,
+                    LAST_VALUE(i.arrival) OVER (PARTITION BY i.booking_id ORDER BY i.departure_date ASC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS arrival
+                FROM ec_booking_itineraries i
+                JOIN ec_flight_bookings b ON b.id=i.booking_id AND b.deleted=0
+                    AND b.date_entered BETWEEN '{$from_utc}' AND '{$to_utc}'
+                    AND b.booking_status='8'
+                WHERE i.direction=0 AND i.add_type=0 AND i.deleted=0
+            ) i
+            WHERE (i.departure NOT IN ({$domestic_in}) OR i.arrival NOT IN ({$domestic_in}))";
 
-        // pr($sql_completed_ids);
+        pr($sql_completed_ids);
 
         $route_booking_ids = [];
         $res_ids = $db->query($sql_completed_ids);
