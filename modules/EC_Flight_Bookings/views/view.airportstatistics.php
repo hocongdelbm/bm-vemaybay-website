@@ -83,9 +83,11 @@ class Viewairportstatistics extends SugarView
         $res_return = $this->bean->db->query($sql_return);
         $return_inf = $this->bean->db->fetchByAssoc($res_return);
 
-        $date_from_sql_dom = date('Y-m-d', strtotime($from_date));
-        $date_to_sql_dom   = date('Y-m-d', strtotime($to_date));
-        $airport_in        = "'" . implode("','", $airport) . "'";
+        $airport_in = "'" . implode("','", $airport) . "'";
+
+        // UTC-shifted range so MySQL can use the index on date_entered (stored in UTC)
+        $from_utc_dom = gmdate('Y-m-d H:i:s', strtotime($from_date . ' 00:00:00'));
+        $to_utc_dom   = gmdate('Y-m-d H:i:s', strtotime($to_date . ' 23:59:59'));
 
         $sql = "
             SELECT
@@ -103,14 +105,18 @@ class Viewairportstatistics extends SugarView
                         i.departure,
                         i.arrival,
                         i.airline_code,
-                        SUM((SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = b.id AND deleted = 0)) AS total_ticket,
+                        SUM(IFNULL(bkd_agg.qty, 0)) AS total_ticket,
                         SUM(CASE WHEN b.booking_status = '8' THEN 1 ELSE 0 END) AS bk_completed,
-                        SUM(CASE WHEN b.booking_status = '8' THEN IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = b.id AND deleted = 0), 0) ELSE 0 END) AS ticket_completed
+                        SUM(CASE WHEN b.booking_status = '8' THEN IFNULL(bkd_agg.qty, 0) ELSE 0 END) AS ticket_completed
                     FROM
                         ec_booking_itineraries i
-                        LEFT JOIN ec_flight_bookings b ON b.id = i.booking_id
-                        AND b.deleted = 0
-                    WHERE DATE_FORMAT(DATE_ADD(b.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$date_from_sql_dom}' AND '{$date_to_sql_dom}'
+                        LEFT JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
+                        LEFT JOIN (
+                            SELECT booking_id, SUM(quantity) AS qty
+                            FROM ec_booking_details WHERE deleted = 0
+                            GROUP BY booking_id
+                        ) bkd_agg ON bkd_agg.booking_id = b.id
+                    WHERE b.date_entered BETWEEN '{$from_utc_dom}' AND '{$to_utc_dom}'
                         AND i.direction = 0
                         AND i.add_type = 0
                         AND i.deleted = 0
@@ -123,13 +129,13 @@ class Viewairportstatistics extends SugarView
                 GROUP BY CONCAT(departure, arrival)
                 ORDER BY bk_qty DESC";
 
-        // Lấy booking ID (status=8) theo từng route để tính doanh số qua calculateBKTotalAmt
+        // Lấy booking ID (status=8) theo từng route để tính doanh số qua calculateBKTotalAmtBatch
         $sql_dom_completed_ids = "
             SELECT b.id AS booking_id,
                 CONCAT(i.departure, i.arrival) AS route_key
             FROM ec_booking_itineraries i
                 JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
-            WHERE DATE_FORMAT(DATE_ADD(b.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$date_from_sql_dom}' AND '{$date_to_sql_dom}'
+            WHERE b.date_entered BETWEEN '{$from_utc_dom}' AND '{$to_utc_dom}'
                 AND b.booking_status = '8'
                 AND i.direction = 0
                 AND i.add_type = 0
@@ -142,6 +148,10 @@ class Viewairportstatistics extends SugarView
         while ($id_row = $db->fetchByAssoc($res_dom_ids)) {
             $dom_route_booking_ids[$id_row['route_key']][] = $id_row['booking_id'];
         }
+
+        // Tính doanh số tất cả booking hoàn tất bằng 1 query thay vì N queries
+        $all_dom_ids     = $dom_route_booking_ids ? array_merge(...array_values($dom_route_booking_ids)) : [];
+        $dom_revenue_map = calculateBKTotalAmtBatch(array_unique($all_dom_ids));
 
         // if($current_user->user_name == 'hungnh'){
         //     pr($sql);
@@ -165,7 +175,6 @@ class Viewairportstatistics extends SugarView
         $js_total_bk_qty    = "[";
         $airport_arr        = $app_list_strings['domestic_airport_list'];
 
-        $row_count  = $db->countRows($res);
         while ($row = $db->fetchByAssoc($res)) {
             $departure = $row['departure'];
             $arrival   = $row['arrival'];
@@ -173,7 +182,7 @@ class Viewairportstatistics extends SugarView
             $route_key     = $departure . $arrival;
             $route_revenue = 0;
             foreach ($dom_route_booking_ids[$route_key] ?? [] as $bid) {
-                $route_revenue += (int)calculateBKTotalAmt($bid);
+                $route_revenue += $dom_revenue_map[$bid] ?? 0;
             }
 
             $html .= '<tr class="main-line">
@@ -245,7 +254,7 @@ class Viewairportstatistics extends SugarView
         }
 
         // CHARTJS
-        if ($row_count > 0) {
+        if ($i > 0) {
             $js_total_ticket_new = substr($js_total_ticket, 0, -1); //Loại bỏ dấu , của element cuối cùng
             $js_total_ticket_new .= "]";
 
@@ -302,9 +311,11 @@ class Viewairportstatistics extends SugarView
         $airport_key_domestic    = array_keys($app_list_strings['domestic_airport_list']);
         $airport_arr             = array_merge($app_list_strings['domestic_airport_list'], $app_list_strings['southeast_asia_airport_list'], $app_list_strings['northeast_asia_airport_list'], $app_list_strings['europe_airport_list'], $app_list_strings['americas_airport_list'], $app_list_strings['australia_airport_list'], $app_list_strings['africa_airport_list']);
 
-        $date_from_sql = date('Y-m-d', strtotime($from_date));
-        $date_to_sql   = date('Y-m-d', strtotime($to_date));
         $domestic_in   = "'" . implode("','", $airport_key_domestic) . "'";
+
+        // UTC-shifted range so MySQL can use the index on date_entered (stored in UTC)
+        $from_utc = gmdate('Y-m-d H:i:s', strtotime($from_date . ' 00:00:00'));
+        $to_utc   = gmdate('Y-m-d H:i:s', strtotime($to_date . ' 23:59:59'));
 
         $sql_inter = "
             SELECT departure, arrival,
@@ -318,12 +329,17 @@ class Viewairportstatistics extends SugarView
                     i.departure,
                     i.arrival,
                     i.airline_code,
-                    SUM((SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = b.id AND deleted = 0)) AS total_ticket,
+                    SUM(IFNULL(bkd_agg.qty, 0)) AS total_ticket,
                     SUM(CASE WHEN b.booking_status = '8' THEN 1 ELSE 0 END) AS bk_completed,
-                    SUM(CASE WHEN b.booking_status = '8' THEN IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = b.id AND deleted = 0), 0) ELSE 0 END) AS ticket_completed
+                    SUM(CASE WHEN b.booking_status = '8' THEN IFNULL(bkd_agg.qty, 0) ELSE 0 END) AS ticket_completed
                 FROM ec_booking_itineraries i
                     LEFT JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
-                WHERE DATE_FORMAT(DATE_ADD(b.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$date_from_sql}' AND '{$date_to_sql}'
+                    LEFT JOIN (
+                        SELECT booking_id, SUM(quantity) AS qty
+                        FROM ec_booking_details WHERE deleted = 0
+                        GROUP BY booking_id
+                    ) bkd_agg ON bkd_agg.booking_id = b.id
+                WHERE b.date_entered BETWEEN '{$from_utc}' AND '{$to_utc}'
                     AND i.direction = 0
                     AND i.add_type = 0
                     AND i.deleted = 0
@@ -334,13 +350,13 @@ class Viewairportstatistics extends SugarView
             GROUP BY CONCAT(departure, arrival)
             ORDER BY bk_qty DESC";
 
-        // Lấy booking ID (status=8) theo từng route để tính doanh số qua calculateBKTotalAmt
+        // Lấy booking ID (status=8) theo từng route để tính doanh số qua calculateBKTotalAmtBatch
         $sql_completed_ids = "
             SELECT b.id AS booking_id,
                 CONCAT(i.departure, i.arrival) AS route_key
             FROM ec_booking_itineraries i
                 JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
-            WHERE DATE_FORMAT(DATE_ADD(b.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$date_from_sql}' AND '{$date_to_sql}'
+            WHERE b.date_entered BETWEEN '{$from_utc}' AND '{$to_utc}'
                 AND b.booking_status = '8'
                 AND i.direction = 0
                 AND i.add_type = 0
@@ -354,8 +370,11 @@ class Viewairportstatistics extends SugarView
             $route_booking_ids[$id_row['route_key']][] = $id_row['booking_id'];
         }
 
+        // Tính doanh số tất cả booking hoàn tất bằng 1 query thay vì N queries
+        $all_inter_ids    = $route_booking_ids ? array_merge(...array_values($route_booking_ids)) : [];
+        $inter_revenue_map = calculateBKTotalAmtBatch(array_unique($all_inter_ids));
+
         $res = $db->query($sql_inter);
-        $row_count = $db->countRows($res);
 
         $total_qty              = 0;
         $total_ticket           = 0;
@@ -379,7 +398,7 @@ class Viewairportstatistics extends SugarView
             $route_key    = $row['departure'] . $row['arrival'];
             $route_revenue = 0;
             foreach ($route_booking_ids[$route_key] ?? [] as $bid) {
-                $route_revenue += (int)calculateBKTotalAmt($bid);
+                $route_revenue += $inter_revenue_map[$bid] ?? 0;
             }
 
             $html .= '<tr class="main-inter-line">
@@ -450,7 +469,7 @@ class Viewairportstatistics extends SugarView
         }
 
         // CHARTJS - INTER
-        if ($row_count > 0) {
+        if ($i > 0) {
             $js_total_ticket_new = substr($js_total_ticket_inter, 0, -1); //Loại bỏ dấu , của element cuối cùng
             $js_total_ticket_new .= "]";
 
