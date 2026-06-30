@@ -58,7 +58,7 @@ form.tbl-change-flight-time {
 }
 #copy_payment_link img {
     height: auto;
-    max-width: 76%;
+    max-width: 66px;
     background-repeat: no-repeat;
     object-fit: cover;
 }

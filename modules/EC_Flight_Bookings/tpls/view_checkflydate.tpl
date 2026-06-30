@@ -247,7 +247,7 @@
                     <li><a href="#" class="pagination-link" data-page="{$NEXT_PAGE}" title="Trang tiếp">›</a></li>
                     <li><a href="#" class="pagination-link" data-page="{$TOTAL_PAGES}" title="Trang cuối">»</a></li>
                 {else}
-                    <li><a href="#" class="pagination-link disabled" title="Trang cuối">›</a></li>
+                    <li><a href="#" class="pagination-link disabled" title="Trang tiếp">›</a></li>
                     <li><a href="#" class="pagination-link disabled" title="Trang cuối">»</a></li>
                 {/if}
             </ul>

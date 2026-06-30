@@ -47,7 +47,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	{
 		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
-		$this->editing_rights = ACLController::checkAccess('EC_Flight_Bookings', 'edit', true);
+		$this->editing_rights = ACLController::checkAccess($this->bean->object_name, 'edit', true);
 
 		$this->displayCSSTrait();
 		$this->populateCustomButtons($deparment_info);

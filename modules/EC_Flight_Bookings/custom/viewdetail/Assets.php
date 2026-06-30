@@ -1,18 +1,12 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-/**
- * Assets CSS/JS for EC_Flight_Bookings detail view.
- *
- * Used by EC_Flight_BookingsViewDetail. Methods are kept close to the
- * legacy implementation to preserve the old business behavior.
- */
 trait AssetsTrait {
 	private function displayCSS() {
 		echo <<<HTML
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css" />
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.4.0" />
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0.0" />
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.4.1" />
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0.1" />
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0.0" />
 		HTML;
 	}

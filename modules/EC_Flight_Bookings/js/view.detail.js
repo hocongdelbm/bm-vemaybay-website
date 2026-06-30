@@ -300,16 +300,22 @@ $(document).ready(function () {
 		});
 	});
 
+	// Track previous checkin status before change
+	$(document).on('focus', 'select.checkin_status_iti', function () {
+		$(this).data('prev-val', $(this).val());
+	});
+
 	// Change checkin status
 	$(document).on("change", "select.checkin_status_iti", function () {
-		if (!confirm('Thay đổi trạng thái checkin?')) return false;
-		else {
-			let status = $(this).find(":selected").val();
-			let journey_id = $(this).attr('iti_id');
-			let journey_name = $(this).attr('iti_name');
-			let booking_id = $(this).attr('booking_id');
-			let record_name = $(this).attr('record_name');
+		let $select = $(this);
+		let status = $select.find(":selected").val();
+		let prevVal = $select.data('prev-val');
+		let journey_id = $select.attr('iti_id');
+		let journey_name = $select.attr('iti_name');
+		let booking_id = $select.attr('booking_id');
+		let record_name = $select.attr('record_name');
 
+		function doChangeStatus() {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				data: {
@@ -324,18 +330,69 @@ $(document).ready(function () {
 				cache: false,
 				success: function (response) {
 					if (response == 1) {
-						setTimeout(() => {
-							location.reload();
-						}, 150);
+						setTimeout(() => { location.reload(); }, 150);
 					} else {
+						$select.val(prevVal);
 						let text_warning = 'Lỗi khi thực hiện thay đổi trạng thái checkin. Vui lòng liên hệ IT để được hỗ trợ.';
 						showModalNotify(0, text_warning);
 						$('.modal-overlay, .btn-modal-close').addClass('reload');
 					}
 				}
 			});
-		};
+		}
 
+		if (status == '1') {
+			// Cần checkin — hiện modal nhập ghi chú
+			let $modal = $('#checkinNoteModal');
+			let existingNotes = $select.data('notes') || '';
+			$('#checkinNoteText').val(existingNotes);
+			$modal.removeData('saved');
+
+			let bsModal = new bootstrap.Modal($modal[0]);
+			bsModal.show();
+
+			$modal.off('hidden.bs.modal').on('hidden.bs.modal', function () {
+				if (!$(this).data('saved')) {
+					$select.val(prevVal);
+				}
+			});
+
+			$('#btnSaveCheckinNote').off('click').on('click', function () {
+				let notes = $('#checkinNoteText').val().trim();
+				if (!notes) {
+					$modal.data('saved', true);
+					bsModal.hide();
+					doChangeStatus();
+					return;
+				}
+				$.ajax({
+					type: 'POST',
+					url: 'index.php?entryPoint=entryPointFlightBookings',
+					data: { for: 'saveItineraryNotes', itinerary_id: journey_id, notes: notes },
+					dataType: 'json',
+					success: function (resp) {
+						if (resp.success) {
+							$select.data('notes', notes);
+							$modal.data('saved', true);
+							bsModal.hide();
+							doChangeStatus();
+						} else {
+							alert('Lỗi khi lưu ghi chú: ' + (resp.message || ''));
+						}
+					},
+					error: function () {
+						alert('Lỗi khi lưu ghi chú!');
+					}
+				});
+			});
+		} else {
+			// Đã checkin hoặc reset — giữ logic confirm cũ
+			if (!confirm('Thay đổi trạng thái checkin?')) {
+				$select.val(prevVal);
+				return false;
+			}
+			doChangeStatus();
+		}
 	});
 
 	// Open form send mail

@@ -47,8 +47,8 @@
 		});
 
         $(document).on("change", "#date_select", function(e) {
-            $("#from_date").val($(this).find("option:selected").attr("fromdate"));
-            $("#to_date").val($(this).find("option:selected").attr("todate"));
+            $("#from_date").val($(this).find("option:selected").attr("data-fromdate"));
+            $("#to_date").val($(this).find("option:selected").attr("data-todate"));
 
 			sessionStorage.setItem('date_select_statistics', $(this).val());
 			sessionStorage.removeItem('optionRadio_statistics');
@@ -75,12 +75,14 @@
         const mainLineModal = $('#mainLineModal');
         mainLineModal.on('show.bs.modal', function (event) {
             const button = $(event.relatedTarget); // element đã trigger modal
-            const departure = button.data('departure');
-            const arrival = button.data('arrival');
+            const departure = button.data('departure') || '';
+            const arrival = button.data('arrival') || '';
             const from_date = button.data('fromdate');
             const to_date = button.data('todate');
+            const status = button.data('status') || '';
+            const scope = button.data('scope') || '';
 
-            if(departure && arrival && from_date && to_date){ 
+            if(from_date && to_date && (departure && arrival || scope)){
                 $.ajax({
                     url: "index.php?entryPoint=entryPointFlightBookings",
                     type: "POST",
@@ -89,20 +91,33 @@
                         arrival: arrival,
                         from_date: from_date,
                         to_date: to_date,
+                        status_filter: status,
+                        scope: scope,
                         for: 'getDetailsAirportStatistics',
                     },
                     beforeSend: function () {
                        $("#mainLineModal").find('.modal-body').html('');
                        $("#mainLineModalLabel").find('.journey').html('');
                        $("#mainLineModalLabel").find('.date').html('');
+                       $("#mainLineModalLabel").find('.prefix').html('');
                     },
                     success: function (response) {
-                        $("#mainLineModalLabel").find('.journey').html(departure + ' - ' + arrival);
+                        const prefix = status == '8' ? 'BK hoàn tất' : 'Danh sách booking';
+                        let journeyLabel;
+                        if (scope === 'domestic') {
+                            journeyLabel = 'Nội địa';
+                        } else if (scope === 'international') {
+                            journeyLabel = 'Quốc tế';
+                        } else {
+                            journeyLabel = departure + ' - ' + arrival;
+                        }
+                        $("#mainLineModalLabel").find('.prefix').html(prefix);
+                        $("#mainLineModalLabel").find('.journey').html(journeyLabel);
                         $("#mainLineModalLabel").find('.date').html('từ ngày ' + from_date + ' đến ngày ' + to_date);
                         $("#mainLineModal").find('.modal-body').html(response);
                     }
                 });
-            } 
+            }
         });
 	});
 
@@ -239,39 +254,28 @@
                         <thead>
                             <tr>
                                 <th width="3%">STT</th>
-                                <th width="20%">Nơi đi</th>
-                                <th width="20%">Nơi đến</th>
-                                <th width="10%">Booking</th>
-                                <th width="10%">Số vé</th>
+                                <th width="15%">Nơi đi</th>
+                                <th width="15%">Nơi đến</th>
+                                <th width="8%">Booking</th>
+                                <th width="8%">Số vé</th>
+                                <th width="8%">BK HT</th>
+                                <th width="8%">Vé HT</th>
+                                <th width="12%">Doanh số</th>
                                 <th>Hãng bay</th>
                             </tr>
                             <tr class="total-line footer-tr">
                                 <th colspan="3"><i>Thông tin tổng hợp</i></th>
                                 <th>{$TOTAL_QTY}</th>
                                 <th style="text-align: center;">{$TOTAL_TICKET}</th>
+                                <th><a href="#" class="text-primary text-decoration-underline" data-bs-toggle="modal" data-bs-target="#mainLineModal" data-fromdate="{$FROM_DATE}" data-todate="{$TO_DATE}" data-scope="domestic" data-status="8">{$TOTAL_BK_COMPLETED}</a></th>
+                                <th style="text-align: center;">{$TOTAL_TICKET_COMPLETED}</th>
+                                <th style="text-align: right;">{$TOTAL_REVENUE}</th>
                                 <th>Hoàn BK: {$RETURN_BK}; Vé: {$RETURN_TICKET}<br>DS hoàn: {$RETURN_AMT}đ</th>
                             </tr>
                         </thead>
                         <tbody>
                             {$DATA}
                         </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="10">
-                                    <div class="modal fade" id="mainLineModal" tabindex="-1" aria-labelledby="mainLineModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog modal-xl modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h1 class="modal-title fs-5" id="mainLineModalLabel">Danh sách booking hành trình <span class="journey"></span> <span class="date"></span></h1>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -289,16 +293,22 @@
                         <thead>
                             <tr>
                                 <th width="3%">STT</th>
-                                <th width="20%">Nơi đi</th>
-                                <th width="20%">Nơi đến</th>
-                                <th width="10%">Booking</th>
-                                <th width="10%">Số vé</th>
+                                <th width="15%">Nơi đi</th>
+                                <th width="15%">Nơi đến</th>
+                                <th width="8%">Booking</th>
+                                <th width="8%">Số vé</th>
+                                <th width="8%">BK HT</th>
+                                <th width="8%">Vé HT</th>
+                                <th width="12%">Doanh số</th>
                                 <th>Hãng bay</th>
                             </tr>
                             <tr class="total-line footer-tr">
                                 <th colspan="3"><i>Thông tin tổng hợp</i></th>
                                 <th>{$TOTAL_QTY_INTER}</th>
                                 <th style="text-align: center;">{$TOTAL_TICKET_INTER}</th>
+                                <th><a href="#" class="text-primary text-decoration-underline" data-bs-toggle="modal" data-bs-target="#mainLineModal" data-fromdate="{$FROM_DATE}" data-todate="{$TO_DATE}" data-scope="international" data-status="8">{$TOTAL_BK_COMPLETED_INTER}</a></th>
+                                <th style="text-align: center;">{$TOTAL_TICKET_COMPLETED_INTER}</th>
+                                <th style="text-align: right;">{$TOTAL_REVENUE_INTER}</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -308,6 +318,18 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="mainLineModal" tabindex="-1" aria-labelledby="mainLineModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="mainLineModalLabel"><span class="prefix">Danh sách booking</span> hành trình <span class="journey"></span> <span class="date"></span></h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body"></div>
         </div>
     </div>
 </div>
