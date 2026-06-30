@@ -1,56 +1,80 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
 
 $dictionary['EC_Airports'] = array(
     'table' => 'ec_airports',
     'audited' => true,
     'inline_edit' => true,
     'duplicate_merge' => true,
-    'fields' => array (
-),
-    'relationships' => array (
-),
+    'fields' => array(
+        'iata_code' => array(
+            'name'      => 'iata_code',
+            'vname'     => 'LBL_IATA_CODE',
+            'type'      => 'varchar',
+            'comment'   => 'Mã IATA sân bay: HAN, SGN, DXB, BKK, ...',
+            'len'       => 3,
+            'required'  => true,
+            'importable' => 'true',
+            'audited'   => 1,
+            'reportable' => 1,
+            'unified_search' => true,
+        ),
+        'city_name' => array(
+            'name'      => 'city_name',
+            'vname'     => 'LBL_CITY_NAME',
+            'type'      => 'varchar',
+            'comment'   => 'Tên thành phố: "Hà Nội", "Hồ Chí Minh", "Dubai"',
+            'len'       => 100,
+            'default'   => '',
+            'importable' => 'true',
+            'audited'   => 0,
+            'reportable' => 1,
+        ),
+        'country_code' => array(
+            'required'  => false,
+            'name'      => 'country_code',
+            'vname'     => 'LBL_COUNTRY_CODE',
+            'type'      => 'varchar',
+            'comment'   => 'Mã quốc gia ISO 2 ký tự: VN, AE, TH, SG, ...',
+            'len'       => 2,
+            'default'   => '',
+            'importable' => 'true',
+            'audited'   => 0,
+            'reportable' => 1,
+        ),
+        'is_domestic' => array(
+            'required'  => false,
+            'name'      => 'is_domestic',
+            'vname'     => 'LBL_IS_DOMESTIC',
+            'type'      => 'bool',
+            'default'   => 0,
+            'importable' => 'true',
+            'audited'   => 0,
+            'reportable' => 1,
+        ),
+        'is_active' => array(
+            'required'  => false,
+            'name'      => 'is_active',
+            'vname'     => 'LBL_IS_ACTIVE',
+            'type'      => 'bool',
+            'default'   => 1,
+            'importable' => 'true',
+            'audited'   => 1,
+            'reportable' => 1,
+        ),
+    ),
+    'indices' => array(
+        array('name' => 'idx_airports_iata_code',      'type' => 'unique', 'fields' => array('iata_code')),
+        array('name' => 'idx_airports_name',           'type' => 'index',  'fields' => array('name')),
+        array('name' => 'idx_airports_city_name',      'type' => 'index',  'fields' => array('city_name')),
+        array('name' => 'idx_airports_is_domestic', 'type' => 'index', 'fields' => array('is_domestic')),
+        array('name' => 'idx_airports_is_active',      'type' => 'index',  'fields' => array('is_active')),
+    ),
+    'relationships' => array(),
     'optimistic_locking' => true,
     'unified_search' => true,
 );
+
 if (!class_exists('VardefManager')) {
-        require_once('include/SugarObjects/VardefManager.php');
+    require_once('include/SugarObjects/VardefManager.php');
 }
-VardefManager::createVardef('EC_Airports', 'EC_Airports', array('basic','assignable','security_groups'));
+VardefManager::createVardef('EC_Airports', 'EC_Airports', array('basic', 'assignable', 'security_groups'));
