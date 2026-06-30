@@ -195,7 +195,11 @@ class Viewairportstatistics extends SugarView
                     </a>
                 </td>
                 <td class="text-center fw-bold">' . format_number($row['total_ticket']) . '</td>
-                <td class="text-center fw-bold">' . format_number($row['bk_completed']) . '</td>
+                <td class="text-center fw-bold">
+                    <a href="#" class="text-primary text-decoration-underline" data-bs-toggle="modal" data-bs-target="#mainLineModal" data-fromdate="'.$from_date.'" data-todate="'.$to_date.'" data-departure="'.$departure.'" data-arrival="'.$arrival.'" data-status="8">
+                        ' . format_number($row['bk_completed']) . '
+                    </a>
+                </td>
                 <td class="text-center fw-bold">' . format_number($row['ticket_completed']) . '</td>
                 <td class="text-end fw-bold">' . format_number($route_revenue) . '</td>
                 <td class="text-center fw-bold"></td>
@@ -411,7 +415,11 @@ class Viewairportstatistics extends SugarView
                     </a>
                 </td>
                 <td class="text-center fw-bold">' . format_number($row['total_ticket']) . '</td>
-                <td class="text-center fw-bold">' . format_number($row['bk_completed']) . '</td>
+                <td class="text-center fw-bold">
+                    <a href="#" class="text-primary text-decoration-underline" data-bs-toggle="modal" data-bs-target="#mainLineModal" data-fromdate="' . $from_date . '" data-todate="' . $to_date . '" data-departure="' . $row['departure'] . '" data-arrival="' . $row['arrival'] . '" data-status="8">
+                        ' . format_number($row['bk_completed']) . '
+                    </a>
+                </td>
                 <td class="text-center fw-bold">' . format_number($row['ticket_completed']) . '</td>
                 <td class="text-end fw-bold">' . format_number($route_revenue) . '</td>
                 <td class="text-center fw-bold"></td>

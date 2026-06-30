@@ -79,8 +79,9 @@
             const arrival = button.data('arrival');
             const from_date = button.data('fromdate');
             const to_date = button.data('todate');
+            const status = button.data('status') || '';
 
-            if(departure && arrival && from_date && to_date){ 
+            if(departure && arrival && from_date && to_date){
                 $.ajax({
                     url: "index.php?entryPoint=entryPointFlightBookings",
                     type: "POST",
@@ -89,20 +90,24 @@
                         arrival: arrival,
                         from_date: from_date,
                         to_date: to_date,
+                        status_filter: status,
                         for: 'getDetailsAirportStatistics',
                     },
                     beforeSend: function () {
                        $("#mainLineModal").find('.modal-body').html('');
                        $("#mainLineModalLabel").find('.journey').html('');
                        $("#mainLineModalLabel").find('.date').html('');
+                       $("#mainLineModalLabel").find('.prefix').html('');
                     },
                     success: function (response) {
+                        const prefix = status == '8' ? 'BK hoàn tất' : 'Danh sách booking';
+                        $("#mainLineModalLabel").find('.prefix').html(prefix);
                         $("#mainLineModalLabel").find('.journey').html(departure + ' - ' + arrival);
                         $("#mainLineModalLabel").find('.date').html('từ ngày ' + from_date + ' đến ngày ' + to_date);
                         $("#mainLineModal").find('.modal-body').html(response);
                     }
                 });
-            } 
+            }
         });
 	});
 
@@ -311,7 +316,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="mainLineModalLabel">Danh sách booking hành trình <span class="journey"></span> <span class="date"></span></h1>
+                <h1 class="modal-title fs-5" id="mainLineModalLabel"><span class="prefix">Danh sách booking</span> hành trình <span class="journey"></span> <span class="date"></span></h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body"></div>

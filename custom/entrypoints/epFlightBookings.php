@@ -3934,10 +3934,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 	$from_date = isset($_POST['from_date']) && strtotime($_POST['from_date']) !== false ? date('Y-m-d', strtotime($_POST['from_date'])) : '';
 	$to_date = isset($_POST['to_date']) && strtotime($_POST['to_date']) !== false ? date('Y-m-d', strtotime($_POST['to_date'])) : '';
 
-	$departure = $_POST['departure'] ?? '';
-	$arrival = $_POST['arrival'] ?? '';
+	$departure     = $_POST['departure'] ?? '';
+	$arrival       = $_POST['arrival'] ?? '';
+	$status_filter = isset($_POST['status_filter']) && ctype_digit((string)$_POST['status_filter']) ? (int)$_POST['status_filter'] : null;
 
 	$user_list = get_user_array(true, 'Active', '', true);
+
+	$status_where = $status_filter !== null ? "AND bk.booking_status = '{$status_filter}'" : '';
 
 	$sql = "
 		SELECT
@@ -3957,6 +3960,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 			AND i.add_type = 0
 		WHERE DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$from_date}' AND '{$to_date}'
 		AND bk.deleted = 0
+		{$status_where}
 		ORDER BY bk.created_by, bk.date_entered DESC
 	";
 	$res = $db->query($sql);
