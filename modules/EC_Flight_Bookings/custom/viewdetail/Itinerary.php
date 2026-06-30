@@ -275,7 +275,7 @@ trait ItineraryTrait
 				$checkin_status = '';
 				if ((int)$row['checkin_status'] !== 2 && in_array((int)$this->bean->booking_status, [3, 7, 8])) {
 					$jour_name = $row['departure'] . '-' . $row['arrival'];
-					$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $this->bean->id . '" record_name="' . $this->bean->name . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
+					$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $this->bean->id . '" record_name="' . $this->bean->name . '" data-notes="' . htmlspecialchars($row['description'] ?? '', ENT_QUOTES) . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
 				}
 
 				$html .= '<td data-label="" class="text-center">
@@ -482,7 +482,7 @@ trait ItineraryTrait
 
 				if ((int) $row['checkin_status'] !== 2 && in_array((int) $row['booking_status'], [7, 8])) {
 					$jour_name = $row['departure'] . '-' . $row['arrival'];
-					$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $this->bean->id . '" record_name="' . $row['bk_name'] . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int) $row['checkin_status']) . '</select>';
+					$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $this->bean->id . '" record_name="' . $row['bk_name'] . '" data-notes="' . htmlspecialchars($row['description'] ?? '', ENT_QUOTES) . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int) $row['checkin_status']) . '</select>';
 				}
 			}
 

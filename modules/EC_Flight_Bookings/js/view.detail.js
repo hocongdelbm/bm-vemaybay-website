@@ -344,7 +344,8 @@ $(document).ready(function () {
 		if (status == '1') {
 			// Cần checkin — hiện modal nhập ghi chú
 			let $modal = $('#checkinNoteModal');
-			$('#checkinNoteText').val('');
+			let existingNotes = $select.data('notes') || '';
+			$('#checkinNoteText').val(existingNotes);
 			$modal.removeData('saved');
 
 			let bsModal = new bootstrap.Modal($modal[0]);
@@ -371,6 +372,7 @@ $(document).ready(function () {
 					dataType: 'json',
 					success: function (resp) {
 						if (resp.success) {
+							$select.data('notes', notes);
 							$modal.data('saved', true);
 							bsModal.hide();
 							doChangeStatus();
