@@ -3944,19 +3944,27 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 
 	$status_where = $status_filter !== null ? "AND bk.booking_status = '{$status_filter}'" : '';
 
+	// Subquery: tính hành trình thực tế (điểm đầu → điểm cuối) theo logic fillJourneyForBooking
+	$route_subquery = "
+		SELECT
+			iti.booking_id,
+			CASE WHEN SUM(iti.stops = 1) > 0 THEN MIN(CASE WHEN iti.stops = 1 THEN iti.departure END) ELSE MIN(iti.departure) END AS departure,
+			CASE WHEN SUM(iti.stops = 1) > 0 THEN MAX(CASE WHEN iti.stops = 1 THEN iti.arrival END) ELSE MAX(iti.arrival) END AS arrival
+		FROM ec_booking_itineraries iti
+		WHERE iti.direction = 0 AND iti.add_type = 0 AND iti.deleted = 0
+		GROUP BY iti.booking_id
+	";
+
 	if ($scope === 'domestic') {
 		$dom_keys = array_keys($app_list_strings['domestic_airport_list']);
 		$dom_in   = "'" . implode("','", $dom_keys) . "'";
-		$itin_filter = "AND i.direction = 0 AND i.add_type = 0
-			AND i.departure IN ({$dom_in}) AND i.arrival IN ({$dom_in})";
+		$route_filter = "AND route.departure IN ({$dom_in}) AND route.arrival IN ({$dom_in})";
 	} elseif ($scope === 'international') {
 		$dom_keys = array_keys($app_list_strings['domestic_airport_list']);
 		$dom_in   = "'" . implode("','", $dom_keys) . "'";
-		$itin_filter = "AND i.direction = 0 AND i.add_type = 0 AND i.transit_order = 0
-			AND (i.departure NOT IN ({$dom_in}) OR i.arrival NOT IN ({$dom_in}))";
+		$route_filter = "AND (route.departure NOT IN ({$dom_in}) OR route.arrival NOT IN ({$dom_in}))";
 	} else {
-		$itin_filter = "AND i.departure = '{$departure}' AND i.arrival = '{$arrival}'
-			AND i.direction = 0 AND i.add_type = 0";
+		$route_filter = "AND route.departure = '{$departure}' AND route.arrival = '{$arrival}'";
 	}
 
 	$sql = "
@@ -3970,8 +3978,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 			bk.total_qty,
 			bk.created_by
 		FROM ec_flight_bookings bk
-		INNER JOIN ec_booking_itineraries i ON i.booking_id = bk.id AND i.deleted = 0
-			{$itin_filter}
+		INNER JOIN ({$route_subquery}) route ON route.booking_id = bk.id
+			{$route_filter}
 		WHERE DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$from_date}' AND '{$to_date}'
 		AND bk.deleted = 0
 		{$status_where}
