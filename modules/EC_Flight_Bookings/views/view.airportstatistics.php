@@ -112,6 +112,7 @@ class Viewairportstatistics extends SugarView
                         SELECT DISTINCT booking_id, departure, arrival, airline_code
                         FROM ec_booking_itineraries
                         WHERE direction = 0 AND add_type = 0 AND deleted = 0
+                            AND transit_order = 0
                             AND departure IN ({$airport_in}) AND arrival IN ({$airport_in})
                     ) i
                         LEFT JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
@@ -139,6 +140,7 @@ class Viewairportstatistics extends SugarView
                 AND i.direction = 0
                 AND i.add_type = 0
                 AND i.deleted = 0
+                AND i.transit_order = 0
                 AND i.departure IN ({$airport_in})
                 AND i.arrival IN ({$airport_in})
             GROUP BY b.id, CONCAT(i.departure, i.arrival)";
@@ -190,13 +192,13 @@ class Viewairportstatistics extends SugarView
                 <td class="text-center fw-bold">' . $airport_arr[$departure] . '</td>
                 <td class="text-center fw-bold">' . $airport_arr[$arrival] . '</td>
                 <td class="text-center fw-bold">
-                    <a href="#" class="text-primary text-decoration-underline" data-bs-toggle="modal" data-bs-target="#mainLineModal" data-fromdate="'.$from_date.'" data-todate="'.$to_date.'" data-departure="'.$departure.'" data-arrival="'.$arrival.'">
+                    <a href="#" class="text-primary text-decoration-underline" data-bs-toggle="modal" data-bs-target="#mainLineModal" data-fromdate="' . $from_date . '" data-todate="' . $to_date . '" data-departure="' . $departure . '" data-arrival="' . $arrival . '">
                         ' . format_number($row['bk_qty']) . '
                     </a>
                 </td>
                 <td class="text-center fw-bold">' . format_number($row['total_ticket']) . '</td>
                 <td class="text-center fw-bold">
-                    <a href="#" class="text-primary text-decoration-underline" data-bs-toggle="modal" data-bs-target="#mainLineModal" data-fromdate="'.$from_date.'" data-todate="'.$to_date.'" data-departure="'.$departure.'" data-arrival="'.$arrival.'" data-status="8">
+                    <a href="#" class="text-primary text-decoration-underline" data-bs-toggle="modal" data-bs-target="#mainLineModal" data-fromdate="' . $from_date . '" data-todate="' . $to_date . '" data-departure="' . $departure . '" data-arrival="' . $arrival . '" data-status="8">
                         ' . format_number($row['bk_completed']) . '
                     </a>
                 </td>
@@ -321,6 +323,8 @@ class Viewairportstatistics extends SugarView
         $from_utc = gmdate('Y-m-d H:i:s', strtotime($from_date . ' 00:00:00'));
         $to_utc   = gmdate('Y-m-d H:i:s', strtotime($to_date . ' 23:59:59'));
 
+        // Hành trình transit đang lấy hành trình đầu tiên
+        
         $sql_inter = "
             SELECT departure, arrival,
                 SUM(bk_qty) AS bk_qty,
@@ -337,11 +341,15 @@ class Viewairportstatistics extends SugarView
                     SUM(CASE WHEN b.booking_status = '8' THEN 1 ELSE 0 END) AS bk_completed,
                     SUM(CASE WHEN b.booking_status = '8' THEN IFNULL(bkd_agg.qty, 0) ELSE 0 END) AS ticket_completed
                 FROM (
-                    SELECT DISTINCT booking_id, departure, arrival, airline_code
-                    FROM ec_booking_itineraries
-                    WHERE direction = 0 AND add_type = 0 AND deleted = 0
-                        AND transit_order = 0
-                        AND (departure NOT IN ({$domestic_in}) OR arrival NOT IN ({$domestic_in}))
+                    SELECT i.booking_id, i.departure, i.arrival, i.airline_code
+                    FROM ec_booking_itineraries i
+                    INNER JOIN (
+                        SELECT booking_id, MIN(id) AS min_id
+                        FROM ec_booking_itineraries
+                        WHERE direction = 0 AND add_type = 0 AND deleted = 0
+                            AND (departure NOT IN ({$domestic_in}) OR arrival NOT IN ({$domestic_in}))
+                        GROUP BY booking_id
+                    ) first_leg ON first_leg.booking_id = i.booking_id AND first_leg.min_id = i.id
                 ) i
                     LEFT JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
                     LEFT JOIN (
@@ -355,20 +363,26 @@ class Viewairportstatistics extends SugarView
             GROUP BY CONCAT(departure, arrival)
             ORDER BY bk_qty DESC";
 
+        // pr($sql_inter);
+
         // Lấy booking ID (status=8) theo từng route để tính doanh số qua calculateBKTotalAmtBatch
         $sql_completed_ids = "
             SELECT b.id AS booking_id,
                 CONCAT(i.departure, i.arrival) AS route_key
-            FROM ec_booking_itineraries i
-                JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
+            FROM (
+                SELECT booking_id, MIN(id) AS min_id
+                FROM ec_booking_itineraries
+                WHERE direction = 0 AND add_type = 0 AND deleted = 0
+                    AND (departure NOT IN ({$domestic_in}) OR arrival NOT IN ({$domestic_in}))
+                GROUP BY booking_id
+            ) first_leg
+            JOIN ec_booking_itineraries i ON i.id = first_leg.min_id
+            JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
             WHERE b.date_entered BETWEEN '{$from_utc}' AND '{$to_utc}'
                 AND b.booking_status = '8'
-                AND i.direction = 0
-                AND i.add_type = 0
-                AND i.deleted = 0
-                AND i.transit_order = 0
-                AND (i.departure NOT IN ({$domestic_in}) OR i.arrival NOT IN ({$domestic_in}))
-            GROUP BY b.id, CONCAT(i.departure, i.arrival)";
+            GROUP BY b.id";
+
+        pr($sql_completed_ids);
 
         $route_booking_ids = [];
         $res_ids = $db->query($sql_completed_ids);
