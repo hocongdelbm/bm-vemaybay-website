@@ -2131,6 +2131,92 @@ $(document).ready(function () {
 		}
 	});
 
+	// Tách Zalo ID (uid) từ chuỗi người dùng nhập/dán vào.
+	// Hỗ trợ: link chat Zalo có tham số uid (vd: https://oa.zalo.me/chat?uid=123&oaid=456),
+	// hoặc nhập trực tiếp Zalo ID dạng số.
+	function extractZaloId(rawValue) {
+		const value = (rawValue || '').trim();
+		if (!value) return '';
+
+		const uidMatch = value.match(/[?&]uid=(\d+)/i) || value.match(/\buid=(\d+)/i);
+		if (uidMatch) return uidMatch[1];
+
+		// Nếu chỉ nhập số (không phải link) thì giữ nguyên.
+		if (/^\d+$/.test(value)) return value;
+
+		return value;
+	}
+
+	// Add/update Zalo ID
+	$('#btn_update_zalo_id').on('click', function () {
+		const dialogBookingId = $(this).attr('booking_id') || bookingId;
+
+		$('#dialog_update_zalo_id').dialog({
+			width: 380,
+			modal: true,
+			resizable: false,
+			title: "Liên kết Zalo",
+			dialogClass: "dialog-update-zalo-id",
+			buttons: [
+				{
+					text: "Lưu",
+					class: "btn btn-primary-2 zalo-dialog-btn zalo-dialog-btn--save",
+					click: function () {
+						const dialog = $(this);
+						// Người dùng có thể dán nguyên link chat Zalo (vd: https://oa.zalo.me/chat?uid=123&oaid=456)
+						// -> tách lấy uid để lưu làm zalo_id.
+						const zaloId = extractZaloId($('#input_zalo_id').val());
+						if (zaloId.length > 0 && zaloId.length < 15) {
+							showModalNotify(2, "Zalo ID không hợp lệ. Vui lòng dán đúng link chat Zalo hoặc nhập Zalo ID.");
+							return;
+						}
+
+						$.ajax({
+							url: "index.php?entryPoint=entryPointGeneral",
+							type: "POST",
+							contentType: "application/json",
+							dataType: "json",
+							data: JSON.stringify({
+								class: "entryBookingClass",
+								method: "updateFields",
+								params: {
+									bookingId: dialogBookingId,
+									fields: { zalo_id: zaloId }
+								}
+							}),
+							beforeSend: function () {
+								$('.container-waiting').show();
+							},
+							success: function (res) {
+								if ('status' in res && res.status === 1) {
+									dialog.dialog('close');
+									location.reload();
+								} else {
+									showModalNotify(0, res.message || "Thao tác không thành công, vui lòng thử lại.");
+								}
+							},
+							error: function (XMLHttpRequest, textStatus, errorThrown) {
+								console.error("Status: " + textStatus);
+								console.error("Error: " + errorThrown);
+								showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+							},
+							complete: function () {
+								$('.container-waiting').hide();
+							},
+						});
+					}
+				},
+				{
+					text: "Hủy",
+					class: "btn btn-secondary zalo-dialog-btn zalo-dialog-btn--cancel",
+					click: function () {
+						$(this).dialog('close');
+					}
+				}
+			]
+		});
+	});
+
 	// Get location from geocode in booking
 	const regexlatlong = /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/;
 	const latlong = $("#city").text().trim();
@@ -2705,9 +2791,7 @@ function calculateTotal() {
 
 	var luggage_fee = unformatNumber($.trim($('#luggage_fee').text()));
 	var other_fee = unformatNumber($.trim($('#other_fee').text()));
-	// var thuephi_quocte = unformatNumber($.trim($('#thuephi_quocte').text()));
-	var thuephi_quocte = 0;
-	var total_amount = subtotal_amt + luggage_fee + other_fee + thuephi_quocte;
+	var total_amount = subtotal_amt + luggage_fee + other_fee;
 
 	// Hiện tại đã off % discount
 	// var discount_percent = unformatNumber($('#discount_percent :selected').val());

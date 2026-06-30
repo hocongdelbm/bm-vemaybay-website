@@ -1,32 +1,30 @@
 {literal}
-	<script>
-		$(document).ready(function() {
-			// REPORT TERM LIST CHANGE
-			$('#report_term_list').on('change', function () {
-				var reportTermList = $('#report_term_list :selected');
-				$('#from_date').val(reportTermList.data('fromdate'));
-				$('#to_date').val(reportTermList.data('todate'));
-				$('#report_term').val(reportTermList.data('term'));
-				$('#report_year').val(reportTermList.data('year'));
-			});
-
-			// lưu ghi chú từ bảng doanh số
-			$(".save-note-btn").click(function() {
-				var note_val = $(this).prev().val();
-				if(note_val != '') {
-					$.ajax({
-						url: "index.php",
-						data: {}
-					});
-				}
-			});
+<script>
+	$(document).ready(function() {
+		// REPORT TERM LIST CHANGE
+		$('#report_term_list').on('change', function () {
+			var reportTermList = $('#report_term_list :selected');
+			$('#from_date').val(reportTermList.data('fromdate'));
+			$('#to_date').val(reportTermList.data('todate'));
+			$('#report_term').val(reportTermList.data('term'));
+			$('#report_year').val(reportTermList.data('year'));
 		});
-	</script>
+
+		// lưu ghi chú từ bảng doanh số
+		$(".save-note-btn").click(function() {
+			var note_val = $(this).prev().val();
+			if(note_val != '') {
+				$.ajax({
+					url: "index.php",
+					data: {}
+				});
+			}
+		});
+	});
+</script>
 {/literal}
 
-<h1 id="report-title" class="title">
-	HIỆU QUẢ CÔNG VIỆC
-</h1>
+<h1 id="report-title" class="title">HIỆU QUẢ CÔNG VIỆC</h1>
 
 {if $DETAIL}
 <div class="d-flex align-items-center gap-2">
@@ -70,14 +68,14 @@
 				    </button>
 				    {literal}
 					<script type="text/javascript">
-							Calendar.setup ({
-								inputField : "from_date",
-								daFormat : "%d-%m-%Y",
-								button : "from_date_trigger",
-								singleClick : true,
-								dateStr : "",
-								step : 1
-							});
+						Calendar.setup ({
+							inputField : "from_date",
+							daFormat : "%d-%m-%Y",
+							button : "from_date_trigger",
+							singleClick : true,
+							dateStr : "",
+							step : 1
+						});
 					</script>
 					{/literal}
 				</div>

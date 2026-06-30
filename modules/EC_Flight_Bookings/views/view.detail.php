@@ -164,6 +164,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Contact phone
 		$this->assignContactPhoneField();
 
+		// Zalo info
+		$this->assignZaloInfoField();
+
 		// Paid flag
 		$this->assignPaidFlagField();
 

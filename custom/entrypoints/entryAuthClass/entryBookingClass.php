@@ -24,13 +24,18 @@ class entryBookingClass extends entryClass {
             return ['status' => 0, 'message' => 'Không tìm thấy booking'];
         if (empty($fields))
             return ['status' => 0, 'message' => 'Dữ liệu không hợp lệ'];
-        $list_allowed_fields = ['customer_source'];
+        $list_allowed_fields = ['customer_source', 'zalo_id'];
 
         try {
             $bookingBean = new EC_Flight_Bookings();
             $bookingBean->retrieve($bookingId);
             foreach ($fields as $name => $value) {
                 if (in_array($name, $list_allowed_fields)) {
+                    // Người dùng có thể dán nguyên link chat Zalo (vd: https://oa.zalo.me/chat?uid=123&oaid=456)
+                    // -> chỉ lưu uid làm zalo_id.
+                    if ($name === 'zalo_id' && !empty($value) && preg_match('/\buid=(\d+)/i', (string) $value, $matches)) {
+                        $value = $matches[1];
+                    }
                     $bookingBean->$name = $value;
                 }
             }

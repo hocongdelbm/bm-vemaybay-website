@@ -1,6 +1,4 @@
 $(document).ready(function () {
-	// $('#luggage_fee, #other_fee, #thuephi_quocte, #discount_amount, #total_amount').addClass('allow-number-only');
-	// $('#luggage_fee, #other_fee, #thuephi_quocte, #discount_amount, #total_amount').css({ 'text-align': 'right' });
 	$('#luggage_fee, #other_fee, #discount_amount, #total_amount').addClass('allow-number-only');
 	$('#luggage_fee, #other_fee, #discount_amount, #total_amount').css({ 'text-align': 'right' });
 
@@ -247,7 +245,7 @@ $(document).ready(function () {
 	});
 
 	// Change total fields
-	$('#luggage_fee, #other_fee, #thuephi_quocte, #discount_amount, #total_amount').blur(function () {
+	$('#luggage_fee, #other_fee, #discount_amount, #total_amount').blur(function () {
 		calculateTotal();
 	});
 
@@ -1338,9 +1336,7 @@ function calculateTotal() {
 
 	var luggage_fee = unformatNumber($('#luggage_fee').val());
 	var other_fee = unformatNumber($('#other_fee').val());
-	// var thuephi_quocte = unformatNumber($('#thuephi_quocte').val());
-	var thuephi_quocte = 0;
-	var total_amount = subtotal_amt + luggage_fee + other_fee + thuephi_quocte;
+	var total_amount = subtotal_amt + luggage_fee + other_fee;
 
 	var discount_percent = unformatNumber($('#discount_percent :selected').val());
 	var discount_amount = unformatNumber($('#discount_amount').val());

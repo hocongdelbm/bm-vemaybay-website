@@ -2,6 +2,9 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class Viewbksalereport extends SugarView {
+	/** @var Sugar_Smarty **/
+	public $smartyObj;
+
 	// ===== Cấu hình thưởng (Phase 1: chỉ thưởng trực tiếp) =====
 	const BONUS_MIN_SERVICE_FEE = 110000; // Phí dịch vụ tối thiểu/vé để đủ điều kiện thưởng (nội địa)
 	const BONUS_THRESHOLD_FEE   = 120000; // Mốc tính phần dôi ra (surplus)
@@ -9,47 +12,46 @@ class Viewbksalereport extends SugarView {
 	const BONUS_OA_MULTIPLIER   = 1.0;    // Phase 1: chưa có trường "Đã vào OA", tạm tính 1.0
 	const BONUS_EFFECTIVE_DATE  = '2026-07-01'; // Áp dụng cho vé xuất từ 01-07-2026
 
-	function display()
-	{
-		$smartyCont = new Sugar_Smarty();
-		$this->populateContent($smartyCont);
-		$smartyCont->display('modules/EC_Flight_Bookings/tpls/view_bksalereport.tpl');
+	function display() {
+		$this->smartyObj = new Sugar_Smarty();
+		$this->populateContent();
+		$this->smartyObj->display('modules/EC_Flight_Bookings/tpls/view_bksalereport.tpl');
 	}
 
-	public function populateContent($smartyobj)
-	{
+	public function populateContent() {
 		global $current_user;
 
+		$current_year = date('Y');
 		switch (ceil(date('n') / 3)) {
 			case 1:
-				$cq_from_date = '01-01-' . date('Y');
-				$cq_to_date = '31-03-' . date('Y');
-				$lq_from_date = '01-01-' . date('Y', strtotime('- 1 year'));
-				$lq_to_date = '31-03-' . date('Y', strtotime('- 1 year'));
+				$cq_from_date 	= "01-01-$current_year";
+				$cq_to_date 	= "31-03-$current_year";
+				$lq_from_date 	= "01-01-" . date("Y", strtotime("- 1 year"));
+				$lq_to_date 	= "31-03-" . date("Y", strtotime("- 1 year"));
 				break;
 			case 2:
-				$cq_from_date = '01-04-' . date('Y');
-				$cq_to_date = '30-06-' . date('Y');
-				$lq_from_date = '01-01-' . date('Y');
-				$lq_to_date = '31-03-' . date('Y');
+				$cq_from_date 	= "01-04-$current_year";
+				$cq_to_date 	= "30-06-$current_year";
+				$lq_from_date 	= "01-01-$current_year";
+				$lq_to_date 	= "31-03-$current_year";
 				break;
 			case 3:
-				$cq_from_date = '01-07-' . date('Y');
-				$cq_to_date = '30-09-' . date('Y');
-				$lq_from_date = '01-04-' . date('Y');
-				$lq_to_date = '30-06-' . date('Y');
+				$cq_from_date 	= "01-07-$current_year";
+				$cq_to_date 	= "30-09-$current_year";
+				$lq_from_date 	= "01-04-$current_year";
+				$lq_to_date 	= "30-06-$current_year";
 				break;
 			case 4:
-				$cq_from_date = '01-10-' . date('Y');
-				$cq_to_date = '31-12-' . date('Y');
-				$lq_from_date = '01-07-' . date('Y');
-				$lq_to_date = '30-09-' . date('Y');
+				$cq_from_date 	= "01-10-$current_year";
+				$cq_to_date 	= "31-12-$current_year";
+				$lq_from_date 	= "01-07-$current_year";
+				$lq_to_date 	= "30-09-$current_year";
 				break;
 			default:
-				$cq_from_date = '';
-				$cq_to_date = '';
-				$lq_from_date = '';
-				$lq_to_date = '';
+				$cq_from_date 	= '';
+				$cq_to_date 	= '';
+				$lq_from_date 	= '';
+				$lq_to_date 	= '';
 				break;
 		}
 
@@ -61,16 +63,15 @@ class Viewbksalereport extends SugarView {
 		$report_term_list .= '<option ' . (isset($_POST['report_term_list']) && (string)$_POST['report_term_list'] === 'previous_month' ? 'selected' : '') . ' value="previous_month" data-fromdate="' . date('d-m-Y', strtotime("first day of previous month")) . '" data-todate="' . date('d-m-Y', strtotime("last day of previous month")) . '" data-term="' . date('m', strtotime("last day of previous month")) . '" data-year="' . date('Y', strtotime("last day of previous month")) . '">Tháng trước</option>';
 		$report_term_list .= '<option ' . (isset($_POST['report_term_list']) && (string)$_POST['report_term_list'] === 'this_quater' ? 'selected' : '') . ' value="this_quater" data-fromdate="' . date('d-m-Y', strtotime($cq_from_date)) . '" data-todate="' . date('d-m-Y', strtotime($cq_to_date)) . '" data-term="' . date('m', strtotime($cq_from_date)) . '" data-year="' . date('Y', strtotime($cq_from_date)) . '">Quý này</option>';
 		$report_term_list .= '<option ' . (isset($_POST['report_term_list']) && (string)$_POST['report_term_list'] === 'previous_quater' ? 'selected' : '') . ' value="previous_quater" data-fromdate="' . date('d-m-Y', strtotime($lq_from_date)) . '" data-todate="' . date('d-m-Y', strtotime($lq_to_date)) . '" data-term="' . date('m', strtotime($lq_from_date)) . '" data-year="' . date('Y', strtotime($lq_from_date)) . '">Quý trước</option>';
+		$this->smartyObj->assign('REPORT_TERM_LIST', $report_term_list);
 
-		$smartyobj->assign('REPORT_TERM_LIST', $report_term_list);
-
-		// from date
+		// From date
 		$from_date = (empty($_REQUEST['from_date'])) ? date('d-m-Y') : $_REQUEST['from_date'];
-		$smartyobj->assign('FROM_DATE', $from_date);
+		$this->smartyObj->assign('FROM_DATE', $from_date);
 
-		// to date
+		// To date
 		$to_date = (empty($_REQUEST['to_date'])) ? date('d-m-Y') : $_REQUEST['to_date'];
-		$smartyobj->assign('TO_DATE', $to_date);
+		$this->smartyObj->assign('TO_DATE', $to_date);
 
 		if (!isset($_REQUEST['for'])) {
 			if (is_admin($current_user) || $current_user->title == 'QuanLy') {
@@ -79,24 +80,23 @@ class Viewbksalereport extends SugarView {
 				$ds = $this->getDSBooking($from_date, $to_date, $current_user->id);
 			}
 			$detail = 0;
-		} else {
+		}
+		else {
 			$ds = $this->getDetailDSBooking($from_date, $to_date, $_REQUEST['user']);
 			$detail = 1;
 
 			$u = new User;
 			$u->retrieve($_REQUEST['user']);
-			$smartyobj->assign('EMPOYEE_NAME', $u->last_name . ' ' . $u->first_name);
+			$this->smartyObj->assign('EMPOYEE_NAME', trim("{$u->last_name} {$u->first_name}"));
 		}
 
-		$smartyobj->assign('DETAIL', $detail);
-		$smartyobj->assign('DOANHSO', $ds);
+		$this->smartyObj->assign('DETAIL', $detail);
+		$this->smartyObj->assign('DOANHSO', $ds);
 	}
 
 	// Doanh số booker
-	public function getDSBooking($from_date, $to_date, $assigned_user_id = '')
-	{
+	public function getDSBooking(string $from_date, string $to_date, string $assigned_user_id = '') {
 		global $current_user;
-		// Cột "Thưởng" đang phát triển: chỉ hiển thị cho tôi (user id = 1)
 		$show_bonus = ($current_user->id === '1');
 
 		$user_list = get_user_array(true, '', '', true);
@@ -172,19 +172,19 @@ class Viewbksalereport extends SugarView {
 			// 3. Loop render
 			foreach ($grouped as $row) {
 				$html .= '<tr>
-							<td class="text-center">' . $i . '</td>
-							<td>
-								<a href="index.php?module=EC_Flight_Bookings&action=bksalereport&for=showDetail&user=' . $row['user_id'] . '&from_date=' . $from_date . '&to_date=' . $to_date . '" target="_blank">
-									' . $row['full_name'] . '
-								</a>
-							</td>
-							<td class="text-center">' . format_number($row['total_bk']) . '</td>
-							<td class="text-center">' . format_number($row['ticket_qty']) . '</td>
-							<td class="text-end">' . format_number($row['revenue_amount']) . '</td>
-							<td class="text-end">' . format_number($row['bought_amount']) . '</td>
-							<td class="text-end">' . format_number($row['profit_amount']) . '</td>'
-							. ($show_bonus ? '<td class="text-end">' . format_number($row['bonus_amount']) . '</td>' : '') . '
-						</tr>';
+					<td class="text-center">' . $i . '</td>
+					<td>
+						<a href="index.php?module=EC_Flight_Bookings&action=bksalereport&for=showDetail&user=' . $row['user_id'] . '&from_date=' . $from_date . '&to_date=' . $to_date . '" target="_blank">
+							' . $row['full_name'] . '
+						</a>
+					</td>
+					<td class="text-center">' . format_number($row['total_bk']) . '</td>
+					<td class="text-center">' . format_number($row['ticket_qty']) . '</td>
+					<td class="text-end">' . format_number($row['revenue_amount']) . '</td>
+					<td class="text-end">' . format_number($row['bought_amount']) . '</td>
+					<td class="text-end">' . format_number($row['profit_amount']) . '</td>'
+					. ($show_bonus ? '<td class="text-end">' . format_number($row['bonus_amount']) . '</td>' : '') . '
+				</tr>';
 
 				$i++;
 
@@ -198,22 +198,22 @@ class Viewbksalereport extends SugarView {
 		}
 
 		$html .= '<tr class="last-row footer-tr">
-					<td></td>
-					<td>Tổng cộng</td>
-					<td class="text-center">' . format_number($total_bk_qty) . '</td>
-					<td class="text-center">' . format_number($total_ticket_qty) . '</td>
-					<td class="text-end">' . format_number($total_revenue_amount) . '</td>
-					<td class="text-end">' . format_number($total_bought_amount) . '</td>
-					<td class="text-end">' . format_number($total_profit_amount) . '</td>'
-					. ($show_bonus ? '<td class="text-end">' . format_number($total_bonus_amount) . '</td>' : '') . '
-				</tr></tbody>';
+				<td></td>
+				<td>Tổng cộng</td>
+				<td class="text-center">' . format_number($total_bk_qty) . '</td>
+				<td class="text-center">' . format_number($total_ticket_qty) . '</td>
+				<td class="text-end">' . format_number($total_revenue_amount) . '</td>
+				<td class="text-end">' . format_number($total_bought_amount) . '</td>
+				<td class="text-end">' . format_number($total_profit_amount) . '</td>'
+				. ($show_bonus ? '<td class="text-end">' . format_number($total_bonus_amount) . '</td>' : '') . '
+			</tr>
+		</tbody>';
 
 		return $html;
 	}
 
 	// Chi tiết doanh số
-	public function getDetailDSBooking($from_date, $to_date, $assigned_user_id)
-	{
+	public function getDetailDSBooking($from_date, $to_date, $assigned_user_id) {
 		global $current_user;
 		// Cột "Thưởng" đang phát triển: chỉ hiển thị cho tôi (user id = 1)
 		$show_bonus = ($current_user->id === '1');
@@ -285,8 +285,7 @@ class Viewbksalereport extends SugarView {
 	/**
 	 * Lấy danh sách booking_id (vé) từ kết quả doanh số để tra cứu thông tin tính thưởng.
 	 */
-	private function collectBookingIds($data_revenue)
-	{
+	private function collectBookingIds($data_revenue) {
 		$ids = [];
 		if (!empty($data_revenue) && !empty($data_revenue['count'])) {
 			foreach ($data_revenue['details'] as $row) {
@@ -304,8 +303,7 @@ class Viewbksalereport extends SugarView {
 	 *
 	 * @return array map booking_id => ['customer_source','ticket_type','date_ticket_issue','flight_departure_date','arrivals'[]]
 	 */
-	private function getBookingBonusInfo(array $booking_ids)
-	{
+	private function getBookingBonusInfo(array $booking_ids) {
 		global $db;
 
 		$info = [];
@@ -341,6 +339,7 @@ class Viewbksalereport extends SugarView {
 					FROM ec_booking_itineraries
 					WHERE booking_id IN ($in_clause) AND deleted = 0
 						AND arrival IS NOT NULL AND arrival != ''";
+
 		$res_iti = $db->query($sql_iti);
 		while ($row = $db->fetchByAssoc($res_iti)) {
 			if (isset($info[$row['booking_id']])) {
@@ -355,8 +354,7 @@ class Viewbksalereport extends SugarView {
 	 * Tính thưởng trực tiếp (70%) cho 1 dòng doanh số.
 	 * Phase 1: chỉ tính cho booking vé (EC_Flight_Bookings); chưa xử lý hoàn vé / dịch vụ cộng thêm.
 	 */
-	private function calculateDirectBonus($row, array $bonus_info)
-	{
+	private function calculateDirectBonus($row, array $bonus_info) {
 		// Chỉ tính cho booking vé
 		if ($row['parent_type'] !== 'EC_Flight_Bookings') {
 			return 0;
@@ -425,8 +423,7 @@ class Viewbksalereport extends SugarView {
 	 * Phân loại nguồn khách thành 3 nhóm thưởng.
 	 * Mặc định (trống/không xác định) -> 'system' (mức thưởng thấp nhất - an toàn).
 	 */
-	private function getSourceCategory($customer_source)
-	{
+	private function getSourceCategory($customer_source) {
 		$customer_source = (string)$customer_source;
 
 		$system    = ['system_ads', 'system_old', 'receipt_voucher'];
@@ -446,8 +443,7 @@ class Viewbksalereport extends SugarView {
 	 * Mức thưởng cố định/vé cho vé quốc tế theo vùng đến.
 	 * Nếu hành trình tới nhiều vùng -> lấy mức cao nhất.
 	 */
-	private function getIntlBonusRate(array $arrivals)
-	{
+	private function getIntlBonusRate(array $arrivals) {
 		global $app_list_strings;
 
 		$se_asia  = $app_list_strings['southeast_asia_airport_list'] ?? [];

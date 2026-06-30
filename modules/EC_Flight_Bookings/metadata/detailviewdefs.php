@@ -61,12 +61,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'customCode' => '{$PRINT_TICKET_NEW}',
                 ),
-                // array(
-                //     'customCode' => '{$PRINT_TICKET}',
-                // ),
-                // array(
-                //     'customCode' => '{$SEND_TICKET}',
-                // ),
             )
         ),
         'maxColumns' => '2',
@@ -253,21 +247,30 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'label' => 'LBL_EMAIL',
                 ),
                 array(
-                    'name' => 'email_reservation',
-                    'label' => 'LBL_EMAIL_RESERVATION',
+                    'name' => 'zalo_id',
+                    'label' => 'LBL_ZALO',
+                    'customCode' => '{$CUSTOM_ZALO_INFO}',
                 ),
             ),
 
             array(
                 array(
+                    'name' => 'email_reservation',
+                    'label' => 'LBL_EMAIL_RESERVATION',
+                ),
+                array(
                     'name' => 'city',
                     'label' => 'LBL_CITY',
                 ),
+            ),
+
+            array(
                 array(
                     'name' => 'address',
                     'label' => 'LBL_ADDRESS',
                 ),
-            ),
+                array()
+            )
         ),
 
         'lbl_lineitineraries_panel' => array(
