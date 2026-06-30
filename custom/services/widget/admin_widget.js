@@ -615,6 +615,21 @@
 		return phone.length >= 7 && phone.length <= 15 ? phone : '';
 	}
 
+	// Extracts leading phone digits from any convId format:
+	//   "0901234567"              → "0901234567"  (old bare-phone format)
+	//   "0901234567_m2kzr4_ab3f" → "0901234567"  (new unique format)
+	//   "abc-uuid-123"           → ""             (non-phone convId, safe no-op)
+	function extractPhoneFromConvId(convId) {
+		var m = String(convId || '').match(/^(\d{7,15})(?:_|$)/);
+		return m ? m[1] : '';
+	}
+
+	// Resolves the phone for a conversation regardless of where the ID came from.
+	function resolveConversationPhone(conversation, convIdFallback) {
+		return normalizePhoneLike(getConversationPhone(conversation))
+			|| extractPhoneFromConvId(convIdFallback || (conversation && conversation.id) || '');
+	}
+
 	function getCanonicalConversationId(value, fallback) {
 		var phone = normalizePhoneLike(value);
 		return phone || String(value || fallback || '').trim();
@@ -1042,9 +1057,14 @@
 	}
 
 	function loadInitialConversations() {
-		if (!isApiEnabled() || state.isLoadingConversations) return Promise.resolve();
+		if (!isApiEnabled()) return Promise.resolve();
+		// Return the in-flight promise so callers can chain on it instead of getting
+		// an empty resolved promise when a load is already running.
+		if (state.isLoadingConversations && state._loadConversationsPromise) {
+			return state._loadConversationsPromise;
+		}
 		state.isLoadingConversations = true;
-		return callLiveChatApi('getConversations', {
+		state._loadConversationsPromise = callLiveChatApi('getConversations', {
 			limit: config.initialConversationLimit || 15,
 			offset: 0
 		}).then(function (apiData) {
@@ -1063,7 +1083,9 @@
 			debugLog('load conversations failed', error && error.message ? error.message : error);
 		}).then(function () {
 			state.isLoadingConversations = false;
+			state._loadConversationsPromise = null;
 		});
+		return state._loadConversationsPromise;
 	}
 
 	function loadConversationMessages(conversationId) {
@@ -2435,9 +2457,42 @@
 				msg.text === 'Khách hàng đã ngắt kết nối'
 			) {
 				var presenceConversation = ensureConversation(conversationId);
-				presenceConversation.peerOnline = msg.code === 'customer_joined' || msg.text === 'Khách hàng đã tham gia cuộc trò chuyện';
+				var isCustomerJoined = msg.code === 'customer_joined' || msg.text === 'Khách hàng đã tham gia cuộc trò chuyện';
+				presenceConversation.peerOnline = isCustomerJoined;
 				if (isSameConversationId(state.selectedConversationId, conversationId)) updateHeader(presenceConversation);
 				renderList();
+
+				// Auto-follow: when the selected conversation's customer disconnects,
+				// find the same customer's active session (different browser) and switch.
+				// Skipped in broadcast mode — messages already reach all sessions so no need to follow.
+				if (!isCustomerJoined && !config.broadcastToAllSessions && isSameConversationId(state.selectedConversationId, conversationId)) {
+					var disconnectedPhone = resolveConversationPhone(presenceConversation, conversationId);
+					if (disconnectedPhone) {
+						var samePhoneOthers = data.conversations.filter(function (c) {
+							var cPhone = resolveConversationPhone(c);
+							return c.id !== conversationId && cPhone && cPhone === disconnectedPhone;
+						});
+						// Pick the most recently active session among remaining browsers
+						var fallback = sortConversationsByActivity(samePhoneOthers)[0] || null;
+						if (fallback) {
+							selectConversation(fallback.id);
+						} else {
+							// Not in local data yet — chain on the in-flight load (or start a new one).
+							// Capture selected ID now; bail if admin manually navigated before callback resolves.
+							var selectedAtDisconnect = state.selectedConversationId;
+							loadInitialConversations().then(function () {
+								if (state.selectedConversationId !== selectedAtDisconnect) return;
+								var candidates = data.conversations.filter(function (c) {
+									var cPhone = resolveConversationPhone(c);
+									return c.id !== conversationId && cPhone && cPhone === disconnectedPhone;
+								});
+								var refreshed = sortConversationsByActivity(candidates)[0] || null;
+								if (refreshed) selectConversation(refreshed.id);
+							}).catch(function () {});
+						}
+					}
+				}
+
 				return;
 			}
 			if (msg.adminName || msg.adminId) {
@@ -2725,6 +2780,25 @@
 		state.joinedConversations = {};
 	}
 
+	// Returns the list of conversation IDs that an outbound admin message should be sent to.
+	// Default: only the currently selected conversation.
+	// Future broadcast mode: set config.broadcastToAllSessions = true to fan out to every
+	// active session sharing the same phone number (all open customer browsers).
+	function getTargetConversationIds() {
+		if (!state.selectedConversationId) return [];
+		if (!config.broadcastToAllSessions) return [state.selectedConversationId];
+		var selectedConv = getConversation(state.selectedConversationId);
+		var phone = resolveConversationPhone(selectedConv, state.selectedConversationId);
+		if (!phone) return [state.selectedConversationId];
+		var ids = data.conversations
+			.filter(function (c) {
+				var cPhone = resolveConversationPhone(c);
+				return cPhone && cPhone === phone;
+			})
+			.map(function (c) { return c.id; });
+		return ids.length ? ids : [state.selectedConversationId];
+	}
+
 	function addActiveMessage() {
 		var replyText = qs('.ec-cw__reply-text');
 		var upload = qs('.ec-cw__image-upload');
@@ -2766,15 +2840,27 @@
 				alert('Đang kết nối hội thoại, vui lòng gửi lại sau vài giây.');
 				return;
 			}
-			// ── UPDATED: include sessionId so other admin tabs can echo-suppress ─
-			ws.send(JSON.stringify({
-				type: 'message',
-				id: message.id,
-				conversationId: state.selectedConversationId,
-				text: finalContent,
-				imageUrl: null,
-				sessionId: state.sessionId
-			}));
+			// Fan out to all target conversations (today: selected only; broadcast mode: all same-phone sessions)
+			getTargetConversationIds().forEach(function (targetId) {
+				var targetWs = state.conversationSockets[targetId];
+				if (!targetWs || targetWs.readyState !== WebSocket.OPEN) {
+					joinRealtimeConversation(targetId);
+					return;
+				}
+				// Each target needs its own unique ID so MongoDB stores an independent record
+				// per conversation. The selected conversation reuses message.id for local rendering.
+				var targetMsgId = targetId === state.selectedConversationId
+					? message.id
+					: createClientMessageId();
+				targetWs.send(JSON.stringify({
+					type: 'message',
+					id: targetMsgId,
+					conversationId: targetId,
+					text: finalContent,
+					imageUrl: null,
+					sessionId: state.sessionId
+				}));
+			});
 		}
 
 		upsertMessage(message);
