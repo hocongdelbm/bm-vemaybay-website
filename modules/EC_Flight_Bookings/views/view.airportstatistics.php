@@ -422,8 +422,8 @@ class Viewairportstatistics extends SugarView
 
             $html .= '<tr class="main-inter-line">
                 <td class="text-center fw-bold">' . ($i + 1) . '</td>
-                <td class="text-center fw-bold">' . $airport_arr[$row['departure']] . '</td>
-                <td class="text-center fw-bold">' . $airport_arr[$row['arrival']] . '</td>
+                <td class="text-center fw-bold">' . ($airport_arr[$row['departure']] ?? $row['departure']) . '</td>
+                <td class="text-center fw-bold">' . ($airport_arr[$row['arrival']] ?? $row['arrival']) . '</td>
                 <td class="text-center fw-bold">
                     <a href="#" class="text-primary text-decoration-underline" data-bs-toggle="modal" data-bs-target="#mainLineModal" data-fromdate="' . $from_date . '" data-todate="' . $to_date . '" data-departure="' . $row['departure'] . '" data-arrival="' . $row['arrival'] . '">
                         ' . format_number($row['bk_qty']) . '
