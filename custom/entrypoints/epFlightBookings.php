@@ -80,7 +80,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'populateDetailMark') {
 	} else
 		$curr = $res_mark['type_value'];
 
-
+	$html = '';
 	$html .= '
 		<tr>
 			<td align="center" id="curr_mark">' . $curr . '</td>
@@ -126,6 +126,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveMark') {
 		// thay đổi ngày h tạo
 		$sql_upt = 'UPDATE ec_working_process SET date_entered = "' . date('Y-m-d', strtotime($_POST['mark_date'])) . '" WHERE id = "' . $wpid . '"';
 		$db->query($sql_upt);
+		$result = 'ok';
 	} else {
 		$result = 'rejected';
 	}
@@ -192,6 +193,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getItiLine') {
 	$row = $db->fetchByAssoc($res);
 
 	if (trim($row['airline_code']) == 'VNA' || trim($row['airline_code']) == 'VNP') {
+		$selected1 = '';
+		$selected2 = '';
 		if (trim($row['airline_code']) == 'VNA')
 			$selected1 = 'selected';
 		else
@@ -515,7 +518,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeName') {
 
 // đổi ngày h bay dùng cho edit
 if (isset($_POST['for']) && $_POST['for'] == 'changeFlightTime') {
-	$iti_detail = populateLineItineraries($_POST['id'], 3);
+	$iti_detail = populateLineItineraries($_POST['id']);
 	echo $iti_detail;
 	exit;
 }
