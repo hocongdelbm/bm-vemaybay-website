@@ -3,25 +3,15 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class Viewcheckflydate extends SugarView
 {
-    private const ASSET_VERSION = '1.3.2';
-
+    private const ASSET_VERSION = '1.3.3';
     private const RECORDS_PER_PAGE = 20;
 
-    private const AIRLINE_GROUPS = [
-        'VJ'  => ['VJ', 'VJA'],
-        'VJA' => ['VJ', 'VJA'],
-        'VN'  => ['VN', 'VNA'],
-        'VNA' => ['VN', 'VNA'],
-    ];
-
-    private const AIRLINE_ICON_MAP = [
-        'VNA' => 'VN',
-        'VN'  => 'VNA',
+    private const mappingAirlineCode = [
         'VJA' => 'VJ',
-        'JET' => 'BL',
+        'VNA' => 'VN',
+        'VNP' => 'VN',
         'BBA' => 'QH',
-        'VNP' => 'VNP',
-        'VTA' => 'VTA',
+        'VTA' => 'VU',
     ];
 
     public function display()
@@ -39,8 +29,6 @@ class Viewcheckflydate extends SugarView
 
     public function populateContent($smarty)
     {
-        global $app_list_strings;
-
         $tungay  = !empty($_POST['tungay'])  ? $_POST['tungay']  : date('d-m-Y');
         $denngay = !empty($_POST['denngay']) ? $_POST['denngay'] : date('d-m-Y');
         $this->validateDateRange($tungay, $denngay);
@@ -51,10 +39,7 @@ class Viewcheckflydate extends SugarView
         $filters = ['phone' => '', 'passenger' => '', 'user_id' => '', 'email' => '', 'route' => ''];
         $searchClause = $this->buildSearchClause($tungay, $denngay, $filters);
 
-        $airlineXml = $this->getAirlineData();
-        $iconMap    = $this->buildAirlineIconMap($airlineXml);
-
-        [$html, $totalRecords] = $this->renderRows($searchClause, $iconMap, $offset);
+        [$html, $totalRecords] = $this->renderRows($searchClause, $offset);
         $totalPages = $totalRecords > 0 ? ceil($totalRecords / self::RECORDS_PER_PAGE) : 1;
         $startRecord = ($page - 1) * self::RECORDS_PER_PAGE + 1;
         $endRecord = min($page * self::RECORDS_PER_PAGE, $totalRecords);
@@ -71,12 +56,9 @@ class Viewcheckflydate extends SugarView
             'Users',
             $filters['user_id'],
             'id',
-            " AND title IN ('Booker','KeToan','Leader') AND status='Active' ORDER BY first_name ASC "
+            " AND title IN ('Booker','KeToan','Manager') AND status='Active' ORDER BY first_name ASC "
         ));
-        $smarty->assign('AIRLINES', get_select_options_with_id(
-            ($app_list_strings['aircode_list'] + $airlineXml),
-            $_POST['airlines'] ?? ''
-        ));
+        $smarty->assign('AIRLINES', EC_Airlines::getAirlineOptions($_POST['airlines'] ?? ''));
         $smarty->assign('CURRENT_PAGE', $page);
         $smarty->assign('PREV_PAGE', $page - 1);
         $smarty->assign('NEXT_PAGE', $page + 1);
@@ -112,16 +94,8 @@ class Viewcheckflydate extends SugarView
         $clause = " AND i.departure_date >= '{$from} 00:00:00' AND i.departure_date <= '{$to} 23:59:59'";
 
         if (!empty($_POST['airlines'])) {
-            $airline = $_POST['airlines'];
-            if (isset(self::AIRLINE_GROUPS[$airline])) {
-                $quoted = [];
-                foreach (self::AIRLINE_GROUPS[$airline] as $code) {
-                    $quoted[] = "'" . $db->quote($code) . "'";
-                }
-                $clause .= " AND i.airline_code IN (" . implode(',', $quoted) . ")";
-            } else {
-                $clause .= " AND i.airline_code='" . $db->quote($airline) . "'";
-            }
+            $airline = strtoupper(trim($_POST['airlines']));
+            $clause .= " AND i.airline_code='" . $db->quote($airline) . "'";
         }
 
         // Assigned user.
@@ -222,7 +196,7 @@ class Viewcheckflydate extends SugarView
                 LIMIT " . self::RECORDS_PER_PAGE . " OFFSET " . (int)$offset;
     }
 
-    private function renderRows($searchClause, array $iconMap, $offset = 0)
+    private function renderRows($searchClause, $offset = 0)
     {
         global $db, $app_list_strings;
 
@@ -233,7 +207,7 @@ class Viewcheckflydate extends SugarView
 
         if ($res) {
             while ($row = $db->fetchByAssoc($res)) {
-                $html .= $this->renderRow($row, $stt++, $iconMap, $app_list_strings);
+                $html .= $this->renderRow($row, $stt++, $app_list_strings);
             }
         }
 
@@ -261,7 +235,7 @@ class Viewcheckflydate extends SugarView
         return $row ? (int)$row['total'] : 0;
     }
 
-    private function renderRow(array $row, $stt, array $iconMap, array $app_list_strings)
+    private function renderRow(array $row, $stt, array $app_list_strings)
     {
         $complete_time = empty($row['complete_time']) ? '' : date('d/m/Y H:i:s', strtotime($row['complete_time']));
 
@@ -279,11 +253,9 @@ class Viewcheckflydate extends SugarView
             $checkin_class = 'text-success';
         }
 
-        $ticket_class = strpos($row['ticket_class'], '-') !== false
-            ? substr($row['ticket_class'], strpos($row['ticket_class'], '-') + 1)
-            : $row['ticket_class'];
+        $ticket_class = strpos($row['ticket_class'], '-') !== false ? substr($row['ticket_class'], strpos($row['ticket_class'], '-') + 1) : $row['ticket_class'];
 
-        $airline_icon = $iconMap[$row['airline_code']] ?? $row['airline_code'];
+        $airline_icon = self::mappingAirlineCode[$row['airline_code']] ?? $row['airline_code'];
 
         $note_html = !empty($row['notes'])
             ? '<div class="note-display min-w-150 text-justify" data-itinerary-id="' . $row['itinerary_id'] . '">' . htmlspecialchars($row['notes']) . '</div>'
@@ -307,7 +279,7 @@ class Viewcheckflydate extends SugarView
                             </div>
                         </td>
                         <td align="center" class="hide-mobile">
-                            <img style="width:40px;" src="custom/themes/default/images/airline-icon-100x100/' . $airline_icon . '.png" border="0" />
+                            ' . (($logoUrl = EC_Airlines::getLogoUrl($airline_icon)) ? '<img class="h-auto" style="width:40px;object-fit:contain;" src="' . $logoUrl . '" alt="' . $airline_icon . '" />' : '') . '
                         </td>
                         <td align="center" class="hide-mobile">' . $row['flight_number'] . '</td>
                         <td align="center" class="hide-mobile">' . $row['departure'] . '-' . $row['arrival'] . '</td>
@@ -332,33 +304,5 @@ class Viewcheckflydate extends SugarView
         $smarty->assign('THISMONTH_TODATE', date('d-m-Y', strtotime('last day of this month')));
         $smarty->assign('PREVMONTH_FROMDATE', date('d-m-Y', strtotime('first day of last month')));
         $smarty->assign('PREVMONTH_TODATE', date('d-m-Y', strtotime('last day of last month')));
-    }
-
-    private function buildAirlineIconMap(array $airlineXml)
-    {
-        $xmlCodes = [];
-        foreach ($airlineXml as $code => $_) {
-            $xmlCodes[$code] = $code;
-        }
-
-        return array_merge(self::AIRLINE_ICON_MAP, $xmlCodes);
-    }
-
-    private function getAirlineData()
-    {
-        static $aircode_cache = null;
-
-        if ($aircode_cache === null) {
-            $aircode_cache = [];
-            if (file_exists('custom/airlines.xml')) {
-                $aircode_inter_xml = simplexml_load_file('custom/airlines.xml');
-                $records = json_decode(json_encode($aircode_inter_xml), true)['RECORD'] ?? [];
-                foreach ($records as $item) {
-                    $aircode_cache[$item['code']] = $item['name'] . ' (' . $item['code'] . ')';
-                }
-            }
-        }
-
-        return $aircode_cache;
     }
 }

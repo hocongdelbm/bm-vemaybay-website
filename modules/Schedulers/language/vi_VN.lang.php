@@ -154,7 +154,6 @@ $mod_strings = [
     'LBL_RESETREWARDPOINTS' => 'Reset lại điểm tích lũy của liên hệ qua booking hằng năm',
     'LBL_MIGRATEZALOIMAGESTONEXTCLOUD' => 'Đồng bộ ảnh từ Zalo CDN sang VN Backup',
     'LBL_SENDPROMOTIONALSUMMERZBS' => 'Gửi tin nhắn tri ân khách hàng du lịch hè ZBS',
-    'LBL_MIGRATEAIRLINELOGOSTONEXTCLOUD' => 'Upload logo hãng bay (local) lên VN Backup, cập nhật field logo của ec_airlines',
 
     'LBL_SAVEREVENUEBOOKINGJOB' => 'Cập nhật doanh số booking Revenue',
     'LBL_NOTIFYCHECKINJOURNEY' => 'Thông báo hành trình cần checkin',
