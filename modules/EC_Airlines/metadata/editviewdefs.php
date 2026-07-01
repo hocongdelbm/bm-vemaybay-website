@@ -13,18 +13,22 @@ $viewdefs[$module_name]['EditView'] = array(
         ),
     ),
     'panels' => array(
-        'default' => array(
+        'LBL_PANEL_AIRLINE' => array(
             array(
                 array('name' => 'iata_code', 'label' => 'LBL_IATA_CODE'),
                 array('name' => 'name',      'label' => 'LBL_NAME'),
             ),
             array(
-                array('name' => 'logo',    'label' => 'LBL_LOGO'),
-                array('name' => 'country', 'label' => 'LBL_COUNTRY'),
+                array('name' => 'icao_code', 'label' => 'LBL_ICAO_CODE'),
+                array(''),
             ),
             array(
-                array('name' => 'is_domestic', 'label' => 'LBL_IS_DOMESTIC'),
-                array('name' => 'is_active',   'label' => 'LBL_IS_ACTIVE'),
+                array(
+                    'name'       => 'logo',
+                    'label'      => 'LBL_LOGO',
+                    'customCode' => '{$CUS_LOGO_EDIT}',
+                ),
+                array('name' => 'country', 'label' => 'LBL_COUNTRY'),
             ),
             array(
                 array(
@@ -32,7 +36,7 @@ $viewdefs[$module_name]['EditView'] = array(
                     'label'         => 'LBL_DESCRIPTION',
                     'displayParams' => array('cols' => 60, 'rows' => 3),
                 ),
-                array(''),
+                array('name' => 'is_active', 'label' => 'LBL_IS_ACTIVE'),
             ),
         ),
     ),

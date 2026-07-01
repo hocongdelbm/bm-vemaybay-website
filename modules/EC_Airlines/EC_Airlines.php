@@ -1,44 +1,4 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
-
 class EC_Airlines extends Basic
 {
     public $new_schema = true;
@@ -63,16 +23,200 @@ class EC_Airlines extends Basic
     public $assigned_user_name;
     public $assigned_user_link;
     public $SecurityGroups;
-	
+
+    public $iata_code;
+    public $icao_code;
+    public $logo;
+    public $country;
+    public $is_active;
+
+    /**
+     * Mã hãng bay legacy/biến thể vẫn còn lưu trong ec_booking_itineraries.airline_code
+     * nhưng không tồn tại trong ec_airlines.iata_code. Map về đúng mã IATA chuẩn.
+     */
+    private const LEGACY_CODE_MAP = [
+        'VNA' => 'VN',
+        'VJA' => 'VJ',
+        'VNP' => 'BL',
+        'BBA' => 'QH',
+        'VTA' => 'VU',
+    ];
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
     public function bean_implements($interface)
     {
-        switch($interface)
-        {
+        switch ($interface) {
             case 'ACL':
                 return true;
         }
 
         return false;
     }
-	
+
+    /**
+     * Import/upsert airlines from modules/EC_Airlines/list_airlines.json
+     */
+    public function importFromJsonFileAirlines($filePath = '')
+    {
+        if (empty($filePath)) {
+            $filePath = dirname(__FILE__) . '/list_airlines.json';
+        }
+
+        if (!file_exists($filePath)) {
+            return array('success' => false, 'message' => 'File not found: ' . $filePath);
+        }
+
+        $rows = json_decode(file_get_contents($filePath), true);
+        if (!is_array($rows)) {
+            return array('success' => false, 'message' => 'Unable to parse JSON file');
+        }
+
+        $created = 0;
+        $updated = 0;
+        $skipped = 0;
+
+        foreach ($rows as $key => $row) {
+            $code = strtoupper(trim(isset($row['AirlineCode']) ? $row['AirlineCode'] : $key));
+            $name = trim(isset($row['AirlineName']) ? $row['AirlineName'] : '');
+            $regionCode = strtoupper(trim(isset($row['RegionCode']) ? $row['RegionCode'] : ''));
+
+            if ($code === '' || $name === '') {
+                $skipped++;
+                continue;
+            }
+
+            $bean = BeanFactory::getBean('EC_Airlines');
+            $existingId = $bean->db->getOne(
+                "SELECT id FROM ec_airlines WHERE iata_code = '" . $bean->db->quote($code) . "' AND deleted = 0"
+            );
+
+            if (!empty($existingId)) {
+                $bean->retrieve($existingId);
+                $updated++;
+            } else {
+                $created++;
+            }
+
+            $bean->name = $name;
+            $bean->iata_code = $code;
+            $bean->country = $regionCode;
+            $bean->is_active = 1;
+            $bean->save();
+        }
+
+        return array(
+            'success' => true,
+            'created' => $created,
+            'updated' => $updated,
+            'skipped' => $skipped,
+        );
+    }
+
+    /**
+     * Chuẩn hoá mã hãng bay legacy (VNA, VJA, VNP, BBA, VTA...) về đúng mã IATA
+     *
+     * @param string $rawCode Mã hãng bay gốc (vd "VNA", "VN")
+     * @return string Mã IATA chuẩn
+     */
+    public static function normalizeIataCode($rawCode)
+    {
+        $code = strtoupper(trim((string)$rawCode));
+
+        return self::LEGACY_CODE_MAP[$code] ?? $code;
+    }
+
+    /**
+     * Lấy 1 bản ghi hãng bay (name, logo) theo mã IATA, cache trong request.
+     *
+     * @param string $iataCode Mã IATA (vd "VJ", "VN")
+     * @return array|null ['name' => ..., 'logo' => ...] hoặc NULL nếu không tìm thấy
+     */
+    private static function getAirlineRecord($iataCode)
+    {
+        static $cache = [];
+
+        $code = strtoupper(trim((string)$iataCode));
+        if ($code === '') {
+            return null;
+        }
+
+        if (!array_key_exists($code, $cache)) {
+            $bean = BeanFactory::getBean('EC_Airlines');
+            $row = $bean->db->fetchOne(
+                "SELECT name, logo FROM ec_airlines WHERE iata_code = '" . $bean->db->quote($code) . "' AND deleted = 0"
+            );
+            $cache[$code] = $row ?: null;
+        }
+
+        return $cache[$code];
+    }
+
+    /**
+     * Lấy URL logo hãng bay
+     *
+     * @param string $iataCode Mã IATA (vd "VJ", "VN")
+     * @return string|null URL logo hoặc NULL nếu chưa có/không tìm thấy
+     */
+    public static function getLogoUrl($iataCode)
+    {
+        return self::getAirlineRecord($iataCode)['logo'] ?? null;
+    }
+
+    /**
+     * Lấy tên hãng bay theo mã IATA.
+     *
+     * @param string $iataCode Mã IATA (vd "VJ", "VN")
+     * @return string|null Tên hãng bay hoặc NULL nếu không tìm thấy
+     */
+    public static function getAirlineName($iataCode)
+    {
+        return self::getAirlineRecord($iataCode)['name'] ?? null;
+    }
+
+    /**
+     * Lấy danh sách hãng bay đang active dạng mảng [iata_code => "Tên hãng (MÃ)"].
+     *
+     * @param bool $includeAll Có thêm phần tử '' => '-- Tất cả --' ở đầu danh sách
+     * @return array
+     */
+    public static function getAirlineList($includeAll = false)
+    {
+        static $cache = null;
+
+        if ($cache === null) {
+            $cache = [];
+            $bean = BeanFactory::getBean('EC_Airlines');
+
+            $sql = "SELECT iata_code, name FROM ec_airlines
+                    WHERE deleted = 0 AND is_active = 1
+                        AND iata_code IS NOT NULL AND iata_code != ''
+                    ORDER BY name ASC";
+            $res = $bean->db->query($sql);
+            while ($row = $bean->db->fetchByAssoc($res)) {
+                $code = strtoupper(trim($row['iata_code']));
+                if ($code === '') {
+                    continue;
+                }
+                $cache[$code] = $row['name'] . ' (' . $code . ')';
+            }
+        }
+
+        return $includeAll ? (['' => '-- Tất cả --'] + $cache) : $cache;
+    }
+
+    /**
+     * Sinh HTML <option> cho select hãng bay, dùng chung cho các view/report cần chọn hãng bay.
+     *
+     * @param string $selected Mã hãng đang được chọn (để đánh dấu selected)
+     * @param bool $includeAll Có thêm option "-- Tất cả --"
+     * @return string
+     */
+    public static function getAirlineOptions($selected = '', $includeAll = true)
+    {
+        return get_select_options_with_id(self::getAirlineList($includeAll), $selected);
+    }
 }

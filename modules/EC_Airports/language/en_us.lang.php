@@ -80,8 +80,9 @@ $mod_strings = array (
   'LBL_IATA_CODE'    => 'IATA Code',
   'LBL_NAME'         => 'Airport Name',
   'LBL_CITY_NAME'    => 'City',
-  'LBL_COUNTRY_CODE' => 'Country Code',
-  'LBL_IS_DOMESTIC'  => 'Domestic',
+  'LBL_COUNTRY'      => 'Country',
+  'LBL_PREFIX'       => 'Prefix',
+  'LBL_GEO_COUNTRY'  => 'Geo Country',
   'LBL_IS_ACTIVE'    => 'Active',
   'LBL_DESCRIPTION'  => 'Notes',
 );

@@ -22,6 +22,7 @@ trait AssetsTrait {
 			<script src="modules/{$this->bean->module_dir}/js/api_sms.js?v=1.2.0"></script>
 			<script src="modules/{$this->bean->module_dir}/js/doc_list.js?v=1.2.0"></script>
 			<script src="modules/{$this->bean->module_dir}/js/print_ticket.js?v=1.2.0"></script>
+			<script src="modules/{$this->bean->module_dir}/js/print_ticket_new.js?v=1.2.0"></script>
 		HTML;
 
 		// Inject biến PHP sang JS để các script phía client dùng đúng trạng thái booking và cấu hình hiện tại.
