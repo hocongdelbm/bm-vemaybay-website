@@ -9,19 +9,10 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  */
 trait ECFlightBookingEditItineraryTrait
 {
-
 	function populateLineItineraries()
 	{
-		global $app_list_strings, $mod_strings, $timedate, $locale, $current_user;
+		global $app_list_strings, $timedate;
 
-		// Gom bảng giá hành lý Bamboo theo các hạng vé để JS dùng chung khi render hành trình/hành lý.
-		$app_list_strings['bambooair_luggage_price_list'] = array_merge(
-			$app_list_strings['bambooair_eco_luggage_price_list'],
-			$app_list_strings['bambooair_plus_luggage_price_list'],
-			$app_list_strings['bambooair_business_luggage_price_list']
-		);
-
-		$cal_date_format = $timedate->get_cal_date_format();
 		$date_format = $timedate->get_date_format();
 
 		// Khi nhân bản booking, giữ lại mã booking cũ để JS/Save phân biệt dữ liệu nhân bản.
@@ -42,8 +33,8 @@ trait ECFlightBookingEditItineraryTrait
 					i.description,
 					i.time_limit
 				FROM ec_booking_itineraries i
-				WHERE i.booking_id = '" . $this->bean->id . "'
-				AND add_type = 0 AND i.deleted = 0
+				WHERE i.booking_id = '{$this->bean->id}'
+					AND add_type = 0 AND i.deleted = 0
 				ORDER BY i.direction, i.transit_order, i.date_entered, i.departure_date";
 
 		$res = $this->bean->db->query($sql);
@@ -106,25 +97,24 @@ trait ECFlightBookingEditItineraryTrait
 		 * - <tbody id="iti_tbody"></tbody> rỗng để JS render
 		 * - Footer với các input hidden cần thiết + JSON data
 		 */
-		$sep = my_get_number_separators();
 
 		$html = '<table id="tbl_line_itineraries" class="table-vertical__mobile table-edit__booking table-details__booking" border="0" cellpadding="0" cellspacing="0">';
 		$html .= '<thead>
-				<tr id="iti_first_row">
-					<th scope="col" style="width:8%;" class="text-center">Chiều</th>
-					<th scope="col" style="width:5%;" class="text-center">Mã hãng</th>
-					<th scope="col" style="width:7%;" class="text-center">Số hiệu</th>
-					<th scope="col" style="width:11%;" class="text-center">Hạng vé</th>
-					<th scope="col" style="width:5%;" class="text-center">Nơi đi</th>
-					<th scope="col" style="width:5%;" class="text-center">Nơi đến</th>
-					<th scope="col" style="width:14%;" class="text-center">Ngày giờ đi</th>
-					<th scope="col" style="width:14%;" class="text-center">Ngày giờ đến</th>
-					<th scope="col" style="width:14%;" class="text-center">Hạn giữ chỗ</th>
-					<th scope="col" style="width:8%;" class="text-center">Giá cơ bản</th>
-					<th scope="col" style="width:2%;" class="text-center">Quá cảnh</th>
-					<th scope="col" style="width:3%;" class="text-center">&nbsp;</th>
-				</tr>
-			</thead>';
+			<tr id="iti_first_row">
+				<th scope="col" style="width:8%;" class="text-center">Chiều</th>
+				<th scope="col" style="width:5%;" class="text-center">Mã hãng</th>
+				<th scope="col" style="width:7%;" class="text-center">Số hiệu</th>
+				<th scope="col" style="width:11%;" class="text-center">Hạng vé</th>
+				<th scope="col" style="width:5%;" class="text-center">Nơi đi</th>
+				<th scope="col" style="width:5%;" class="text-center">Nơi đến</th>
+				<th scope="col" style="width:14%;" class="text-center">Ngày giờ đi</th>
+				<th scope="col" style="width:14%;" class="text-center">Ngày giờ đến</th>
+				<th scope="col" style="width:14%;" class="text-center">Hạn giữ chỗ</th>
+				<th scope="col" style="width:8%;" class="text-center">Giá cơ bản</th>
+				<th scope="col" style="width:2%;" class="text-center">Quá cảnh</th>
+				<th scope="col" style="width:3%;" class="text-center">&nbsp;</th>
+			</tr>
+		</thead>';
 		$html .= '<tbody id="iti_tbody"></tbody>';
 		$html .= '<tr id="iti_last_row" class="footer-tr">';
 		$html .= '<td colspan="12" class="text-start">';
@@ -132,16 +122,6 @@ trait ECFlightBookingEditItineraryTrait
 		$html .= '<input type="hidden" name="direction_list" id="direction_list" value="' . get_select_options_with_id($app_list_strings['bk_direction_list'], '') . '" />';
 		$html .= '<input type="hidden" name="passenger_type_list" id="passenger_type_list" value="' . get_select_options_with_id($app_list_strings['passenger_type_list'], '') . '" />';
 		$html .= '<input type="hidden" name="passenger_salutation_list" id="passenger_salutation_list" value="' . get_select_options_with_id($app_list_strings['passenger_salutation_list'], '') . '" />';
-		$html .= '<input type="hidden" name="vna_luggage_price_list" id="vna_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['vietnamair_luggage_price_list2'], '') . '" />';
-		$html .= '<input type="hidden" name="vnp_luggage_price_list" id="vnp_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['pacificair_luggage_price_list'], '') . '" />';
-		$html .= '<input type="hidden" name="vja_luggage_price_list" id="vja_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['new_vietjet_luggage_price_list'], '') . '" />';
-		$html .= '<input type="hidden" name="bba_luggage_price_list" id="bba_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['bambooair_luggage_price_list'], '') . '" />';
-		$html .= '<input type="hidden" name="vta_luggage_price_list" id="vta_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['new_vietravel_luggage_price_list2'], '') . '" />';
-		$html .= '<input type="hidden" name="bba_ticket_class_list" id="bba_ticket_class_list" value="' . get_select_options_with_id($app_list_strings['bba_ticket_class_list'], '') . '" />';
-		$html .= '<input type="hidden" id="grp_seperator" name="grp_seperator" value="' . $sep[0] . '" />';
-		$html .= '<input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />';
-		$html .= '<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />';
-		$html .= '<input type="hidden" id="cal_date_format" name="cal_date_format" value="' . $cal_date_format . '" />';
 		$html .= '<input type="hidden" id="iti_row_count" name="iti_row_count" value="' . $row_count . '" />';
 		$html .= '<input type="hidden" id="booking_prev_name" name="booking_prev_name" value="' . $booking_prev_name . '" />';
 		$html .= '<input type="hidden" id="journey" name="journey" value="' . $this->_journey . '" />';
