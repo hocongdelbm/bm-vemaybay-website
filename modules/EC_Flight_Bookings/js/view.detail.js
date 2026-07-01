@@ -300,16 +300,22 @@ $(document).ready(function () {
 		});
 	});
 
+	// Track previous checkin status before change
+	$(document).on('focus', 'select.checkin_status_iti', function () {
+		$(this).data('prev-val', $(this).val());
+	});
+
 	// Change checkin status
 	$(document).on("change", "select.checkin_status_iti", function () {
-		if (!confirm('Thay đổi trạng thái checkin?')) return false;
-		else {
-			let status = $(this).find(":selected").val();
-			let journey_id = $(this).attr('iti_id');
-			let journey_name = $(this).attr('iti_name');
-			let booking_id = $(this).attr('booking_id');
-			let record_name = $(this).attr('record_name');
+		let $select = $(this);
+		let status = $select.find(":selected").val();
+		let prevVal = $select.data('prev-val');
+		let journey_id = $select.attr('iti_id');
+		let journey_name = $select.attr('iti_name');
+		let booking_id = $select.attr('booking_id');
+		let record_name = $select.attr('record_name');
 
+		function doChangeStatus() {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				data: {
@@ -324,18 +330,69 @@ $(document).ready(function () {
 				cache: false,
 				success: function (response) {
 					if (response == 1) {
-						setTimeout(() => {
-							location.reload();
-						}, 150);
+						setTimeout(() => { location.reload(); }, 150);
 					} else {
+						$select.val(prevVal);
 						let text_warning = 'Lỗi khi thực hiện thay đổi trạng thái checkin. Vui lòng liên hệ IT để được hỗ trợ.';
 						showModalNotify(0, text_warning);
 						$('.modal-overlay, .btn-modal-close').addClass('reload');
 					}
 				}
 			});
-		};
+		}
 
+		if (status == '1') {
+			// Cần checkin — hiện modal nhập ghi chú
+			let $modal = $('#checkinNoteModal');
+			let existingNotes = $select.data('notes') || '';
+			$('#checkinNoteText').val(existingNotes);
+			$modal.removeData('saved');
+
+			let bsModal = new bootstrap.Modal($modal[0]);
+			bsModal.show();
+
+			$modal.off('hidden.bs.modal').on('hidden.bs.modal', function () {
+				if (!$(this).data('saved')) {
+					$select.val(prevVal);
+				}
+			});
+
+			$('#btnSaveCheckinNote').off('click').on('click', function () {
+				let notes = $('#checkinNoteText').val().trim();
+				if (!notes) {
+					$modal.data('saved', true);
+					bsModal.hide();
+					doChangeStatus();
+					return;
+				}
+				$.ajax({
+					type: 'POST',
+					url: 'index.php?entryPoint=entryPointFlightBookings',
+					data: { for: 'saveItineraryNotes', itinerary_id: journey_id, notes: notes },
+					dataType: 'json',
+					success: function (resp) {
+						if (resp.success) {
+							$select.data('notes', notes);
+							$modal.data('saved', true);
+							bsModal.hide();
+							doChangeStatus();
+						} else {
+							alert('Lỗi khi lưu ghi chú: ' + (resp.message || ''));
+						}
+					},
+					error: function () {
+						alert('Lỗi khi lưu ghi chú!');
+					}
+				});
+			});
+		} else {
+			// Đã checkin hoặc reset — giữ logic confirm cũ
+			if (!confirm('Thay đổi trạng thái checkin?')) {
+				$select.val(prevVal);
+				return false;
+			}
+			doChangeStatus();
+		}
 	});
 
 	// Open form send mail
@@ -2200,6 +2257,87 @@ $(document).ready(function () {
 			},
 		});
 	}
+
+	// Add/update Zalo ID
+	$('#btn_update_zalo_id').on('click', function () {
+		const dialogBookingId = $(this).attr('booking_id') || bookingId;
+
+		$('#dialog_update_zalo_id').dialog({
+			width: 380,
+			modal: true,
+			resizable: false,
+			title: "Liên kết Zalo",
+			dialogClass: "dialog-update-zalo-id",
+			buttons: [
+				{
+					text: "Lưu",
+					class: "btn btn-primary-2 zalo-dialog-btn zalo-dialog-btn--save",
+					click: function () {
+						const dialog = $(this);
+						const zaloId = extractZaloId($('#input_zalo_id').val());
+						if (zaloId.length > 0 && zaloId.length < 15) {
+							showModalNotify(2, "Đường dẫn không hợp lệ");
+							return;
+						}
+
+						$.ajax({
+							url: "index.php?entryPoint=entryPointGeneral",
+							type: "POST",
+							contentType: "application/json",
+							dataType: "json",
+							data: JSON.stringify({
+								class: "entryBookingClass",
+								method: "updateFields",
+								params: {
+									bookingId: dialogBookingId,
+									fields: { zalo_id: zaloId }
+								}
+							}),
+							beforeSend: function () {
+								$('.container-waiting').show();
+							},
+							success: function (res) {
+								if ('status' in res && res.status === 1) {
+									dialog.dialog('close');
+									location.reload();
+								} else {
+									showModalNotify(0, res.message || "Thao tác không thành công, vui lòng thử lại.");
+								}
+							},
+							error: function (XMLHttpRequest, textStatus, errorThrown) {
+								console.error("Status: " + textStatus);
+								console.error("Error: " + errorThrown);
+								showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+							},
+							complete: function () {
+								$('.container-waiting').hide();
+							},
+						});
+					}
+				},
+				{
+					text: "Hủy",
+					class: "btn btn-secondary zalo-dialog-btn zalo-dialog-btn--cancel",
+					click: function () {
+						$(this).dialog('close');
+					}
+				}
+			]
+		});
+	});
+	// Extract zalo id from chat url (https://oa.zalo.me/chat?uid=123&oaid=456)
+	function extractZaloId(rawValue) {
+		const value = (rawValue || '').trim();
+		if (!value) return '';
+
+		const uidMatch = value.match(/[?&]uid=(\d+)/i) || value.match(/\buid=(\d+)/i);
+		if (uidMatch) return uidMatch[1];
+
+		// If only fill number, dont do any thing.
+		if (/^\d+$/.test(value)) return value;
+
+		return value;
+	}
 });
 
 // Count row for textarea
@@ -2705,9 +2843,7 @@ function calculateTotal() {
 
 	var luggage_fee = unformatNumber($.trim($('#luggage_fee').text()));
 	var other_fee = unformatNumber($.trim($('#other_fee').text()));
-	// var thuephi_quocte = unformatNumber($.trim($('#thuephi_quocte').text()));
-	var thuephi_quocte = 0;
-	var total_amount = subtotal_amt + luggage_fee + other_fee + thuephi_quocte;
+	var total_amount = subtotal_amt + luggage_fee + other_fee;
 
 	// Hiện tại đã off % discount
 	// var discount_percent = unformatNumber($('#discount_percent :selected').val());

@@ -223,12 +223,10 @@ trait BookingFieldsTrait
 		$this->ss->assign('CONTACT_NAME', $contact_assign . $modal_history_bookings);
 	}
 
-	private function assignContactPhoneField()
-	{
-		// PHONE
-		$journeys_info     = $this->getJourneysByBooking($this->bean->id);
-		$pass_and_bag     = $this->getPassengerAndBaggage($this->bean->id);
-		$zbs_history     = $this->getHistoryZBS($this->bean->phone, $this->bean->id);
+	private function assignContactPhoneField() {
+		$journeys_info = $this->getJourneysByBooking($this->bean->id);
+		$pass_and_bag  = $this->getPassengerAndBaggage($this->bean->id);
+		$zbs_history   = $this->getHistoryZBS($this->bean->phone, $this->bean->id);
 		$contact_phone = '<div class="wrap-phone d-flex align-items-center justify-content-between">
 			<a href="tel:' . $this->bean->phone . '">' . $this->bean->phone . '</a>
 			<div class="d-flex align-items-center gap-2">
@@ -298,7 +296,7 @@ trait BookingFieldsTrait
 						</div>
 						<div class="row mt-2 pt-3" style="border-top: 1px solid #e0e0e0;">
 							<div class="col-6 wrap-phone">
-								Gửi tới: <input type="text" name="phone_zalo" id="phone_zalo" value="' . $this->bean->phone . '" style="width:120px; margin-left:10px; height:10px;"/>
+								Gửi tới: <input type="text" name="phone_zalo" id="phone_zalo" value="' . $this->bean->phone . '" style="width:120px; margin-left:10px;" />
 							</div>
 							<div class="col-6 wrap-button">
 								<button type="button" id="confirm-send-zalo" class="btn btn-confirm me-2">Gửi</button>
@@ -312,8 +310,62 @@ trait BookingFieldsTrait
 		$this->ss->assign('CONTACT_PHONE', $contact_phone);
 	}
 
-	private function assignPaidFlagField()
-	{
+	private function assignZaloInfoField() {
+		$booking_id = $this->bean->id;
+		$zalo_id = $this->bean->zalo_id ?? '';
+		// Icon nút thêm/cập nhật
+		$edit_icon = '<svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>';
+
+		$info_html = '';
+		if (!empty($zalo_id)) {
+			$zaloOA = new APIZaloOA();
+			$zaloInfo = EC_Zalo_Contacts_Helper::get_zalo_user_info($zalo_id, '', true);
+
+			if (!empty($zaloInfo)) {
+				$avatar = htmlspecialchars($zaloInfo['avatar'] ?? '', ENT_QUOTES, 'UTF-8');
+				$name = htmlspecialchars($zaloInfo['display_name'] ?: ($zaloInfo['user_alias'] ?? ''), ENT_QUOTES, 'UTF-8');
+				$avatar_html = '<img src="' . $avatar . '" alt="Zalo avatar" class="zalo-info__avatar" onerror="this.classList.add(\'zalo-info__avatar--fallback\');this.removeAttribute(\'src\');" />';
+			} else {
+				$zaloOA = new APIZaloOA();
+				$name = htmlspecialchars($zalo_id, ENT_QUOTES, 'UTF-8');
+				$avatar_html = '<span class="zalo-info__avatar zalo-info__avatar--fallback"></span>';
+			}
+
+			$links_html = '';
+			$web_chat_link = htmlspecialchars($zaloOA->get_chat_link($zalo_id), ENT_QUOTES, 'UTF-8');
+			if ($web_chat_link) {
+				$links_html .= '<a href="' . $web_chat_link . '" target="_blank" class="zalo-chat-link zalo-chat-link--zalo">Zalo Chat</a>';
+			}
+			$links_html .= "<a href='index.php?module=EC_Zalo&action=index&zalo_id=$zalo_id' target='_blank' class='zalo-chat-link zalo-chat-link--bm'>BM chat</a>";
+
+			$info_html = <<<HTML
+				<div class="zalo-info">
+					$avatar_html
+					<div class="zalo-info__body">
+						<span class="zalo-info__name">$name</span>
+						<div class="zalo-info__links">$links_html</div>
+					</div>
+				</div>
+			HTML;
+		}
+
+		// Nút thêm/cập nhật Zalo ID -> entryBookingClass::updateFields
+		$btn_label = !empty($zalo_id) ? 'Cập nhật Zalo ID' : 'Thêm Zalo ID';
+		$zalo_id_attr = htmlspecialchars($zalo_id, ENT_QUOTES, 'UTF-8');
+		$action_html = '<div class="zalo-info__action">
+			<button type="button" class="zalo-info__edit-btn p-2" id="btn_update_zalo_id" booking_id="' . $booking_id . '" title="' . $btn_label . '" aria-label="' . $btn_label . '">' . $edit_icon . '</button>
+			<div id="dialog_update_zalo_id" title="Liên kết Zalo" style="display:none;">
+				<div class="form-group">
+					<input type="text" id="input_zalo_id" class="form-control" value="' . $zalo_id_attr . '" placeholder="https://oa.zalo.me/chat?uid=..." />
+				</div>
+			</div>
+		</div>';
+
+		$wrap_class = 'zalo-info-wrap' . (!empty($info_html) ? ' zalo-info-wrap--has-card' : '');
+		$this->ss->assign('CUSTOM_ZALO_INFO', '<div class="' . $wrap_class . '">' . $action_html . $info_html . '</div>');
+	}
+
+	private function assignPaidFlagField() {
 		global $app_list_strings;
 
 		// Check is paid - is agent (Là đại lý)
@@ -454,14 +506,14 @@ trait BookingFieldsTrait
 		$onlinePaymentLink = EC_Flight_Bookings_Helper::get_online_payment_link($this->bean->id, $this->bean->created_by);
 		$nganluong_code = <<<HTML
 			<div class="nganluong__wrap">
-				<button class="flex-fill outline-none" id="copy_payment_link" onclick="copyContent('{$onlinePaymentLink}')">
-					<img src="themes/SuiteP/images/modules/ec_flight_booking/onepay.svg" alt="onepay">
-				</button>
-				<button class="flex-fill outline-none" id="get_qr_code">
+				<button class="flex-fill d-flex align-items-center justify-content-center gap-1" id="get_qr_code">
 					<svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M9 6.6V8.4C9 8.73137 8.73137 9 8.4 9H6.6C6.26863 9 6 8.73137 6 8.4V6.6C6 6.26863 6.26863 6 6.6 6H8.4C8.73137 6 9 6.26863 9 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 12H9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12V15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18H15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.0111L12.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 12.0111L18.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 15.0111L12.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15.0111L18.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 18.0111L18.01 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 9.01111L12.01 9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6.01111L12.01 6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 15.6V17.4C9 17.7314 8.73137 18 8.4 18H6.6C6.26863 18 6 17.7314 6 17.4V15.6C6 15.2686 6.26863 15 6.6 15H8.4C8.73137 15 9 15.2686 9 15.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 6.6V8.4C18 8.73137 17.7314 9 17.4 9H15.6C15.2686 9 15 8.73137 15 8.4V6.6C15 6.26863 15.2686 6 15.6 6H17.4C17.7314 6 18 6.26863 18 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 3H21V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 21H21V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 3H3V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H3V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 					<span>QR code</span>
 				</button>
-				<button class="flex-fill outline-none btn btn-primary-2" id="get_bank" booking_id="{$this->bean->id}">
+				<button class="flex-fill" id="copy_payment_link" onclick="copyContent('{$onlinePaymentLink}')">
+					<img src="themes/SuiteP/images/modules/ec_flight_booking/onepay.svg" alt="onepay">
+				</button>
+				<button class="flex-fill d-flex align-items-center justify-content-center gap-1" id="get_bank" booking_id="{$this->bean->id}">
 					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
 						<path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
 					</svg>
@@ -519,12 +571,7 @@ trait BookingFieldsTrait
 		}
 		$transactionHistory = <<<HTML
 			<button type="button" class="history-transaction d-flex align-items-center gap-2 cursor-pointer btn btn-primary-2" data-bs-toggle="modal" data-bs-target="#history-transaction">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-					<path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483m.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535m-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
-					<path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
-					<path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
-				</svg>
-				<p class="title-history">Onepay ({$transCount})</p>
+				<p class="title-history">Thanh toán online ({$transCount})</p>
 			</button>
 			<div class="modal fade" id="history-transaction" tabindex="-1" aria-labelledby="history-transactionLabel" aria-hidden="true">
 				<div class="modal-dialog modal-dialog-centered">

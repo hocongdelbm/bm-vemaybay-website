@@ -179,8 +179,7 @@ class EC_Flight_BookingsLogicHook
 		}
 	}
 
-	function updateFields($focus, $event, $arguments)
-	{
+	function updateFields($focus, $event, $arguments) {
 		global $current_user;
 
 		// Contact ID
@@ -197,17 +196,43 @@ class EC_Flight_BookingsLogicHook
 		 * Map cuộc gọi và booking cho case booker đặt giùm khách hàng
 		 */
 		if (empty($focus->telesale_call_id) && isset($_POST['is_telesale_value']) && !empty($focus->phone) && !in_array(strtoupper(trim($focus->contact_name)), $focus->contact_name_ignore)) {
-			
+			/** @var Call **/
 			$call = BeanFactory::newBean("Calls");
 			$call_id = $call->getTelesaleCalls($focus->phone, $focus->fetched_row['date_entered']);
 			if (!empty($call_id)) {
-				$focus->db->query("UPDATE ec_flight_bookings SET telesale_call_id = '" . $focus->db->quote($call_id) . "', is_telesale = 1, date_modified = '" . date('Y-m-d H:i:s') . "', modified_user_id = '" . $focus->db->quote($current_user->id) . "' WHERE id = '" . $focus->db->quote($focus->id) . "'");
+				$focus->db->query(
+					"UPDATE ec_flight_bookings
+					SET telesale_call_id = '" . $focus->db->quote($call_id) . "'
+						, is_telesale = 1
+						, date_modified = NOW()
+						, modified_user_id = '" . $focus->db->quote($current_user->id) . "' 
+					WHERE id = '" . $focus->db->quote($focus->id) . "'"
+				);
 			}
 		}
 
 		// Đánh dấu booking CTV
 		if (isset($_POST['is_ctv_value'])) {
-			$focus->db->query("UPDATE ec_flight_bookings SET is_ctv = " . $_POST['is_ctv_value'] . ", date_modified = '" . date('Y-m-d H:i:s') . "', modified_user_id = '" . $focus->db->quote($current_user->id) . "' WHERE id = '" . $focus->db->quote($focus->id) . "'");
+			$focus->db->query(
+				"UPDATE ec_flight_bookings
+				SET is_ctv = " . $_POST['is_ctv_value'] . "
+					, date_modified = NOW()
+					, modified_user_id = '" . $focus->db->quote($current_user->id) . "'
+				WHERE id = '" . $focus->db->quote($focus->id) . "'"
+			);
+		}
+
+		// Add zalo id info
+		$sql = "SELECT zc.zalo_id
+			FROM contacts c
+				INNER JOIN ec_zalo_contacts zc ON zc.contact_id = c.id
+			WHERE c.phone_mobile = '{$focus->phone}'
+				AND (zc.status IS NULL OR zc.status <> 'banned')
+				AND zc.deleted = 0
+				AND c.deleted = 0";
+		$zalo_id = $focus->db->getOne($sql) ?? '';
+		if((!$focus->zalo_id || empty($focus->zalo_id)) && !empty($zalo_id)) {
+			$focus->db->query("UPDATE ec_flight_bookings SET zalo_id = '$zalo_id' WHERE id = '{$focus->id}'");
 		}
 	}
 

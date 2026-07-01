@@ -533,15 +533,15 @@ $dictionary['EC_Flight_Bookings'] = array(
             'quicksearch' => 'enabled',
         ),
 
-        'thuephi_quocte' => array(
-            'name'       => 'thuephi_quocte',
-            'vname'      => 'LBL_THUEPHI_QUOCTE',
-            'type'       => 'currency',
-            'len'        => 26,
-            'default'    => 0,
-            'importable' => true,
-            'reportable' => false,
-        ),
+        // 'thuephi_quocte' => array(
+        //     'name'       => 'thuephi_quocte',
+        //     'vname'      => 'LBL_THUEPHI_QUOCTE',
+        //     'type'       => 'currency',
+        //     'len'        => 26,
+        //     'default'    => 0,
+        //     'importable' => true,
+        //     'reportable' => false,
+        // ),
 
         'is_agent' => array(
             'name'       => 'is_agent',
@@ -835,6 +835,16 @@ $dictionary['EC_Flight_Bookings'] = array(
             'audited'    => 1,
             'studio'     => 'visible',
         ),
+
+        'zalo_id' => array(
+            'name'       => 'zalo_id',
+            'vname'      => 'LBL_ZALO',
+            'type'       => 'varchar',
+            'len'        => 24,
+            'default'    => '',
+            'importable' => 1,
+            'audited'    => 1,
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_bk_name', 'type' => 'index', 'fields' => array('name')),
@@ -847,11 +857,13 @@ $dictionary['EC_Flight_Bookings'] = array(
         array('name' => 'idx_bk_date_ticket_issue', 'type' => 'index', 'fields' => array('date_ticket_issue')),
         array('name' => 'idx_bk_dateen', 'type' => 'index', 'fields' => array('date_entered')),
         array('name' => 'idx_bk_ip', 'type' => 'index', 'fields' => array('ip_address')),
+        array('name' => 'idx_bk_zalo_id', 'type' => 'index', 'fields' => array('zalo_id')),
     ),
     'relationships' => array(),
     'optimistic_locking' => true,
     'unified_search' => true,
 );
+
 if (!class_exists('VardefManager')) {
     require_once('include/SugarObjects/VardefManager.php');
 }

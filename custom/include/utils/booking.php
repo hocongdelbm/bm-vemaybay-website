@@ -6,9 +6,8 @@
  * @param string $contactName
  * @return bool true/false
  */
-function createContactsForBooking($phoneNumber, $contactName = '')
-{
-    global $db, $current_user;
+function createContactsForBooking($phoneNumber, $contactName = '') {
+    global $db;
 
     $phoneNumber = trim($phoneNumber);
     if (!$phoneNumber || empty($phoneNumber)) return false;
@@ -22,10 +21,11 @@ function createContactsForBooking($phoneNumber, $contactName = '')
         $contact->phone_mobile = $phoneNumber;
         $contact->description = 'Liên hệ mới tạo từ booking';
         $contact_id = $contact->save();
-        if (empty($contact_id)) {
-            // NotificationService::sendWarningMessage("Tạo liên hệ mới thất bại với SĐT: $phoneNumber", "", ["threadKey" => "system"]);
-        }
-    } else {
+        // if (empty($contact_id)) {
+        //     NotificationService::sendWarningMessage("Tạo liên hệ mới thất bại với SĐT: $phoneNumber", "", ["threadKey" => "system"]);
+        // }
+    }
+    else {
         $contact->retrieve($contact_id);
 
         if (empty($contact->last_name) || stripos($contact->last_name, "Khách") !== false || stripos($contact->last_name, "Khach") !== false || stripos($contact->last_name, "Tele") !== false || preg_match('/^[0-9 ]*$/', $contact->last_name)) {
@@ -889,8 +889,12 @@ function saveRevenueBooking($booking_id)
 
 /**
  * Tính toán doanh thu
+ * @param string $from_date
+ * @param string $to_date
+ * @param array $condition_arr
+ * @return array
  */
-function calculateRevenueOfDate($from_date, $to_date, $condition_arr = [])
+function calculateRevenueOfDate(string $from_date, string $to_date, array $condition_arr = [])
 {
     global $db, $current_user;
 
@@ -909,6 +913,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = [])
     if (!$is_manager && !is_admin($current_user)) {
         $sql_role .= " AND bk.assigned_user_id = '{$current_user->id}' ";
     }
+
     // ========== XỬ LÝ PAYMENT_STT (MULTI-SELECT) ==========
     $sql_having = '';
     if (!empty($condition_arr['payment_stt']) && is_array($condition_arr['payment_stt'])) {
@@ -1204,22 +1209,39 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = [])
         'details' => []
     ];
 
-    // if ($GLOBALS['current_user']->user_name == 'hungnh') {
-    //     pr($sql);
-    // }
-
     $res    = $db->query($sql);
     $i = 0;
     while ($row = $db->fetchByAssoc($res)) {
-        // Tổng doanh số
-        $profit_amount = $row['subtotal_amount'] - $row['total_bought_price'];
-        $result['total_profit'] += $profit_amount;
-        $result['total_revenue'] += $row['subtotal_amount'];
-        $result['total_bought'] += $row['total_bought_price'];
+        $revenue = $row['subtotal_amount'];
+        $cost    = $row['total_bought_price'];
+        $profit  = $revenue - $cost;
+
+        $result['total_profit']  += $profit; // Total Sales
+        $result['total_revenue'] += $revenue; // Total Revenue
+        $result['total_bought']  += $cost; // Total Cost
+
+        // // Total bonus
+        // if($row['parent_type'] == 'EC_Flight_Bookings') {
+        //     $ticket_qty = $result['total_quantity'] ?? 1;
+        //     $avg_profit = $profit / $ticket_qty;
+
+        //     if($avg_profit >= 120000) {
+        //         $bonus_per_ticket = 
+        //     }
+        //     else if($avg_profit >= 110000) {
+        //         $bonus_per_ticket = 
+        //     }
+        //     else {
+        //         $bonus_per_ticket = 0;
+        //     }
+        // }
+        // else if($row['parent_type'] == 'EC_Receipt_Voucher') {
+
+        // }
 
         // Details
         $result['details'][$row['parent_id']] = $row;
-        $result['details'][$row['parent_id']]['profit_amount'] = $profit_amount;
+        $result['details'][$row['parent_id']]['profit_amount'] = $profit;
 
         $i++;
     }
