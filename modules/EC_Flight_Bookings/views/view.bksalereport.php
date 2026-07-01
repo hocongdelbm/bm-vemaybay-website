@@ -96,29 +96,12 @@ class Viewbksalereport extends SugarView {
 
 	// Doanh số booker
 	public function getDSBooking(string $from_date, string $to_date, string $assigned_user_id = '') {
-		global $current_user;
-		$show_bonus = ($current_user->id === '1');
-
 		$user_list = get_user_array(true, '', '', true);
 
-		$html = '
-			<thead>
-				<th width="5%">STT</th>
-				<th width="20%">Họ và tên</th>
-				<th width="5%">Booking</th>
-				<th width="5%">Vé</th>
-				<th width="10%">Doanh thu</th>
-				<th width="10%">Giá mua</th>
-				<th width="10%">Doanh số</th>'
-				. ($show_bonus ? '<th width="10%">Thưởng</th>' : '') . '
-			</thead><tbody>';
-
-		// doanh số bao gồm doanh số bán vé, đổi ngày bay, hành lý và hoàn vé
+		// Revenue: Ticket sales, Change flight date, Baggage, Refund
 		$data_revenue = calculateRevenueOfDate($from_date, $to_date);
-
-		// Thông tin phục vụ tính thưởng (nguồn KH, quốc tế/nội địa, ngày bay...) cho các booking vé
-		$bonus_info = $show_bonus ? $this->getBookingBonusInfo($this->collectBookingIds($data_revenue)) : [];
-
+		
+		$html = '';
 		$total_bk_qty = $total_ticket_qty = 0;
 		$total_revenue_amount = 0;
 		$total_bought_amount = 0;
@@ -133,22 +116,22 @@ class Viewbksalereport extends SugarView {
 			foreach ($data_revenue['details'] as $row) {
 				$uid = $row['user_id'] ?: 'empty';
 
-				// Phân quyền: nhân viên chỉ gom dữ liệu của mình
+				// Nhân viên chỉ gom dữ liệu của mình
 				if (!empty($assigned_user_id) && $uid !== $assigned_user_id) {
 					continue;
 				}
 
 				if (!isset($grouped[$uid])) {
 					$grouped[$uid] = [
-						'user_id'    => $uid !== 'empty' ? $uid : null,
-						'full_name'  => $uid !== 'empty' ? $user_list[$uid] : '(Trống)',
-						'title'      => $row['title'],
-						'total_bk'   => 0,
-						'ticket_qty' => 0,
-						'revenue_amount'    => 0,
-						'bought_amount'    => 0,
-						'profit_amount'    => 0,
-						'bonus_amount'    => 0,
+						'user_id'    		=> $uid,
+						'full_name'  		=> $user_list[$uid] ?? '(Trống)',
+						'title'      		=> $row['title'],
+						'total_bk'   		=> 0,
+						'ticket_qty' 		=> 0,
+						'revenue_amount' 	=> 0,
+						'bought_amount'  	=> 0,
+						'profit_amount'  	=> 0,
+						'bonus_amount'   	=> 0,
 					];
 				}
 
@@ -157,11 +140,11 @@ class Viewbksalereport extends SugarView {
 					$grouped[$uid]['total_bk'] += 1;
 				}
 
-				$grouped[$uid]['ticket_qty']     += (int)$row['total_quantity'];
-				$grouped[$uid]['revenue_amount'] += (int)$row['subtotal_amount'];
-				$grouped[$uid]['bought_amount']  += (int)$row['total_bought_price'];
-				$grouped[$uid]['profit_amount']  += (int)$row['profit_amount'];
-				$grouped[$uid]['bonus_amount']   += $show_bonus ? $this->calculateDirectBonus($row, $bonus_info) : 0;
+				$grouped[$uid]['ticket_qty']     += $row['total_quantity'];
+				$grouped[$uid]['revenue_amount'] += $row['subtotal_amount'];
+				$grouped[$uid]['bought_amount']  += $row['total_bought_price'];
+				$grouped[$uid]['profit_amount']  += $row['profit_amount'];
+				$grouped[$uid]['bonus_amount']   += $row['bonus_amount'];
 			}
 
 			// 2. SORT ở đây
@@ -171,45 +154,65 @@ class Viewbksalereport extends SugarView {
 
 			// 3. Loop render
 			foreach ($grouped as $row) {
+				$link = "index.php?module=EC_Flight_Bookings&action=bksalereport&for=showDetail&user={$row['user_id']}&from_date={$from_date}&to_date=$to_date";
 				$html .= '<tr>
-					<td class="text-center">' . $i . '</td>
+					<td class="text-center">'. $i .'</td>
 					<td>
-						<a href="index.php?module=EC_Flight_Bookings&action=bksalereport&for=showDetail&user=' . $row['user_id'] . '&from_date=' . $from_date . '&to_date=' . $to_date . '" target="_blank">
-							' . $row['full_name'] . '
+						<a href="'. $link .'" target="_blank">
+							'. $row['full_name'] .'
 						</a>
 					</td>
 					<td class="text-center">' . format_number($row['total_bk']) . '</td>
 					<td class="text-center">' . format_number($row['ticket_qty']) . '</td>
 					<td class="text-end">' . format_number($row['revenue_amount']) . '</td>
 					<td class="text-end">' . format_number($row['bought_amount']) . '</td>
-					<td class="text-end">' . format_number($row['profit_amount']) . '</td>'
-					. ($show_bonus ? '<td class="text-end">' . format_number($row['bonus_amount']) . '</td>' : '') . '
+					<td class="text-end">' . format_number($row['profit_amount']) . '</td>
+					<td class="text-end">' . format_number($row['bonus_amount']) . '</td>
 				</tr>';
-
-				$i++;
-
-				$total_bk_qty     += $row['total_bk'];
-				$total_ticket_qty += $row['ticket_qty'];
-				$total_revenue_amount    += $row['revenue_amount'];
+				
+				$total_bk_qty     		+= $row['total_bk'];
+				$total_ticket_qty 		+= $row['ticket_qty'];
+				$total_revenue_amount   += $row['revenue_amount'];
 				$total_bought_amount    += $row['bought_amount'];
 				$total_profit_amount    += $row['profit_amount'];
-				$total_bonus_amount    += $row['bonus_amount'];
+				$total_bonus_amount    	+= $row['bonus_amount'];
+				$i++;
 			}
 		}
 
-		$html .= '<tr class="last-row footer-tr">
-				<td></td>
-				<td>Tổng cộng</td>
-				<td class="text-center">' . format_number($total_bk_qty) . '</td>
-				<td class="text-center">' . format_number($total_ticket_qty) . '</td>
-				<td class="text-end">' . format_number($total_revenue_amount) . '</td>
-				<td class="text-end">' . format_number($total_bought_amount) . '</td>
-				<td class="text-end">' . format_number($total_profit_amount) . '</td>'
-				. ($show_bonus ? '<td class="text-end">' . format_number($total_bonus_amount) . '</td>' : '') . '
-			</tr>
-		</tbody>';
+		// Format number
+		$total_bk_qty = format_number($total_bk_qty);
+		$total_ticket_qty = format_number($total_ticket_qty);
+		$total_revenue_amount = format_number($total_revenue_amount);
+		$total_bought_amount = format_number($total_bought_amount);
+		$total_profit_amount = format_number($total_profit_amount);
+		$total_bonus_amount = format_number($total_bonus_amount);
 
-		return $html;
+		return <<<HTML
+			<thead>
+				<th width="5%">STT</th>
+				<th width="20%">Họ và tên</th>
+				<th width="5%">Booking</th>
+				<th width="5%">Vé</th>
+				<th width="10%">Doanh thu</th>
+				<th width="10%">Giá mua</th>
+				<th width="10%">Doanh số</th>'
+				<th width="10%">Thưởng</th>
+			</thead>
+			<tbody>
+				$html
+				<tr class="last-row footer-tr">
+					<td></td>
+					<td>Tổng cộng</td>
+					<td class="text-center">{$total_bk_qty}</td>
+					<td class="text-center">{$total_ticket_qty}</td>
+					<td class="text-end">{$total_revenue_amount}</td>
+					<td class="text-end">{$total_bought_amount}</td>
+					<td class="text-end">{$total_profit_amount}</td>
+					<td class="text-end">{$total_bonus_amount}</td>
+				</tr>
+			</tbody>
+		HTML;
 	}
 
 	// Chi tiết doanh số

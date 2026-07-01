@@ -3,8 +3,7 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once("include/Sugar_Smarty.php");
 date_default_timezone_set("Asia/Ho_Chi_Minh");
 
-class Viewemployeekpi extends SugarView
-{
+class Viewemployeekpi extends SugarView {
 	function display()
 	{
 		if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) {
@@ -21,32 +20,11 @@ class Viewemployeekpi extends SugarView
 	{
 		global $db, $current_user, $app_list_strings;
 
-		$sql_search = "";
-		$sql_search2 = "";
-
 		if (!isset($_POST['report_type'])) $_POST['report_type'] = 'owner';
 
-		// từ ngày
-		if (isset($_POST['from_date']) && !empty($_POST['from_date'])) {
-			$sql_search .= " AND b.date_ticket_issue >= '" . date('Y-m-d', strtotime($_POST['from_date'])) . "' ";
-			$sql_search2 .= " AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) >= '" . date('Y-m-d', strtotime($_POST['from_date'])) . "' ";
-			$from_date_value = $_POST['from_date'];
-		} else {
-			$sql_search .= " AND b.date_ticket_issue >= '" . date('Y-m-d') . "' ";
-			$sql_search2 .= " AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) >= '" . date('Y-m-d') . "' ";
-			$from_date_value = date('d-m-Y');
-		}
-
-		// đến ngày
-		if (isset($_POST['to_date']) && !empty($_POST['to_date'])) {
-			$sql_search .= " AND b.date_ticket_issue <= '" . date('Y-m-d', strtotime($_POST['to_date'])) . "' ";
-			$sql_search2 .= " AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($_POST['to_date'])) . "' ";
-			$to_date_value = $_POST['to_date'];
-		} else {
-			$sql_search .= " AND b.date_ticket_issue <= '" . date('Y-m-d') . "' ";
-			$sql_search2 .= " AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) <= '" . date('Y-m-d') . "' ";
-			$to_date_value = date('d-m-Y');
-		}
+		// Giá trị ngày hiển thị trên form (điều kiện lọc SQL được dựng trong genQuery)
+		$from_date_value = (isset($_POST['from_date']) && !empty($_POST['from_date'])) ? $_POST['from_date'] : date('d-m-Y');
+		$to_date_value   = (isset($_POST['to_date']) && !empty($_POST['to_date'])) ? $_POST['to_date'] : date('d-m-Y');
 
 		switch (ceil(date('n') / 3)) {
 			case 1:
@@ -66,9 +44,11 @@ class Viewemployeekpi extends SugarView
 				$quater_todate = '31-12-' . date('Y');
 				break;
 			default:
+				$quater_fromdate = '';
+				$quater_todate = '';
 				break;
 		}
-		$arr_date = array(
+		$arr_date = [
 			'<option value="" fromdate="" todate="">---Trống---</option>',
 			'<option value="this_month" fromdate="' . date('d-m-Y', strtotime('first day of this month')) . '" todate="' . date('d-m-Y', strtotime('last day of this month')) . '">Tháng này</option>',
 			'<option value="previous_month" fromdate="' . date('d-m-Y', strtotime('first day of last month')) . '" todate="' . date('d-m-Y', strtotime('last day of last month')) . '">Tháng trước</option>',
@@ -76,7 +56,7 @@ class Viewemployeekpi extends SugarView
 			'<option value="quater_previous_month" fromdate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_fromdate))) . '" todate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_todate))) . '">Quý trước</option>',
 			'<option value="this_year" fromdate="' . date('01-01-Y') . '" todate="' . date('31-12-Y') . '">Năm nay</option>',
 			'<option value="previous_year" fromdate="' . date('01-01-Y', strtotime('-1 year')) . '" todate="' . date('31-12-Y', strtotime('-1 year')) . '">Năm trước</option>',
-		);
+		];
 		$smartyobj->assign('DATE_OPTION', implode('', $arr_date));
 
 		// OTPION DATE - RADIO
@@ -89,12 +69,6 @@ class Viewemployeekpi extends SugarView
 		$smartyobj->assign('PREVIOUS_WEEK_FROMDATE', date('d-m-Y', strtotime('monday previous week')));
 		$smartyobj->assign('PREVIOUS_WEEK_TODATE', date('d-m-Y', strtotime('sunday previous week')));
 		$smartyobj->assign('REPORT_TYPE_OPTION', get_select_options_with_id(array('owner' => 'Của tôi', 'all' => 'Tất cả'), $_POST['report_type']));
-
-		// Phân quyền dữ liệu
-		if (!is_admin($current_user) && $current_user->title != 'QuanLy' && (!isset($_POST['report_type']) || $_POST['report_type'] != 'all')) {
-			$sql_search .= " AND b.assigned_user_id='" . $current_user->id . "' ";
-			$sql_search2 .= " AND w.assigned_user_id='" . $current_user->id . "' ";
-		}
 
 		// Kiểm tra xem trong khoảng thời gian 3 tháng
 		$date_diff = (abs(strtotime($to_date_value) - strtotime($from_date_value)) / 60 / 60 / 24) + 1;
@@ -126,66 +100,8 @@ class Viewemployeekpi extends SugarView
 			 * 
 			 */
 
-			// main query
-			$sql = "SELECT w.assigned_user_id
-						,u.user_name
-						,CONCAT(IFNULL(u.last_name,''),IF(u.first_name IS NOT NULL,' ',''),IFNULL(u.first_name,'')) AS full_name
-						,SUM(IFNULL(w.called,0)) AS called
-						,SUM(IFNULL(w.completed,0)) AS completed
-						,SUM(IFNULL(w.paid,0)) AS paid
-						,SUM(IFNULL(w.recheck,0)) AS recheck
-						,SUM(IFNULL(w.support,0)) AS support
-						,SUM(IFNULL(w.invoice_issued,0) * 3) AS invoice_issued
-						,SUM(IFNULL(w.ticket_delivery,0)) AS ticket_delivery
-						,SUM(IFNULL(w.checkin_journey,0)) AS checkin_journey
-						,SUM(IFNULL(w.recall,0)) AS recall
-						,SUM(IFNULL(w.remind,0)) AS remind
-						,SUM(IFNULL(w.check_debt,0)) AS check_debt
-						,SUM(IFNULL(w.create_repaid,0)) AS create_repaid
-						,SUM(IFNULL(w.process_repaid,0)) AS process_repaid
-						,SUM(IFNULL(w.create_payment,0)) AS create_payment
-						,SUM(IFNULL(w.create_receipt,0)) AS create_receipt
-						,SUM(IFNULL(w.create_transfer,0)) AS create_transfer
-						,SUM(IFNULL(w.invoice_input_issued,0)) AS invoice_input_issued
-						-- ,SUM(IFNULL(w.manner, 0)) AS manner
-						-- ,SUM(IFNULL(w.effected, 0)) AS effected
-						-- ,SUM(IFNULL(w.awareness, 0)) AS awareness
-						-- ,SUM(IFNULL(w.minus, 0)) AS minus
-						,SUM(  
-						  	IFNULL(w.called,0) 
-							+ IFNULL(w.completed,0) 
-							+ IFNULL(w.paid,0) 
-							+ IFNULL(w.recheck,0) 
-							+ IFNULL(w.support,0) 
-							+ (IFNULL(w.invoice_issued,0) * 3) 
-							+ IFNULL(w.ticket_delivery,0) 
-							+ IFNULL(w.checkin_journey,0) 
-							+ IFNULL(w.recall,0)  
-							+ IFNULL(w.remind,0)  
-							+ IFNULL(w.check_debt,0) 
-							+ IFNULL(w.create_repaid,0) 
-							+ IFNULL(w.process_repaid,0) 
-							+ IFNULL(w.create_payment,0) 
-							+ IFNULL(w.create_receipt,0) 
-							+ IFNULL(w.create_transfer,0)
-							+ IFNULL(w.invoice_input_issued,0)
-							-- + IFNULL(w.manner,0)
-							-- + IFNULL(w.effected,0)
-							-- + IFNULL(w.awareness,0)
-							-- - IFNULL(w.minus, 0)
-						  ) AS total_kpi
-					FROM ec_working_process w
-					INNER JOIN users u ON w.assigned_user_id = u.id AND u.deleted = 0
-					AND u.is_admin = 0 AND u.title <> 'QuanLy' 
-					-- AND u.start_working_date IS NOT NULL
-					WHERE w.deleted = 0
-					" . $sql_search2 . "
-					GROUP BY w.assigned_user_id
-					ORDER BY total_kpi DESC ";
-
-			// if($GLOBALS['current_user']->user_name == 'hungnh'){
-			// pr($sql);
-			// }
+			// Main query
+			$sql = $this->genQuery($from_date_value, $to_date_value, true);
 
 			$res = $db->query($sql);
 			$i = 0;
@@ -219,24 +135,24 @@ class Viewemployeekpi extends SugarView
 				$recall = ($row['recall'] != 0 || $row['remind'] != 0) ? (int)($row['recall'] + $row['remind']) : '';
 
 				$html .= '<tr>
-							<td align="center"><span>' . ($i + 1) . '</span></td>
-							<td align="left"><a class="admin-view-detail" user_id="' . $row['assigned_user_id'] . '" full_name="' . $row['full_name'] . '" load_type="total_kpi" load_name="điểm KPI" href="#" title="Xem chi tiết">' . $row['full_name'] . '</a></td>
-							<td align="center"><span title="Called">' . ($row['called'] != 0 ? $row['called'] : '') . '</span></td>
-							<td align="center"><span title="Completed">' . ($row['completed'] != 0 ? $row['completed'] : '') . '</span></td>
-							<td align="center"><span title="Đã thanh toán / Đã thu">' . ($row['paid'] != 0 ? $row['paid'] : '') . '</span></td>
-							<td align="center"><span title="Recheck">' . ($row['recheck'] != 0 ? $row['recheck'] : '') . '</span></td>
-							<td align="center"><span title="Recall">' . $recall . '</span></td>
-							<td align="center"><span title="Xuất hóa đơn đầu vào">' . ($row['invoice_input_issued'] != 0 ? $row['invoice_input_issued'] : '') . '</span></td>
-							<td align="center"><span title="Xuất hóa đơn đầu ra">' . ($row['invoice_issued'] != 0 ? $row['invoice_issued'] : '') . '</span></td>
-							<td align="center"><span title="Giao vé">' . ($row['ticket_delivery'] != 0 ? $row['ticket_delivery'] : '') . '</span></td>
-							<td align="center"><span title="Checkin">' . ($row['checkin_journey'] != 0 ? $row['checkin_journey'] : '') . '</span></td>
-							<td align="center"><span title="Đối chiếu công nợ">' . ($row['check_debt'] != 0 ? $row['check_debt'] : '') . '</span></td>
-							<td align="center"><span title="Lập phiếu hoàn vé">' . ($row['create_repaid'] != 0 ? $row['create_repaid'] : '') . '</span></td>
-							<td align="center"><span title="Lập phiếu chi">' . ($row['create_payment'] != 0 ? $row['create_payment'] : '') . '</span></td>
-							<td align="center"><span title="Lập phiếu thu">' . ($row['create_receipt'] != 0 ? $row['create_receipt'] : '') . '</span></td>
-							<td align="center"><span title="Lập phiếu điều chuyển tiền">' . ($row['create_transfer'] != 0 ? $row['create_transfer'] : '') . '</span></td>
-							<td align="center"><span title="Hỗ trợ khác">' . ($row['support'] != 0 ? $row['support'] : '') . '</span></td>
-						';
+					<td align="center"><span>' . ($i + 1) . '</span></td>
+					<td align="left"><a class="admin-view-detail" user_id="' . $row['assigned_user_id'] . '" full_name="' . $row['full_name'] . '" load_type="total_kpi" load_name="điểm KPI" href="#" title="Xem chi tiết">' . $row['full_name'] . '</a></td>
+					<td align="center"><span title="Called">' . ($row['called'] != 0 ? $row['called'] : '') . '</span></td>
+					<td align="center"><span title="Completed">' . ($row['completed'] != 0 ? $row['completed'] : '') . '</span></td>
+					<td align="center"><span title="Đã thanh toán / Đã thu">' . ($row['paid'] != 0 ? $row['paid'] : '') . '</span></td>
+					<td align="center"><span title="Recheck">' . ($row['recheck'] != 0 ? $row['recheck'] : '') . '</span></td>
+					<td align="center"><span title="Recall">' . $recall . '</span></td>
+					<td align="center"><span title="Xuất hóa đơn đầu vào">' . ($row['invoice_input_issued'] != 0 ? $row['invoice_input_issued'] : '') . '</span></td>
+					<td align="center"><span title="Xuất hóa đơn đầu ra">' . ($row['invoice_issued'] != 0 ? $row['invoice_issued'] : '') . '</span></td>
+					<td align="center"><span title="Giao vé">' . ($row['ticket_delivery'] != 0 ? $row['ticket_delivery'] : '') . '</span></td>
+					<td align="center"><span title="Checkin">' . ($row['checkin_journey'] != 0 ? $row['checkin_journey'] : '') . '</span></td>
+					<td align="center"><span title="Đối chiếu công nợ">' . ($row['check_debt'] != 0 ? $row['check_debt'] : '') . '</span></td>
+					<td align="center"><span title="Lập phiếu hoàn vé">' . ($row['create_repaid'] != 0 ? $row['create_repaid'] : '') . '</span></td>
+					<td align="center"><span title="Lập phiếu chi">' . ($row['create_payment'] != 0 ? $row['create_payment'] : '') . '</span></td>
+					<td align="center"><span title="Lập phiếu thu">' . ($row['create_receipt'] != 0 ? $row['create_receipt'] : '') . '</span></td>
+					<td align="center"><span title="Lập phiếu điều chuyển tiền">' . ($row['create_transfer'] != 0 ? $row['create_transfer'] : '') . '</span></td>
+					<td align="center"><span title="Hỗ trợ khác">' . ($row['support'] != 0 ? $row['support'] : '') . '</span></td>
+				';
 
 				$html .= '<td align="center"><span title="Tổng cộng">' . ($row['total_kpi'] != 0 ? $row['total_kpi'] : '') . '</span></td></tr>';
 
@@ -286,9 +202,140 @@ class Viewemployeekpi extends SugarView
 			$smartyobj->assign('TTL_TRANSFER', $ttl_transfer);
 			$smartyobj->assign('TTL_SUPPORT', $ttl_support);
 			$smartyobj->assign('TTL_FINAL', $ttl_final);
-		} else if ($_POST['report_type'] == 'owner') {
+		}
+		else if ($_POST['report_type'] == 'owner') {
 			// main query		
-			$sql = "SELECT SUM(IFNULL(t.booking_count,0)) AS booking_count
+			$sql = $this->genQuery($from_date_value, $to_date_value, false);
+
+			$res = $db->query($sql);
+			$row = $db->fetchByAssoc($res);
+			$ticket_target = (int)$current_user->ticket_target * $date_diff;
+			$percent_achieved = $ticket_target != 0 ? ($row['ticket_count'] * 100 / $ticket_target) : 0;
+
+			$smartyobj->assign('BOOKING_COUNT', format_number($row['booking_count']));
+			$smartyobj->assign('TICKET_COUNT', format_number($row['ticket_count']));
+			$smartyobj->assign('TICKET_TARGET', format_number($ticket_target));
+			$smartyobj->assign('PERCENT_ACHIEVED', format_number($percent_achieved));
+			$smartyobj->assign('TOTAL_BONUS', format_number($row['total_bonus']));
+			$smartyobj->assign('TOTAL_KPI', format_number($row['total_kpi']));
+		}
+
+		$smartyobj->assign('EMPLOYEE_KPI_TYPE_LIST', get_select_options_with_id($app_list_strings['employee_kpi_type_list'], ''));
+		$smartyobj->assign('IS_ADMIN', (is_admin($current_user) || $current_user->title == 'QuanLy'));
+		$smartyobj->assign('OWNER', ($_POST['report_type'] == 'owner' ? 1 : 0));
+		$smartyobj->assign('ALL', ($_POST['report_type'] == 'all' ? 1 : 0));
+		$smartyobj->assign('FROM_DATE_VALUE', $from_date_value);
+		$smartyobj->assign('TO_DATE_VALUE', $to_date_value);
+	}
+
+	/**
+	 * Sinh câu SQL thống kê KPI: tự dựng điều kiện lọc (ngày, phân quyền)
+	 * rồi trả về câu truy vấn theo loại báo cáo.
+	 *
+	 * @param string $from_date_value Ngày bắt đầu (định dạng bất kỳ strtotime hiểu được)
+	 * @param string $to_date_value   Ngày kết thúc
+	 * @param bool   $is_admin_view   true: báo cáo tổng hợp theo nhân viên; false: báo cáo cá nhân (owner)
+	 * @return string
+	 */
+	public function genQuery($from_date_value, $to_date_value, $is_admin_view) {
+		global $current_user, $sugar_config;
+
+		// Định dạng & múi giờ của user hiện tại để hiểu đúng chuỗi ngày nhập vào
+		$timezone   = $current_user->getPreference('timezone') ?: 'Asia/Ho_Chi_Minh';
+		$dateFormat = $current_user->getPreference('datef') ?: ($sugar_config['datef'] ?? 'd-m-Y');
+
+		try {
+			$user_tz = new DateTimeZone($timezone);
+		} catch (Exception $e) {
+			$GLOBALS['log']->fatal('Unknown user timezone: ' . $timezone);
+			$user_tz = new DateTimeZone('Asia/Ho_Chi_Minh');
+		}
+
+		// Parse theo định dạng của user (fallback strtotime nếu không khớp), trả về Y-m-d
+		$parseUserDate = function ($value) use ($dateFormat, $user_tz) {
+			$value = trim((string) $value);
+			$dt = DateTime::createFromFormat($dateFormat . '|', $value, $user_tz);
+			if (!$dt instanceof DateTime) {
+				$ts = strtotime($value);
+				$dt = (new DateTime('@' . ($ts !== false ? $ts : time())))->setTimezone($user_tz);
+			}
+			return $dt->format('Y-m-d');
+		};
+
+		$from_db = $parseUserDate($from_date_value);
+		$to_db   = $parseUserDate($to_date_value);
+
+		// Điều kiện lọc theo ngày
+		$sql_search  = " AND b.date_ticket_issue >= '" . $from_db . "' AND b.date_ticket_issue <= '" . $to_db . "' ";
+		$sql_search2 = " AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) >= '" . $from_db . "' AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) <= '" . $to_db . "' ";
+
+		// Phân quyền dữ liệu: báo cáo cá nhân thì chỉ lấy của user hiện tại
+		if (!$is_admin_view) {
+			$sql_search .= " AND b.assigned_user_id = '{$current_user->id}' ";
+			$sql_search2 .= " AND w.assigned_user_id = '{$current_user->id}' ";
+		}
+
+		if ($is_admin_view) {
+			return "SELECT w.assigned_user_id
+						,u.user_name
+						,CONCAT(IFNULL(u.last_name,''),IF(u.first_name IS NOT NULL,' ',''),IFNULL(u.first_name,'')) AS full_name
+						,SUM(IFNULL(w.called,0)) AS called
+						,SUM(IFNULL(w.completed,0)) AS completed
+						,SUM(IFNULL(w.paid,0)) AS paid
+						,SUM(IFNULL(w.recheck,0)) AS recheck
+						,SUM(IFNULL(w.support,0)) AS support
+						,SUM(IFNULL(w.invoice_issued,0) * 3) AS invoice_issued
+						,SUM(IFNULL(w.ticket_delivery,0)) AS ticket_delivery
+						,SUM(IFNULL(w.checkin_journey,0)) AS checkin_journey
+						,SUM(IFNULL(w.recall,0)) AS recall
+						,SUM(IFNULL(w.remind,0)) AS remind
+						,SUM(IFNULL(w.check_debt,0)) AS check_debt
+						,SUM(IFNULL(w.create_repaid,0)) AS create_repaid
+						,SUM(IFNULL(w.process_repaid,0)) AS process_repaid
+						,SUM(IFNULL(w.create_payment,0)) AS create_payment
+						,SUM(IFNULL(w.create_receipt,0)) AS create_receipt
+						,SUM(IFNULL(w.create_transfer,0)) AS create_transfer
+						,SUM(IFNULL(w.invoice_input_issued,0)) AS invoice_input_issued
+						-- ,SUM(IFNULL(w.manner, 0)) AS manner
+						-- ,SUM(IFNULL(w.effected, 0)) AS effected
+						-- ,SUM(IFNULL(w.awareness, 0)) AS awareness
+						-- ,SUM(IFNULL(w.minus, 0)) AS minus
+						,SUM(  
+						  	IFNULL(w.called,0) 
+							+ IFNULL(w.completed,0) 
+							+ IFNULL(w.paid,0) 
+							+ IFNULL(w.recheck,0) 
+							+ IFNULL(w.support,0) 
+							+ (IFNULL(w.invoice_issued,0) * 3) 
+							+ IFNULL(w.ticket_delivery,0) 
+							+ IFNULL(w.checkin_journey,0) 
+							+ IFNULL(w.recall,0)  
+							+ IFNULL(w.remind,0)  
+							+ IFNULL(w.check_debt,0) 
+							+ IFNULL(w.create_repaid,0) 
+							+ IFNULL(w.process_repaid,0) 
+							+ IFNULL(w.create_payment,0) 
+							+ IFNULL(w.create_receipt,0) 
+							+ IFNULL(w.create_transfer,0)
+							+ IFNULL(w.invoice_input_issued,0)
+							-- + IFNULL(w.manner,0)
+							-- + IFNULL(w.effected,0)
+							-- + IFNULL(w.awareness,0)
+							-- - IFNULL(w.minus, 0)
+						  ) AS total_kpi
+					FROM ec_working_process w
+						INNER JOIN users u ON w.assigned_user_id = u.id
+							AND u.deleted = 0
+							AND u.is_admin = 0
+							AND u.title <> 'QuanLy' 
+							-- AND u.start_working_date IS NOT NULL
+					WHERE w.deleted = 0
+						$sql_search2
+					GROUP BY w.assigned_user_id
+					ORDER BY total_kpi DESC";
+		}
+
+		return "SELECT SUM(IFNULL(t.booking_count,0)) AS booking_count
 						  ,SUM(IFNULL(t.ticket_count,0)) AS ticket_count 
 						  ,SUM(IFNULL(t.total_bonus,0)) AS total_bonus 
 						  ,SUM(IFNULL(t.total_kpi,0)) AS total_kpi 
@@ -346,25 +393,5 @@ class Viewemployeekpi extends SugarView
 						FROM ec_working_process w
 						WHERE w.deleted=0 " . $sql_search2 . "
 					) AS t";
-
-			$res = $db->query($sql);
-			$row = $db->fetchByAssoc($res);
-			$ticket_target = (int)$current_user->ticket_target * $date_diff;
-			$percent_achieved = $ticket_target != 0 ? ($row['ticket_count'] * 100 / $ticket_target) : 0;
-
-			$smartyobj->assign('BOOKING_COUNT', format_number($row['booking_count']));
-			$smartyobj->assign('TICKET_COUNT', format_number($row['ticket_count']));
-			$smartyobj->assign('TICKET_TARGET', format_number($ticket_target));
-			$smartyobj->assign('PERCENT_ACHIEVED', format_number($percent_achieved));
-			$smartyobj->assign('TOTAL_BONUS', format_number($row['total_bonus']));
-			$smartyobj->assign('TOTAL_KPI', format_number($row['total_kpi']));
-		}
-
-		$smartyobj->assign('EMPLOYEE_KPI_TYPE_LIST', get_select_options_with_id($app_list_strings['employee_kpi_type_list'], ''));
-		$smartyobj->assign('IS_ADMIN', (is_admin($current_user) || $current_user->title == 'QuanLy'));
-		$smartyobj->assign('OWNER', ($_POST['report_type'] == 'owner' ? 1 : 0));
-		$smartyobj->assign('ALL', ($_POST['report_type'] == 'all' ? 1 : 0));
-		$smartyobj->assign('FROM_DATE_VALUE', $from_date_value);
-		$smartyobj->assign('TO_DATE_VALUE', $to_date_value);
 	}
 }

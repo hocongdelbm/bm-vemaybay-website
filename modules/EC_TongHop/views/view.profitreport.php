@@ -218,7 +218,7 @@ class Viewprofitreport extends SugarView
 		$total_bought_amount = 0;
 		$total_profit = 0;
 
-		$data_revenue = calculateRevenueOfDate(date('Y-m-d', strtotime($post_fdate)), date('Y-m-d', strtotime($post_tdate)), $condition_arr);
+		$data_revenue = calculateRevenueOfDate(date('Y-m-d', strtotime($post_fdate)), date('Y-m-d', strtotime($post_tdate)));
 		if (!empty($data_revenue) && $data_revenue['count'] > 0) {
 			foreach ($data_revenue['details'] as $row) {
 				$total_amount += $row['subtotal_amount'];
