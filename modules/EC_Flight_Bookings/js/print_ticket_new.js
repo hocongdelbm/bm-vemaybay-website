@@ -58,11 +58,11 @@ $(document).ready(function () {
           for (var t = 0; t < pax.itineraries.length; t++) {
             var iti = pax.itineraries[t];
             var airlineImg = "";
-            if (iti.airline) {
+            if (iti.logoUrl) {
               airlineImg =
-                '<img style="width:35px; vertical-align:middle;" src="custom/themes/default/images/airline-icon-100x100/' +
-                iti.airline +
-                '.png" alt="' +
+                '<img style="width:35px;height:auto;object-fit:contain;vertical-align:middle;" src="' +
+                iti.logoUrl +
+                '" alt="' +
                 iti.airline +
                 '" border="0" /> ';
             }
@@ -178,11 +178,11 @@ $(document).ready(function () {
             var iti = itineraries[i];
 
             var airlineImg = "";
-            if (iti.airline) {
+            if (iti.logoUrl) {
               airlineImg =
-                '<img style="width:45px" src="custom/themes/default/images/airline-icon-100x100/' +
-                iti.airline +
-                '.png" alt="' +
+                '<img style="width:45px;height:auto;object-fit:contain;" src="' +
+                iti.logoUrl +
+                '" alt="' +
                 iti.airline +
                 '" border="0" />';
             }

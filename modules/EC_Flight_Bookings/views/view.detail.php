@@ -13,7 +13,6 @@ require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Payment.php';
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/ZaloSms.php';
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Templates.php';
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Permissions.php';
-require_once 'modules/EC_Flight_Bookings/custom/viewdetail/SupportHelpers.php';
 
 class EC_Flight_BookingsViewDetail extends ViewDetail
 {
