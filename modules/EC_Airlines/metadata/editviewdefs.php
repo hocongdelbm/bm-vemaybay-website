@@ -19,7 +19,11 @@ $viewdefs[$module_name]['EditView'] = array(
                 array('name' => 'name',      'label' => 'LBL_NAME'),
             ),
             array(
-                array('name' => 'logo',    'label' => 'LBL_LOGO'),
+                array(
+                    'name'       => 'logo',
+                    'label'      => 'LBL_LOGO',
+                    'customCode' => '{$CUS_LOGO_EDIT}',
+                ),
                 array('name' => 'country', 'label' => 'LBL_COUNTRY'),
             ),
             array(

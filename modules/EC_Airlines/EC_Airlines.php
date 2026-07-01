@@ -1,44 +1,4 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
-
 class EC_Airlines extends Basic
 {
     public $new_schema = true;
@@ -63,16 +23,76 @@ class EC_Airlines extends Basic
     public $assigned_user_name;
     public $assigned_user_link;
     public $SecurityGroups;
-	
+
     public function bean_implements($interface)
     {
-        switch($interface)
-        {
+        switch ($interface) {
             case 'ACL':
                 return true;
         }
 
         return false;
     }
-	
+
+    /**
+     * Import/upsert airlines from custom/airlines.xml (<RECORD><code/><name/><country/></RECORD>).
+     * Records are matched by iata_code; duplicate codes within the file are skipped (first wins).
+     */
+    public function importFromXmlFile($filePath = '')
+    {
+        if (empty($filePath)) {
+            $filePath = dirname(dirname(dirname(__FILE__))) . '/custom/airlines.xml';
+        }
+
+        if (!file_exists($filePath)) {
+            return array('success' => false, 'message' => 'File not found: ' . $filePath);
+        }
+
+        $xml = simplexml_load_file($filePath);
+        if ($xml === false) {
+            return array('success' => false, 'message' => 'Unable to parse XML file');
+        }
+
+        $created = 0;
+        $updated = 0;
+        $skipped = 0;
+        $seenCodes = array();
+
+        foreach ($xml->RECORD as $record) {
+            $code = trim((string) $record->code);
+            $name = trim((string) $record->name);
+            $country = trim((string) $record->country);
+
+            if ($code === '' || $name === '' || isset($seenCodes[$code])) {
+                $skipped++;
+                continue;
+            }
+            $seenCodes[$code] = true;
+
+            $bean = BeanFactory::getBean('EC_Airlines');
+            $existingId = $bean->db->getOne(
+                "SELECT id FROM ec_airlines WHERE iata_code = '" . $bean->db->quote($code) . "' AND deleted = 0"
+            );
+
+            if (!empty($existingId)) {
+                $bean->retrieve($existingId);
+                $updated++;
+            } else {
+                $created++;
+            }
+
+            $bean->name = $name;
+            $bean->iata_code = $code;
+            $bean->country = $country;
+            $bean->is_active = 1;
+            $bean->save();
+        }
+
+        return array(
+            'success' => true,
+            'created' => $created,
+            'updated' => $updated,
+            'skipped' => $skipped,
+        );
+    }
 }
