@@ -523,24 +523,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeFlightTime') {
 	exit;
 }
 
-/*
- * Deprecated after refactor: changed itinerary/passenger history is rendered
- * directly by ViewDetail PHP. Keep these AJAX actions disabled so an old
- * cached view.detail.js cannot append duplicate rows on top of PHP-rendered
- * rows.
- */
-// if (isset($_POST['for']) && $_POST['for'] == 'showEditedFlightTime' && isset($_POST['id'])) {
-// 	$edited_iti_detail = populateEditedLineItineraries($_POST['id']);
-// 	echo $edited_iti_detail;
-// 	exit;
-// }
-
-// if (isset($_POST['for']) && $_POST['for'] == 'showChangedPassenger' && isset($_POST['id'])) {
-// 	$edited_pass_detail = populateEditedLinePassenger($_POST['id']);
-// 	echo $edited_pass_detail;
-// 	exit;
-// }
-
 // lấy thông tin yêu cầu xuất hoá đơn
 if (isset($_POST['for']) && $_POST['for'] == 'getInvoiceInf') {
 
@@ -852,6 +834,25 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveItineraryNotes') {
 	$result = $db->query($sql);
 
 	if ($result !== false) {
+		if (!empty($notes)) {
+			$sql_booking = "SELECT b.id AS booking_id, b.name AS booking_name
+                FROM ec_booking_itineraries i
+                INNER JOIN ec_flight_bookings b ON b.id = i.booking_id AND b.deleted = 0
+                WHERE i.id = '{$itinerary_id_escaped}' AND i.deleted = 0";
+			$res_booking = $db->query($sql_booking);
+			$row_booking = $db->fetchByAssoc($res_booking);
+
+			if (!empty($row_booking)) {
+				$note = new Note();
+				$note->id = '';
+				$note->name = $row_booking['booking_name'] ?? '';
+				$note->description = $notes;
+				$note->parent_type = 'EC_Flight_Bookings';
+				$note->parent_id = $row_booking['booking_id'];
+				$note->save();
+			}
+		}
+
 		echo json_encode(['success' => true]);
 	} else {
 		echo json_encode(['success' => false, 'message' => 'Failed to save notes']);
@@ -1280,226 +1281,6 @@ function checkNewLineItineraries($parent_id)
 	$res = $db->query($sql);
 	$row = $db->fetchByAssoc($res);
 	return $row;
-}
-
-// Deprecated: detail view now renders edited itinerary history in
-// EC_Flight_BookingsViewDetail::populateEditedLineItineraries().
-function populateEditedLineItineraries($booking_id)
-{
-	return '';
-
-	global $app_list_strings, $timedate, $db;
-	$date_format = $timedate->get_date_format(); // d-m-Y
-	$user_list = get_user_array(true, '', '', true);
-	$airport_list = $app_list_strings['domestic_airport_list'] + $app_list_strings['africa_airport_list'] + $app_list_strings['americas_airport_list'] + $app_list_strings['australia_airport_list'] + $app_list_strings['europe_airport_list'] + $app_list_strings['northeast_asia_airport_list'] + $app_list_strings['southeast_asia_airport_list'];
-
-
-	$booking = new EC_Flight_Bookings;
-	$booking->retrieve($booking_id);
-
-	// lấy sl hành khách trong booking
-	$sql_qty = 'SELECT COUNT(id)
-					FROM ec_booking_passengers
-					WHERE deleted = 0 AND add_type IS NULL
-					AND booking_id = "' . $booking_id . '"';
-	$pass_qty = $db->getOne($sql_qty);
-
-	$html = '';
-	$sql = "
-			SELECT GROUP_CONCAT(iti.id) AS iti_id
-				,iti.id
-				,iti.name
-				,iti.description
-				,iti.airline_code
-				,iti.flight_number
-				,iti.ticket_class
-				,iti.departure
-				,iti.arrival
-				,iti.departure_date
-				,iti.arrival_date
-				,iti.base_price
-				,iti.total_price
-				,iti.direction
-				,iti.time_limit
-				,iti.is_layover
-				,iti.is_remind
-				,iti.checkin_status
-				,bk.ticket_type
-				,bk.phone as bk_phone
-				,bk.name as bk_name
-				,bk.booking_status as booking_status
-				,GROUP_CONCAT(TRIM(iti.name)) AS pass_name
-				,GROUP_CONCAT(
-					IF(iti.assigned_user_id IN (
-						SELECT assigned_user_id FROM ec_booking_itineraries
-						WHERE booking_id = '" . $booking_id . "' 
-						AND deleted = 0 AND add_type = 3
-						AND sabre_logs > iti.sabre_logs
-					), NULL, iti.assigned_user_id)
-				) AS applied_pass
-				,iti.sabre_logs
-				,iti.modified_user_id
-				FROM ec_booking_itineraries iti
-				LEFT JOIN ec_flight_bookings bk ON bk.id = iti.booking_id
-				WHERE iti.booking_id = '" . $booking_id . "'
-				AND iti.add_type = 3
-				AND iti.deleted = 0
-				GROUP BY iti.direction, iti.flight_number, iti.departure, iti.arrival, iti.departure_date, iti.sabre_logs
-				ORDER BY iti.sabre_logs, iti.date_entered, iti.direction";
-
-	// truy vấn SQL đến db.
-	$res = $db->query($sql);
-
-	// return thì j = 3, oneway chiều thì j = 2
-	$i = 0;
-	if ($booking->flight_type == 0) {
-		$j = 3;
-	} else
-		$j = 2;
-
-	$order_iti = 0;
-	$print_iti = 0;
-	while ($row = $db->fetchByAssoc($res)) {
-		$airline_code = $airline_code_logo = $row['airline_code'];
-		$img_style = 'style="width:45px"';
-		if ($row['airline_code'] == 'VNA')
-			$airline_code = $airline_code_logo = 'VN';
-		if ($row['airline_code'] == 'VJA')
-			$airline_code = $airline_code_logo = 'VJ';
-		if ($row['airline_code'] == 'VNP') {
-			$airline_code = 'BL';
-			$airline_code_logo = 'VNP';
-		}
-		if ($row['airline_code'] == 'BBA')
-			$airline_code = $airline_code_logo = 'QH';
-		if ($row['airline_code'] == 'VTA') {
-			$airline_code = 'VU';
-			$airline_code_logo = 'VTA';
-			$img_style = 'style="width:55px"';
-		}
-		$img_src = $row['is_layover'] ? '' : '<img ' . $img_style . ' src="custom/themes/default/images/airline-icon-100x100/' . strtoupper($airline_code_logo) . '.png" alt="' . $airline_code . '" border="0" />';
-		if ($row['ticket_type'] == '2')
-			$img_src .= '<br />(<b>' . $row['airline_code'] . '</b>)';
-
-		if ($order_iti != $row['sabre_logs']) {
-			$order_iti = $row['sabre_logs'];
-			$pass_name_arr = explode(',', $row['pass_name']);
-			if (count($pass_name_arr) == $pass_qty) {
-				$applied_pass = 'tất cả hành khách';
-			} else {
-				$applied_pass = implode(', ', $pass_name_arr);
-			}
-
-			// Tên các lần thay đổi ngày bay
-			$html .= '<tr>
-						<td colspan="14" class="bg-yellow">
-							<b>
-							Lần thay đổi thứ ' . $row['sabre_logs'] . ': Áp dụng cho ' . $applied_pass . '. 
-							Thay đổi bởi: <b>' . $user_list[$row['modified_user_id']] . '
-							</b>
-						</td>
-					</tr>';
-			$i = 0;
-		}
-
-		$html .= '<tr class="edited_iti_line"> 
-			<td class="hide-mobile text-center" style="vertical-align: middle;">
-				<input type="checkbox" name="check-itinerary[]" class="check-itinerary" data-id="' . $row['id'] . '" value="' . $row['id'] . '" title="Select Itinerary" style="cursor: pointer;">
-			</td>
-			<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
-			<td data-label="Chiều" class="text-center">' . $app_list_strings['bk_direction_list'][$row['direction']] . '</td>
-			<td data-label="Mã hãng" class="text-center">' . $img_src . '</td>
-			<td data-label="Số hiệu" class="text-center">' . $row['flight_number'] . '</td>
-			<td data-label="Hạng vé" class="text-center ticket_class' . $row['direction'] . '">' . $row['ticket_class'] . '</td>
-			<td data-label="Nơi đi" class="text-center">' . $row['departure'] . '</td>
-			<td data-label="Nơi đến" class="text-center">' . ($row['is_layover'] ? '' : $row['arrival']) . '</td>
-			<td data-label="Ngày giờ đi" class="text-center">' . (trim($row['departure_date']) != '' ? date($date_format . ' H:i', strtotime($row['departure_date'])) : '') . '</td>
-			<td data-label="Ngày giờ đến" class="text-center">' . (trim($row['arrival_date']) != '' ? date($date_format . ' H:i', strtotime($row['arrival_date'])) : '') . '</td>';
-
-		// Nút nhắc lịch bay - checkin
-		$remind_btn = '';
-		$checkin_status = '';
-
-		if ($print_iti != $row['sabre_logs']) {
-			$print_iti = $row['sabre_logs'];
-
-			// remind
-			if ($row['is_remind'] == 0) {
-				// $remind_btn .= '<input type="button" class="btn btn-primary-2 btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="'.$booking_id.'" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" name="btnRemind" id="btnRemind" value="Remind" title="Send Remind" />';
-
-				$remind_btn .= '<div class="dropdown">
-					<button class="btn btn-primary-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-						Remind
-					</button>
-					<ul class="dropdown-menu dropdown-menu-end box-list">
-						<li class="box-item">
-							<a class="dropdown-item btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="' . $booking_id . '" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" id="btnRemind" href="javascript:void(0)">Gọi nhắc nhở lịch bay</a>
-						</li>
-						<li class="box-item">
-							<a class="dropdown-item confirm-remind" iti_id="' . $row['id'] . '" booking_id="' . $booking_id . '" id="confirm-remind" href="javascript:void(0)">Đã nhắc nhở khách</a>
-						</li>
-					</ul>
-				</div>';
-			}
-
-			// Checkin
-			if ((int)$row['checkin_status'] !== 2 && in_array((int)$row['booking_status'], [7, 8])) {
-				$jour_name = $row['departure'] . '-' . $row['arrival'];
-				$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $booking_id . '" record_name="' . $row['bk_name'] . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
-			}
-		}
-
-		$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));
-		$html .= '<td colspan="2" class="text-center">
-			<form action="index.php?print=true" method="post" name="frmPrintEticket" id="frmPrintEticket' . $j . '" target="_blank">
-				<input type="hidden" name="module" value="EC_Flight_Bookings" />
-				<input type="hidden" name="action" value="printeticket" />
-				<input type="hidden" name="record" value="' . $booking->id . '" />
-				<input type="hidden" name="return_module" value="EC_Flight_Bookings" />
-				<input type="hidden" name="return_action" value="" />
-				<input type="hidden" name="return_id" value="' . $booking->id . '" />
-				<input type="hidden" name="booking" value="' . $booking->name . '" />
-				<input type="hidden" name="booking_id" value="' . $booking->id . '" />
-				<input type="hidden" name="contact_email" value="' . $booking->email . '" />
-				<input type="hidden" name="contact_name" value="' . $booking->contact_name . '" />
-				<input type="hidden" name="itinerary_id" value="' . $row['id'] . '" />
-				<input type="hidden" name="direction" value="' . $row['direction'] . '" />
-				<input type="hidden" name="airline_code" value="' . $row['airline_code'] . '" />
-				<input type="hidden" name="ticket_type" value="' . $booking->ticket_type . '" />
-				<div class="d-flex align-items-center gap-2 justify-content-center">
-					<input type="button" name="btnSendSMS" value="SMS" title="Send SMS"
-						class="btn btn-primary-2 fw-semibold flex-fill"
-						direction="' . $row['direction'] . '" 
-						flightno="' . $row['flight_number'] . '" 
-						journey="' . ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']])) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']])) . '" 
-						date="' . explode(' ', $sms_depdate)[0] . '" 
-						time="' . explode(' ', $sms_depdate)[1] . '"
-						applied_pass="' . $applied_pass . '"
-						style="max-width:30%"
-					/>
-					' . $remind_btn . '
-					' . $checkin_status . '
-				</div>
-			</form>
-		</td>';
-
-		// Quá cảnh để trống
-		$html .= '
-				<td class="text-center p-2">
-					<svg xmlns="http://www.w3.org/2000/svg" data-id="' . $row['iti_id'] . '" class="edit_iti_row cursor-pointer" width="20" height="20" viewBox="0 0 24 24" style="fill: #2a2a2a;transform: ;msFilter:;"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path></svg>
-				</td>';
-		$html .= '</tr>';
-
-		// Load description
-		if (isset($row['description']) && !empty($row['description'])) {
-			$html .= '<tr><td colspan="15" class="fw-semibold fst-italic">' . $row['description'] . '</td></tr>';
-		}
-
-		$j++;
-		$i++;
-	}
-
-	return $html;
 }
 
 function getAllPassengers($booking_id)

@@ -78,10 +78,11 @@ $mod_strings = array (
   /*====================  CUSTOM  ====================*/
 
   'LBL_IATA_CODE'   => 'IATA Code',
+  'LBL_ICAO_CODE'   => 'ICAO Code',
   'LBL_NAME'        => 'Airline Name',
   'LBL_LOGO'        => 'Logo',
   'LBL_COUNTRY'     => 'Country',
-  'LBL_IS_DOMESTIC' => 'Domestic Airline',
   'LBL_IS_ACTIVE'   => 'Active',
   'LBL_DESCRIPTION' => 'Notes',
+  'ERR_DUPLICATE_IATA_CODE' => 'IATA code "%s" already exists. Please enter a different code.',
 );

@@ -16,17 +16,21 @@ $viewdefs[$module_name]['DetailView'] = array(
         ),
     ),
     'panels' => array(
-        'default' => array(
+        'LBL_PANEL_AIRPORT' => array(
             array(
                 array('name' => 'iata_code', 'label' => 'LBL_IATA_CODE'),
                 array('name' => 'name',      'label' => 'LBL_NAME'),
             ),
             array(
-                array('name' => 'city_name',    'label' => 'LBL_CITY_NAME'),
-                array('name' => 'country_code', 'label' => 'LBL_COUNTRY_CODE'),
+                array('name' => 'city_name', 'label' => 'LBL_CITY_NAME'),
+                array('name' => 'country',   'label' => 'LBL_COUNTRY'),
             ),
             array(
-                array('name' => 'is_domestic', 'label' => 'LBL_IS_DOMESTIC'),
+                array('name' => 'prefix', 'label' => 'LBL_PREFIX'),
+                array(''),
+            ),
+            array(
+                array('name' => 'geo_country', 'label' => 'LBL_GEO_COUNTRY'),
                 array('name' => 'is_active',   'label' => 'LBL_IS_ACTIVE'),
             ),
             array(
