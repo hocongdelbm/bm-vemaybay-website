@@ -38,6 +38,7 @@ $mod_strings = array (
   /*====================  CUSTOM  ====================*/
 
   'LBL_IATA_CODE'   => 'Mã IATA',
+  'LBL_ICAO_CODE'   => 'Mã ICAO',
   'LBL_NAME'        => 'Tên hãng bay',
   'LBL_LOGO'        => 'Logo',
   'LBL_COUNTRY'     => 'Quốc gia',

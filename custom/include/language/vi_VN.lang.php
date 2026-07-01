@@ -2489,6 +2489,22 @@ $app_list_strings['list_phone_airline_support'] = array(
   '19006686' => 'Vietravel',
 );
 
+$app_list_strings['airports_prefix_dom'] = array(
+  'san-bay' => 'Sân bay',
+  'san-bay-quoc-te' => 'Sân bay quốc tế',
+);
+
+$app_list_strings['airports_geo_country_dom'] = array(
+  '1' => 'Việt Nam',
+  '2' => 'Đông Nam Á',
+  '3' => 'Châu Á',
+  '4' => 'Châu Âu',
+  '5' => 'Châu Mỹ',
+  '6' => 'Châu Phi',
+  '7' => 'Nam Phi',
+  '8' => 'Châu Đại Dương',
+);
+
 /*********************************************************************/
 /********  STOP! DON'T ADD MORE ANY THING FROM THIS POSITION  ********/
 /*********************************************************************/

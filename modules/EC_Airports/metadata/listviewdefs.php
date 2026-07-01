@@ -24,17 +24,29 @@ $listViewDefs[$module_name] = array(
         'width'   => '20%',
         'default' => true,
     ),
-    'COUNTRY_CODE' => array(
+    'REGION_CODE' => array(
         'type'    => 'varchar',
-        'label'   => 'LBL_COUNTRY_CODE',
+        'label'   => 'LBL_REGION_CODE',
         'width'   => '10%',
         'default' => true,
     ),
-    'IS_DOMESTIC' => array(
-        'type'    => 'bool',
-        'label'   => 'LBL_IS_DOMESTIC',
-        'width'   => '10%',
+    'REGION_NAME' => array(
+        'type'    => 'varchar',
+        'label'   => 'LBL_REGION_NAME',
+        'width'   => '15%',
         'default' => true,
+    ),
+    'PREFIX' => array(
+        'type'    => 'enum',
+        'label'   => 'LBL_PREFIX',
+        'width'   => '10%',
+        'default' => false,
+    ),
+    'GEO_COUNTRY' => array(
+        'type'    => 'enum',
+        'label'   => 'LBL_GEO_COUNTRY',
+        'width'   => '15%',
+        'default' => false,
     ),
     'IS_ACTIVE' => array(
         'type'    => 'bool',

@@ -24,6 +24,19 @@ class EC_Airports extends Basic
     public $assigned_user_link;
     public $SecurityGroups;
 
+    public $iata_code;
+    public $city_name;
+    public $region_code;
+    public $region_name;
+    public $prefix;
+    public $geo_country;
+    public $is_active;
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
     public function bean_implements($interface)
     {
         switch ($interface) {
@@ -35,14 +48,15 @@ class EC_Airports extends Basic
     }
 
     /**
-     * Import/upsert airports from custom/airports.json, entries shaped as
-     * {"label1": "City, CC (CODE)", ...}. Records are matched by iata_code;
-     * duplicate codes within the file are skipped (first wins).
+     * Import/upsert airports from custom/list_airports_inter.json, entries shaped as
+     * {"HAN": {"AirportCode": "HAN", "AirportName": "...", "CityName": "...",
+     * "Prefix": "...", "RegionCode": "VN", "Region": "...", "GeoCountryId": 1,
+     * "GeoCountryName": "..."}, ...}. Records are matched by iata_code.
      */
     public function importFromJsonFile($filePath = '')
     {
         if (empty($filePath)) {
-            $filePath = dirname(dirname(dirname(__FILE__))) . '/custom/airports.json';
+            $filePath = dirname(dirname(dirname(__FILE__))) . '/modules/EC_Airports/list_airports_inter.json';
         }
 
         if (!file_exists($filePath)) {
@@ -54,28 +68,28 @@ class EC_Airports extends Basic
             return array('success' => false, 'message' => 'Unable to parse JSON file');
         }
 
+        $prefixMap = array(
+            'Sân bay quốc tế' => 'san-bay-quoc-te',
+            'Sân bay'         => 'san-bay',
+        );
+
         $created = 0;
         $updated = 0;
         $skipped = 0;
-        $seenCodes = array();
 
-        foreach ($rows as $row) {
-            $label = trim(isset($row['label1']) ? $row['label1'] : '');
+        foreach ($rows as $key => $row) {
+            $code = strtoupper(trim(isset($row['AirportCode']) ? $row['AirportCode'] : $key));
+            $airportName = trim(isset($row['AirportName']) ? $row['AirportName'] : '');
+            $cityName = trim(isset($row['CityName']) ? $row['CityName'] : '');
+            $regionCode = strtoupper(trim(isset($row['RegionCode']) ? $row['RegionCode'] : ''));
+            $regionName = trim(isset($row['Region']) ? $row['Region'] : '');
+            $prefixLabel = trim(isset($row['Prefix']) ? $row['Prefix'] : '');
+            $geoCountryId = isset($row['GeoCountryId']) ? (string) $row['GeoCountryId'] : '';
 
-            if (!preg_match('/^(.*),\s*([A-Za-z]{2})\s*\(([A-Za-z0-9]{2,4})\)$/', $label, $m)) {
+            if ($code === '' || $airportName === '') {
                 $skipped++;
                 continue;
             }
-
-            $cityName = trim($m[1]);
-            $countryCode = strtoupper(trim($m[2]));
-            $code = strtoupper(trim($m[3]));
-
-            if ($code === '' || $cityName === '' || isset($seenCodes[$code])) {
-                $skipped++;
-                continue;
-            }
-            $seenCodes[$code] = true;
 
             $bean = BeanFactory::getBean('EC_Airports');
             $existingId = $bean->db->getOne(
@@ -89,10 +103,13 @@ class EC_Airports extends Basic
                 $created++;
             }
 
-            $bean->name = $label;
+            $bean->name = $airportName;
             $bean->iata_code = $code;
             $bean->city_name = $cityName;
-            $bean->country_code = $countryCode;
+            $bean->region_code = $regionCode;
+            $bean->region_name = $regionName;
+            $bean->prefix = isset($prefixMap[$prefixLabel]) ? $prefixMap[$prefixLabel] : 'san-bay';
+            $bean->geo_country = $geoCountryId;
             $bean->is_active = 1;
             $bean->save();
         }

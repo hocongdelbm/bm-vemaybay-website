@@ -19,11 +19,15 @@ $viewdefs[$module_name]['EditView'] = array(
                 array('name' => 'name',      'label' => 'LBL_NAME'),
             ),
             array(
-                array('name' => 'city_name',    'label' => 'LBL_CITY_NAME'),
-                array('name' => 'country_code', 'label' => 'LBL_COUNTRY_CODE'),
+                array('name' => 'city_name',   'label' => 'LBL_CITY_NAME'),
+                array('name' => 'region_code', 'label' => 'LBL_REGION_CODE'),
             ),
             array(
-                array('name' => 'is_domestic', 'label' => 'LBL_IS_DOMESTIC'),
+                array('name' => 'region_name', 'label' => 'LBL_REGION_NAME'),
+                array('name' => 'prefix',      'label' => 'LBL_PREFIX'),
+            ),
+            array(
+                array('name' => 'geo_country', 'label' => 'LBL_GEO_COUNTRY'),
                 array('name' => 'is_active',   'label' => 'LBL_IS_ACTIVE'),
             ),
             array(

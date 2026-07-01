@@ -986,6 +986,22 @@ $app_list_strings['booking_status_list']=array (
   8 => 'Completed',
 );
 
+$app_list_strings['airports_prefix_dom'] = array(
+  'san-bay' => 'Airport',
+  'san-bay-quoc-te' => 'International Airport',
+);
+
+$app_list_strings['airports_geo_country_dom'] = array(
+  '1' => 'Vietnam',
+  '2' => 'Southeast Asia',
+  '3' => 'Asia',
+  '4' => 'Europe',
+  '5' => 'Americas',
+  '6' => 'Africa',
+  '7' => 'Southern Africa',
+  '8' => 'Oceania',
+);
+
 /*********************************************************************/
 /********  STOP! DON'T ADD MORE ANY THING FROM THIS POSITION  ********/
 /*********************************************************************/

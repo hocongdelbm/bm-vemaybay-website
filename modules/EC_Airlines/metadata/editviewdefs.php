@@ -19,6 +19,10 @@ $viewdefs[$module_name]['EditView'] = array(
                 array('name' => 'name',      'label' => 'LBL_NAME'),
             ),
             array(
+                array('name' => 'icao_code', 'label' => 'LBL_ICAO_CODE'),
+                array(''),
+            ),
+            array(
                 array(
                     'name'       => 'logo',
                     'label'      => 'LBL_LOGO',

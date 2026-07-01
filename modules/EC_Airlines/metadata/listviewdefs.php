@@ -12,6 +12,12 @@ $listViewDefs[$module_name] = array(
         'default' => true,
         'link'    => true,
     ),
+    'ICAO_CODE' => array(
+        'type'    => 'varchar',
+        'label'   => 'LBL_ICAO_CODE',
+        'width'   => '8%',
+        'default' => true,
+    ),
     'NAME' => array(
         'type'    => 'varchar',
         'label'   => 'LBL_NAME',
