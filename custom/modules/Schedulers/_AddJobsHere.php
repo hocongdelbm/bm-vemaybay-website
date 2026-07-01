@@ -27,6 +27,7 @@ $job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking và
 $job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
 $job_strings[] = 'migrateZaloImagesToNextCloud'; // Đồng bộ ảnh từ Zalo CDN sang VN Backup
 $job_strings[] = 'sendPromotionalSummerZBS'; // Gửi tin nhắn tri ân khách hàng du lịch hè ZBS
+$job_strings[] = 'migrateAirlineLogosToNextCloud'; // Upload logo hãng bay (local) lên VN Backup, cập nhật field logo của ec_airlines. Chạy xong hết thì tự tắt, có thể xoá job.
 
 /**
  * Thông báo hành trình cần checkin
@@ -2394,6 +2395,152 @@ function migrateZaloImagesToNextCloud()
 	}
 
 	$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": Done.");
+	return true;
+}
+
+/**
+ * Upload logo hãng bay local (custom/themes/default/images/airline-icon-100x100/{IATA}.png)
+ * lên NextCloud (vnbackup), rồi cập nhật link public vào ec_airlines.logo.
+ *
+ * Chỉ xử lý những hãng đang có logo rỗng => job có thể chạy lại an toàn (resumable/idempotent):
+ * lần chạy sau sẽ bỏ qua record đã có logo, không upload trùng.
+ *
+ * Xử lý theo batch nhỏ (LIMIT) mỗi lần chạy để job không chiếm CPU/network quá lâu.
+ * Vì đây là Scheduler chạy qua cron.php (CLI), không đi qua tiến trình web/Nginx-PHP-FPM
+ * nên không thể phát sinh lỗi 504 Gateway Timeout dù xử lý nhiều bản ghi trong 1 lần.
+ * Khi không còn hãng nào cần backfill logo, job sẽ chỉ log "Done" và return true (no-op),
+ * admin có thể tắt/xoá Scheduler sau khi đã backfill xong toàn bộ.
+ *
+ * NextCloud OCS Share API (createShare) bị rate-limit (HTTP 429) nếu gọi liên tục
+ * không nghỉ, nên giữa mỗi hãng có delay ($throttleMicroseconds) và có retry với
+ * backoff riêng cho lỗi 429 (xem vòng lặp $attempt bên dưới) để job vẫn tiến triển
+ * được thay vì cùng 1 batch bị kẹt lại (đứng yên) ở những hãng đầu tiên qua nhiều lần chạy.
+ */
+function migrateAirlineLogosToNextCloud()
+{
+	global $db;
+
+	$batchSize              = 40; // giới hạn số bản ghi xử lý mỗi lần chạy job
+	$throttleMicroseconds   = 700000; // 0.7s nghỉ giữa mỗi hãng để tránh dội request lên NextCloud
+	$maxRetriesOn429        = 3;
+	$retryBackoffSeconds    = [2, 5, 10]; // backoff tăng dần cho mỗi lần retry khi bị 429
+	$localDir               = 'custom/themes/default/images/airline-icon-100x100/';
+
+	// ── 1. Lấy những hãng bay chưa có logo ──────────────────────────────────
+	$sql = "SELECT id, iata_code
+            FROM ec_airlines
+            WHERE deleted = 0
+              AND (logo IS NULL OR logo = '')
+              AND iata_code IS NOT NULL
+              AND iata_code != ''
+            ORDER BY iata_code ASC
+            LIMIT $batchSize";
+
+	$res = $db->query($sql);
+	if ($db->countRows($res) == 0) {
+		$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": No airlines pending logo backfill. Done.");
+		return true;
+	}
+
+	// ── 2. Khởi tạo APINextCloud & đảm bảo folder tồn tại (cùng folder với upload đơn lẻ) ──
+	require_once 'custom/include/helpers/api/APINextCloud.php';
+	$api = new APINextCloud();
+
+	$folderParts = [
+		'bmvmb',
+		'bmvmb/modules',
+		'bmvmb/modules/ec_airlines',
+		'bmvmb/modules/ec_airlines/logos',
+	];
+	foreach ($folderParts as $part) {
+		$api->createFolder($part); // MKCOL: bỏ qua 405 nếu folder đã có
+	}
+	$remoteFolder = end($folderParts);
+
+	$processed = 0;
+	$uploaded  = 0;
+	$skipped   = 0;
+
+	// ── 3. Lặp từng hãng trong batch ─────────────────────────────────────────
+	while ($row = $db->fetchByAssoc($res)) {
+		$processed++;
+		$code = strtoupper(trim($row['iata_code']));
+
+		$calledApi = false;
+		try {
+			$localPath = $localDir . $code . '.png';
+
+			// 3a. Không có ảnh local sẵn cho hãng này => bỏ qua, không coi là lỗi
+			if (!file_exists($localPath)) {
+				$skipped++;
+				continue;
+			}
+
+			$calledApi = true; // từ đây sẽ gọi API NextCloud => cần throttle ở finally bên dưới
+
+			// 3b. Đặt tên file trên NextCloud cố định theo mã IATA (không dùng GUID)
+			// để lần chạy sau (nếu logo bị xoá rồi chạy lại) ghi đè đúng file cũ,
+			// tránh sinh rác nhiều file trùng nội dung trên vnbackup.
+			$remoteFileName = $remoteFolder . '/' . strtolower($code) . '.png';
+
+			// 3c. Upload lên NextCloud
+			$uploadResult = json_decode($api->uploadFile($localPath, $remoteFileName), true);
+			if (empty($uploadResult) || (int) ($uploadResult['status'] ?? 0) !== 1) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Upload failed for iata_code=$code, remote=$remoteFileName, response=" . json_encode($uploadResult));
+				continue;
+			}
+
+			// 3d. Tạo public share (read-only, không mật khẩu), retry với backoff nếu bị 429
+			$shareResult = null;
+			for ($attempt = 0; $attempt <= $maxRetriesOn429; $attempt++) {
+				$shareResult = json_decode($api->createShare($remoteFileName, 1), true);
+				$httpCode = (int) ($shareResult['httpCode'] ?? 0);
+				if (!empty($shareResult) && (int) ($shareResult['status'] ?? 0) === 1) {
+					break; // thành công
+				}
+				if ($httpCode !== 429 || $attempt === $maxRetriesOn429) {
+					break; // lỗi khác 429, hoặc đã hết lượt retry => dừng lại
+				}
+				$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": Rate limited (429) for iata_code=$code, retry #" . ($attempt + 1) . " after {$retryBackoffSeconds[$attempt]}s");
+				sleep($retryBackoffSeconds[$attempt]);
+			}
+			if (empty($shareResult) || (int) ($shareResult['status'] ?? 0) !== 1) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Share creation failed for iata_code=$code, response=" . json_encode($shareResult));
+				continue;
+			}
+
+			// NextCloud trả về share URL dạng: https://vnbackup.com/s/abcsiueh
+			// Thêm /preview để xem ảnh trực tiếp (cùng convention với epUploadAirlineLogo.php)
+			$shareUrl = rtrim($shareResult['data']['url'] ?? '', '/');
+			if (empty($shareUrl)) {
+				$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Empty share URL for iata_code=$code");
+				continue;
+			}
+			$shareUrl .= '/preview';
+
+			// 3e. UPDATE database
+			$safeShareUrl = $db->quote($shareUrl);
+			$db->query("
+                UPDATE ec_airlines
+                SET logo          = '$safeShareUrl',
+                    date_modified = NOW()
+                WHERE id = '{$row['id']}'
+                  AND deleted = 0
+            ");
+
+			$uploaded++;
+			$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": Successfully uploaded logo for iata_code=$code, shareUrl=$shareUrl");
+		} catch (Throwable $th) {
+			$GLOBALS['log']->error("Cronjob " . __FUNCTION__ . ": Exception for iata_code=$code: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+		} finally {
+			// Throttle: chỉ nghỉ khi có gọi API NextCloud, tránh dội request liên tục gây 429
+			if ($calledApi) {
+				usleep($throttleMicroseconds);
+			}
+		}
+	}
+
+	$GLOBALS['log']->info("Cronjob " . __FUNCTION__ . ": Batch done. processed=$processed, uploaded=$uploaded, skipped(no local file)=$skipped.");
 	return true;
 }
 

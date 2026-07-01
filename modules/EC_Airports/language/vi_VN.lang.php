@@ -38,10 +38,10 @@ $mod_strings = array (
   /*====================  CUSTOM  ====================*/
 
   'LBL_IATA_CODE'    => 'Mã IATA',
+  'LBL_ICAO_CODE'    => 'Mã ICAO',
   'LBL_NAME'         => 'Tên sân bay',
   'LBL_CITY_NAME'    => 'Thành phố',
-  'LBL_REGION_CODE'  => 'Mã quốc gia',
-  'LBL_REGION_NAME'  => 'Tên quốc gia',
+  'LBL_COUNTRY'      => 'Quốc gia',
   'LBL_PREFIX'       => 'Loại sân bay',
   'LBL_GEO_COUNTRY'  => 'Khu vực địa lý',
   'LBL_IS_ACTIVE'    => 'Hoạt động',

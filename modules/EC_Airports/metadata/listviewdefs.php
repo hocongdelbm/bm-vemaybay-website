@@ -24,15 +24,9 @@ $listViewDefs[$module_name] = array(
         'width'   => '20%',
         'default' => true,
     ),
-    'REGION_CODE' => array(
-        'type'    => 'varchar',
-        'label'   => 'LBL_REGION_CODE',
-        'width'   => '10%',
-        'default' => true,
-    ),
-    'REGION_NAME' => array(
-        'type'    => 'varchar',
-        'label'   => 'LBL_REGION_NAME',
+    'COUNTRY' => array(
+        'type'    => 'enum',
+        'label'   => 'LBL_COUNTRY',
         'width'   => '15%',
         'default' => true,
     ),

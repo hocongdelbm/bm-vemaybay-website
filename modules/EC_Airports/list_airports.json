@@ -9505,7 +9505,7 @@
         "CityName": "Ohrid",
         "Prefix": "Sân bay",
         "RegionCode": "MK",
-        "Region": "Macedonia F Y R O M",
+        "Region": "Macedonia",
         "GeoCountryId": 4,
         "GeoCountryName": "Châu Âu"
     },
@@ -9515,7 +9515,7 @@
         "CityName": "Skopje",
         "Prefix": "Sân bay",
         "RegionCode": "MK",
-        "Region": "Macedonia F Y R O M",
+        "Region": "Macedonia",
         "GeoCountryId": 4,
         "GeoCountryName": "Châu Âu"
     },

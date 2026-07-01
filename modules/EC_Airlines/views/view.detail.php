@@ -5,6 +5,7 @@ class EC_AirlinesViewDetail extends ViewDetail
 {
     public function display()
     {
+        // $this->bean->importFromJsonFileAirlines();
         $this->populateCustomFields();
         parent::display();
     }

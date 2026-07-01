@@ -13,22 +13,22 @@ $viewdefs[$module_name]['EditView'] = array(
         ),
     ),
     'panels' => array(
-        'default' => array(
+        'LBL_PANEL_AIRPORT' => array(
             array(
                 array('name' => 'iata_code', 'label' => 'LBL_IATA_CODE'),
+                array('name' => 'city_name', 'label' => 'LBL_CITY_NAME'),
+            ),
+            array(
+                array('name' => 'icao_code', 'label' => 'LBL_ICAO_CODE'),
+                array(),
+            ),
+            array(
                 array('name' => 'name',      'label' => 'LBL_NAME'),
-            ),
-            array(
-                array('name' => 'city_name',   'label' => 'LBL_CITY_NAME'),
-                array('name' => 'region_code', 'label' => 'LBL_REGION_CODE'),
-            ),
-            array(
-                array('name' => 'region_name', 'label' => 'LBL_REGION_NAME'),
-                array('name' => 'prefix',      'label' => 'LBL_PREFIX'),
+                array('name' => 'country',   'label' => 'LBL_COUNTRY'),
             ),
             array(
                 array('name' => 'geo_country', 'label' => 'LBL_GEO_COUNTRY'),
-                array('name' => 'is_active',   'label' => 'LBL_IS_ACTIVE'),
+                array('name' => 'prefix', 'label' => 'LBL_PREFIX'),
             ),
             array(
                 array(
@@ -36,7 +36,7 @@ $viewdefs[$module_name]['EditView'] = array(
                     'label'         => 'LBL_DESCRIPTION',
                     'displayParams' => array('cols' => 60, 'rows' => 3),
                 ),
-                array(''),
+                array('name' => 'is_active',   'label' => 'LBL_IS_ACTIVE'),
             ),
         ),
     ),

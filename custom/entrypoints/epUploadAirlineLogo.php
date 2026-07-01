@@ -66,6 +66,6 @@ if (empty($shareResult['status']) || (int) $shareResult['status'] !== 1) {
     exit;
 }
 
-$shareUrl = rtrim($shareResult['data']['url'] ?? '', '/') . '/download';
+$shareUrl = rtrim($shareResult['data']['url'] ?? '', '/') . '/preview';
 
 echo json_encode(array('success' => true, 'url' => $shareUrl));

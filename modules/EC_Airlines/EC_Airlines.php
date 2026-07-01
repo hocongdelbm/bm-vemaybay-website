@@ -35,39 +35,39 @@ class EC_Airlines extends Basic
     }
 
     /**
-     * Import/upsert airlines from custom/airlines.xml (<RECORD><code/><name/><country/></RECORD>).
-     * Records are matched by iata_code; duplicate codes within the file are skipped (first wins).
+     * Import/upsert airlines from modules/EC_Airlines/list_airlines.json, entries shaped as
+     * {"AC": {"AirlineCode": "AC", "AirlineName": "Air Canada", "RegionCode": "CA", "Region": "Canada"}, ...}.
+     * Records are matched by iata_code; the country field is set directly from RegionCode
+     * (the region_dom key, same dom used by EC_Airports). An empty RegionCode is left blank.
      */
-    public function importFromXmlFile($filePath = '')
+    public function importFromJsonFileAirlines($filePath = '')
     {
         if (empty($filePath)) {
-            $filePath = dirname(dirname(dirname(__FILE__))) . '/custom/airlines.xml';
+            $filePath = dirname(__FILE__) . '/list_airlines.json';
         }
 
         if (!file_exists($filePath)) {
             return array('success' => false, 'message' => 'File not found: ' . $filePath);
         }
 
-        $xml = simplexml_load_file($filePath);
-        if ($xml === false) {
-            return array('success' => false, 'message' => 'Unable to parse XML file');
+        $rows = json_decode(file_get_contents($filePath), true);
+        if (!is_array($rows)) {
+            return array('success' => false, 'message' => 'Unable to parse JSON file');
         }
 
         $created = 0;
         $updated = 0;
         $skipped = 0;
-        $seenCodes = array();
 
-        foreach ($xml->RECORD as $record) {
-            $code = trim((string) $record->code);
-            $name = trim((string) $record->name);
-            $country = trim((string) $record->country);
+        foreach ($rows as $key => $row) {
+            $code = strtoupper(trim(isset($row['AirlineCode']) ? $row['AirlineCode'] : $key));
+            $name = trim(isset($row['AirlineName']) ? $row['AirlineName'] : '');
+            $regionCode = strtoupper(trim(isset($row['RegionCode']) ? $row['RegionCode'] : ''));
 
-            if ($code === '' || $name === '' || isset($seenCodes[$code])) {
+            if ($code === '' || $name === '') {
                 $skipped++;
                 continue;
             }
-            $seenCodes[$code] = true;
 
             $bean = BeanFactory::getBean('EC_Airlines');
             $existingId = $bean->db->getOne(
@@ -83,7 +83,7 @@ class EC_Airlines extends Basic
 
             $bean->name = $name;
             $bean->iata_code = $code;
-            $bean->country = $country;
+            $bean->country = $regionCode;
             $bean->is_active = 1;
             $bean->save();
         }

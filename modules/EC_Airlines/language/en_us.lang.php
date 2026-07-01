@@ -82,7 +82,6 @@ $mod_strings = array (
   'LBL_NAME'        => 'Airline Name',
   'LBL_LOGO'        => 'Logo',
   'LBL_COUNTRY'     => 'Country',
-  'LBL_IS_DOMESTIC' => 'Domestic Airline',
   'LBL_IS_ACTIVE'   => 'Active',
   'LBL_DESCRIPTION' => 'Notes',
 );

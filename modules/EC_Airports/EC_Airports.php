@@ -26,8 +26,7 @@ class EC_Airports extends Basic
 
     public $iata_code;
     public $city_name;
-    public $region_code;
-    public $region_name;
+    public $country;
     public $prefix;
     public $geo_country;
     public $is_active;
@@ -48,15 +47,17 @@ class EC_Airports extends Basic
     }
 
     /**
-     * Import/upsert airports from custom/list_airports_inter.json, entries shaped as
+     * Import/upsert airports from modules/EC_Airports/list_airports
+     * .json, entries shaped as
      * {"HAN": {"AirportCode": "HAN", "AirportName": "...", "CityName": "...",
      * "Prefix": "...", "RegionCode": "VN", "Region": "...", "GeoCountryId": 1,
      * "GeoCountryName": "..."}, ...}. Records are matched by iata_code.
+     * RegionCode is stored in the "country" field (enum, options=region_dom).
      */
-    public function importFromJsonFile($filePath = '')
+    public function importFromJsonFileAirport($filePath = '')
     {
         if (empty($filePath)) {
-            $filePath = dirname(dirname(dirname(__FILE__))) . '/modules/EC_Airports/list_airports_inter.json';
+            $filePath = dirname(__FILE__) . '/list_airports.json';
         }
 
         if (!file_exists($filePath)) {
@@ -82,7 +83,6 @@ class EC_Airports extends Basic
             $airportName = trim(isset($row['AirportName']) ? $row['AirportName'] : '');
             $cityName = trim(isset($row['CityName']) ? $row['CityName'] : '');
             $regionCode = strtoupper(trim(isset($row['RegionCode']) ? $row['RegionCode'] : ''));
-            $regionName = trim(isset($row['Region']) ? $row['Region'] : '');
             $prefixLabel = trim(isset($row['Prefix']) ? $row['Prefix'] : '');
             $geoCountryId = isset($row['GeoCountryId']) ? (string) $row['GeoCountryId'] : '';
 
@@ -106,8 +106,7 @@ class EC_Airports extends Basic
             $bean->name = $airportName;
             $bean->iata_code = $code;
             $bean->city_name = $cityName;
-            $bean->region_code = $regionCode;
-            $bean->region_name = $regionName;
+            $bean->country = $regionCode;
             $bean->prefix = isset($prefixMap[$prefixLabel]) ? $prefixMap[$prefixLabel] : 'san-bay';
             $bean->geo_country = $geoCountryId;
             $bean->is_active = 1;

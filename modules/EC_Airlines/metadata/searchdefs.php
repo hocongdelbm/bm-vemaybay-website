@@ -21,7 +21,6 @@ $searchdefs[$module_name] = array(
             array('name' => 'icao_code',   'type' => 'varchar', 'label' => 'LBL_ICAO_CODE',   'default' => true),
             array('name' => 'name',        'label' => 'LBL_NAME', 'default' => true),
             array('name' => 'country',     'type' => 'enum',    'label' => 'LBL_COUNTRY',     'default' => true),
-            array('name' => 'is_domestic', 'type' => 'bool',    'label' => 'LBL_IS_DOMESTIC', 'default' => true),
             array('name' => 'is_active',   'type' => 'bool',    'label' => 'LBL_IS_ACTIVE',   'default' => true),
         ),
     ),

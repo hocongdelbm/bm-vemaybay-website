@@ -42,7 +42,7 @@ $mod_strings = array (
   'LBL_NAME'        => 'Tên hãng bay',
   'LBL_LOGO'        => 'Logo',
   'LBL_COUNTRY'     => 'Quốc gia',
-  'LBL_IS_DOMESTIC' => 'Hãng nội địa',
   'LBL_IS_ACTIVE'   => 'Đang hoạt động',
   'LBL_DESCRIPTION' => 'Ghi chú',
+  'LBL_PANEL_AIRLINE' => 'Thông tin hãng bay',
 );

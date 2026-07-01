@@ -5,7 +5,7 @@ class EC_AirportsViewDetail extends ViewDetail
 {
     public function display()
     {
-        // $this->bean->importFromJsonFile();
+        // $this->bean->importFromJsonFileAirport();
         parent::display();
     }
 }
