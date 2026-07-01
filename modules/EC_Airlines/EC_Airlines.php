@@ -56,6 +56,41 @@ class EC_Airlines extends Basic
 
         return false;
     }
+    
+    public function save($check_notify = false)
+    {
+        $this->iata_code = strtoupper(trim((string)$this->iata_code));
+
+        $duplicateId = $this->findDuplicateIataCodeId();
+        if (!empty($duplicateId)) {
+            global $mod_strings;
+            $message = !empty($mod_strings['ERR_DUPLICATE_IATA_CODE'])
+                ? sprintf($mod_strings['ERR_DUPLICATE_IATA_CODE'], $this->iata_code)
+                : 'Mã IATA "' . $this->iata_code . '" đã tồn tại. Vui lòng nhập mã khác.';
+
+            SugarApplication::appendErrorMessage($message);
+            SugarApplication::redirect('index.php?module=EC_Airlines&action=EditView&record=' . $this->id);
+        }
+
+        return parent::save($check_notify);
+    }
+
+    /**
+     * Tìm id bản ghi khác đang dùng cùng mã IATA (nếu có).
+     */
+    private function findDuplicateIataCodeId()
+    {
+        if ($this->iata_code === '') {
+            return null;
+        }
+
+        $query = "SELECT id FROM ec_airlines WHERE iata_code = '" . $this->db->quote($this->iata_code) . "' AND deleted = 0";
+        if (!empty($this->id)) {
+            $query .= " AND id != '" . $this->db->quote($this->id) . "'";
+        }
+
+        return $this->db->getOne($query);
+    }
 
     /**
      * Import/upsert airlines from modules/EC_Airlines/list_airlines.json

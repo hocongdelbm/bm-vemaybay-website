@@ -47,4 +47,5 @@ $mod_strings = array (
   'LBL_IS_ACTIVE'    => 'Hoạt động',
   'LBL_DESCRIPTION'  => 'Ghi chú',
   'LBL_PANEL_AIRPORT'  => 'Thông tin sân bay',
+  'ERR_DUPLICATE_IATA_CODE' => 'Mã IATA "%s" đã tồn tại. Vui lòng nhập mã khác.',
 );

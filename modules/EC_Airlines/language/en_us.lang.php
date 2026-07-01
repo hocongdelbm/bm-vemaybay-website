@@ -84,4 +84,5 @@ $mod_strings = array (
   'LBL_COUNTRY'     => 'Country',
   'LBL_IS_ACTIVE'   => 'Active',
   'LBL_DESCRIPTION' => 'Notes',
+  'ERR_DUPLICATE_IATA_CODE' => 'IATA code "%s" already exists. Please enter a different code.',
 );
