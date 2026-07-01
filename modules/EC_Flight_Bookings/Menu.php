@@ -34,6 +34,15 @@ if($listRights) {
 			"EC_Flight_Bookings"
 		];
 
+		if(in_array($current_user->user_name, ['hungnh', 'pandadth'])){
+			$module_menu[] = [
+				"index.php?module=EC_Flight_Bookings&action=report_route_analysis&return_module=EC_Flight_Bookings&return_action=report_route_analysis",
+				"Hành trình quốc gia",
+				"airplane_16",
+				"EC_Flight_Bookings"
+			];
+		}
+
 		$module_menu[] = [
 			"index.php?module=EC_Flight_Bookings&action=bkagent&return_module=EC_Flight_Bookings&return_action=bkagent",
 			"Thống kê vé",

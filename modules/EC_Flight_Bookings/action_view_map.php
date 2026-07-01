@@ -24,3 +24,4 @@ $action_view_map['clientphonetcb']      = 'clientphonetcb';
 $action_view_map['updateflight']        = 'updateflight';
 $action_view_map['telesaleipmgr']       = 'telesaleipmgr';
 $action_view_map['bookerips']           = 'bookerips';
+$action_view_map['report_route_analysis'] = 'report_route_analysis';

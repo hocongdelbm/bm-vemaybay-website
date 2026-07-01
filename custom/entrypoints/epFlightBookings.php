@@ -3752,6 +3752,11 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 		$dom_keys = array_keys($app_list_strings['domestic_airport_list']);
 		$dom_in   = "'" . implode("','", $dom_keys) . "'";
 		$route_filter = "AND (route.departure NOT IN ({$dom_in}) OR route.arrival NOT IN ({$dom_in}))";
+	} elseif ($scope === 'country' && !empty($_POST['dest_country'])) {
+		$dest_country = $db->quote($_POST['dest_country']);
+		$route_filter = "AND (SELECT country FROM ec_airports WHERE iata_code = route.arrival AND deleted = 0 LIMIT 1) = '{$dest_country}'";
+	} elseif ($scope === 'all') {
+		$route_filter = "";
 	} else {
 		$route_filter = "AND route.departure = '{$departure}' AND route.arrival = '{$arrival}'";
 	}
@@ -3765,7 +3770,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 			bk.date_entered,
 			bk.date_ticket_issue,
 			bk.total_qty,
-			bk.created_by
+			bk.created_by,
+			bk.description
 		FROM ec_flight_bookings bk
 		INNER JOIN ({$route_subquery}) route ON route.booking_id = bk.id
 			{$route_filter}
@@ -3787,6 +3793,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 						<th>Ngày xuất vé</th>
 						<th>Đặt bởi</th>
 						<th>Liên hệ</th>
+						<th>Ghi chú</th>
 						<th>Số vé</th>
 						<th>Doanh số</th>
 					</tr>
@@ -3822,6 +3829,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 					<td class=" text-center">' . (!empty($row['date_ticket_issue']) ? date('d-m-Y', strtotime($row['date_ticket_issue'])) : '') . '</td>
 					<td class="">' . $user_list[$row['created_by']] . '</td>
 					<td class="">' . $row['contact_name'] . '</td>
+					<td class="">' . $row['description'] . '</td>
 					<td class=" text-center fw-bold">' . $row['total_qty'] . '</td>
 					<td class=" text-end fw-bold">' . format_number($bk_revenue) . '</td>
 				</tr>';
@@ -3831,7 +3839,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 	$html .= '</tbody>
 			<tfoot>
 				<tr class="fw-bold">
-					<td colspan="7" class="text-end"><i>Tổng cộng</i></td>
+					<td colspan="8" class="text-end"><i>Tổng cộng</i></td>
 					<td class="text-center">' . format_number($total_qty) . '</td>
 					<td class="text-end">' . format_number($total_revenue) . '</td>
 				</tr>
