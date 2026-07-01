@@ -66,7 +66,6 @@
              autoConnect: true,
              debug: true
          };
-         console.log(window.ECChatbotWidgetConfig);
      </script>
      <script src="custom/services/widget/admin_widget.js?v=2"></script>
 {/literal}
