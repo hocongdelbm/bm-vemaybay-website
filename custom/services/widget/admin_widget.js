@@ -51,7 +51,8 @@
 		lastCustomerSeenMessageId: null,
 		sessionId: getSessionId(),
 		expandedReceiptId: null,
-		pendingMessageTimers: {}
+		pendingMessageTimers: {},
+		pendingReceiptsByConversation: {}
 	};
 
 	var data = mergeData(defaultData, config);
@@ -1279,6 +1280,7 @@
 		incoming.forEach(function (message) {
 			var before = getMessageRenderToken(findDuplicateMessage(message));
 			upsertMessage(message);
+			applyPendingReceipts(message.conversationId || conversationId, { render: false });
 			var after = getMessageRenderToken(findDuplicateMessage(message));
 			if (before !== after) changed = true;
 		});
@@ -1957,12 +1959,17 @@
 		}
 		if (isDelivered) {
 			return [
-				'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">',
+				'<svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">',
 				'<path class="tick-first" d="M1 6l3.5 3.5L11 2" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+				'<path class="tick-second" d="M5 6l3.5 3.5L15 2" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
 				'</svg>'
 			].join('');
 		}
-		return '';
+		return [
+			'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">',
+			'<path class="tick-first" d="M1 6l3.5 3.5L11 2" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+			'</svg>'
+		].join('');
 	}
 
 	function renderConvTick(message) {
@@ -2440,8 +2447,34 @@
 
 	// ── Seen: customer has read admin messages → update tick to "read" ──────────
 	// Server sends { type:'seen', conversationId, lastReadMessageId, timestamp } to admin tabs.
-	function markStaffMessagesSeenUntilId(conversationId, lastReadMessageId, timestamp) {
-		if (!conversationId || !lastReadMessageId) return;
+	function rememberPendingReceipt(conversationId, type, messageId, timestamp) {
+		if (!conversationId || !type || !messageId) return;
+		var key = String(conversationId);
+		if (!state.pendingReceiptsByConversation[key]) state.pendingReceiptsByConversation[key] = {};
+		state.pendingReceiptsByConversation[key][type] = {
+			messageId: messageId,
+			timestamp: timestamp
+		};
+	}
+
+	function applyPendingReceipts(conversationId, options) {
+		if (!conversationId) return;
+		var key = String(conversationId);
+		var pending = state.pendingReceiptsByConversation[key];
+		if (!pending) return;
+		var opts = Object.assign({ render: false, store: false }, options || {});
+		if (pending.delivered && markStaffMessagesDeliveredUntilId(conversationId, pending.delivered.messageId, pending.delivered.timestamp, opts)) {
+			delete pending.delivered;
+		}
+		if (pending.seen && markStaffMessagesSeenUntilId(conversationId, pending.seen.messageId, pending.seen.timestamp, opts)) {
+			delete pending.seen;
+		}
+		if (!pending.delivered && !pending.seen) delete state.pendingReceiptsByConversation[key];
+	}
+
+	function markStaffMessagesSeenUntilId(conversationId, lastReadMessageId, timestamp, options) {
+		if (!conversationId || !lastReadMessageId) return false;
+		var opts = Object.assign({ render: true, store: true }, options || {});
 
 		var seenAt = formatTimestamp(timestamp) || formatCurrentTime();
 		var conversationMessages = getMessages(conversationId);
@@ -2454,8 +2487,11 @@
 			}
 		}
 
-		if (targetIndex === -1) return;
-		if (conversationMessages[targetIndex].senderType !== 'staff') return;
+		if (targetIndex === -1) {
+			if (opts.store !== false) rememberPendingReceipt(conversationId, 'seen', lastReadMessageId, timestamp);
+			return false;
+		}
+		if (conversationMessages[targetIndex].senderType !== 'staff') return false;
 
 		state.seenByConversation[conversationId] = seenAt;
 
@@ -2468,14 +2504,18 @@
 			}
 		}
 
-		if (isSameConversationId(state.selectedConversationId, conversationId)) {
-			renderThread();
+		if (opts.render !== false) {
+			if (isSameConversationId(state.selectedConversationId, conversationId)) {
+				renderThread();
+			}
+			renderList();
 		}
-		renderList();
+		return true;
 	}
 
-	function markStaffMessagesDeliveredUntilId(conversationId, lastDeliveredMessageId, timestamp) {
-		if (!conversationId || !lastDeliveredMessageId) return;
+	function markStaffMessagesDeliveredUntilId(conversationId, lastDeliveredMessageId, timestamp, options) {
+		if (!conversationId || !lastDeliveredMessageId) return false;
+		var opts = Object.assign({ render: true, store: true }, options || {});
 
 		var deliveredAt = formatTimestamp(timestamp) || formatCurrentTime();
 		var conversationMessages = getMessages(conversationId);
@@ -2488,8 +2528,11 @@
 			}
 		}
 
-		if (targetIndex === -1) return;
-		if (conversationMessages[targetIndex].senderType !== 'staff') return;
+		if (targetIndex === -1) {
+			if (opts.store !== false) rememberPendingReceipt(conversationId, 'delivered', lastDeliveredMessageId, timestamp);
+			return false;
+		}
+		if (conversationMessages[targetIndex].senderType !== 'staff') return false;
 
 		for (var j = 0; j <= targetIndex; j++) {
 			var message = conversationMessages[j];
@@ -2501,10 +2544,13 @@
 			}
 		}
 
-		if (isSameConversationId(state.selectedConversationId, conversationId)) {
-			renderThread();
+		if (opts.render !== false) {
+			if (isSameConversationId(state.selectedConversationId, conversationId)) {
+				renderThread();
+			}
+			renderList();
 		}
-		renderList();
+		return true;
 	}
 
 	function getReconnectDelay(attempt) {
@@ -3112,6 +3158,7 @@
 		normalizedMessages.forEach(function (message) {
 			upsertMessage(message);
 		});
+		applyPendingReceipts(conversationId, { render: false });
 		var afterKey = getThreadRenderKey(conversationId, getMessages(conversationId));
 		var changed = beforeKey !== afterKey;
 		if (changed) saveCachedConversationMessages(conversationId);
@@ -3462,6 +3509,7 @@
 		}
 		var duplicate = findDuplicateMessage(message);
 		var storedMessage = upsertMessage(message);
+		applyPendingReceipts(message.conversationId, { render: false });
 		saveCachedConversationMessages(message.conversationId);
 		var isSystemMessage = message.senderType === 'system';
 		if (isSameConversationId(state.selectedConversationId, message.conversationId)) {
