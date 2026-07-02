@@ -445,6 +445,57 @@ function calculateBKTotalAmtBatch(array $booking_ids)
 }
 
 /**
+ * Phân loại nhiều booking theo nguồn tạo: Booker đặt (nhân viên xử lý lead do web/bot tạo)
+ * vs Khách đặt (khách tự cung cấp thông tin, không cần booker xử lý).
+ * Logic mượn từ view.report_sales_create.php, nhưng gom audit-check thành 1 query phẳng
+ * (thay vì EXISTS tương quan theo từng dòng) để tránh Slow Query khi số booking lớn.
+ *
+ * @param array $booking_ids
+ * @param array $contact_names [booking_id => contact_name hiện tại]
+ * @return array [booking_id => ['is_booker' => bool, 'is_customer' => bool]]
+ */
+function ec_classify_booking_source(array $booking_ids, array $contact_names)
+{
+    if (empty($booking_ids)) return [];
+
+    global $db;
+    $bookerNames         = ['Panda Po', 'Bao Gia Khach', 'Khach Hang Hoi'];
+    $allPlaceholderNames = array_merge($bookerNames, ['Tham Khao']);
+
+    $ids_sql   = implode("','", array_map([$db, 'quote'], $booking_ids));
+    $names_sql = "'" . implode("','", array_map([$db, 'quote'], $allPlaceholderNames)) . "'";
+
+    // 1 query duy nhất, tận dụng index parent_id — thay cho EXISTS tương quan per-row.
+    $sql = "SELECT DISTINCT parent_id, before_value_string
+            FROM ec_flight_bookings_audit
+            WHERE field_name = 'contact_name'
+              AND before_value_string IN ({$names_sql})
+              AND parent_id IN ('{$ids_sql}')";
+    $res = $db->query($sql);
+
+    $auditedBooker = [];
+    $auditedAny    = [];
+    while ($row = $db->fetchByAssoc($res)) {
+        $auditedAny[$row['parent_id']] = true;
+        if (in_array($row['before_value_string'], $bookerNames, true)) {
+            $auditedBooker[$row['parent_id']] = true;
+        }
+    }
+
+    $result = [];
+    foreach ($booking_ids as $id) {
+        $name = trim((string)($contact_names[$id] ?? ''));
+        $isPlaceholder = in_array($name, $bookerNames, true);
+        $isBooker      = $isPlaceholder || isset($auditedBooker[$id]);
+        $isCustomer    = $name !== ''
+            && !in_array($name, $allPlaceholderNames, true)
+            && !isset($auditedAny[$id]);
+        $result[$id] = ['is_booker' => $isBooker, 'is_customer' => $isCustomer];
+    }
+    return $result;
+}
+
+/**
  * Batch: tính doanh thu (gross) + doanh số ròng (profit = doanh thu - chi phí) cho nhiều booking.
  * Dùng đúng công thức calculateBKAmt nhưng 1 query — phục vụ report Hành trình theo quốc gia.
  * @param array $booking_ids

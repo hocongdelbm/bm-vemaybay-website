@@ -54,6 +54,8 @@
         var conv = $r.attr("data-" + periodId + "-conv");
         var ticket = $r.attr("data-" + periodId + "-ticket");
         var ref = $r.attr("data-" + periodId + "-ref");
+        var booker = $r.attr("data-" + periodId + "-booker");
+        var customer = $r.attr("data-" + periodId + "-customer");
         var profit = $r.attr("data-" + periodId + "-profit");
         var avg = $r.attr("data-" + periodId + "-avg");
         var fromF = $r.attr("data-" + periodId + "-f");
@@ -70,6 +72,8 @@
 
         $r.find(".route-conv").text(conv);
         $r.find(".route-ref").text(ref);
+        $r.find(".route-booker").text(booker);
+        $r.find(".route-customer").text(customer);
         $r.find(".route-ticket").text(ticket);
         $r.find(".route-profit").text(profit);
         $r.find(".route-avg").text(avg);
@@ -153,12 +157,13 @@
       var fromDate = $(this).attr("data-fromdate");
       var toDate = $(this).attr("data-todate");
 
-      var prefix =
-        statusFilter === "completed"
-          ? "BK hoàn tất"
-          : statusFilter === "reference"
-            ? "BK tham khảo"
-            : "Tất cả BK";
+      var statusPrefixMap = {
+        completed: "BK hoàn tất",
+        reference: "BK tham khảo",
+        booker: "Booker đặt",
+        customer: "Khách đặt",
+      };
+      var prefix = statusPrefixMap[statusFilter] || "Tất cả BK";
       $("#mock-modal-title-text").text(
         prefix + " - " + country + " (" + period + ")",
       );
@@ -203,6 +208,8 @@
       var d = REPORT.charts[key];
       if (!canvas || !d) return;
       var lb = REPORT.labels;
+
+      var isMobile = window.innerWidth < 768;
       builtCharts[key] = new Chart(canvas.getContext("2d"), {
         type: "bar",
         data: {
@@ -214,6 +221,7 @@
               backgroundColor: "rgba(207,34,46,0.75)",
               borderColor: "rgba(207,34,46,1)",
               borderWidth: 1,
+              hidden: isMobile,
             },
             {
               label: lb.p4,
@@ -221,6 +229,7 @@
               backgroundColor: "rgba(191,57,137,0.75)",
               borderColor: "rgba(191,57,137,1)",
               borderWidth: 1,
+              hidden: isMobile,
             },
             {
               label: lb.p3,
@@ -228,6 +237,7 @@
               backgroundColor: "rgba(130,80,223,0.75)",
               borderColor: "rgba(130,80,223,1)",
               borderWidth: 1,
+              hidden: isMobile,
             },
             {
               label: lb.p2,

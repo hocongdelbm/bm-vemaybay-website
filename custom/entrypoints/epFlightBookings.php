@@ -3730,6 +3730,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 	// Khớp với report (bk = tổng tất cả BK; Tham khảo là tập con is_reference=1):
 	//   'reference' → chỉ BK tham khảo (khớp cột Tham khảo)
 	//   'completed' → BK hoàn tất (8/7/3), gồm cả tham khảo (khớp bk_ok)
+	//   'booker'/'customer' → lọc thêm ở PHP sau khi fetch (xem ec_classify_booking_source bên dưới)
 	//   digit       → theo 1 trạng thái
 	//   '' (tất cả) → tất cả BK, không lọc gì (khớp mẫu số bk)
 	if ($raw_status === 'reference') {
@@ -3797,10 +3798,12 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 			bk.date_ticket_issue,
 			bk.total_qty,
 			bk.created_by,
-			bk.description
+			bk.description,
+			u.last_name AS site_name
 		FROM ec_flight_bookings bk
 		INNER JOIN ({$route_subquery}) route ON route.booking_id = bk.id
 			{$route_filter}
+		LEFT JOIN users u ON u.id = bk.created_by AND u.deleted = 0
 		WHERE bk.date_entered BETWEEN '{$from_utc_detail}' AND '{$to_utc_detail}'
 		AND bk.deleted = 0
 		{$status_where}
@@ -3816,6 +3819,20 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 		$rows[]   = $row;
 		$bk_ids[] = $row['id'];
 	}
+
+	// 'booker'/'customer' không lọc được thuần SQL (cần đối chiếu audit) nên lọc ở PHP,
+	// dùng chung hàm phân loại với report (1 query phẳng, không EXISTS tương quan).
+	if ($raw_status === 'booker' || $raw_status === 'customer') {
+		$contact_names = array_column($rows, 'contact_name', 'id');
+		$source_map    = ec_classify_booking_source($bk_ids, $contact_names);
+		$want_booker   = ($raw_status === 'booker');
+		$rows = array_values(array_filter($rows, function ($row) use ($source_map, $want_booker) {
+			$src = $source_map[$row['id']] ?? ['is_booker' => false, 'is_customer' => false];
+			return $want_booker ? $src['is_booker'] : $src['is_customer'];
+		}));
+		$bk_ids = array_column($rows, 'id');
+	}
+
 	$revenue_map = calculateBKTotalAmtBatch($bk_ids); // [booking_id => doanh số ròng] (chỉ status 8/7/3)
 
 	$html = '<table class="tbl-check-details-airport-analysis table-details__booking">
@@ -3826,7 +3843,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 						<th class="hide-mobile">Tình trạng</th>
 						<th>Ngày đặt</th>
 						<th>Ngày xuất vé</th>
-						<th>Đặt bởi</th>
+						<th title="Site/tài khoản tạo booking">Trang web</th>
 						<th>Liên hệ</th>
 						<th>Ghi chú</th>
 						<th>Số vé</th>
@@ -3862,7 +3879,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 					<td class=" hide-mobile text-center fw-bold ' . $class_color . '">' . $app_list_strings['booking_status_list'][(int) $row['booking_status']] . '</td>
 					<td class=" text-center">' . date('H:i d-m-Y', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
 					<td class=" text-center">' . (!empty($row['date_ticket_issue']) ? date('d-m-Y', strtotime($row['date_ticket_issue'])) : '') . '</td>
-					<td class="">' . $user_list[$row['created_by']] . '</td>
+					<td class="">' . htmlspecialchars((string)($row['site_name'] ?? ''), ENT_QUOTES, 'UTF-8') . '</td>
 					<td class="">' . $row['contact_name'] . '</td>
 					<td class="text-wrap">' . $row['description'] . '</td>
 					<td class="text-center fw-bold">' . $row['total_qty'] . '</td>

@@ -161,8 +161,8 @@ class Viewreport_route_analysis extends SugarView
 
         $pf = $pt = $putc_f = $putc_t = [];
         for ($p = 0; $p <= 5; $p++) {
-            $pf[$p] = date('d-m-Y', strtotime($rf[$p]));
-            $pt[$p] = date('d-m-Y', strtotime($rt[$p]));
+            $pf[$p] = date('d/m/Y', strtotime($rf[$p]));
+            $pt[$p] = date('d/m/Y', strtotime($rt[$p]));
             $putc_f[$p] = gmdate('Y-m-d H:i:s', strtotime($rf[$p] . ' 00:00:00'));
             $putc_t[$p] = gmdate('Y-m-d H:i:s', strtotime($rt[$p] . ' 23:59:59'));
         }
@@ -178,7 +178,7 @@ class Viewreport_route_analysis extends SugarView
         $colColors = [0 => 'pc0', 1 => 'pc1', 2 => 'pc2', 3 => 'pc3', 4 => 'pc4', 5 => 'pc5'];
 
         $format_range = function ($f, $t) {
-            return ($f === $t) ? "($f)" : "($f - $t)";
+            return ($f === $t) ? "($f)" : "($f đến $t)";
         };
 
         // Meta từng cột kỳ (dùng chung) — key phẳng cho Smarty 2
@@ -212,6 +212,7 @@ class Viewreport_route_analysis extends SugarView
                 sub.booking_id,
                 sub.booking_status,
                 sub.is_reference,
+                sub.contact_name,
                 sub.period,
                 sub.departure,
                 sub.arrival,
@@ -224,6 +225,7 @@ class Viewreport_route_analysis extends SugarView
                     b.id AS booking_id,
                     b.booking_status,
                     b.is_reference,
+                    b.contact_name,
                     SUBSTRING_INDEX(GROUP_CONCAT(i.departure ORDER BY i.departure_date ASC), ',', 1) AS departure,
                     SUBSTRING_INDEX(GROUP_CONCAT(i.arrival ORDER BY i.departure_date DESC), ',', 1) AS arrival,
                     CASE
@@ -252,17 +254,23 @@ class Viewreport_route_analysis extends SugarView
         $dom_keys   = array_keys($app_list_strings['domestic_airport_list'] ?? []);
 
         // Thu thập dòng + id BK hoàn tất, rồi tính doanh số real-time 1 lần (batch)
-        $rows   = [];
-        $ok_ids = [];
+        $rows          = [];
+        $ok_ids        = [];
+        $all_ids       = [];
+        $contact_names = [];
         while ($row = $this->bean->db->fetchByAssoc($res)) {
             if (!$row['dest_country']) continue;
-            $rows[] = $row;
+            $rows[]     = $row;
+            $all_ids[]  = $row['booking_id'];
+            $contact_names[$row['booking_id']] = $row['contact_name'];
             if (in_array($row['booking_status'], ['8', '7', '3'], true)) {
                 $ok_ids[] = $row['booking_id'];
             }
         }
         // [booking_id => ['revenue' => doanh thu, 'profit' => doanh số]] — cùng công thức modal
         $amt_map = calculateBKAmtBatch($ok_ids);
+        // [booking_id => ['is_booker' => bool, 'is_customer' => bool]] — 1 query phẳng, không EXISTS tương quan
+        $source_map = ec_classify_booking_source($all_ids, $contact_names);
 
         // ========= Helpers =========
         $money = function ($v) {
@@ -290,6 +298,12 @@ class Viewreport_route_analysis extends SugarView
                 'ref'        => (int)$m['ref'],
                 'ref_ok'     => (int)$m['ref_ok'],
                 'ref_str'    => (int)$m['ref_ok'] . '&nbsp;/&nbsp;' . (int)$m['ref'],
+                'booker'     => (int)$m['booker'],
+                'booker_ok'  => (int)$m['booker_ok'],
+                'booker_str' => (int)$m['booker_ok'] . '&nbsp;/&nbsp;' . (int)$m['booker'],
+                'customer'     => (int)$m['customer'],
+                'customer_ok'  => (int)$m['customer_ok'],
+                'customer_str' => (int)$m['customer_ok'] . '&nbsp;/&nbsp;' . (int)$m['customer'],
                 'rev'        => $rev,
                 'profit'     => $prof,
                 'profit_str' => $money($prof),
@@ -327,6 +341,8 @@ class Viewreport_route_analysis extends SugarView
                     'ticket_str'  => $c['ticket_str'],
                     'ref'         => $c['ref'],
                     'ref_str'     => $c['ref_str'],
+                    'booker_str'    => $c['booker_str'],
+                    'customer_str'  => $c['customer_str'],
                     'profit_str'  => $c['profit_str'],
                     'avg_str'     => $c['avg_str'],
                     'change_type' => $chg[$p] ? $chg[$p]['type'] : '',
@@ -336,7 +352,20 @@ class Viewreport_route_analysis extends SugarView
             return $out;
         };
 
-        $emptyMetrics = ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0, 'ticket_all' => 0, 'ref' => 0, 'ref_ok' => 0, 'rev' => 0.0, 'profit' => 0.0];
+        $emptyMetrics = [
+            'bk' => 0,
+            'bk_ok' => 0,
+            'ticket' => 0,
+            'ticket_all' => 0,
+            'ref' => 0,
+            'ref_ok' => 0,
+            'booker' => 0,
+            'booker_ok' => 0,
+            'customer' => 0,
+            'customer_ok' => 0,
+            'rev' => 0.0,
+            'profit' => 0.0,
+        ];
 
         // ========= Gom dữ liệu, tách Quốc tế / Nội địa =========
         $groups = ['intl' => [], 'dom' => []];
@@ -354,7 +383,10 @@ class Viewreport_route_analysis extends SugarView
             $g  = $isDom ? 'dom' : 'intl';
             $ok = in_array($row['booking_status'], ['8', '7', '3'], true);
 
-            $isRef  = ((int)$row['is_reference'] === 1);
+            $isRef      = ((int)$row['is_reference'] === 1);
+            $src        = $source_map[$row['booking_id']] ?? ['is_booker' => false, 'is_customer' => false];
+            $isBooker   = $src['is_booker'];
+            $isCustomer = $src['is_customer'];
             $tk_all = (int)$row['ticket_qty'];
             $tk     = $ok ? $tk_all : 0;
             $amt  = ($ok && isset($amt_map[$row['booking_id']])) ? $amt_map[$row['booking_id']] : ['revenue' => 0, 'profit' => 0];
@@ -404,6 +436,21 @@ class Viewreport_route_analysis extends SugarView
                     $rRaw['ref_ok']++;
                 }
             }
+            if ($isBooker) {
+                $cRaw['booker']++;
+                $rRaw['booker']++;
+                if ($ok) {
+                    $cRaw['booker_ok']++;
+                    $rRaw['booker_ok']++;
+                }
+            } elseif ($isCustomer) {
+                $cRaw['customer']++;
+                $rRaw['customer']++;
+                if ($ok) {
+                    $cRaw['customer_ok']++;
+                    $rRaw['customer_ok']++;
+                }
+            }
             unset($cRaw, $rRaw);
         }
 
@@ -440,8 +487,10 @@ class Viewreport_route_analysis extends SugarView
                         'conv'       => $rcells[0]['conv'],
                         'ticket'     => $rcells[0]['ticket'],
                         'ticket_str' => $rcells[0]['ticket_str'],
-                        'ref'        => $rcells[0]['ref'],
-                        'ref_str'    => $rcells[0]['ref_str'],
+                        'ref'          => $rcells[0]['ref'],
+                        'ref_str'      => $rcells[0]['ref_str'],
+                        'booker_str'   => $rcells[0]['booker_str'],
+                        'customer_str' => $rcells[0]['customer_str'],
                         'profit_str' => $rcells[0]['profit_str'],
                         'avg_str'    => $rcells[0]['avg_str'],
                         'columns'    => $rcols,
@@ -487,6 +536,10 @@ class Viewreport_route_analysis extends SugarView
                     $totalRaw[$p]['ticket_all'] += $c['cells'][$p]['ticket_all'];
                     $totalRaw[$p]['ref']        += $c['cells'][$p]['ref'];
                     $totalRaw[$p]['ref_ok']     += $c['cells'][$p]['ref_ok'];
+                    $totalRaw[$p]['booker']     += $c['cells'][$p]['booker'];
+                    $totalRaw[$p]['booker_ok']  += $c['cells'][$p]['booker_ok'];
+                    $totalRaw[$p]['customer']    += $c['cells'][$p]['customer'];
+                    $totalRaw[$p]['customer_ok'] += $c['cells'][$p]['customer_ok'];
                     $totalRaw[$p]['rev']        += $c['cells'][$p]['rev'];
                     $totalRaw[$p]['profit']     += $c['cells'][$p]['profit'];
                 }

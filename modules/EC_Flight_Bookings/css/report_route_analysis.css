@@ -14,9 +14,11 @@
   background-color: #fff;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
   border-radius: 8px;
+  /* Giữ độ rộng cột hợp lý; màn hẹp thì cuộn ngang (report-wrap) thay vì bóp chữ */
+  min-width: 960px;
 }
 
-.data-list > thead > th {
+.data-list > thead th {
   position: sticky;
   top: -1px;
   z-index: 2;
@@ -44,6 +46,8 @@
 .report-wrap {
   max-height: 65vh;
   overflow-y: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: 8px;
   border: 1px solid #dee2e6;
 }
@@ -86,11 +90,42 @@ canvas.report-chart {
   font-weight: bold;
   margin-top: 3px;
 }
+/* Danh sách gạch đầu dòng: mỗi chỉ số phụ 1 dòng riêng, label trái - giá trị phải.
+   Vị trí dòng cố định giữa các cột kỳ nên dễ so sánh theo hàng ngang. */
+.metric-list {
+  list-style: none;
+  padding: 0;
+  font-size: 1em;
+  text-align: left;
+}
+.metric-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 2px;
+  border-bottom: 1px dashed var(--border-color);
+}
+.metric-list li:last-child {
+  border-bottom: none;
+}
+.ml-label {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ml-value {
+  font-weight: 700;
+  color: #212529;
+  white-space: nowrap;
+}
+.metric-list li.ml-rev .ml-value {
+  color: #0f5132;
+}
 .filter-section {
   background: #f8f9fa;
   padding: 15px;
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-color);
   margin-bottom: 20px;
 }
 .date-label {
@@ -110,6 +145,26 @@ canvas.report-chart {
   border-radius: 4px;
   font-size: 14px;
   background: #fff;
+}
+.filter-row {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-dates {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-date-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.filter-date-group .date_input {
+  width: 130px;
 }
 /* Decline alert */
 .decline-box {
@@ -199,4 +254,66 @@ canvas.report-chart {
 }
 .mock-modal-body {
   overflow-y: auto;
+}
+
+/* ===== Mobile ===== */
+@media (max-width: 576px) {
+  .filter-section {
+    padding: 12px;
+  }
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .filter-select-wrap,
+  .filter-select-wrap .box-select {
+    width: 100%;
+  }
+  .filter-dates {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .filter-date-group {
+    justify-content: space-between;
+  }
+  .filter-date-group .dateTime,
+  .filter-date-group .date_input {
+    flex: 1 1 auto;
+    width: auto;
+  }
+  .filter-arrow {
+    display: none;
+  }
+  .filter-submit,
+  .filter-submit .btn {
+    width: 100%;
+  }
+
+  .mock-modal-content {
+    max-width: 94vw;
+    padding: 14px;
+  }
+
+  /* Route sụt giảm mạnh: xuống dòng thay vì chèn ép "→ PQC (Phú / Quốc)" */
+  .decline-item {
+    flex-wrap: wrap;
+  }
+  .decline-item img {
+    flex-shrink: 0;
+  }
+  .decline-route {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.9rem;
+  }
+  .decline-item .ms-auto {
+    margin-left: 0 !important;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 6px;
+    border-top: 1px dashed #f1d1d4;
+  }
 }
