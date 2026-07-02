@@ -20,10 +20,17 @@ class Viewreport_route_analysis extends SugarView
 
     function displayJS()
     {
-        $js = '';
-        $js .= '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.3/dist/chart.umd.min.js"></script>';
-        $js .= '<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>';
-        echo $js;
+        $cssPath = 'modules/EC_Flight_Bookings/css/report_route_analysis.css';
+        $jsPath  = 'modules/EC_Flight_Bookings/js/report_route_analysis.js';
+        $cssVer  = file_exists($cssPath) ? filemtime($cssPath) : time();
+        $jsVer   = file_exists($jsPath) ? filemtime($jsPath) : time();
+
+        $out  = '';
+        $out .= '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.3/dist/chart.umd.min.js"></script>';
+        $out .= '<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>';
+        $out .= '<link rel="stylesheet" href="' . $cssPath . '?v=' . $cssVer . '">';
+        $out .= '<script src="' . $jsPath . '?v=' . $jsVer . '"></script>';
+        echo $out;
     }
 
     function populateContent($smartyobj)
@@ -33,6 +40,13 @@ class Viewreport_route_analysis extends SugarView
         $from_date = isset($_REQUEST['from_date']) ? preg_replace('/[^0-9\-]/', '', $_REQUEST['from_date']) : date('d-m-Y');
         $to_date = isset($_REQUEST['to_date']) ? preg_replace('/[^0-9\-]/', '', $_REQUEST['to_date']) : date('d-m-Y');
 
+        // Chuẩn hoá: đảm bảo from <= to
+        if (strtotime($from_date) > strtotime($to_date)) {
+            $tmp = $from_date;
+            $from_date = $to_date;
+            $to_date = $tmp;
+        }
+
         $smartyobj->assign('FROM_DATE', $from_date);
         $smartyobj->assign('TO_DATE', $to_date);
 
@@ -40,10 +54,22 @@ class Viewreport_route_analysis extends SugarView
         $quater_fromdate = '';
         $quater_todate = '';
         switch (ceil(date('n') / 3)) {
-            case 1: $quater_fromdate = '01-01-' . date('Y'); $quater_todate = '31-03-' . date('Y'); break;
-            case 2: $quater_fromdate = '01-04-' . date('Y'); $quater_todate = '30-06-' . date('Y'); break;
-            case 3: $quater_fromdate = '01-07-' . date('Y'); $quater_todate = '30-09-' . date('Y'); break;
-            case 4: $quater_fromdate = '01-10-' . date('Y'); $quater_todate = '31-12-' . date('Y'); break;
+            case 1:
+                $quater_fromdate = '01-01-' . date('Y');
+                $quater_todate = '31-03-' . date('Y');
+                break;
+            case 2:
+                $quater_fromdate = '01-04-' . date('Y');
+                $quater_todate = '30-06-' . date('Y');
+                break;
+            case 3:
+                $quater_fromdate = '01-07-' . date('Y');
+                $quater_todate = '30-09-' . date('Y');
+                break;
+            case 4:
+                $quater_fromdate = '01-10-' . date('Y');
+                $quater_todate = '31-12-' . date('Y');
+                break;
         }
 
         $arr_date = array(
@@ -62,325 +88,465 @@ class Viewreport_route_analysis extends SugarView
         );
         $smartyobj->assign('DATE_OPTION', implode('', $arr_date));
 
-        // Tính ngày cho labels và UI (Dựa trên khoảng tgian đã chọn)
-        $p0_from = $from_date;
-        $p0_to   = $to_date;
+        /**
+         * ========= XỬ LÝ KỲ SO SÁNH =========
+         * Dịch kỳ theo ĐƠN VỊ của lựa chọn (giống report_sales_create) để tránh chồng lấn:
+         *  - Ngày (today/yesterday/daybefore hoặc khoảng 1 ngày): offset 0,1,2,7,8,9 ngày
+         *    (3 kỳ gần + 3 kỳ cùng thứ tuần trước).
+         *  - Tuần / Tháng / Quý / Năm: 6 kỳ LIÊN TIẾP cùng đơn vị (không chồng lấn).
+         *  - Khoảng tự chọn khác: 6 kỳ liên tiếp theo độ dài khoảng chọn (L ngày).
+         */
+        $sel = isset($_POST['date_select']) ? (string)$_POST['date_select'] : '';
+        $L = (int) round((strtotime($to_date) - strtotime($from_date)) / 86400) + 1;
+        if ($L < 1) $L = 1;
 
-        $p1_from = date('d-m-Y', strtotime($from_date . " -1 day"));
-        $p1_to   = date('d-m-Y', strtotime($to_date . " -1 day"));
+        $fsql = date('Y-m-d', strtotime($from_date));
+        $tsql = date('Y-m-d', strtotime($to_date));
 
-        $p2_from = date('d-m-Y', strtotime($from_date . " -2 days"));
-        $p2_to   = date('d-m-Y', strtotime($to_date . " -2 days"));
+        $mkMonth = function ($base, $k) {
+            return [date('Y-m-01', strtotime("$base $k month")), date('Y-m-t', strtotime("$base $k month"))];
+        };
+        $mkQuarter = function ($base, $k) {
+            $ts = strtotime("$base " . ($k * 3) . " months");
+            $q  = (int)ceil((int)date('n', $ts) / 3);
+            $sm = ($q - 1) * 3 + 1;
+            $f  = date('Y-m-d', strtotime(date('Y', $ts) . "-{$sm}-01"));
+            return [$f, date('Y-m-t', strtotime("$f +2 months"))];
+        };
+        $mkYear = function ($base, $k) {
+            $y = (int)date('Y', strtotime("$base $k year"));
+            return ["{$y}-01-01", "{$y}-12-31"];
+        };
 
-        $p3_from = date('d-m-Y', strtotime($from_date . " -7 days"));
-        $p3_to   = date('d-m-Y', strtotime($to_date . " -7 days"));
+        $rf = $rt = [];   // biên từng kỳ (Y-m-d)
+        if (in_array($sel, ['this_week', 'previous_week'], true)) {
+            for ($p = 0; $p <= 5; $p++) {
+                $rf[$p] = date('Y-m-d', strtotime("$fsql -" . (7 * $p) . " days"));
+                $rt[$p] = date('Y-m-d', strtotime("$tsql -" . (7 * $p) . " days"));
+            }
+            $labels = ['Tuần Chọn', 'Tuần Trước', 'Tuần Trước 2', 'Tuần Trước 3', 'Tuần Trước 4', 'Tuần Trước 5'];
+        } elseif (in_array($sel, ['this_month', 'previous_month'], true)) {
+            for ($p = 0; $p <= 5; $p++) {
+                list($rf[$p], $rt[$p]) = $mkMonth($fsql, -$p);
+            }
+            $labels = ['Tháng Chọn', 'Tháng Trước', 'Tháng Trước 2', 'Tháng Trước 3', 'Tháng Trước 4', 'Tháng Trước 5'];
+        } elseif (in_array($sel, ['quarter_this', 'quarter_previous'], true)) {
+            for ($p = 0; $p <= 5; $p++) {
+                list($rf[$p], $rt[$p]) = $mkQuarter($fsql, -$p);
+            }
+            $labels = ['Quý Chọn', 'Quý Trước', 'Quý Trước 2', 'Quý Trước 3', 'Quý Trước 4', 'Quý Trước 5'];
+        } elseif (in_array($sel, ['this_year', 'previous_year'], true)) {
+            for ($p = 0; $p <= 5; $p++) {
+                list($rf[$p], $rt[$p]) = $mkYear($fsql, -$p);
+            }
+            $labels = ['Năm Chọn', 'Năm Trước', 'Năm Trước 2', 'Năm Trước 3', 'Năm Trước 4', 'Năm Trước 5'];
+        } elseif ($L == 1 || in_array($sel, ['today', 'yesterday', 'daybefore'], true)) {
+            $offs = [0, 1, 2, 7, 8, 9];
+            for ($p = 0; $p <= 5; $p++) {
+                $rf[$p] = date('Y-m-d', strtotime("$fsql -{$offs[$p]} days"));
+                $rt[$p] = date('Y-m-d', strtotime("$tsql -{$offs[$p]} days"));
+            }
+            $labels = ['Kỳ Chọn', 'Kỳ Chọn -1 ngày', 'Kỳ Chọn -2 ngày', 'Tuần Trước', 'Tuần Trước -1', 'Tuần Trước -2'];
+        } else {
+            for ($p = 0; $p <= 5; $p++) {
+                $off = $L * $p;
+                $rf[$p] = date('Y-m-d', strtotime("$fsql -{$off} days"));
+                $rt[$p] = date('Y-m-d', strtotime("$tsql -{$off} days"));
+            }
+            $labels = ['Kỳ Chọn', 'Kỳ Trước', 'Kỳ Trước 2', 'Kỳ Trước 3', 'Kỳ Trước 4', 'Kỳ Trước 5'];
+        }
 
-        $p4_from = date('d-m-Y', strtotime($from_date . " -8 days"));
-        $p4_to   = date('d-m-Y', strtotime($to_date . " -8 days"));
+        // Xác định chế độ "ngày" (2 cụm) để chọn cặp so sánh %
+        $isDayMode = ($L == 1 || in_array($sel, ['today', 'yesterday', 'daybefore'], true))
+            && !in_array($sel, ['this_week', 'previous_week', 'this_month', 'previous_month', 'quarter_this', 'quarter_previous', 'this_year', 'previous_year'], true);
 
-        $p5_from = date('d-m-Y', strtotime($from_date . " -9 days"));
-        $p5_to   = date('d-m-Y', strtotime($to_date . " -9 days"));
+        $pf = $pt = $putc_f = $putc_t = [];
+        for ($p = 0; $p <= 5; $p++) {
+            $pf[$p] = date('d-m-Y', strtotime($rf[$p]));
+            $pt[$p] = date('d-m-Y', strtotime($rt[$p]));
+            $putc_f[$p] = gmdate('Y-m-d H:i:s', strtotime($rf[$p] . ' 00:00:00'));
+            $putc_t[$p] = gmdate('Y-m-d H:i:s', strtotime($rt[$p] . ' 23:59:59'));
+        }
 
-        $smartyobj->assign('P0_LABEL', 'Kỳ Chọn');
-        $smartyobj->assign('P1_LABEL', 'Kỳ Chọn -1 ngày');
-        $smartyobj->assign('P2_LABEL', 'Kỳ Chọn -2 ngày');
-        $smartyobj->assign('P3_LABEL', 'Tuần Trước');
-        $smartyobj->assign('P4_LABEL', 'Tuần Trước -1');
-        $smartyobj->assign('P5_LABEL', 'Tuần Trước -2');
+        // Cặp so sánh % (so với kỳ liền cũ hơn). Chế độ ngày: 2 cụm rời (p2, p5 không so).
+        if ($isDayMode) {
+            $changePairs = [0 => 1, 1 => 2, 2 => null, 3 => 4, 4 => 5, 5 => null];
+        } else {
+            $changePairs = [0 => 1, 1 => 2, 2 => 3, 3 => 4, 4 => 5, 5 => null];
+        }
 
-        $format_range = function($f, $t) {
+        // 6 màu contrast cao (định nghĩa trong report_route_analysis.css: .text-pc0..pc5)
+        $colColors = [0 => 'pc0', 1 => 'pc1', 2 => 'pc2', 3 => 'pc3', 4 => 'pc4', 5 => 'pc5'];
+
+        $format_range = function ($f, $t) {
             return ($f === $t) ? "($f)" : "($f - $t)";
         };
 
-        $smartyobj->assign('P0_RANGE', $format_range($p0_from, $p0_to));
-        $smartyobj->assign('P1_RANGE', $format_range($p1_from, $p1_to));
-        $smartyobj->assign('P2_RANGE', $format_range($p2_from, $p2_to));
-        $smartyobj->assign('P3_RANGE', $format_range($p3_from, $p3_to));
-        $smartyobj->assign('P4_RANGE', $format_range($p4_from, $p4_to));
-        $smartyobj->assign('P5_RANGE', $format_range($p5_from, $p5_to));
+        // Meta từng cột kỳ (dùng chung) — key phẳng cho Smarty 2
+        $colMeta = [];
+        for ($p = 0; $p <= 5; $p++) {
+            $colMeta[$p] = [
+                'pid'   => 'p' . $p,
+                'label' => $labels[$p],
+                'range' => $format_range($pf[$p], $pt[$p]),
+                'f'     => date('Y-m-d', strtotime($pf[$p])),
+                't'     => date('Y-m-d', strtotime($pt[$p])),
+                'color' => $colColors[$p],
+            ];
+            $smartyobj->assign("P{$p}_LABEL", $labels[$p]);
+            $smartyobj->assign("P{$p}_F", $colMeta[$p]['f']);
+            $smartyobj->assign("P{$p}_T", $colMeta[$p]['t']);
+        }
 
-        $to_sql = function($d_m_y) {
-            return date('Y-m-d', strtotime($d_m_y));
-        };
-
-        $p0_f = $to_sql($p0_from); $p0_t = $to_sql($p0_to);
-        $p1_f = $to_sql($p1_from); $p1_t = $to_sql($p1_to);
-        $p2_f = $to_sql($p2_from); $p2_t = $to_sql($p2_to);
-        $p3_f = $to_sql($p3_from); $p3_t = $to_sql($p3_to);
-        $p4_f = $to_sql($p4_from); $p4_t = $to_sql($p4_to);
-        $p5_f = $to_sql($p5_from); $p5_t = $to_sql($p5_to);
-
-        $smartyobj->assign('P0_F', $p0_f); $smartyobj->assign('P0_T', $p0_t);
-        $smartyobj->assign('P1_F', $p1_f); $smartyobj->assign('P1_T', $p1_t);
-        $smartyobj->assign('P2_F', $p2_f); $smartyobj->assign('P2_T', $p2_t);
-        $smartyobj->assign('P3_F', $p3_f); $smartyobj->assign('P3_T', $p3_t);
-        $smartyobj->assign('P4_F', $p4_f); $smartyobj->assign('P4_T', $p4_t);
-        $smartyobj->assign('P5_F', $p5_f); $smartyobj->assign('P5_T', $p5_t);
+        // ========= Build SQL (mỗi booking 1 dòng; doanh số tính real-time) =========
+        $caseWhen = [];
+        $whereOr  = [];
+        for ($p = 0; $p <= 5; $p++) {
+            $caseWhen[] = "WHEN b.date_entered BETWEEN '{$putc_f[$p]}' AND '{$putc_t[$p]}' THEN {$p}";
+            $whereOr[]  = "b.date_entered BETWEEN '{$putc_f[$p]}' AND '{$putc_t[$p]}'";
+        }
+        $caseWhenStr = implode("\n", $caseWhen);
+        $whereOrStr  = implode(" OR\n", $whereOr);
 
         $sql = "
             SELECT
-                ap_dest.country AS dest_country,
-                routes.departure,
-                routes.arrival,
+                sub.booking_id,
+                sub.booking_status,
+                sub.is_reference,
+                sub.period,
+                sub.departure,
+                sub.arrival,
+                ap_dest.country   AS dest_country,
                 ap_dest.city_name AS dest_city,
-                ap_dep.city_name AS dep_city,
-            
-                COUNT(CASE WHEN routes.period = 0 THEN 1 END) AS bk_p0,
-                SUM(CASE WHEN routes.period = 0 AND routes.booking_status IN ('8','7','3') THEN 1 ELSE 0 END) AS bk_p0_ok,
-                SUM(CASE WHEN routes.period = 0 THEN routes.ticket_qty ELSE 0 END) AS ticket_p0,
-            
-                COUNT(CASE WHEN routes.period = 1 THEN 1 END) AS bk_p1,
-                SUM(CASE WHEN routes.period = 1 AND routes.booking_status IN ('8','7','3') THEN 1 ELSE 0 END) AS bk_p1_ok,
-                SUM(CASE WHEN routes.period = 1 THEN routes.ticket_qty ELSE 0 END) AS ticket_p1,
-            
-                COUNT(CASE WHEN routes.period = 2 THEN 1 END) AS bk_p2,
-                SUM(CASE WHEN routes.period = 2 AND routes.booking_status IN ('8','7','3') THEN 1 ELSE 0 END) AS bk_p2_ok,
-                SUM(CASE WHEN routes.period = 2 THEN routes.ticket_qty ELSE 0 END) AS ticket_p2,
-            
-                COUNT(CASE WHEN routes.period = 3 THEN 1 END) AS bk_p3,
-                SUM(CASE WHEN routes.period = 3 AND routes.booking_status IN ('8','7','3') THEN 1 ELSE 0 END) AS bk_p3_ok,
-                SUM(CASE WHEN routes.period = 3 THEN routes.ticket_qty ELSE 0 END) AS ticket_p3,
-
-                COUNT(CASE WHEN routes.period = 4 THEN 1 END) AS bk_p4,
-                SUM(CASE WHEN routes.period = 4 AND routes.booking_status IN ('8','7','3') THEN 1 ELSE 0 END) AS bk_p4_ok,
-                SUM(CASE WHEN routes.period = 4 THEN routes.ticket_qty ELSE 0 END) AS ticket_p4,
-
-                COUNT(CASE WHEN routes.period = 5 THEN 1 END) AS bk_p5,
-                SUM(CASE WHEN routes.period = 5 AND routes.booking_status IN ('8','7','3') THEN 1 ELSE 0 END) AS bk_p5_ok,
-                SUM(CASE WHEN routes.period = 5 THEN routes.ticket_qty ELSE 0 END) AS ticket_p5
-            
+                ap_dep.city_name  AS dep_city,
+                IFNULL(bkd.qty, 0) AS ticket_qty
             FROM (
                 SELECT
-                    sub.booking_id,
-                    sub.departure,
-                    sub.arrival,
-                    sub.booking_status,
-                    sub.period,
-                    IFNULL(bkd.qty, 0) AS ticket_qty
-                FROM (
-                    SELECT
-                        b.id AS booking_id,
-                        b.booking_status,
-                        MIN(i.departure) AS departure,
-                        SUBSTRING_INDEX(
-                            GROUP_CONCAT(i.arrival ORDER BY i.departure_date DESC), ',', 1
-                        ) AS arrival,
-                        CASE
-                            WHEN DATE(CONVERT_TZ(b.date_entered, '+00:00', '+07:00')) BETWEEN '{$p0_f}' AND '{$p0_t}' THEN 0
-                            WHEN DATE(CONVERT_TZ(b.date_entered, '+00:00', '+07:00')) BETWEEN '{$p1_f}' AND '{$p1_t}' THEN 1
-                            WHEN DATE(CONVERT_TZ(b.date_entered, '+00:00', '+07:00')) BETWEEN '{$p2_f}' AND '{$p2_t}' THEN 2
-                            WHEN DATE(CONVERT_TZ(b.date_entered, '+00:00', '+07:00')) BETWEEN '{$p3_f}' AND '{$p3_t}' THEN 3
-                            WHEN DATE(CONVERT_TZ(b.date_entered, '+00:00', '+07:00')) BETWEEN '{$p4_f}' AND '{$p4_t}' THEN 4
-                            WHEN DATE(CONVERT_TZ(b.date_entered, '+00:00', '+07:00')) BETWEEN '{$p5_f}' AND '{$p5_t}' THEN 5
-                        END AS period
-                    FROM ec_flight_bookings b
-                    INNER JOIN ec_booking_itineraries i
-                        ON i.booking_id = b.id
-                        AND i.deleted = 0
-                        AND i.direction = 0
-                        AND i.add_type = 0
-                    WHERE b.deleted = 0
-                      AND (
-                          DATE(CONVERT_TZ(b.date_entered, '+00:00', '+07:00')) BETWEEN '{$p0_f}' AND '{$p0_t}' OR
-                          DATE(CONVERT_TZ(b.date_entered, '+00:00', '+07:00')) BETWEEN '{$p1_f}' AND '{$p1_t}' OR
-                          DATE(CONVERT_TZ(b.date_entered, '+00:00', '+07:00')) BETWEEN '{$p2_f}' AND '{$p2_t}' OR
-                          DATE(CONVERT_TZ(b.date_entered, '+00:00', '+07:00')) BETWEEN '{$p3_f}' AND '{$p3_t}' OR
-                          DATE(CONVERT_TZ(b.date_entered, '+00:00', '+07:00')) BETWEEN '{$p4_f}' AND '{$p4_t}' OR
-                          DATE(CONVERT_TZ(b.date_entered, '+00:00', '+07:00')) BETWEEN '{$p5_f}' AND '{$p5_t}'
-                      )
-                    GROUP BY b.id
-                ) sub
-                LEFT JOIN (
-                    SELECT booking_id, SUM(quantity) AS qty
-                    FROM ec_booking_details
-                    WHERE deleted = 0
-                    GROUP BY booking_id
-                ) bkd ON bkd.booking_id = sub.booking_id
-            ) routes
-            INNER JOIN ec_airports ap_dest
-                ON ap_dest.iata_code = routes.arrival
-                AND ap_dest.deleted = 0
-            LEFT JOIN ec_airports ap_dep
-                ON ap_dep.iata_code = routes.departure
-                AND ap_dep.deleted = 0
-            GROUP BY ap_dest.country, routes.departure, routes.arrival
-            ORDER BY bk_p0 DESC, ap_dest.country
+                    b.id AS booking_id,
+                    b.booking_status,
+                    b.is_reference,
+                    SUBSTRING_INDEX(GROUP_CONCAT(i.departure ORDER BY i.departure_date ASC), ',', 1) AS departure,
+                    SUBSTRING_INDEX(GROUP_CONCAT(i.arrival ORDER BY i.departure_date DESC), ',', 1) AS arrival,
+                    CASE
+                        {$caseWhenStr}
+                    END AS period
+                FROM ec_flight_bookings b
+                INNER JOIN ec_booking_itineraries i
+                    ON i.booking_id = b.id AND i.deleted = 0 AND i.direction = 0 AND i.add_type = 0
+                WHERE b.deleted = 0
+                  AND (
+                      {$whereOrStr}
+                  )
+                GROUP BY b.id
+            ) sub
+            LEFT JOIN (
+                SELECT booking_id, SUM(quantity) AS qty
+                FROM ec_booking_details WHERE deleted = 0 GROUP BY booking_id
+            ) bkd ON bkd.booking_id = sub.booking_id
+            INNER JOIN ec_airports ap_dest ON ap_dest.iata_code = sub.arrival   AND ap_dest.deleted = 0
+            LEFT JOIN  ec_airports ap_dep  ON ap_dep.iata_code  = sub.departure AND ap_dep.deleted = 0
         ";
 
         $res = $this->bean->db->query($sql);
-        $real_data = [];
-        global $app_list_strings;
+
         $region_dom = $app_list_strings['region_dom'] ?? [];
+        $dom_keys   = array_keys($app_list_strings['domestic_airport_list'] ?? []);
 
+        // Thu thập dòng + id BK hoàn tất, rồi tính doanh số real-time 1 lần (batch)
+        $rows   = [];
+        $ok_ids = [];
         while ($row = $this->bean->db->fetchByAssoc($res)) {
-            $countryCode = $row['dest_country'];
-            if (!$countryCode) continue;
+            if (!$row['dest_country']) continue;
+            $rows[] = $row;
+            if (in_array($row['booking_status'], ['8', '7', '3'], true)) {
+                $ok_ids[] = $row['booking_id'];
+            }
+        }
+        // [booking_id => ['revenue' => doanh thu, 'profit' => doanh số ròng]] — cùng công thức modal
+        $amt_map = calculateBKAmtBatch($ok_ids);
 
-            if (!isset($real_data[$countryCode])) {
-                $real_data[$countryCode] = [
-                    'name' => $region_dom[$countryCode] ?? $countryCode,
-                    'p0' => ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0],
-                    'p1' => ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0],
-                    'p2' => ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0],
-                    'p3' => ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0],
-                    'p4' => ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0],
-                    'p5' => ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0],
-                    'routes' => []
+        // ========= Helpers =========
+        $money = function ($v) {
+            return number_format((float)$v, 0, ',', '.');
+        };
+
+        // metrics: bk, bk_ok, ticket, rev (doanh thu gross), profit (doanh số ròng)
+        $mkCell = function ($m) use ($money) {
+            $bk    = (int)$m['bk'];
+            $bk_ok = (int)$m['bk_ok'];
+            $tk    = (int)$m['ticket'];
+            $tkAll = (int)$m['ticket_all'];
+            $rev   = (float)$m['rev'];
+            $prof  = (float)$m['profit'];
+            $conv  = $bk > 0 ? round($bk_ok / $bk * 100) : 0;
+            $avg   = $tk > 0 ? $prof / $tk : 0;  // TB/vé = doanh số / số vé
+            return [
+                'bk'         => $bk,
+                'bk_ok'      => $bk_ok,
+                'bk_str'     => $bk_ok . '&nbsp;/&nbsp;' . $bk,
+                'conv'       => $conv . '%',
+                'ticket'     => $tk,
+                'ticket_all' => $tkAll,
+                'ticket_str' => $tk . '&nbsp;/&nbsp;' . $tkAll,
+                'ref'        => (int)$m['ref'],
+                'rev'        => $rev,
+                'profit'     => $prof,
+                'profit_str' => $money($prof),
+                'avg_str'    => $money($avg),
+            ];
+        };
+
+        $calc_change = function ($curr, $prev) {
+            if ($prev == 0) {
+                if ($curr == 0) return ['type' => 'none', 'val' => '0%', 'pct' => 0.0];
+                return ['type' => 'up', 'val' => '100%', 'pct' => 100.0];
+            }
+            $diff = $curr - $prev;
+            $pctNum = round(abs($diff) / $prev * 100, 1);
+            $pct = $pctNum . '%';
+            if ($diff > 0) return ['type' => 'up', 'val' => $pct, 'pct' => $pctNum];
+            if ($diff < 0) return ['type' => 'down', 'val' => $pct, 'pct' => $pctNum];
+            return ['type' => 'none', 'val' => '0%', 'pct' => 0.0];
+        };
+
+        $buildCols = function ($cells) use ($colMeta, $calc_change, $changePairs) {
+            $chg = [];
+            foreach ($changePairs as $p => $prev) {
+                $chg[$p] = ($prev === null) ? null : $calc_change($cells[$p]['bk_ok'], $cells[$prev]['bk_ok']);
+            }
+            $out = [];
+            for ($p = 0; $p <= 5; $p++) {
+                $c = $cells[$p];
+                $out[$p] = array_merge($colMeta[$p], [
+                    'bk_ok'       => $c['bk_ok'],
+                    'bk'          => $c['bk'],
+                    'bk_str'      => $c['bk_str'],
+                    'conv'        => $c['conv'],
+                    'ticket'      => $c['ticket'],
+                    'ticket_str'  => $c['ticket_str'],
+                    'ref'         => $c['ref'],
+                    'profit_str'  => $c['profit_str'],
+                    'avg_str'     => $c['avg_str'],
+                    'change_type' => $chg[$p] ? $chg[$p]['type'] : '',
+                    'change_val'  => $chg[$p] ? $chg[$p]['val'] : '',
+                ]);
+            }
+            return $out;
+        };
+
+        $emptyMetrics = ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0, 'ticket_all' => 0, 'ref' => 0, 'rev' => 0.0, 'profit' => 0.0];
+
+        // ========= Gom dữ liệu, tách Quốc tế / Nội địa =========
+        $groups = ['intl' => [], 'dom' => []];
+        $all_routes = [];
+
+        foreach ($rows as $row) {
+            $cc  = $row['dest_country'];
+            $dep = $row['departure'];
+            $arr = $row['arrival'];
+            $p   = $row['period'];
+            if ($p === null || $p === '') continue;
+            $p = (int)$p;
+
+            $isDom = in_array($dep, $dom_keys, true) && in_array($arr, $dom_keys, true);
+            $g  = $isDom ? 'dom' : 'intl';
+            $ok = in_array($row['booking_status'], ['8', '7', '3'], true);
+
+            $isRef  = ((int)$row['is_reference'] === 1);
+            $tk_all = (int)$row['ticket_qty'];
+            $tk     = $ok ? $tk_all : 0;
+            $amt  = ($ok && isset($amt_map[$row['booking_id']])) ? $amt_map[$row['booking_id']] : ['revenue' => 0, 'profit' => 0];
+            $rev  = $ok ? (float)$amt['revenue'] : 0.0;
+            $prof = $ok ? (float)$amt['profit'] : 0.0;
+
+            if (!isset($groups[$g][$cc])) {
+                $groups[$g][$cc] = [
+                    'name'   => $region_dom[$cc] ?? $cc,
+                    'raw'    => array_fill(0, 6, $emptyMetrics),
+                    'routes' => [],
+                ];
+            }
+            $rk = $dep . '|' . $arr;
+            if (!isset($groups[$g][$cc]['routes'][$rk])) {
+                $groups[$g][$cc]['routes'][$rk] = [
+                    'dep_code' => $dep,
+                    'arr_code' => $arr,
+                    'dep'      => $dep . ($row['dep_city'] ? ' (' . $row['dep_city'] . ')' : ''),
+                    'arr'      => $arr . ($row['dest_city'] ? ' (' . $row['dest_city'] . ')' : ''),
+                    'raw'      => array_fill(0, 6, $emptyMetrics),
                 ];
             }
 
-            // Cộng dồn metrics cho quốc gia
-            $real_data[$countryCode]['p0']['bk'] += (int)$row['bk_p0'];
-            $real_data[$countryCode]['p0']['bk_ok'] += (int)$row['bk_p0_ok'];
-            $real_data[$countryCode]['p0']['ticket'] += (int)$row['ticket_p0'];
+            $cRaw = &$groups[$g][$cc]['raw'][$p];
+            $rRaw = &$groups[$g][$cc]['routes'][$rk]['raw'][$p];
+            // bk = tổng tất cả BK của hành trình; ref (tham khảo) là tập con của bk
+            $cRaw['bk']++;
+            $rRaw['bk']++;
+            $cRaw['ticket_all'] += $tk_all;
+            $rRaw['ticket_all'] += $tk_all;
+            if ($ok) {
+                $cRaw['bk_ok']++;
+                $rRaw['bk_ok']++;
+                $cRaw['ticket'] += $tk;
+                $rRaw['ticket'] += $tk;
+                $cRaw['rev']    += $rev;
+                $rRaw['rev']    += $rev;
+                $cRaw['profit'] += $prof;
+                $rRaw['profit'] += $prof;
+            }
+            if ($isRef) {
+                $cRaw['ref']++;
+                $rRaw['ref']++;
+            }
+            unset($cRaw, $rRaw);
+        }
 
-            $real_data[$countryCode]['p1']['bk'] += (int)$row['bk_p1'];
-            $real_data[$countryCode]['p1']['bk_ok'] += (int)$row['bk_p1_ok'];
-            $real_data[$countryCode]['p1']['ticket'] += (int)$row['ticket_p1'];
+        // ========= Hoàn thiện từng group =========
+        $GROUPS = [];
+        $meta = [
+            'intl' => ['title' => 'Quốc Tế', 'scope' => 'international'],
+            'dom'  => ['title' => 'Nội Địa', 'scope' => 'domestic'],
+        ];
+        $chartsJson = [];
 
-            $real_data[$countryCode]['p2']['bk'] += (int)$row['bk_p2'];
-            $real_data[$countryCode]['p2']['bk_ok'] += (int)$row['bk_p2_ok'];
-            $real_data[$countryCode]['p2']['ticket'] += (int)$row['ticket_p2'];
+        foreach ($groups as $g => $countries) {
+            $list = [];
+            foreach ($countries as $cc => $cData) {
+                $cells = [];
+                for ($p = 0; $p <= 5; $p++) $cells[$p] = $mkCell($cData['raw'][$p]);
+                $cols = $buildCols($cells);
 
-            $real_data[$countryCode]['p3']['bk'] += (int)$row['bk_p3'];
-            $real_data[$countryCode]['p3']['bk_ok'] += (int)$row['bk_p3_ok'];
-            $real_data[$countryCode]['p3']['ticket'] += (int)$row['ticket_p3'];
+                $routeList = [];
+                foreach ($cData['routes'] as $rt) {
+                    $rcells = [];
+                    for ($p = 0; $p <= 5; $p++) $rcells[$p] = $mkCell($rt['raw'][$p]);
+                    $rcols = $buildCols($rcells);
+                    $routeList[] = [
+                        'dep_code'   => $rt['dep_code'],
+                        'arr_code'   => $rt['arr_code'],
+                        'dep'        => $rt['dep'],
+                        'arr'        => $rt['arr'],
+                        'token'      => $g . '-' . $cc,
+                        'p0_ok'      => $rcells[0]['bk_ok'],
+                        'bk_ok'      => $rcells[0]['bk_ok'],
+                        'bk'         => $rcells[0]['bk'],
+                        'bk_str'     => $rcells[0]['bk_str'],
+                        'conv'       => $rcells[0]['conv'],
+                        'ticket'     => $rcells[0]['ticket'],
+                        'ticket_str' => $rcells[0]['ticket_str'],
+                        'ref'        => $rcells[0]['ref'],
+                        'profit_str' => $rcells[0]['profit_str'],
+                        'avg_str'    => $rcells[0]['avg_str'],
+                        'columns'    => $rcols,
+                    ];
+                    $all_routes[] = [
+                        'cc'       => $cc,
+                        'name'     => $cData['name'],
+                        'dep_code' => $rt['dep_code'],
+                        'arr_code' => $rt['arr_code'],
+                        'dep'      => $rt['dep'],
+                        'arr'      => $rt['arr'],
+                        'p0_ok'    => $rcells[0]['bk_ok'],
+                        'p1_ok'    => $rcells[1]['bk_ok'],
+                    ];
+                }
+                usort($routeList, function ($a, $b) {
+                    return $b['p0_ok'] <=> $a['p0_ok'];
+                });
 
-            $real_data[$countryCode]['p4']['bk'] += (int)$row['bk_p4'];
-            $real_data[$countryCode]['p4']['bk_ok'] += (int)$row['bk_p4_ok'];
-            $real_data[$countryCode]['p4']['ticket'] += (int)$row['ticket_p4'];
+                $list[] = [
+                    'cc'          => $cc,
+                    'name'        => $cData['name'],
+                    'p0_ok'       => $cells[0]['bk_ok'],
+                    'columns'     => $cols,
+                    'routes'      => $routeList,
+                    'route_count' => count($routeList),
+                    'cells'       => $cells,
+                ];
+            }
 
-            $real_data[$countryCode]['p5']['bk'] += (int)$row['bk_p5'];
-            $real_data[$countryCode]['p5']['bk_ok'] += (int)$row['bk_p5_ok'];
-            $real_data[$countryCode]['p5']['ticket'] += (int)$row['ticket_p5'];
+            // sort quốc gia theo bk_ok kỳ chọn giảm dần
+            usort($list, function ($a, $b) {
+                return $b['p0_ok'] <=> $a['p0_ok'];
+            });
 
-            // Thêm chi tiết route
-            $depStr = $row['departure'] . ($row['dep_city'] ? ' (' . $row['dep_city'] . ')' : '');
-            $arrStr = $row['arrival'] . ($row['dest_city'] ? ' (' . $row['dest_city'] . ')' : '');
+            // tổng cộng
+            $totalRaw = array_fill(0, 6, $emptyMetrics);
+            foreach ($list as $c) {
+                for ($p = 0; $p <= 5; $p++) {
+                    $totalRaw[$p]['bk']         += $c['cells'][$p]['bk'];
+                    $totalRaw[$p]['bk_ok']      += $c['cells'][$p]['bk_ok'];
+                    $totalRaw[$p]['ticket']     += $c['cells'][$p]['ticket'];
+                    $totalRaw[$p]['ticket_all'] += $c['cells'][$p]['ticket_all'];
+                    $totalRaw[$p]['ref']        += $c['cells'][$p]['ref'];
+                    $totalRaw[$p]['rev']        += $c['cells'][$p]['rev'];
+                    $totalRaw[$p]['profit']     += $c['cells'][$p]['profit'];
+                }
+            }
+            $totalCells = [];
+            for ($p = 0; $p <= 5; $p++) $totalCells[$p] = $mkCell($totalRaw[$p]);
+            $totalCols = $buildCols($totalCells);
 
-            $real_data[$countryCode]['routes'][] = [
-                'dep_code' => $row['departure'],
-                'arr_code' => $row['arrival'],
-                'dep' => $depStr,
-                'arr' => $arrStr,
-                'bk' => (int)$row['bk_p0'],
-                'bk_ok' => (int)$row['bk_p0_ok'],
-                'ticket' => (int)$row['ticket_p0'],
-                
-                'p1_bk' => (int)$row['bk_p1'], 'p1_bk_ok' => (int)$row['bk_p1_ok'], 'p1_ticket' => (int)$row['ticket_p1'],
-                'p2_bk' => (int)$row['bk_p2'], 'p2_bk_ok' => (int)$row['bk_p2_ok'], 'p2_ticket' => (int)$row['ticket_p2'],
-                'p3_bk' => (int)$row['bk_p3'], 'p3_bk_ok' => (int)$row['bk_p3_ok'], 'p3_ticket' => (int)$row['ticket_p3'],
-                'p4_bk' => (int)$row['bk_p4'], 'p4_bk_ok' => (int)$row['bk_p4_ok'], 'p4_ticket' => (int)$row['ticket_p4'],
-                'p5_bk' => (int)$row['bk_p5'], 'p5_bk_ok' => (int)$row['bk_p5_ok'], 'p5_ticket' => (int)$row['ticket_p5']
+            // chart top 5 quốc gia theo bk_ok từng kỳ
+            $chart_labels = [];
+            $chart = ['p0' => [], 'p1' => [], 'p2' => [], 'p3' => [], 'p4' => [], 'p5' => []];
+            $cnt = 0;
+            foreach ($list as $c) {
+                if ($cnt >= 5) break;
+                $chart_labels[] = $c['name'];
+                for ($p = 0; $p <= 5; $p++) $chart["p{$p}"][] = $c['cells'][$p]['bk_ok'];
+                $cnt++;
+            }
+            $chart['labels'] = $chart_labels;
+            $chartsJson[$g] = $chart;
+
+            // bỏ 'cells' nội bộ trước khi đẩy ra template
+            foreach ($list as &$c) unset($c['cells']);
+            unset($c);
+
+            $GROUPS[$g] = [
+                'key'         => $g,
+                'title'       => $meta[$g]['title'],
+                'scope'       => $meta[$g]['scope'],
+                'total_cols'  => $totalCols,
+                'data'        => $list,
+                'count'       => count($list),
             ];
         }
-        
-        // Sort lại các route theo bk_p0 giảm dần bên trong mỗi quốc gia
-        foreach ($real_data as &$cData) {
-            usort($cData['routes'], function($a, $b) {
-                return $b['bk'] <=> $a['bk'];
-            });
-        }
-        unset($cData); // Hủy reference
 
-        // Sort các quốc gia theo tổng bk_p0 giảm dần
-        uasort($real_data, function($a, $b) {
-            return $b['p0']['bk'] <=> $a['p0']['bk'];
+        // header dùng chung (label/range/color 6 cột)
+        $smartyobj->assign('HEAD_COLS', $colMeta);
+        $smartyobj->assign('GROUPS', $GROUPS);
+
+        // ========= Top route giảm mạnh nhất =========
+        $declines = [];
+        foreach ($all_routes as $r) {
+            if ($r['p1_ok'] < 3) continue;
+            if ($r['p0_ok'] >= $r['p1_ok']) continue;
+            $pct = round(($r['p1_ok'] - $r['p0_ok']) / $r['p1_ok'] * 100, 1);
+            $r['drop']    = $r['p1_ok'] - $r['p0_ok'];
+            $r['pct']     = $pct;
+            $r['pct_str'] = $pct . '%';
+            $declines[] = $r;
+        }
+        usort($declines, function ($a, $b) {
+            if ($b['pct'] === $a['pct']) return $b['drop'] <=> $a['drop'];
+            return $b['pct'] <=> $a['pct'];
         });
+        $smartyobj->assign('DECLINE_ROUTES', array_slice($declines, 0, 8));
 
-        // Tính tổng cộng cho các kỳ
-        $total_data = [
-            'p0' => ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0],
-            'p1' => ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0],
-            'p2' => ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0],
-            'p3' => ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0],
-            'p4' => ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0],
-            'p5' => ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0]
+        // ========= Dữ liệu chart (JSON đóng gói cho JS ngoài) =========
+        $reportJson = [
+            'charts' => $chartsJson,
+            'labels' => [
+                'p0' => $labels[0],
+                'p1' => $labels[1],
+                'p2' => $labels[2],
+                'p3' => $labels[3],
+                'p4' => $labels[4],
+                'p5' => $labels[5],
+            ],
         ];
-
-        // Cộng dồn tổng
-        foreach ($real_data as $key => $data) {
-            $total_data['p0']['bk'] += $data['p0']['bk'];
-            $total_data['p0']['bk_ok'] += $data['p0']['bk_ok'];
-            $total_data['p0']['ticket'] += $data['p0']['ticket'];
-            
-            $total_data['p1']['bk'] += $data['p1']['bk'];
-            $total_data['p1']['bk_ok'] += $data['p1']['bk_ok'];
-            $total_data['p1']['ticket'] += $data['p1']['ticket'];
-            
-            $total_data['p2']['bk'] += $data['p2']['bk'];
-            $total_data['p2']['bk_ok'] += $data['p2']['bk_ok'];
-            $total_data['p2']['ticket'] += $data['p2']['ticket'];
-            
-            $total_data['p3']['bk'] += $data['p3']['bk'];
-            $total_data['p3']['bk_ok'] += $data['p3']['bk_ok'];
-            $total_data['p3']['ticket'] += $data['p3']['ticket'];
-
-            $total_data['p4']['bk'] += $data['p4']['bk'];
-            $total_data['p4']['bk_ok'] += $data['p4']['bk_ok'];
-            $total_data['p4']['ticket'] += $data['p4']['ticket'];
-
-            $total_data['p5']['bk'] += $data['p5']['bk'];
-            $total_data['p5']['bk_ok'] += $data['p5']['bk_ok'];
-            $total_data['p5']['ticket'] += $data['p5']['ticket'];
-        }
-        $calc_change = function($curr, $prev) {
-            if ($prev == 0) {
-                if ($curr == 0) return ['type' => 'none', 'val' => '0%'];
-                return ['type' => 'up', 'val' => '100%'];
-            }
-            $diff = $curr - $prev;
-            $pct = round(abs($diff) / $prev * 100, 1) . '%';
-            if ($diff > 0) return ['type' => 'up', 'val' => $pct];
-            if ($diff < 0) return ['type' => 'down', 'val' => $pct];
-            return ['type' => 'none', 'val' => '0%'];
-        };
-
-        foreach ($real_data as &$data) {
-            $data['p0_change'] = $calc_change($data['p0']['bk_ok'], $data['p1']['bk_ok']);
-            $data['p1_change'] = $calc_change($data['p1']['bk_ok'], $data['p2']['bk_ok']);
-            $data['p3_change'] = $calc_change($data['p3']['bk_ok'], $data['p4']['bk_ok']);
-            $data['p4_change'] = $calc_change($data['p4']['bk_ok'], $data['p5']['bk_ok']);
-        }
-        unset($data);
-
-        $total_data['p0_change'] = $calc_change($total_data['p0']['bk_ok'], $total_data['p1']['bk_ok']);
-        $total_data['p1_change'] = $calc_change($total_data['p1']['bk_ok'], $total_data['p2']['bk_ok']);
-        $total_data['p3_change'] = $calc_change($total_data['p3']['bk_ok'], $total_data['p4']['bk_ok']);
-        $total_data['p4_change'] = $calc_change($total_data['p4']['bk_ok'], $total_data['p5']['bk_ok']);
-
-        $smartyobj->assign('MOCK_DATA', $real_data); // Giữ nguyên tên biến Smarty để khỏi sửa tpl nhiều
-        $smartyobj->assign('TOTAL_DATA', $total_data);
-
-        // Dữ liệu cho biểu đồ Chart.js (lấy top 5 quốc gia)
-        $chart_labels = [];
-        $chart_data_p0 = [];
-        $chart_data_p1 = [];
-        $chart_data_p2 = [];
-        $chart_data_p3 = [];
-        $chart_data_p4 = [];
-        $chart_data_p5 = [];
-
-        $count = 0;
-        foreach ($real_data as $key => $data) {
-            if ($count >= 5) break; // Chỉ show tối đa 5 nước trên chart
-            $chart_labels[] = $data['name'];
-            $chart_data_p0[] = $data['p0']['bk'];
-            $chart_data_p1[] = $data['p1']['bk'];
-            $chart_data_p2[] = $data['p2']['bk'];
-            $chart_data_p3[] = $data['p3']['bk'];
-            $chart_data_p4[] = $data['p4']['bk'];
-            $chart_data_p5[] = $data['p5']['bk'];
-            $count++;
-        }
-
-        $smartyobj->assign('CHART_LABELS', json_encode($chart_labels));
-        $smartyobj->assign('CHART_DATA_P0', json_encode($chart_data_p0));
-        $smartyobj->assign('CHART_DATA_P1', json_encode($chart_data_p1));
-        $smartyobj->assign('CHART_DATA_P2', json_encode($chart_data_p2));
-        $smartyobj->assign('CHART_DATA_P3', json_encode($chart_data_p3));
-        $smartyobj->assign('CHART_DATA_P4', json_encode($chart_data_p4));
-        $smartyobj->assign('CHART_DATA_P5', json_encode($chart_data_p5));
+        $smartyobj->assign('REPORT_JSON', json_encode($reportJson, JSON_UNESCAPED_UNICODE));
     }
 }
-

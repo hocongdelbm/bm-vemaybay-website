@@ -1,0 +1,197 @@
+.title-wrap {
+  border-bottom: 2px solid #0056b3;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+.title-wrap .title {
+  color: #0056b3;
+  font-weight: 700;
+  margin: 0;
+}
+.data-list {
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.data-list tbody tr.detail-row table {
+  margin-bottom: 0;
+  background-color: transparent;
+}
+
+.data-list tbody tr.main-line:hover {
+  background-color: #e2e6ea;
+}
+
+/* O/ky dang duoc chon xem chi tiet */
+.data-list tbody tr.main-line.row-open td {
+  background-color: #eef5ff;
+}
+
+.data-list tbody tr.main-line td.period-col.period-active {
+  background-color: #d6e6ff !important;
+  box-shadow: inset 0 0 0 2px #0d6efd;
+}
+
+.report-wrap {
+  max-height: 65vh;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+canvas.report-chart {
+  width: 100% !important;
+  max-height: 320px !important;
+}
+.text-up {
+  color: #198754;
+}
+.text-down {
+  color: #dc3545;
+}
+.text-none {
+  color: #6c757d;
+}
+.metric-bk {
+  font-size: 1.1em;
+  font-weight: 700;
+}
+.metric-bk a {
+  color: #0d6efd;
+  text-decoration: none;
+  border-bottom: 1px dashed #0d6efd;
+}
+.metric-bk a:hover {
+  color: #0a58ca;
+}
+.metric-conv {
+  font-size: 0.9em;
+  font-weight: 700;
+}
+.metric-sub {
+  font-size: 1em;
+  margin-top: 3px;
+}
+.metric-rev {
+  font-weight: 700;
+  color: #0f5132;
+}
+.metric-change {
+  font-size: 1em;
+  font-weight: bold;
+  margin-top: 3px;
+}
+.filter-section {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  margin-bottom: 20px;
+}
+.date-label {
+  font-weight: 600;
+  color: #495057;
+  margin-right: 8px;
+}
+.box-input {
+  border: 1px solid #ced4da;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.box-select {
+  border: 1px solid #ced4da;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  background: #fff;
+}
+/* Decline alert */
+.decline-box {
+  background: #fff5f5;
+  border: 1px solid #f5c2c7;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+.decline-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #fff;
+  border: 1px solid #f1d1d4;
+  border-radius: 6px;
+}
+.decline-route {
+  font-weight: 700;
+  color: #333;
+}
+.decline-pct {
+  font-weight: 700;
+  color: #dc3545;
+  white-space: nowrap;
+}
+/* Tabs */
+.report-tabs .nav-link {
+  font-weight: 600;
+  color: #495057;
+  cursor: pointer;
+}
+.report-tabs .nav-link.active {
+  color: #0056b3;
+  border-bottom: 3px solid #0056b3;
+}
+.badge-count {
+  font-size: 0.8em;
+}
+/* Modal */
+.mock-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1050;
+  justify-content: center;
+  align-items: center;
+}
+.mock-modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 60vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+.mock-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+  flex-shrink: 0;
+}
+.mock-modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #0056b3;
+}
+.mock-modal-close {
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #6c757d;
+  border: none;
+  background: none;
+}
+.mock-modal-body {
+  overflow-y: auto;
+}
