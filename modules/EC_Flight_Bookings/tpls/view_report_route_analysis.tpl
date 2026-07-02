@@ -44,7 +44,7 @@
     {* ===== Cảnh báo: Route giảm mạnh nhất (Kỳ Chọn vs Kỳ Trước, BK hoàn tất) ===== *}
     {if $DECLINE_ROUTES}
     <div class="decline-box">
-        <h5 class="text-danger fw-semibold fs-6"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Cảnh báo: Hành trình sụt giảm mạnh nhất (BK hoàn tất, {$P0_LABEL} vs {$P1_LABEL})</h5>
+        <h5 class="text-danger fw-semibold fs-6"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Hành trình sụt giảm mạnh nhất (BK hoàn tất, {$P0_LABEL} vs {$P1_LABEL})</h5>
         <div class="row g-2">
             {foreach from=$DECLINE_ROUTES item=dr}
             <div class="col-md-6 col-lg-4">
@@ -89,7 +89,7 @@
                         {foreach from=$HEAD_COLS item=col}
                         <th width="14%" class="text-center border-bottom-0" title="Mỗi ô: BK hoàn tất/Tổng BK · tỉ lệ chốt · số vé · Doanh số · TB/vé · TK (tham khảo)">
                             <span class="d-block text-{$col.color} fs-6 fw-semibold">{$col.label}</span>
-                            <span class="text-dark fw-normal">{$col.range}</span>
+                            <span class="text-dark fw-semibold">{$col.range}</span>
                         </th>
                         {/foreach}
                     </tr>
@@ -97,14 +97,14 @@
                 <tbody>
                     {* ===== TỔNG CỘNG ===== *}
                     {if $grp.count > 1}
-                    <tr class="total-line fs-6 bg-light border-bottom border-2">
+                    <tr class="total-line bg-light border-bottom border-2">
                         <td colspan="2" class="text-center align-middle fw-bold text-primary">TỔNG CỘNG</td>
                         {foreach from=$grp.total_cols item=col}
                         <td class="text-center border-start align-middle">
                             <div class="fw-bold text-{$col.color} fw-semibold">
                                 <a href="#" class="show-bk-list text-{$col.color} text-decoration-none fw-bold" title="Xem BK hoàn tất" data-country="Toàn bộ {$grp.title}" data-period="{$col.label}" data-scope="{$grp.scope}" data-status="completed" data-fromdate="{$col.f}" data-todate="{$col.t}">{$col.bk_ok}</a><span class="text-dark">&nbsp;/&nbsp;</span><a href="#" class="show-bk-list text-dark text-decoration-none" title="Xem tất cả BK" data-country="Toàn bộ {$grp.title}" data-period="{$col.label}" data-scope="{$grp.scope}" data-status="" data-fromdate="{$col.f}" data-todate="{$col.t}">{$col.bk}</a>
                             </div>
-                            <div class="metric-sub" title="Vé hoàn tất/Tổng vé · Doanh số · TK = BK tham khảo">{$col.ticket_str} vé · DS <span class="metric-rev">{$col.profit_str}</span> · TK {$col.ref}</div>
+                            <div class="metric-sub mt-1" title="Vé hoàn tất/Tổng vé · Doanh số · TK = BK tham khảo">{$col.ticket_str} vé · DS <span class="metric-rev">{$col.profit_str}</span> · TK {$col.ref_str}</div>
                             {if $col.change_type == 'up'}<div class="metric-change text-up" title="% tăng BK hoàn tất so với kỳ liền trước">↑ {$col.change_val}</div>
                             {elseif $col.change_type == 'down'}<div class="metric-change text-down" title="% giảm BK hoàn tất so với kỳ liền trước">↓ {$col.change_val}</div>
                             {elseif $col.change_type == 'none'}<div class="metric-change text-none" title="BK hoàn tất không đổi so với kỳ liền trước">-</div>{/if}
@@ -126,7 +126,7 @@
                             <div class="metric-bk text-{$col.color} text-dark">
                                 <a href="#" class="show-bk-list text-{$col.color}" title="Xem BK hoàn tất" data-country="{$data.name}" data-period="{$col.label}" data-scope="country" data-dest-country="{$data.cc}" data-group="{$gkey}" data-status="completed" data-fromdate="{$col.f}" data-todate="{$col.t}">{$col.bk_ok}</a><span class="text-dark">&nbsp;/&nbsp;</span><a href="#" class="show-bk-list text-dark" title="Xem tất cả BK" data-country="{$data.name}" data-period="{$col.label}" data-scope="country" data-dest-country="{$data.cc}" data-group="{$gkey}" data-status="" data-fromdate="{$col.f}" data-todate="{$col.t}">{$col.bk}</a>
                             </div>
-                            <div class="metric-sub" title="Vé hoàn tất/Tổng vé · Doanh số · TK = BK tham khảo"><i class="fa fa-ticket" aria-hidden="true"></i> {$col.ticket_str} vé · DS <span class="metric-rev">{$col.profit_str}</span> · TK {$col.ref}</div>
+                            <div class="metric-sub mt-1" title="Vé hoàn tất/Tổng vé · Doanh số · TK = BK tham khảo"><i class="fa fa-ticket" aria-hidden="true"></i> {$col.ticket_str} vé · DS <span class="metric-rev">{$col.profit_str}</span> · TK {$col.ref_str}</div>
                             {if $col.change_type == 'up'}<div class="metric-change text-up" title="% tăng BK hoàn tất so với kỳ liền trước">↑ {$col.change_val}</div>
                             {elseif $col.change_type == 'down'}<div class="metric-change text-down" title="% giảm BK hoàn tất so với kỳ liền trước">↓ {$col.change_val}</div>
                             {elseif $col.change_type == 'none'}<div class="metric-change text-none" title="BK hoàn tất không đổi so với kỳ liền trước">-</div>{/if}
@@ -147,7 +147,7 @@
                                         <th width="12%" class="text-center p-2">Nơi đi</th>
                                         <th width="12%" class="text-center p-2">Nơi đến</th>
                                         <th width="10%" class="text-center p-2" title="BK hoàn tất / Tổng BK thật (không gồm tham khảo)">BK <span class="period-name-header text-primary">{$P0_LABEL}</span></th>
-                                        <th width="8%" class="text-center p-2" title="Số BK tham khảo (báo giá) hành trình này">Tham khảo</th>
+                                        <th width="8%" class="text-center p-2" title="BK tham khảo hoàn tất / Tổng BK tham khảo của hành trình">Tham khảo</th>
                                         <th width="8%" class="text-center p-2" title="Tỉ lệ chốt = BK hoàn tất / Tổng BK">Tỉ lệ chốt</th>
                                         <th width="8%" class="text-center p-2" title="Vé hoàn tất / Tổng số vé">Vé</th>
                                         <th width="10%" class="text-center p-2" title="Doanh số">Doanh số</th>
@@ -156,15 +156,15 @@
                                 </thead>
                                 <tbody>
                                     {foreach from=$data.routes item=route name=routeLoop}
-                                    <tr class="route-item route-row-{$route.token}" data-search="{$route.dep|lower} {$route.arr|lower}"{foreach from=$route.columns item=rc} data-{$rc.pid}-bk="{$rc.bk_str}" data-{$rc.pid}-bkok="{$rc.bk_ok}" data-{$rc.pid}-bkall="{$rc.bk}" data-{$rc.pid}-conv="{$rc.conv}" data-{$rc.pid}-ticket="{$rc.ticket_str}" data-{$rc.pid}-ref="{$rc.ref}" data-{$rc.pid}-profit="{$rc.profit_str}" data-{$rc.pid}-avg="{$rc.avg_str}" data-{$rc.pid}-f="{$rc.f}" data-{$rc.pid}-t="{$rc.t}"{/foreach}>
+                                    <tr class="route-item route-row-{$route.token}" data-search="{$route.dep|lower} {$route.arr|lower}"{foreach from=$route.columns item=rc} data-{$rc.pid}-bk="{$rc.bk_str}" data-{$rc.pid}-bkok="{$rc.bk_ok}" data-{$rc.pid}-bkall="{$rc.bk}" data-{$rc.pid}-conv="{$rc.conv}" data-{$rc.pid}-ticket="{$rc.ticket_str}" data-{$rc.pid}-ref="{$rc.ref_str}" data-{$rc.pid}-profit="{$rc.profit_str}" data-{$rc.pid}-avg="{$rc.avg_str}" data-{$rc.pid}-f="{$rc.f}" data-{$rc.pid}-t="{$rc.t}"{/foreach}>
                                         <td class="text-center align-middle">{$smarty.foreach.routeLoop.iteration}</td>
                                         <td class="text-start align-middle fw-bold">{$route.dep}</td>
                                         <td class="text-start align-middle fw-bold">{$route.arr}</td>
                                         <td class="text-center align-middle">
                                             <a href="#" class="show-bk-list route-bk-ok fw-bold text-decoration-none" title="Xem BK hoàn tất" data-country="{$data.name} ({$route.dep_code}-{$route.arr_code})" data-period="{$P0_LABEL}" data-dep="{$route.dep_code}" data-arr="{$route.arr_code}" data-status="completed" data-fromdate="{$P0_F}" data-todate="{$P0_T}">{$route.bk_ok}</a><span class="text-dark">&nbsp;&nbsp;/&nbsp;&nbsp;</span><a href="#" class="show-bk-list route-bk-all fw-bold text-decoration-none" title="Xem tất cả BK" data-country="{$data.name} ({$route.dep_code}-{$route.arr_code})" data-period="{$P0_LABEL}" data-dep="{$route.dep_code}" data-arr="{$route.arr_code}" data-status="" data-fromdate="{$P0_F}" data-todate="{$P0_T}">{$route.bk}</a>
                                         </td>
-                                        <td class="text-center align-middle" title="BK tham khảo (báo giá) — bấm để xem danh sách">
-                                            <a href="#" class="show-bk-list route-ref fw-bold text-decoration-none" data-country="{$data.name} ({$route.dep_code}-{$route.arr_code})" data-period="{$P0_LABEL}" data-dep="{$route.dep_code}" data-arr="{$route.arr_code}" data-status="reference" data-fromdate="{$P0_F}" data-todate="{$P0_T}">{$route.ref}</a>
+                                        <td class="text-center align-middle" title="BK tham khảo hoàn tất / Tổng BK tham khảo">
+                                            <a href="#" class="show-bk-list route-ref fw-bold text-decoration-none" data-country="{$data.name} ({$route.dep_code}-{$route.arr_code})" data-period="{$P0_LABEL}" data-dep="{$route.dep_code}" data-arr="{$route.arr_code}" data-status="reference" data-fromdate="{$P0_F}" data-todate="{$P0_T}">{$route.ref_str}</a>
                                         </td>
                                         <td class="text-center align-middle route-conv text-dark" title="Tỉ lệ chốt = BK hoàn tất / Tổng BK">{$route.conv}</td>
                                         <td class="text-center align-middle route-ticket text-dark" title="Vé hoàn tất / Tổng số vé">{$route.ticket_str}</td>

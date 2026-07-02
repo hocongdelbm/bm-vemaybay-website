@@ -1,6 +1,5 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
-require_once("include/Sugar_Smarty.php");
 date_default_timezone_set("Asia/Ho_Chi_Minh");
 
 class Viewreport_route_analysis extends SugarView
@@ -90,7 +89,7 @@ class Viewreport_route_analysis extends SugarView
 
         /**
          * ========= XỬ LÝ KỲ SO SÁNH =========
-         * Dịch kỳ theo ĐƠN VỊ của lựa chọn (giống report_sales_create) để tránh chồng lấn:
+         * Dịch kỳ theo ĐƠN VỊ của lựa chọn để tránh chồng lấn:
          *  - Ngày (today/yesterday/daybefore hoặc khoảng 1 ngày): offset 0,1,2,7,8,9 ngày
          *    (3 kỳ gần + 3 kỳ cùng thứ tuần trước).
          *  - Tuần / Tháng / Quý / Năm: 6 kỳ LIÊN TIẾP cùng đơn vị (không chồng lấn).
@@ -262,7 +261,7 @@ class Viewreport_route_analysis extends SugarView
                 $ok_ids[] = $row['booking_id'];
             }
         }
-        // [booking_id => ['revenue' => doanh thu, 'profit' => doanh số ròng]] — cùng công thức modal
+        // [booking_id => ['revenue' => doanh thu, 'profit' => doanh số]] — cùng công thức modal
         $amt_map = calculateBKAmtBatch($ok_ids);
 
         // ========= Helpers =========
@@ -270,7 +269,7 @@ class Viewreport_route_analysis extends SugarView
             return number_format((float)$v, 0, ',', '.');
         };
 
-        // metrics: bk, bk_ok, ticket, rev (doanh thu gross), profit (doanh số ròng)
+        // metrics: bk, bk_ok, ticket, rev (doanh thu gross), profit (doanh số)
         $mkCell = function ($m) use ($money) {
             $bk    = (int)$m['bk'];
             $bk_ok = (int)$m['bk_ok'];
@@ -289,6 +288,8 @@ class Viewreport_route_analysis extends SugarView
                 'ticket_all' => $tkAll,
                 'ticket_str' => $tk . '&nbsp;/&nbsp;' . $tkAll,
                 'ref'        => (int)$m['ref'],
+                'ref_ok'     => (int)$m['ref_ok'],
+                'ref_str'    => (int)$m['ref_ok'] . '&nbsp;/&nbsp;' . (int)$m['ref'],
                 'rev'        => $rev,
                 'profit'     => $prof,
                 'profit_str' => $money($prof),
@@ -325,6 +326,7 @@ class Viewreport_route_analysis extends SugarView
                     'ticket'      => $c['ticket'],
                     'ticket_str'  => $c['ticket_str'],
                     'ref'         => $c['ref'],
+                    'ref_str'     => $c['ref_str'],
                     'profit_str'  => $c['profit_str'],
                     'avg_str'     => $c['avg_str'],
                     'change_type' => $chg[$p] ? $chg[$p]['type'] : '',
@@ -334,7 +336,7 @@ class Viewreport_route_analysis extends SugarView
             return $out;
         };
 
-        $emptyMetrics = ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0, 'ticket_all' => 0, 'ref' => 0, 'rev' => 0.0, 'profit' => 0.0];
+        $emptyMetrics = ['bk' => 0, 'bk_ok' => 0, 'ticket' => 0, 'ticket_all' => 0, 'ref' => 0, 'ref_ok' => 0, 'rev' => 0.0, 'profit' => 0.0];
 
         // ========= Gom dữ liệu, tách Quốc tế / Nội địa =========
         $groups = ['intl' => [], 'dom' => []];
@@ -397,6 +399,10 @@ class Viewreport_route_analysis extends SugarView
             if ($isRef) {
                 $cRaw['ref']++;
                 $rRaw['ref']++;
+                if ($ok) {
+                    $cRaw['ref_ok']++;
+                    $rRaw['ref_ok']++;
+                }
             }
             unset($cRaw, $rRaw);
         }
@@ -435,6 +441,7 @@ class Viewreport_route_analysis extends SugarView
                         'ticket'     => $rcells[0]['ticket'],
                         'ticket_str' => $rcells[0]['ticket_str'],
                         'ref'        => $rcells[0]['ref'],
+                        'ref_str'    => $rcells[0]['ref_str'],
                         'profit_str' => $rcells[0]['profit_str'],
                         'avg_str'    => $rcells[0]['avg_str'],
                         'columns'    => $rcols,
@@ -479,6 +486,7 @@ class Viewreport_route_analysis extends SugarView
                     $totalRaw[$p]['ticket']     += $c['cells'][$p]['ticket'];
                     $totalRaw[$p]['ticket_all'] += $c['cells'][$p]['ticket_all'];
                     $totalRaw[$p]['ref']        += $c['cells'][$p]['ref'];
+                    $totalRaw[$p]['ref_ok']     += $c['cells'][$p]['ref_ok'];
                     $totalRaw[$p]['rev']        += $c['cells'][$p]['rev'];
                     $totalRaw[$p]['profit']     += $c['cells'][$p]['profit'];
                 }
