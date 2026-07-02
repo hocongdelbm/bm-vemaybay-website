@@ -9,12 +9,6 @@ class Baggage {
     public static function renderAvailableBaggage($str, $language = 'vi') {
         if(!$str || empty($str)) return '';
 
-        if(strlen($str) < 3) {
-            if((int)$str < 2) return $language == "en" ? "$str package" : "$str kiện";
-            elseif((int)$str < 6) return $language == "en" ? "$str packages" : "$str kiện";
-            elseif((int)$str > 5) return $language == "en" ? "{$str}kg" : "{$str}kg";
-        }
-
         if(stripos($str, '_') !== false) {
             $arr = explode('_', $str);
             $p = (int)($arr[1] ?? 0);
@@ -45,6 +39,15 @@ class Baggage {
             elseif($w > 0) return "{$w}kg";
             elseif($p > 0) return $language == "en" ? "$p $packageTextEN" : "$p kiện";
         }
+        elseif(strlen($str) <= 4) { // 3 or 10kg
+            $regex = '/^\d+(kg)?$/';
+
+            if((bool)preg_match($regex, $str)) {
+                if(stripos($str, 'kg') !== false) return $str;
+                else return $language == "en" ? "$str package" : "$str kiện"; 
+            }
+        }
+
         return $str;
     }
 

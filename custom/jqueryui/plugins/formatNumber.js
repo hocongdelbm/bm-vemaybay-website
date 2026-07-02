@@ -1,7 +1,10 @@
 // Convert a string to number
 function unformatNumber(str){
-	var grp_sep = String(document.getElementById('grp_seperator').value);
-	var dec_sep = String(document.getElementById('dec_seperator').value);
+	var grp_el = document.getElementById('grp_seperator');
+	var grp_sep = num_grp_sep || (grp_el ? String(grp_el.value) : '');
+
+	var dec_el = document.getElementById('dec_seperator');
+	var dec_sep = String((dec_el ? dec_el.value : '') || dec_sep);
 	str = String(str);
 	str = str.replace(grp_sep, '');
 	str = str.replace(grp_sep, '');
@@ -15,9 +18,13 @@ function unformatNumber(str){
 
 // Convert number to a string
 function formatNumber(number){
-	var decimals = parseInt(document.getElementById('sig_digits').value);
-	var dec_point = String(document.getElementById('dec_seperator').value);
-	var thousands_sep = String(document.getElementById('grp_seperator').value);
+	var sig_el = document.getElementById('sig_digits');
+	var decimals = parseInt((sig_el ? sig_el.value : '') || 0);
+	var dec_el = document.getElementById('dec_seperator');
+	var dec_point = String((dec_el ? dec_el.value : '') || dec_sep);
+	var grp_el = document.getElementById('grp_seperator');
+	var thousands_sep = String((grp_el ? grp_el.value : '') || num_grp_sep);
+
 	// http://kevin.vanzonneveld.net
 	// + original by: Jonas Raoni Soares Silva (http://www.jsfromhell.com)
 	// + improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)

@@ -3373,7 +3373,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 								<th class="hide-mobile">Hành trình</th>
 								<th class="hide-mobile">Tình trạng</th>
 								<th>Ngày đặt</th>
-						<th>Ngày xuất v�</th>
+								<th>Ngày xuất vé</th>
 								<th>Liên hệ</th>
 								<th>Số vé</th>
 								<th>Doanh thu</th>
@@ -3381,7 +3381,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 							</tr>
 						</thead>';
 
-		$sql = "SELECT id, name, contact_name, phone, email, journey, booking_status, total_amount, total_qty, date_entered
+		$sql = "SELECT id, name, contact_name, phone, email, journey, booking_status, total_amount, total_qty, date_entered, date_ticket_issue
 				FROM ec_flight_bookings
 				WHERE contact_id = '$contact_id' AND deleted = 0
 				" . $where . "
@@ -3443,6 +3443,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 							<td class="' . $current_booking . ' hide-mobile text-center">' . $journey . '</td>
 							<td class="' . $current_booking . ' hide-mobile text-center fw-bold ' . $class_color . '">' . $app_list_strings['booking_status_list'][(int) $row['booking_status']] . '</td>
 							<td class="' . $current_booking . ' text-center">' . date('H:i d-m-Y', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
+							<td class="' . $current_booking . ' text-center">' . (!empty($row['date_ticket_issue']) ? date('d-m-Y', strtotime($row['date_ticket_issue'])) : '') . '</td>
 							<td class="' . $current_booking . '">' . $row['contact_name'] . '</td>
 							<td class="' . $current_booking . ' text-center fw-bold">' . $row['total_qty'] . '</td>
 							<td class="' . $current_booking . ' text-end fw-bold">' . format_number((int) $row['total_amount']) . '</td>

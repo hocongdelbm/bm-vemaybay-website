@@ -1,8 +1,4 @@
 <?php
-if (!defined('sugarEntry') || !sugarEntry) {
-    die('Not A Valid Entry Point');
-}
-
 require_once 'custom/entrypoints/entryClass.php';
 require_once 'custom/include/helpers/api/APINextCloud.php';
 
@@ -27,7 +23,14 @@ class entryNextCloudPreviewClass extends entryClass
 
     public function getPublicLinkOCS($params = [])
     {
+        $this->handleCors();
+
         try {
+            // Check if it's a POST request for uploading
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_FILES['images'])) {
+                return $this->handleImageUpload();
+            }
+
             // Step 1: Get and validate document ID from params or request
             $id = $params['id'] ?? $_REQUEST['id'] ?? '';
             $id = trim($id);
@@ -66,7 +69,7 @@ class entryNextCloudPreviewClass extends entryClass
                 // Check if output mode (default for HTTP requests)
                 $outputMode = $params['outputMode'] ?? true;
                 if ($outputMode) {
-                    $this->outputDebugInfo($debugInfo);
+                    return $this->outputDebugInfo($debugInfo);
                 } else {
                     return $debugInfo;
                 }
@@ -96,7 +99,7 @@ class entryNextCloudPreviewClass extends entryClass
             if ($outputMode) {
                 // Output for HTTP requests
                 $downloadMode = $params['download'] ?? $_REQUEST['download'] ?? '';
-                $this->outputFile($result['fileData'], $result['contentType'], $revision, $downloadMode);
+                return $this->outputFile($result['fileData'], $result['contentType'], $revision, $downloadMode);
             }
             
             return $result;
@@ -106,7 +109,7 @@ class entryNextCloudPreviewClass extends entryClass
             // Check if output mode (default for HTTP requests)
             $outputMode = $params['outputMode'] ?? true;
             if ($outputMode) {
-                $this->outputError('Internal server error', 500);
+                return $this->outputError('Internal server error', 500);
             } else {
                 return [
                     'success' => false,
@@ -205,7 +208,7 @@ class entryNextCloudPreviewClass extends entryClass
             // Use existing share
             $shareData = $existingShares['data'][0];
             $shareToken = $shareData['token'];
-            $publicShareUrl = $shareData['url'] . '/download';
+            $publicShareUrl = $shareData['url'] . '/preview';
             $GLOBALS['log']->info("NextCloudPreview: Found existing share token: {$shareToken}");
         } else {
             // Create new share (read-only permission = 1)
@@ -219,7 +222,7 @@ class entryNextCloudPreviewClass extends entryClass
 
             $shareData = $createShareResult['data'];
             $shareToken = $shareData['token'];
-            $publicShareUrl = $shareData['url'] . '/download';
+            $publicShareUrl = $shareData['url'] . '/preview';
             $GLOBALS['log']->info("NextCloudPreview: Created new share token: {$shareToken}");
         }
 
@@ -314,8 +317,7 @@ class entryNextCloudPreviewClass extends entryClass
             header('Content-Disposition: inline; filename="' . $revision->filename . '"');
         }
 
-        echo $fileData;
-        exit;
+        return $fileData;
     }
 
     /**
@@ -351,8 +353,7 @@ class entryNextCloudPreviewClass extends entryClass
     private function outputDebugInfo($debugInfo)
     {
         header('Content-Type: application/json');
-        echo json_encode($debugInfo, JSON_PRETTY_PRINT);
-        exit;
+        return json_encode($debugInfo, JSON_PRETTY_PRINT);
     }
 
     /**
@@ -371,7 +372,98 @@ class entryNextCloudPreviewClass extends entryClass
         
         $statusText = $statusMessages[$statusCode] ?? 'Error';
         header("HTTP/1.1 {$statusCode} {$statusText}");
-        echo $message;
-        exit;
+        header('Content-Type: application/json');
+        return json_encode(['success' => false, 'error' => $message]);
+    }
+
+    /**
+     * Handle multiple image uploads via POST
+     */
+    private function handleImageUpload()
+    {
+        try {
+            $urls = [];
+            $year = date('Y');
+            $month = date('m');
+            $day = date('d');
+            $folderPath = "/bmvmb/chat_uploads/{$year}/{$month}/{$day}";
+            
+            // Ensure folder exists
+            $this->ocsApi->ensureFolderExists($folderPath);
+            
+            $files = $_FILES['images'];
+            $isMulti = is_array($files['name']);
+            
+            if ($isMulti) {
+                $count = count($files['name']);
+                for ($i = 0; $i < $count; $i++) {
+                    if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                        $tmpPath = $files['tmp_name'][$i];
+                        $originalName = $files['name'][$i];
+                        $urls[] = $this->processSingleUpload($tmpPath, $originalName, $folderPath);
+                    }
+                }
+            } else {
+                if ($files['error'] === UPLOAD_ERR_OK) {
+                    $urls[] = $this->processSingleUpload($files['tmp_name'], $files['name'], $folderPath);
+                }
+            }
+            
+            $result = ['success' => true, 'urls' => $urls];
+            header('Content-Type: application/json');
+            return json_encode($result);
+            
+        } catch (Exception $e) {
+            $GLOBALS['log']->error("NextCloudPreview Upload: Exception - " . $e->getMessage());
+            return $this->outputError($e->getMessage(), 500);
+        }
+    }
+    
+    /**
+     * Process a single file upload to NextCloud and create a public share
+     */
+    private function processSingleUpload($tmpPath, $originalName, $folderPath)
+    {
+        // Generate unique name to prevent collisions
+        $ext = pathinfo($originalName, PATHINFO_EXTENSION);
+        $uniqueName = uniqid() . '_' . time() . '.' . $ext;
+        $remoteFilePath = $folderPath . '/' . $uniqueName;
+        
+        // Upload file
+        $uploadResultJson = $this->ocsApi->uploadFile($tmpPath, $remoteFilePath);
+        $uploadResult = json_decode($uploadResultJson, true);
+        
+        if (empty($uploadResult) || $uploadResult['status'] != 1) {
+            throw new Exception("Failed to upload file: " . $originalName);
+        }
+        
+        // Create share
+        $shareResultJson = $this->ocsApi->createShare($remoteFilePath, 1); // 1 = read
+        $shareResult = json_decode($shareResultJson, true);
+        
+        if (empty($shareResult) || $shareResult['status'] != 1) {
+            throw new Exception("Failed to create share for: " . $originalName);
+        }
+        return $shareResult['data']['url'] . '/preview';
+    }
+
+
+    /**
+     * Handle CORS for local development/testing across different ports
+     */
+    private function handleCors()
+    {
+        if (isset($_SERVER['HTTP_ORIGIN'])) {
+            header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+            header("Access-Control-Allow-Credentials: true");
+            header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+            header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            echo json_encode(['success' => true]);
+            exit;
+        }
     }
 }
+

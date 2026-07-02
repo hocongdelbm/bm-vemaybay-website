@@ -132,7 +132,7 @@ trait PaymentTrait
 			WHERE ba.deleted = 0 AND ba.unfollow = 0
 			ORDER BY IF(ba.sort IS NULL OR ba.sort = "", 100, ba.sort)';
 
-		$options = '<option value="">-- Chọn tài khoản ngân hàng --</option>';
+		$options = '';
 		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$bankID     = str_replace(' ', '', $row['short_name']);
@@ -151,7 +151,7 @@ trait PaymentTrait
 					<h3 class="title">QR THANH TOÁN BOOKING</h3>
 					<select id="select_bank_get_qr_code" class="select_bank">' . $options . '</select>
 					<div class="wrap-qr-amount">
-						<input type="number" id="new_payment_amount" class="box-input" placeholder="Nhập số tiền" value="' . $defaultAmount . '" min="1000" />
+						<input type="text" inputmode="numeric" id="new_payment_amount" class="box-input" placeholder="Nhập số tiền" value="' . number_format($defaultAmount, 0, ',', '.') . '" />
 						<button class="btn btn-primary" id="btnRenderQRCode">Tạo mã QR</button>
 					</div>
 					<div id="qr_placeholder" class="qr-placeholder">
