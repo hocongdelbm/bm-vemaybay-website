@@ -1,12 +1,6 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-/**
- * CSS/JS assets for EC_Flight_Bookings edit view.
- *
- * Used by EC_Flight_BookingsViewEdit. Methods are kept close to the
- * legacy implementation to preserve the old business behavior.
- */
 trait ECFlightBookingEditAssetsTrait {
 	function displayCSS() {
 		echo <<<HTML
@@ -22,7 +16,6 @@ trait ECFlightBookingEditAssetsTrait {
 		// Inject biến user và bảng giá hành lý Vietjet cho JS tính toán ban đầu.
 		$js .= '<script>
 			var assigned_user_id="' . $current_user->id . '";
-			var vja_luggage_index_list=' . json_encode(array_values($app_list_strings['vietjet_index_price_list2'])) . ';
 			$(document).ready(function() {
 				calculateTotal();
 			});
@@ -38,7 +31,7 @@ trait ECFlightBookingEditAssetsTrait {
 		}
 
 		// Load JS chính của edit view: render row, tính tổng, xử lý hành lý/hành trình.
-		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.9"></script>';
+		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.9.1"></script>';
 		echo $js;
 	}
 

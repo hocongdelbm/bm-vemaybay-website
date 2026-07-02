@@ -81,6 +81,7 @@ $entry_point_registry = array(
     'entryPointGetReportData'               => array('file' => 'custom/entrypoints/epGetReportData.php', 'auth' => true),
     'entryPointCheckBookingPaid'            => array('file' => 'custom/entrypoints/epCheckBookingPaid.php', 'auth' => true),
     'entryPointGetAirportAndAirline'        => array('file' => 'custom/entrypoints/epGetAirportAndAirline.php', 'auth' => true),
+    'entryPointUploadAirlineLogo'           => array('file' => 'custom/entrypoints/epUploadAirlineLogo.php', 'auth' => true),
 
     // ONLINE - OFFLINE
     'entryPointUpdateTimeUserClick'         => array('file' => 'custom/entrypoints/epUpdateTimeUserClick.php', 'auth' => true),

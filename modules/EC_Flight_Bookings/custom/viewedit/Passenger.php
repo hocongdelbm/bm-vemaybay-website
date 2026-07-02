@@ -397,7 +397,7 @@ trait ECFlightBookingEditPassengerTrait
 		$html .= '<tbody id="psg_tbody"></tbody>';
 		$html .= '<tr id="psg_last_row" class="footer-tr">';
 		$html .= '<td colspan="13" class="text-start">';
-		$html .= '<input type="button" class="btn btn-primary" id="btnPassengerAddRow" data-is-new="1" value="Thêm dòng" title="Thêm dòng" />';
+		$html .= '<input type="button" class="btn btn-primary" id="btnPassengerAddRow" value="Thêm dòng" title="Thêm dòng" />';
 		$html .= ' Số dòng = <label id="lbl_psg_row_count">' . $row_count . '</label>';
 		$html .= '<input type="hidden" name="psg_row_count" id="psg_row_count" value="' . $row_count . '" />';
 		$html .= '<input type="hidden" id="booking_status" value="' . $this->bean->booking_status . '" >';

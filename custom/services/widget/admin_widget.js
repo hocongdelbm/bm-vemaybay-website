@@ -44,6 +44,7 @@
 		messageNextCursorByConversation: {},
 		exhaustedOlderMessagesByConversation: {},
 		olderMessageLoadRequestedAt: {},
+		realtimeMessageIdsSeen: {},
 		threadRenderKey: '',
 		seenByConversation: {},
 		adminParticipantsByConversation: {},
@@ -291,7 +292,9 @@
 	// phone field that the server includes in `notify` and on the conversation entry.
 	function getConversationPhone(conversation) {
 		if (!conversation) return '';
-		return String(conversation.phone || '').trim();
+		return normalizePhoneLike(conversation.phone || '')
+			|| extractPhoneFromConvId(conversation.id)
+			|| '';
 	}
 
 	function getCustomerAvatarColorKey(conversation) {
@@ -672,8 +675,23 @@
 		var normalized = normalizePhoneLike(phone);
 		if (!normalized) return null;
 		return data.conversations.find(function (conversation) {
-			return normalizePhoneLike(conversation.phone) === normalized || normalizePhoneLike(conversation.id) === normalized;
+			return normalizePhoneLike(conversation.phone) === normalized ||
+				normalizePhoneLike(conversation.id) === normalized ||
+				extractPhoneFromConvId(conversation.id) === normalized;
 		});
+	}
+
+	function getConversationGroupPhone(conversationId) {
+		if (isCustomerMode()) return '';
+		var conversation = getConversation(conversationId);
+		return resolveConversationPhone(conversation, conversationId);
+	}
+
+	function getMessageGroupPhone(message) {
+		if (isCustomerMode() || !message) return '';
+		return normalizePhoneLike(message.customerPhone || '')
+			|| extractPhoneFromConvId(message.conversationId)
+			|| normalizePhoneLike(message.conversationId);
 	}
 
 	function isSameConversationId(a, b) {
@@ -718,9 +736,9 @@
 	}
 
 	function getMessages(conversationId) {
-		var phone = normalizePhoneLike(conversationId);
+		var phone = getConversationGroupPhone(conversationId);
 		return data.messages.filter(function (message) {
-			return message.conversationId === conversationId || (phone && normalizePhoneLike(message.conversationId) === phone);
+			return message.conversationId === conversationId || (phone && getMessageGroupPhone(message) === phone);
 		}).sort(compareMessagesByTime);
 	}
 
@@ -748,8 +766,9 @@
 	function getConversationSortTimeMs(conversation) {
 		var latest = conversation && getLatestNonSystemMessage(conversation.id);
 		var latestTime = getMessageTimeMs(latest);
-		if (latestTime !== null) return latestTime;
 		var conversationTime = getConversationTimeMs(conversation);
+		if (latestTime !== null && conversationTime !== null) return Math.max(latestTime, conversationTime);
+		if (latestTime !== null) return latestTime;
 		return conversationTime !== null ? conversationTime : 0;
 	}
 
@@ -798,7 +817,7 @@
 			message.adminId || '',
 			message.adminName || '',
 			message.content || message.text || '',
-			message.imageUrl || '',
+			message.attachmentUrl || message.imageUrl || '',
 			message.createdAtRaw || message.createdAt || message.timestamp || '',
 			message.seenAtRaw || message.seenAt || '',
 			message.deliveredAtRaw || message.deliveredAt || '',
@@ -856,7 +875,7 @@
 		var incomingStableId = getStableMessageId(message);
 		var messageTime = getMessageTimeMs(message);
 		var content = String(message.content || message.text || '').trim();
-		var imageUrl = String(message.imageUrl || '').trim();
+		var imageUrl = String(message.attachmentUrl || message.imageUrl || '').trim();
 		if (!content && !imageUrl) return null;
 
 		for (var j = 0; j < data.messages.length; j++) {
@@ -867,7 +886,7 @@
 			if ((existing.senderType || 'customer') !== (message.senderType || 'customer')) continue;
 			if (!isSameDuplicateActor(existing, message)) continue;
 			if (String(existing.content || existing.text || '').trim() !== content) continue;
-			if (String(existing.imageUrl || '').trim() !== imageUrl) continue;
+			if (String(existing.attachmentUrl || existing.imageUrl || '').trim() !== imageUrl) continue;
 
 			var existingTime = getMessageTimeMs(existing);
 			if (messageTime !== null && existingTime !== null) {
@@ -1003,8 +1022,9 @@
 				type: 'message',
 				id: targetMsgId,
 				conversationId: targetId,
-				text: message.content || '',
-				imageUrl: message.imageUrl || null,
+				message: message.content || '',
+				attachmentUrl: message.attachmentUrl || message.imageUrl || null,
+				sender_type: message.sender_type || 'manual',
 				sessionId: state.sessionId
 			}));
 			if (targetId === selectedConversationId) selectedSent = true;
@@ -1096,10 +1116,13 @@
 		if (!isApiEnabled()) return Promise.resolve(null);
 		var request = buildMongoApiRequest(method, params || {});
 		if (!request) return Promise.resolve({});
+		var headers = getMongoApiHeaders();
+		if (request.body !== undefined) headers['Content-Type'] = 'application/json';
 		return fetchWithRetry(request.url, {
 			method: request.method || 'GET',
 			credentials: 'same-origin',
-			headers: getMongoApiHeaders()
+			headers: headers,
+			body: request.body
 		}, {
 			timeoutMs: config.apiTimeoutMs,
 			retries: config.apiRetryCount
@@ -1158,7 +1181,16 @@
 			};
 		}
 		if (method === 'markConversationRead') {
-			return null;
+			var readConversationId = params.conversation_id || params.conversationId || '';
+			if (!readConversationId) return null;
+			return {
+				url: base + '/api/conversations/' + encodeURIComponent(readConversationId),
+				method: 'PATCH',
+				body: JSON.stringify({
+					markRead: true,
+					readAt: Date.now()
+				})
+			};
 		}
 		return null;
 	}
@@ -1182,8 +1214,9 @@
 
 	function normalizeApiConversation(conversation) {
 		conversation = conversation || {};
-		var phone = normalizePhoneLike(conversation.phone || conversation.customerPhone || conversation.client_phone || '');
-		var rawId = conversation.conversationId || conversation.id || conversation._id || phone;
+		var rawId = conversation.conversationId || conversation.id || conversation._id || '';
+		var phone = normalizePhoneLike(conversation.phone || conversation.customerPhone || conversation.client_phone || '')
+			|| extractPhoneFromConvId(rawId);
 		var id = getCanonicalConversationId(rawId) || phone;
 		if (!id) return null;
 		var latestMessage = conversation.latestMessage || null;
@@ -1208,26 +1241,29 @@
 		var seenAtRaw = message.seenAtRaw || message.seen_at_raw || message.seen_at || '';
 		var deliveredAtRaw = message.deliveredAtRaw || message.delivered_at_raw || message.delivered_at || '';
 		var rawConversationId = message.conversationId || message.conversation_id || '';
-		var phoneConversationId = normalizePhoneLike(message.client_phone || message.customerPhone || '');
+		var phoneConversationId = normalizePhoneLike(message.client_phone || message.customerPhone || message.phone || '');
 		var messageConversationId = String(rawConversationId || conversationId || phoneConversationId || '').trim();
 		var senderType = message.senderType || roleToSenderType(message.role);
+		var senderTypeNew = message.sender_type || message.senderType || 'manual';
 		var rawCreatedAt = message.createdAtRaw || message.timestamp || message.createdAt || message.date_entered || '';
 		var text = toPlainText(message.content || message.message || message.description || message.text || '');
 		return {
 			id: message.id || message._id || ('api_' + Date.now() + '_' + Math.random().toString(36).slice(2)),
 			conversationId: messageConversationId || conversationId,
+			customerPhone: phoneConversationId,
 			senderType: senderType || 'customer',
+			sender_type: senderTypeNew,
 			sessionId: message.sessionId || '',
 			adminId: message.adminId || '',
 			adminName: senderType === 'staff' ? (message.adminName || message.senderName || '') : '',
 			adminAvatarUrl: message.adminAvatarUrl || '',
 			content: text,
-			imageUrl: message.imageUrl || '',
+			imageUrl: message.attachmentUrl || message.imageUrl || '',
 			imageData: message.imageData || '',
 			imageName: message.imageName || '',
-			attachmentUrl: message.attachmentUrl || '',
+			attachmentUrl: message.attachmentUrl || message.imageUrl || '',
 			attachmentName: message.attachmentName || '',
-			messageType: message.messageType || 'text',
+			messageType: message.message_type || message.messageType || 'text',
 			createdAt: formatTimestamp(rawCreatedAt) || message.createdAt || '',
 			createdAtRaw: rawCreatedAt,
 			seenAt: formatTimestamp(seenAtRaw) || message.seenAt || '',
@@ -1239,7 +1275,7 @@
 	}
 
 	function getAdminMessageCacheKey(conversationId) {
-		return 'ec_cw_admin_msgs_v3_' + String(conversationId || '');
+		return 'ec_cw_admin_msgs_v3_' + String(getConversationGroupPhone(conversationId) || conversationId || '');
 	}
 
 	function loadCachedConversationMessages(conversationId) {
@@ -1254,7 +1290,9 @@
 			var cached = JSON.parse(raw);
 			if (!Array.isArray(cached) || !cached.length) return false;
 			cached.forEach(function (message) {
-				upsertMessage(normalizeApiMessage(Object.assign({}, message, { conversationId: conversationId }), conversationId));
+				upsertMessage(normalizeApiMessage(Object.assign({}, message, {
+					conversationId: message.conversationId || conversationId
+				}), conversationId));
 			});
 			syncConversationPreviewFromLatestMessage(conversationId);
 			storage.setItem(cacheKey, JSON.stringify(getMessages(conversationId).slice(-Math.max(config.initialMessageLimit || 15, 30))));
@@ -1352,9 +1390,10 @@
 
 	function loadConversationMessages(conversationId) {
 		if (!isApiEnabled() || !conversationId || state.loadingMessagesByConversation[conversationId] || state.loadedMessagesByConversation[conversationId]) return Promise.resolve();
+		var apiConversationId = getConversationGroupPhone(conversationId) || conversationId;
 		state.loadingMessagesByConversation[conversationId] = true;
 		return callLiveChatApi('getMessages', {
-			conversation_id: conversationId,
+			conversation_id: apiConversationId,
 			limit: config.initialMessageLimit || 15,
 			offset: 0
 		}).then(function (apiData) {
@@ -1384,6 +1423,7 @@
 		if (state.loadingOlderMessagesByConversation[conversationId] || state.exhaustedOlderMessagesByConversation[conversationId]) return Promise.resolve(false);
 		var before = state.messageNextCursorByConversation[conversationId];
 		if (!before) return Promise.resolve(false);
+		var apiConversationId = getConversationGroupPhone(conversationId) || conversationId;
 
 		var messagesEl = qs('.ec-cw__messages');
 		var previousHeight = messagesEl ? messagesEl.scrollHeight : 0;
@@ -1394,7 +1434,7 @@
 
 		state.loadingOlderMessagesByConversation[conversationId] = true;
 		return callLiveChatApi('getMessages', {
-			conversation_id: conversationId,
+			conversation_id: apiConversationId,
 			limit: config.initialMessageLimit || 15,
 			before: before
 		}).then(function (apiData) {
@@ -1438,7 +1478,7 @@
 		var phone = normalizePhoneLike((conversation && conversation.phone) || conversationId);
 		var displaySeenAt = formatTimestamp(seenAtRaw) || seenAt || formatCurrentTime();
 		data.messages.forEach(function (message) {
-			var sameConversation = isSameConversationId(message.conversationId, conversationId) || (phone && normalizePhoneLike(message.conversationId) === phone);
+			var sameConversation = isSameConversationId(message.conversationId, conversationId) || (phone && getMessageGroupPhone(message) === phone);
 			if (sameConversation && message.senderType === 'customer' && !message.seenAt) {
 				message.seenAt = displaySeenAt;
 				message.seenAtRaw = seenAtRaw || message.seenAtRaw || '';
@@ -1605,6 +1645,15 @@
 		if (resetUnread !== false) conversation.unreadCount = 0;
 	}
 
+	function isActivelyViewingConversation(conversationId) {
+		if (!conversationId || !isSameConversationId(state.selectedConversationId, conversationId)) return false;
+		var root = document.getElementById(WIDGET_ID);
+		if (!root || !state.isOpen || !root.classList.contains('is-open')) return false;
+		if (!root.classList.contains('is-thread')) return false;
+		if (document.visibilityState === 'hidden') return false;
+		return true;
+	}
+
 	function updateConversationLastMessageMeta(conversationId, message) {
 		var conversation = getConversation(conversationId);
 		if (!conversation || !message) return;
@@ -1622,7 +1671,7 @@
 		var latestTime = getMessageTimeMs(latest);
 		var conversationTime = getConversationTimeMs(conversation);
 		if (conversationTime !== null && latestTime !== null && latestTime < conversationTime) return;
-		updateLastMessage(conversationId, latest.content || (latest.imageUrl ? 'Đã gửi ảnh đính kèm.' : ''), false, latest.createdAt || formatCurrentTime());
+		updateLastMessage(conversationId, latest.content || ((latest.attachmentUrl || latest.imageUrl) ? 'Đã gửi ảnh đính kèm.' : ''), false, latest.createdAt || formatCurrentTime());
 		updateConversationLastMessageMeta(conversationId, latest);
 	}
 
@@ -2363,7 +2412,7 @@
 		}
 
 		var view = getMessageView(message);
-		var imageSrc = message.imageData || message.imageUrl || '';
+		var imageSrc = message.imageData || message.attachmentUrl || message.imageUrl || '';
 		var image = imageSrc
 			? '<img src="' + escapeHtml(imageSrc) + '" alt="' + escapeHtml(message.imageName || 'Ảnh') + '" style="border-radius:6px;margin-top:6px;max-width:100%">'
 			: '';
@@ -3049,6 +3098,7 @@
 	function handleRealtimeNotify(msg) {
 		var phone = normalizePhoneLike(msg.phone || msg.customerPhone || '');
 		var conversationId = msg.conversationId || phone;
+		var messageId = msg.messageId || msg.id || '';
 		var preview = toPlainText(msg.preview || '');
 
 		// Build display name from phone; conversation entry gets phone stored for later use
@@ -3064,9 +3114,13 @@
 		});
 		moveConversationToTop(conversation.id);
 
-		if (!isSameConversationId(conversationId, state.selectedConversationId) && !isSameConversationId(conversation.id, state.selectedConversationId) && preview && msg.senderType !== 'staff') {
+		var isCustomerMessage = msg.senderType !== 'staff';
+		var alreadySeen = messageId && state.realtimeMessageIdsSeen[messageId];
+		var alreadyHasMessage = messageId && getMessageById(messageId);
+		if (!alreadySeen && !alreadyHasMessage && preview && isCustomerMessage && !isActivelyViewingConversation(conversation.id)) {
 			conversation.unreadCount = Number(conversation.unreadCount || 0) + 1;
 		}
+		if (messageId && isCustomerMessage) state.realtimeMessageIdsSeen[messageId] = true;
 
 		// Session-takeover transition: the admin may still hold a socket for an old convId
 		// that was just merged away (renamed to conversation.id). If the merged conversation
@@ -3099,9 +3153,6 @@
 		var conversation = ensureConversation(msg.conversationId, {
 			claimedBy: msg.adminName || msg.adminId || 'Tư vấn viên'
 		});
-		if (!conversation.lastMessage) {
-			conversation.lastMessage = 'Đang được hỗ trợ';
-		}
 		if (isSameConversationId(state.selectedConversationId, msg.conversationId)) {
 			updateHeader(conversation);
 		}
@@ -3348,15 +3399,20 @@
 		var rawCreatedAt = msg.createdAtRaw || msg.timestamp || msg.createdAt || '';
 		var seenAtRaw = msg.seenAtRaw || msg.seenAt || '';
 		var deliveredAtRaw = msg.deliveredAtRaw || msg.deliveredAt || '';
+		var customerPhone = normalizePhoneLike(msg.phone || msg.customerPhone || '');
 		return {
 			id: msg.id || msg._id || ('m' + (msg.timestamp || Date.now())),
 			conversationId: getCanonicalConversationId(msg.conversationId || conversationId, conversationId),
+			customerPhone: customerPhone,
 			senderType: senderType || 'system',
+			sender_type: msg.sender_type || 'manual',
+			message_type: msg.message_type || 'text',
 			adminId: msg.adminId || '',
 			adminName: senderType === 'staff' ? (msg.adminName || msg.senderName || '') : '',
 			adminAvatarUrl: msg.adminAvatarUrl || '',
-			content: toPlainText(msg.text || msg.content || ''),
-			imageUrl: msg.imageUrl || '',
+			content: toPlainText(msg.message || msg.text || msg.content || ''),
+			imageUrl: msg.attachmentUrl || msg.imageUrl || '',
+			attachmentUrl: msg.attachmentUrl || msg.imageUrl || '',
 			imageData: msg.imageData || '',
 			imageName: msg.imageName || '',
 			createdAt: formatTimestamp(rawCreatedAt) || formatCurrentTime(),
@@ -3366,7 +3422,6 @@
 			deliveredAt: formatTimestamp(deliveredAtRaw) || msg.deliveredAt || '',
 			deliveredAtRaw: deliveredAtRaw,
 			delivered: !!msg.delivered,
-			// keep sessionId for potential future use
 			sessionId: msg.sessionId || ''
 		};
 	}
@@ -3386,7 +3441,7 @@
 
 		var latest = getLatestNonSystemMessage(conversationId);
 		if (latest) {
-			updateLastMessage(conversationId, latest.content || (latest.imageUrl ? 'Đã gửi ảnh đính kèm.' : ''), true, latest.createdAt || formatCurrentTime());
+			updateLastMessage(conversationId, latest.content || ((latest.attachmentUrl || latest.imageUrl) ? 'Đã gửi ảnh đính kèm.' : ''), true, latest.createdAt || formatCurrentTime());
 			updateConversationLastMessageMeta(conversationId, latest);
 		}
 
@@ -3586,6 +3641,7 @@
 		state.messageNextCursorByConversation = {};
 		state.exhaustedOlderMessagesByConversation = {};
 		state.olderMessageLoadRequestedAt = {};
+		state.realtimeMessageIdsSeen = {};
 		state.customerReplyEngaged = false;
 		state.lastCustomerSeenMessageId = null;
 		if (state.customerSeenObserver) state.customerSeenObserver.disconnect();
@@ -3637,22 +3693,11 @@
 	}
 
 	// Returns the list of conversation IDs that an outbound admin message should be sent to.
-	// Default: only the currently selected conversation.
-	// Future broadcast mode: set config.broadcastToAllSessions = true to fan out to every
-	// active session sharing the same phone number (all open customer browsers).
+	// Admin thread may display messages grouped by phone, but outbound realtime
+	// messages must stay scoped to the currently selected conversationId.
 	function getTargetConversationIds() {
 		if (!state.selectedConversationId) return [];
-		if (!config.broadcastToAllSessions) return [state.selectedConversationId];
-		var selectedConv = getConversation(state.selectedConversationId);
-		var phone = resolveConversationPhone(selectedConv, state.selectedConversationId);
-		if (!phone) return [state.selectedConversationId];
-		var ids = data.conversations
-			.filter(function (c) {
-				var cPhone = resolveConversationPhone(c);
-				return cPhone && cPhone === phone;
-			})
-			.map(function (c) { return c.id; });
-		return ids.length ? ids : [state.selectedConversationId];
+		return [state.selectedConversationId];
 	}
 
 	function addActiveMessage() {
@@ -3740,9 +3785,11 @@
 		applyPendingReceipts(message.conversationId, { render: false });
 		saveCachedConversationMessages(message.conversationId);
 		var isSystemMessage = message.senderType === 'system';
-		if (isSameConversationId(state.selectedConversationId, message.conversationId)) {
+		var messageAlreadySeen = message.id && state.realtimeMessageIdsSeen[message.id];
+		if (isActivelyViewingConversation(message.conversationId)) {
+			if (message.id && message.senderType === 'customer') state.realtimeMessageIdsSeen[message.id] = true;
 			if (!isSystemMessage) clearTypingIndicator();
-			updateLastMessage(message.conversationId, message.content || (message.imageUrl ? 'Đã gửi ảnh đính kèm.' : ''), true, message.createdAt);
+			updateLastMessage(message.conversationId, message.content || ((message.attachmentUrl || message.imageUrl) ? 'Đã gửi ảnh đính kèm.' : ''), true, message.createdAt);
 			updateConversationLastMessageMeta(message.conversationId, message);
 			if (!isCustomerMode() && message.senderType === 'customer') {
 				markConversationRead(message.conversationId);
@@ -3760,9 +3807,12 @@
 		} else {
 			var conversation = ensureConversation(message.conversationId);
 			if (!isSystemMessage) {
-				updateLastMessage(message.conversationId, message.content || (message.imageUrl ? 'Đã gửi ảnh đính kèm.' : ''), false, message.createdAt);
+				updateLastMessage(message.conversationId, message.content || ((message.attachmentUrl || message.imageUrl) ? 'Đã gửi ảnh đính kèm.' : ''), false, message.createdAt);
 				updateConversationLastMessageMeta(message.conversationId, message);
-				conversation.unreadCount = Number(conversation.unreadCount || 0) + 1;
+				if (message.senderType !== 'staff' && !messageAlreadySeen && !duplicate) {
+					conversation.unreadCount = Number(conversation.unreadCount || 0) + 1;
+				}
+				if (message.id && message.senderType === 'customer') state.realtimeMessageIdsSeen[message.id] = true;
 				moveConversationToTop(message.conversationId);
 			}
 			renderList();
