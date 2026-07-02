@@ -115,5 +115,8 @@ $entry_point_registry = array(
     'entryPointIpManage'        => ['file' => 'custom/entrypoints/epIpManage.php', 'auth' => true],
     'epZaloPost'                => ['file' => 'custom/entrypoints/epZaloPost.php', 'auth' => false],
 
+    //custom by dahybeos
+    'entryPointNextCloudPreview'=> ['file' => 'custom/entrypoints/entryAuthClass/entryNextCloudPreviewClass.php', 'auth' => false],
+
     //Add categories and tags
 );

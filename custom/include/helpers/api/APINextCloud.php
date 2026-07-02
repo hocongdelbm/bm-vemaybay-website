@@ -435,23 +435,26 @@ class APINextCloud
         }
         return null;
     }
-    // public function ensureFolderExists($remoteFolderPath)
-    // {
-    //     $resultJson = $this->createFolder($remoteFolderPath);
-    //     $result = json_decode($resultJson, true);
-
-    //     // WebDAV trả về 405 Method Not Allowed nếu folder đã tồn tại
-    //     // NextCloud đôi khi trả 409 nếu cha chưa tồn tại (nhưng logic đơn giản ta chấp nhận 405 là folder đã có)
-    //     if ($result['httpCode'] == 405) {
-    //         return true; // Folder đã có, coi như OK
-    //     }
-
-    //     if ($result['httpCode'] == 201) {
-    //         return true; // Mới tạo thành công
-    //     }
-
-    //     return false; // Lỗi khác
-    // }
+    public function ensureFolderExists($remoteFolderPath)
+    {
+        $parts = explode('/', trim($remoteFolderPath, '/'));
+        $currentPath = '';
+        foreach ($parts as $part) {
+            $currentPath .= '/' . $part;
+            $resultJson = $this->createFolder($currentPath);
+            $result = json_decode($resultJson, true);
+            
+            // WebDAV returns 405 Method Not Allowed if folder already exists
+            // 201 Created if successfully created
+            if ($result['httpCode'] != 405 && $result['httpCode'] != 201) {
+                // If there is a real error, we might log it, but continue to try just in case
+                if ($result['httpCode'] >= 400 && $result['httpCode'] != 409 && $result['httpCode'] != 405) {
+                    // return false;
+                }
+            }
+        }
+        return true;
+    }
 
     // Hàm util để encode path đúng cách
     private function encodePath($path)
