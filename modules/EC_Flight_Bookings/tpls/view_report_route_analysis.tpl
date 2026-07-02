@@ -38,13 +38,38 @@
                     <input type="submit" class="btn btn-primary px-4 fw-bold" name="btnSearch" id="btnSearch" value="Xem báo cáo" title="Xem báo cáo" />
                 </div>
             </div>
+            <ul class="filter-notes">
+                <li><b>BK hoàn tất</b> = booking ở trạng thái <b>Xác nhận / Xuất vé / Hoàn tất</b>.</li>
+                <li>Khoảng thời gian lọc theo <b>ngày tạo booking</b>.</li>
+            </ul>
         </form>
     </div>
+
+    {* ===== Route tăng mạnh nhất (Kỳ Chọn vs Kỳ Trước, BK hoàn tất) ===== *}
+    {if $GROWTH_ROUTES}
+    <div class="growth-box">
+        <h5 class="text-success fw-semibold fs-6 d-flex align-items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M0 0h1v15h15v1H0zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5"/></svg> Hành trình tăng mạnh nhất (BK hoàn tất, {$P0_LABEL} vs {$P1_LABEL})</h5>
+        <div class="row g-2">
+            {foreach from=$GROWTH_ROUTES item=gr}
+            <div class="col-md-6 col-lg-4">
+                <div class="growth-item">
+                    <img src="https://flagcdn.com/w20/{$gr.cc|lower}.png" alt="{$gr.cc}" class="shadow-sm border">
+                    <span class="growth-route">{$gr.dep} → {$gr.arr}</span>
+                    <span class="ms-auto">
+                        <span class="text-dark fw-semibold">{$gr.p1_ok} → {$gr.p0_ok}</span>
+                        <span class="growth-pct">↑ {$gr.pct_str}</span>
+                    </span>
+                </div>
+            </div>
+            {/foreach}
+        </div>
+    </div>
+    {/if}
 
     {* ===== Cảnh báo: Route giảm mạnh nhất (Kỳ Chọn vs Kỳ Trước, BK hoàn tất) ===== *}
     {if $DECLINE_ROUTES}
     <div class="decline-box">
-        <h5 class="text-danger fw-semibold fs-6"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Hành trình sụt giảm mạnh nhất (BK hoàn tất, {$P0_LABEL} vs {$P1_LABEL})</h5>
+        <h5 class="text-danger fw-semibold fs-6 d-flex align-items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/><path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/></svg> Hành trình sụt giảm mạnh nhất (BK hoàn tất, {$P0_LABEL} vs {$P1_LABEL})</h5>
         <div class="row g-2">
             {foreach from=$DECLINE_ROUTES item=dr}
             <div class="col-md-6 col-lg-4">
@@ -102,7 +127,7 @@
                         {foreach from=$grp.total_cols item=col}
                         <td class="text-center border-start align-middle">
                             <div class="fw-bold text-{$col.color} fw-semibold">
-                                <a href="#" class="show-bk-list text-{$col.color} text-decoration-none fw-bold" title="Xem BK hoàn tất" data-country="Toàn bộ {$grp.title}" data-period="{$col.label}" data-scope="{$grp.scope}" data-status="completed" data-fromdate="{$col.f}" data-todate="{$col.t}">{$col.bk_ok}</a><span class="text-dark">&nbsp;/&nbsp;</span><a href="#" class="show-bk-list text-dark text-decoration-none" title="Xem tất cả BK" data-country="Toàn bộ {$grp.title}" data-period="{$col.label}" data-scope="{$grp.scope}" data-status="" data-fromdate="{$col.f}" data-todate="{$col.t}">{$col.bk}</a>
+                                <a href="#" class="show-bk-list text-{$col.color} text-decoration-none fw-bold" title="Số lượng BK hoàn tất" data-country="Toàn bộ {$grp.title}" data-period="{$col.label}" data-scope="{$grp.scope}" data-status="completed" data-fromdate="{$col.f}" data-todate="{$col.t}">{$col.bk_ok}</a><span class="text-dark">&nbsp;/&nbsp;</span><a href="#" class="show-bk-list text-dark text-decoration-none" title="Tổng số BK" data-country="Toàn bộ {$grp.title}" data-period="{$col.label}" data-scope="{$grp.scope}" data-status="" data-fromdate="{$col.f}" data-todate="{$col.t}">{$col.bk}</a>
                             </div>
                             <ul class="metric-list">
                                 <li title="Vé hoàn tất / Tổng số vé"><span class="ml-label">Số vé</span><span class="ml-value">{$col.ticket_str}</span></li>

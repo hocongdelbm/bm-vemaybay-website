@@ -695,7 +695,10 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeOnlinePosition') {
 
 // Cập nhật danh sách ec_online_report (thêm user còn thiếu trong ngày)
 if (isset($_POST['for']) && $_POST['for'] == 'updateOnlineReport') {
-	if (!is_admin($current_user)) { echo 0; exit; }
+	if (!is_admin($current_user)) {
+		echo 0;
+		exit;
+	}
 
 	$onl = new EC_Online_Report;
 	$onl->populateOnlineReport();
@@ -3799,7 +3802,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 			bk.total_qty,
 			bk.created_by,
 			bk.description,
-			u.last_name AS site_name
+			MAX(u.last_name) AS site_name
 		FROM ec_flight_bookings bk
 		INNER JOIN ({$route_subquery}) route ON route.booking_id = bk.id
 			{$route_filter}
@@ -3810,6 +3813,9 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 		GROUP BY bk.id
 		ORDER BY bk.created_by, bk.date_entered DESC
 	";
+
+	// pr($sql);
+
 	$res = $db->query($sql);
 
 	// Lấy toàn bộ dòng trước, tính doanh số real-time 1 lần (batch) để nhanh

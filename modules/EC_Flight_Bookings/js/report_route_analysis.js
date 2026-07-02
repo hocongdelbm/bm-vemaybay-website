@@ -168,7 +168,7 @@
         prefix + " - " + country + " (" + period + ")",
       );
       $("#mock-modal-body").html(
-        '<div class="text-center p-4"><i class="fa fa-spinner fa-spin fa-2x"></i><br>Đang tải dữ liệu...</div>',
+        '<div class="text-center p-4"><span class="route-spinner"></span><br>Đang tải dữ liệu...</div>',
       );
       $("#mock-modal").css("display", "flex");
 
@@ -198,6 +198,10 @@
     });
     $("#mock-modal-close-btn").click(function () {
       $("#mock-modal").hide();
+    });
+    // Bấm ra vùng nền tối (ngoài nội dung modal) cũng đóng
+    $("#mock-modal").on("click", function (e) {
+      if (e.target === this) $(this).hide();
     });
 
     // ===== Charts (mỗi tab 1 chart, chỉ SL BK hoàn tất) =====
@@ -265,10 +269,14 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          // Chừa khoảng trống phía trên để số datalabel trên đỉnh cột cao nhất không bị cắt
+          layout: { padding: { top: 24 } },
           plugins: {
             datalabels: {
               anchor: "end",
               align: "top",
+              offset: 2,
+              clamp: true,
               formatter: Math.round,
               font: { weight: "bold" },
             },
@@ -277,6 +285,7 @@
           scales: {
             y: {
               beginAtZero: true,
+              grace: "12%",
               title: { display: true, text: "BK hoàn tất" },
             },
           },

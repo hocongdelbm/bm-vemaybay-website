@@ -123,29 +123,39 @@ class Viewreport_route_analysis extends SugarView
                 $rf[$p] = date('Y-m-d', strtotime("$fsql -" . (7 * $p) . " days"));
                 $rt[$p] = date('Y-m-d', strtotime("$tsql -" . (7 * $p) . " days"));
             }
-            $labels = ['Tuần Chọn', 'Tuần Trước', 'Tuần Trước 2', 'Tuần Trước 3', 'Tuần Trước 4', 'Tuần Trước 5'];
+            $labels = [];
+            for ($p = 0; $p <= 5; $p++) $labels[$p] = 'Tuần ' . date('d/m', strtotime($rf[$p]));
         } elseif (in_array($sel, ['this_month', 'previous_month'], true)) {
             for ($p = 0; $p <= 5; $p++) {
                 list($rf[$p], $rt[$p]) = $mkMonth($fsql, -$p);
             }
-            $labels = ['Tháng Chọn', 'Tháng Trước', 'Tháng Trước 2', 'Tháng Trước 3', 'Tháng Trước 4', 'Tháng Trước 5'];
+            $labels = [];
+            for ($p = 0; $p <= 5; $p++) $labels[$p] = 'Tháng ' . date('n/Y', strtotime($rf[$p]));
         } elseif (in_array($sel, ['quarter_this', 'quarter_previous'], true)) {
             for ($p = 0; $p <= 5; $p++) {
                 list($rf[$p], $rt[$p]) = $mkQuarter($fsql, -$p);
             }
-            $labels = ['Quý Chọn', 'Quý Trước', 'Quý Trước 2', 'Quý Trước 3', 'Quý Trước 4', 'Quý Trước 5'];
+            $labels = [];
+            for ($p = 0; $p <= 5; $p++) {
+                $qts = strtotime($rf[$p]);
+                $labels[$p] = 'Quý ' . (int)ceil((int)date('n', $qts) / 3) . '/' . date('Y', $qts);
+            }
         } elseif (in_array($sel, ['this_year', 'previous_year'], true)) {
             for ($p = 0; $p <= 5; $p++) {
                 list($rf[$p], $rt[$p]) = $mkYear($fsql, -$p);
             }
-            $labels = ['Năm Chọn', 'Năm Trước', 'Năm Trước 2', 'Năm Trước 3', 'Năm Trước 4', 'Năm Trước 5'];
+            $labels = [];
+            for ($p = 0; $p <= 5; $p++) $labels[$p] = 'Năm ' . date('Y', strtotime($rf[$p]));
         } elseif ($L == 1 || in_array($sel, ['today', 'yesterday', 'daybefore'], true)) {
             $offs = [0, 1, 2, 7, 8, 9];
+            $dow  = ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+            $labels = [];
             for ($p = 0; $p <= 5; $p++) {
                 $rf[$p] = date('Y-m-d', strtotime("$fsql -{$offs[$p]} days"));
                 $rt[$p] = date('Y-m-d', strtotime("$tsql -{$offs[$p]} days"));
+                $ts = strtotime($rf[$p]);
+                $labels[$p] = $dow[(int)date('w', $ts)] . ' ' . date('d/m', $ts);
             }
-            $labels = ['Kỳ Chọn', 'Kỳ Chọn -1 ngày', 'Kỳ Chọn -2 ngày', 'Tuần Trước', 'Tuần Trước -1', 'Tuần Trước -2'];
         } else {
             for ($p = 0; $p <= 5; $p++) {
                 $off = $L * $p;
@@ -188,8 +198,8 @@ class Viewreport_route_analysis extends SugarView
                 'pid'   => 'p' . $p,
                 'label' => $labels[$p],
                 'range' => $format_range($pf[$p], $pt[$p]),
-                'f'     => date('Y-m-d', strtotime($pf[$p])),
-                't'     => date('Y-m-d', strtotime($pt[$p])),
+                'f'     => $rf[$p],
+                't'     => $rt[$p],
                 'color' => $colColors[$p],
             ];
             $smartyobj->assign("P{$p}_LABEL", $labels[$p]);
@@ -594,7 +604,29 @@ class Viewreport_route_analysis extends SugarView
             if ($b['pct'] === $a['pct']) return $b['drop'] <=> $a['drop'];
             return $b['pct'] <=> $a['pct'];
         });
-        $smartyobj->assign('DECLINE_ROUTES', array_slice($declines, 0, 8));
+        $smartyobj->assign('DECLINE_ROUTES', array_slice($declines, 0, 9));
+
+        // ========= Top route tăng mạnh nhất =========
+        $growths = [];
+        foreach ($all_routes as $r) {
+            if ($r['p0_ok'] <= $r['p1_ok']) continue;
+            // % tăng: nếu kỳ trước = 0 thì coi là tăng mới (đặt mốc lớn để xếp trên)
+            if ($r['p1_ok'] == 0) {
+                $pct = 999999;
+                $r['pct_str'] = 'Mới';
+            } else {
+                $pct = round(($r['p0_ok'] - $r['p1_ok']) / $r['p1_ok'] * 100, 1);
+                $r['pct_str'] = $pct . '%';
+            }
+            $r['gain'] = $r['p0_ok'] - $r['p1_ok'];
+            $r['pct']  = $pct;
+            $growths[] = $r;
+        }
+        usort($growths, function ($a, $b) {
+            if ($b['pct'] === $a['pct']) return $b['gain'] <=> $a['gain'];
+            return $b['pct'] <=> $a['pct'];
+        });
+        $smartyobj->assign('GROWTH_ROUTES', array_slice($growths, 0, 9));
 
         // ========= Dữ liệu chart (JSON đóng gói cho JS ngoài) =========
         $reportJson = [
