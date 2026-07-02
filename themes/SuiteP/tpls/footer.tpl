@@ -67,7 +67,7 @@
              debug: true
          };
      </script>
-     <script src="custom/services/widget/admin_widget.js?v=2"></script>
+     <script src="https://chat.timchuyenbay.net/client/admin_widget.js"></script>
 {/literal}
 {/if}
 </body>
