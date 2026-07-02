@@ -190,7 +190,7 @@
                                         <th width="7%" class="text-center p-2" title="BK tham khảo hoàn tất / Tổng BK tham khảo của hành trình">Tham khảo</th>
                                         <th width="8%" class="text-center p-2" title="Vé hoàn tất / Tổng số vé">Vé</th>
                                         <th width="10%" class="text-center p-2" title="Doanh số">Doanh số</th>
-                                        <th width="10%" class="text-center p-2" title="Trung bình = doanh số / số vé HT">TB/vé</th>
+                                        <th width="10%" class="text-center p-2" title="Trung bình = doanh số / số vé HT">Trung bình / vé</th>
                                     </tr>
                                 </thead>
                                 <tbody>
