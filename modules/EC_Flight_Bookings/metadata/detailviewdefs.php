@@ -81,9 +81,6 @@ $viewdefs[$module_name]['DetailView'] = array(
             array(
                 'file' => 'themes/SuiteP/js/reset.js',
             ),
-            array(
-                'file' => 'modules/EC_Flight_Bookings/js/print_ticket_new.js',
-            ),
         ),
     ),
 

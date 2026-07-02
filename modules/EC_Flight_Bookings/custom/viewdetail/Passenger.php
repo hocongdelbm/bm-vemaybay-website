@@ -369,6 +369,20 @@ trait PassengerTrait
 	}
 
 	/**
+	 * Extract the first two integers from a baggage text string.
+	 * Returns [pack_count, weight_kg].
+	 */
+
+	public function parseBaggageNumbers($text)
+	{
+		preg_match_all('/\d+/', $text, $matches);
+		return [
+			(int)($matches[0][0] ?? 0),
+			(int)($matches[0][1] ?? 0),
+		];
+	}
+
+	/**
 	 * Render table default receipt voucher
 	 * @return string HTML
 	 */
@@ -397,24 +411,24 @@ trait PassengerTrait
 
 			// Hành lý có sẵn
 			if (!empty($row['luggage_index_outbound'])) {
-				[$pack, $weight] = ECFlightBookingViewDetailSupportHelpers::parseBaggageNumbers(Baggage::renderAvailableBaggage($row['luggage_index_outbound']));
+				[$pack, $weight] = $this->parseBaggageNumbers(Baggage::renderAvailableBaggage($row['luggage_index_outbound']));
 				$totalPackDep += $pack;
 				$totalWeightDep += $weight;
 			}
 			if (!empty($row['luggage_index_inbound'])) {
-				[$pack, $weight] = ECFlightBookingViewDetailSupportHelpers::parseBaggageNumbers(Baggage::renderAvailableBaggage($row['luggage_index_inbound']));
+				[$pack, $weight] = $this->parseBaggageNumbers(Baggage::renderAvailableBaggage($row['luggage_index_inbound']));
 				$totalPackRet += $pack;
 				$totalWeightRet += $weight;
 			}
 
 			// Hành lý mua thêm
 			if (!empty($row['luggage_purchase_text'])) {
-				[$pack, $weight] = ECFlightBookingViewDetailSupportHelpers::parseBaggageNumbers($row['luggage_purchase_text']);
+				[$pack, $weight] = $this->parseBaggageNumbers($row['luggage_purchase_text']);
 				$totalPackDep += $pack;
 				$totalWeightDep += $weight;
 			}
 			if (!empty($row['luggage_purchase_text_inbound'])) {
-				[$pack, $weight] = ECFlightBookingViewDetailSupportHelpers::parseBaggageNumbers($row['luggage_purchase_text_inbound']);
+				[$pack, $weight] = $this->parseBaggageNumbers($row['luggage_purchase_text_inbound']);
 				$totalPackRet += $pack;
 				$totalWeightRet += $weight;
 			}

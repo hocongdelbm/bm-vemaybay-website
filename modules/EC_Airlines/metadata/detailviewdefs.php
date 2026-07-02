@@ -16,18 +16,26 @@ $viewdefs[$module_name]['DetailView'] = array(
         ),
     ),
     'panels' => array(
-        'default' => array(
+        'LBL_PANEL_AIRLINE' => array(
             array(
                 array('name' => 'iata_code', 'label' => 'LBL_IATA_CODE'),
                 array('name' => 'name',      'label' => 'LBL_NAME'),
             ),
             array(
-                array('name' => 'logo',    'label' => 'LBL_LOGO'),
+                array('name' => 'icao_code', 'label' => 'LBL_ICAO_CODE'),
+                array(''),
+            ),
+            array(
+                array(
+                    'name'       => 'logo',
+                    'label'      => 'LBL_LOGO',
+                    'customCode' => '{$CUS_LOGO}',
+                ),
                 array('name' => 'country', 'label' => 'LBL_COUNTRY'),
             ),
             array(
-                array('name' => 'is_domestic', 'label' => 'LBL_IS_DOMESTIC'),
-                array('name' => 'is_active',   'label' => 'LBL_IS_ACTIVE'),
+                array('name' => 'is_active', 'label' => 'LBL_IS_ACTIVE'),
+                array(''),
             ),
             array(
                 array('name' => 'description', 'label' => 'LBL_DESCRIPTION'),

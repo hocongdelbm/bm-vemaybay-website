@@ -203,29 +203,30 @@ trait ItineraryTrait
 	{
 		global $app_list_strings;
 		$html = '';
-			$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
+		$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
 
-			['code' => $airline_code, 'logo' => $airline_code_logo, 'img_style' => $img_style] = ECFlightBookingViewDetailSupportHelpers::normalizeAirlineCode($row['airline_code']);
+		$airline_code = EC_Airlines::normalizeIataCode($row['airline_code']);
 
-			$img_src = !$row['is_layover'] && !empty($airline_code_logo) ? '<img ' . $img_style . ' src="custom/themes/default/images/airline-icon-100x100/' . $airline_code_logo . '.png" alt="' . $airline_code . '" border="0" />' : '';
+		$logoUrl = !$row['is_layover'] ? EC_Airlines::getLogoUrl($airline_code) : null;
+		$img_src = $logoUrl ? '<img class="h-auto" style="width:40px;object-fit:contain;" src="' . $logoUrl . '" alt="' . $airline_code . '" border="0" />' : '';
 
-			if ($this->bean->ticket_type == '2')
-				$img_src .= '<br />(<b>' . $row['airline_code'] . '</b>)';
-			$html .= '<tr class="' . $even_or_odd . '">';
+		if ($this->bean->ticket_type == '2')
+			$img_src .= '<br />(<b>' . $row['airline_code'] . '</b>)';
+		$html .= '<tr class="' . $even_or_odd . '">';
 
-			// Checkbox auto book
-			$booking_cutoff_time = (strtotime($row['departure_date']) - time()) - 10800;
-			if ($row['direction'] == '0' && $check_dep === false && $booking_cutoff_time > 0) {
-				$html .= '<td data-label="Autobook" class="text-center"><input type="checkbox" name="check-itinerary" class="check-itinerary" data-id="' . $row['id'] . '" title="Autobook" /></td>';
-				$check_dep = true;
-			} else if ($row['direction'] == '1' && $check_ret === false && $booking_cutoff_time > 0) {
-				$html .= '<td data-label="Autobook" class="text-center"><input type="checkbox" name="check-itinerary" class="check-itinerary" data-id="' . $row['id'] . '" title="Autobook" /></td>';
-				$check_ret = true;
-			} else
-				$html .= '<td data-label="" class="text-center"><input type="checkbox" name="check-itinerary" class="check-itinerary" data-id="' . $row['id'] . '" title="" /></td>';
+		// Checkbox auto book
+		$booking_cutoff_time = (strtotime($row['departure_date']) - time()) - 10800;
+		if ($row['direction'] == '0' && $check_dep === false && $booking_cutoff_time > 0) {
+			$html .= '<td data-label="Autobook" class="text-center"><input type="checkbox" name="check-itinerary" class="check-itinerary" data-id="' . $row['id'] . '" title="Autobook" /></td>';
+			$check_dep = true;
+		} else if ($row['direction'] == '1' && $check_ret === false && $booking_cutoff_time > 0) {
+			$html .= '<td data-label="Autobook" class="text-center"><input type="checkbox" name="check-itinerary" class="check-itinerary" data-id="' . $row['id'] . '" title="Autobook" /></td>';
+			$check_ret = true;
+		} else
+			$html .= '<td data-label="" class="text-center"><input type="checkbox" name="check-itinerary" class="check-itinerary" data-id="' . $row['id'] . '" title="" /></td>';
 
-			$flight_number = $row['flight_number'] ?? '';
-			$html .= '<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
+		$flight_number = $row['flight_number'] ?? '';
+		$html .= '<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
 				<td data-label="Chiều" class="text-center" id="detail_direction' . $i . '" data-direction="' . $row['direction'] . '">' . $app_list_strings['bk_direction_list'][$row['direction']] . '</td>
 				<td data-label="Mã hãng" class="text-center dt_airline" id="detail_airline' . $i . '" data-airline="' . $row['airline_code'] . '">' . $img_src . '</td>
 				<td data-label="Số hiệu" class="text-center">' . $flight_number . '</td>
@@ -237,11 +238,11 @@ trait ItineraryTrait
 				<td data-label="Hạn giữ chỗ" class="text-center">' . (trim($row['time_limit']) != '' ? date($date_format . ' H:i', strtotime($row['time_limit'])) : '') . '</td>
 				<td data-label="Giá cơ bản" class="text-end">' . format_number($row['base_price']) . '</td>';
 
-			if ($row['is_layover'] == 0 && $use_mail_eticket) {
-				// REMIND BUTTON
-				$remind_btn = '';
-				if ($row['is_remind'] == 0 && ($row['booking_status'] == 7 || $row['booking_status'] == 8)) {
-					$remind_btn .= '<div class="dropdown">
+		if ($row['is_layover'] == 0 && $use_mail_eticket) {
+			// REMIND BUTTON
+			$remind_btn = '';
+			if ($row['is_remind'] == 0 && ($row['booking_status'] == 7 || $row['booking_status'] == 8)) {
+				$remind_btn .= '<div class="dropdown">
 						<button class="btn btn-primary-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 							Remind
 						</button>
@@ -257,12 +258,12 @@ trait ItineraryTrait
 							</li>
 						</ul>
 					</div>';
-				}
+			}
 
-				// SMS BUTTON
-				$journey_name = ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']] ?? '')) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']] ?? ''));
-				$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));
-				$sms_btn = '<input type="button" name="btnSendSMS" value="SMS" title="Send SMS" class="btn btn-primary-2"
+			// SMS BUTTON
+			$journey_name = ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']] ?? '')) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']] ?? ''));
+			$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));
+			$sms_btn = '<input type="button" name="btnSendSMS" value="SMS" title="Send SMS" class="btn btn-primary-2"
 					direction="' . $row['direction'] . '" 
 					flightno="' . $flight_number . '"
 					journey="' . $journey_name . '"
@@ -271,14 +272,14 @@ trait ItineraryTrait
 					applied_pass="' . ($row['direction'] == 0 ? $departure_applied_pass : $arrival_applied_pass) . '"
 				/>';
 
-				// TT Checkin status
-				$checkin_status = '';
-				if ((int)$row['checkin_status'] !== 2 && in_array((int)$this->bean->booking_status, [3, 7, 8])) {
-					$jour_name = $row['departure'] . '-' . $row['arrival'];
-					$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $this->bean->id . '" record_name="' . $this->bean->name . '" data-notes="' . htmlspecialchars($row['description'] ?? '', ENT_QUOTES) . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
-				}
+			// TT Checkin status
+			$checkin_status = '';
+			if ((int)$row['checkin_status'] !== 2 && in_array((int)$this->bean->booking_status, [3, 7, 8])) {
+				$jour_name = $row['departure'] . '-' . $row['arrival'];
+				$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $this->bean->id . '" record_name="' . $this->bean->name . '" data-notes="' . htmlspecialchars($row['description'] ?? '', ENT_QUOTES) . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
+			}
 
-				$html .= '<td data-label="" class="text-center">
+			$html .= '<td data-label="" class="text-center">
 					<form action="index.php?print=true" method="post" name="frmPrintEticket" id="frmPrintEticket' . $i . '" target="_blank">
 						<input type="hidden" name="module" value="EC_Flight_Bookings" />
 						<input type="hidden" name="action" value="printeticket" />
@@ -301,28 +302,28 @@ trait ItineraryTrait
 						</div>
 					</form>
 				</td>';
-			} else {
-				$html .= '<td data-label="" class="text-center">&nbsp;</td>';
-			}
-			$html .= '</tr>';
+		} else {
+			$html .= '<td data-label="" class="text-center">&nbsp;</td>';
+		}
+		$html .= '</tr>';
 
-			// Load description
-			if (isset($row['description']) && !empty($row['description'])) {
-				$html .= '<tr>
+		// Load description
+		if (isset($row['description']) && !empty($row['description'])) {
+			$html .= '<tr>
 					<td colspan="15" style="font-style:italic;font-weight:bold">' . $row['description'] . '</td>
 				</tr>';
-			}
+		}
 
-			if ($row['direction'] == '0') {
-				$this->_outbound_airline = $row['airline_code'];
-				$this->_outbound_ticket_class = $row['ticket_class'];
-			}
+		if ($row['direction'] == '0') {
+			$this->_outbound_airline = $row['airline_code'];
+			$this->_outbound_ticket_class = $row['ticket_class'];
+		}
 
-			if ($row['direction'] == '1') {
-				$this->_inbound_airline = $row['airline_code'];
-				$this->_inbound_ticket_class = $row['ticket_class'];
-			}
-			$i++;
+		if ($row['direction'] == '1') {
+			$this->_inbound_airline = $row['airline_code'];
+			$this->_inbound_ticket_class = $row['ticket_class'];
+		}
+		$i++;
 
 		return $html;
 	}
@@ -454,8 +455,10 @@ trait ItineraryTrait
 
 	private function renderEditedItineraryAirlineLogo($row)
 	{
-		['code' => $airline_code, 'logo' => $airline_code_logo, 'img_style' => $img_style] = ECFlightBookingViewDetailSupportHelpers::normalizeAirlineCode($row['airline_code']);
-		$img_src = $row['is_layover'] ? '' : '<img ' . $img_style . ' src="custom/themes/default/images/airline-icon-100x100/' . strtoupper($airline_code_logo) . '.png" alt="' . $airline_code . '" border="0" />';
+		$airline_code = EC_Airlines::normalizeIataCode($row['airline_code']);
+		$logoUrl = $row['is_layover'] ? null : EC_Airlines::getLogoUrl($airline_code);
+		$img_src = $logoUrl ? '<img class="h-auto" style="width:40px;object-fit:contain;" src="' . $logoUrl . '" alt="' . $airline_code . '" border="0" />' : '';
+
 		if ($row['ticket_type'] == '2') {
 			$img_src .= '<br />(<b>' . $row['airline_code'] . '</b>)';
 		}
@@ -466,29 +469,29 @@ trait ItineraryTrait
 	private function renderEditedItineraryActionCell($row, $j, $airport_list, $applied_pass, &$print_iti)
 	{
 		global $app_list_strings;
-			$remind_btn = '';
-			$checkin_status = '';
-			if ($print_iti != $row['sabre_logs']) {
-				$print_iti = $row['sabre_logs'];
-				if ($row['is_remind'] == 0) {
-					$remind_btn = '<div class="dropdown">
+		$remind_btn = '';
+		$checkin_status = '';
+		if ($print_iti != $row['sabre_logs']) {
+			$print_iti = $row['sabre_logs'];
+			if ($row['is_remind'] == 0) {
+				$remind_btn = '<div class="dropdown">
 						<button class="btn btn-primary-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Remind</button>
 						<ul class="dropdown-menu dropdown-menu-end box-list">
 							<li class="box-item"><a class="dropdown-item btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="' . $this->bean->id . '" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" id="btnRemind" href="javascript:void(0)">Gọi nhắc nhở lịch bay</a></li>
 							<li class="box-item"><a class="dropdown-item confirm-remind" iti_id="' . $row['id'] . '" booking_id="' . $this->bean->id . '" id="confirm-remind" href="javascript:void(0)">Đã nhắc nhở khách</a></li>
 						</ul>
 					</div>';
-				}
-
-				if ((int) $row['checkin_status'] !== 2 && in_array((int) $row['booking_status'], [7, 8])) {
-					$jour_name = $row['departure'] . '-' . $row['arrival'];
-					$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $this->bean->id . '" record_name="' . $row['bk_name'] . '" data-notes="' . htmlspecialchars($row['description'] ?? '', ENT_QUOTES) . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int) $row['checkin_status']) . '</select>';
-				}
 			}
 
-			$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));
-			$journey = ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']] ?? '')) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']] ?? ''));
-			return '<td colspan="2" class="text-center">
+			if ((int) $row['checkin_status'] !== 2 && in_array((int) $row['booking_status'], [7, 8])) {
+				$jour_name = $row['departure'] . '-' . $row['arrival'];
+				$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $this->bean->id . '" record_name="' . $row['bk_name'] . '" data-notes="' . htmlspecialchars($row['description'] ?? '', ENT_QUOTES) . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int) $row['checkin_status']) . '</select>';
+			}
+		}
+
+		$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));
+		$journey = ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']] ?? '')) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']] ?? ''));
+		return '<td colspan="2" class="text-center">
 				<form action="index.php?print=true" method="post" name="frmPrintEticket" id="frmPrintEticket' . $j . '" target="_blank">
 					<input type="hidden" name="module" value="EC_Flight_Bookings" />
 					<input type="hidden" name="action" value="printeticket" />
@@ -594,17 +597,16 @@ trait ItineraryTrait
 		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$directionLabel = $app_list_strings['bk_direction_list'][(int)$row['direction']] ?? '';
-			$airlineCode = ECFlightBookingViewDetailSupportHelpers::normalizeAirlineCode($row['airline_code'] ?? '')['code'];
-
-			$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
-			$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
+			$airlineCode = EC_Airlines::normalizeIataCode($row['airline_code'] ?? '');
+			$airlineName = EC_Airlines::getAirlineName($airlineCode) ?: $airlineCode;
 
 			$results[] = [
 				'id' => $row['id'],
 				'direction' => (int)$row['direction'],
 				'directionLabel' => $directionLabel,
-				'airline' => $airlineCode,
+				'airline' => $airlineCode ?? $row['airline_code'],
 				'airlineName' => $airlineName,
+				'logoUrl' => EC_Airlines::getLogoUrl($airlineCode),
 				'flightNo' => $row['flight_number'] ?? '',
 				'departure' => $row['departure'] ?? '',
 				'arrival' => $row['arrival'] ?? '',
@@ -829,18 +831,14 @@ trait ItineraryTrait
 	{
 		global $app_list_strings;
 		$directionLabel = $app_list_strings['bk_direction_list'][(int)$row['direction']] ?? '';
-		$airlineCode = $row['airline_code'] ?? '';
-		if ($airlineCode == 'VNA') $airlineCode = 'VN';
-		elseif ($airlineCode == 'VJA') $airlineCode = 'VJ';
-		elseif ($airlineCode == 'VNP') $airlineCode = 'BL';
-		elseif ($airlineCode == 'BBA') $airlineCode = 'QH';
-		elseif ($airlineCode == 'VTA') $airlineCode = 'VU';
+		$airlineCode = EC_Airlines::normalizeIataCode($row['airline_code'] ?? '');
 
 		return [
 			'id' => $row['id'],
 			'direction' => (int)$row['direction'],
 			'directionLabel' => $directionLabel,
 			'airline' => $airlineCode,
+			'logoUrl' => EC_Airlines::getLogoUrl($airlineCode),
 			'flightNo' => $row['flight_number'] ?? '',
 			'departure' => $row['departure'] ?? '',
 			'arrival' => $row['arrival'] ?? '',
@@ -862,5 +860,4 @@ trait ItineraryTrait
 		}
 		return $html;
 	}
-
 }
