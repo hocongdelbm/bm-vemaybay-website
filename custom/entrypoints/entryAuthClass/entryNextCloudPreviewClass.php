@@ -1,7 +1,5 @@
 <?php
-if (!defined('sugarEntry') || !sugarEntry) {
-    die('Not A Valid Entry Point');
-}
+
 
 // Handle CORS for local development/testing across different ports
 if (isset($_SERVER['HTTP_ORIGIN'])) {
@@ -11,10 +9,10 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
     header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    echo json_encode(['success' => true]);
-    exit;
-}
+// if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+//     echo json_encode(['success' => true]);
+//     exit;
+// }
 
 
 require_once 'custom/entrypoints/entryClass.php';
