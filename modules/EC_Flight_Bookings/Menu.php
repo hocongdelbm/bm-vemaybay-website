@@ -7,8 +7,8 @@ global $mod_strings, $current_user;
 $listRights = ACLController::checkAccess('EC_Flight_Bookings', 'list', true);
 $viewRights = ACLController::checkAccess('EC_Flight_Bookings', 'view', true);
 $editRights = ACLController::checkAccess('EC_Flight_Bookings', 'edit', true);
- 
-if($listRights) {
+
+if ($listRights) {
 	$module_menu[] = [
 		"index.php?module=EC_Flight_Bookings&action=index&return_module=EC_Flight_Bookings&return_action=DetailView",
 		$mod_strings['LNK_LIST'],
@@ -16,7 +16,7 @@ if($listRights) {
 		"EC_Flight_Bookings"
 	];
 
-	if($editRights) {
+	if ($editRights) {
 		$module_menu[] = [
 			"index.php?module=EC_Flight_Bookings&action=EditView&return_module=EC_Flight_Bookings&return_action=DetailView",
 			$mod_strings['LNK_NEW_RECORD'],
@@ -26,13 +26,22 @@ if($listRights) {
 	}
 
 	// Doanh số booker
-	if(isManagerUser($current_user->id)) {
+	if (isManagerUser($current_user->id)) {
 		$module_menu[] = [
 			"index.php?module=EC_Flight_Bookings&action=airportstatistics&return_module=EC_Flight_Bookings&return_action=airportstatistics",
 			"Phân tích hành trình",
 			"airplane_16",
 			"EC_Flight_Bookings"
 		];
+
+		if (in_array($current_user->user_name, ['hungnh', 'pandadth'])) {
+			$module_menu[] = [
+				"index.php?module=EC_Flight_Bookings&action=report_route_analysis&return_module=EC_Flight_Bookings&return_action=report_route_analysis",
+				"Hành trình quốc gia",
+				"airplane_16",
+				"EC_Flight_Bookings"
+			];
+		}
 
 		$module_menu[] = [
 			"index.php?module=EC_Flight_Bookings&action=bkagent&return_module=EC_Flight_Bookings&return_action=bkagent",
@@ -41,7 +50,7 @@ if($listRights) {
 			'EC_Flight_Bookings'
 		];
 
-		if(ACLController::checkAccess('Bugs', 'edit', true)) {
+		if (ACLController::checkAccess('Bugs', 'edit', true)) {
 			$module_menu[] = [
 				"index.php?module=EC_Flight_Bookings&action=debtopay&return_module=EC_Flight_Bookings&return_action=debtopay",
 				"Công nợ phải trả",
@@ -58,7 +67,7 @@ if($listRights) {
 		}
 	}
 
-	if(!isTelesaleUser($current_user->id)) {
+	if (!isTelesaleUser($current_user->id)) {
 		// Kiểm tra ngày bay
 		$module_menu[] = [
 			"index.php?module=EC_Flight_Bookings&action=checkflydate&return_module=EC_Flight_Bookings&return_action=checkflydate",
@@ -66,7 +75,7 @@ if($listRights) {
 			"calendar_16x16",
 			"EC_Flight_Bookings"
 		];
-	
+
 		// Recheck xuất vé
 		$module_menu[] = [
 			"index.php?module=EC_Flight_Bookings&action=recheckbk&return_module=EC_Flight_Bookings&return_action=recheckbk",
@@ -89,7 +98,7 @@ if($listRights) {
 			"",
 		];
 
-		$module_menu[]= [
+		$module_menu[] = [
 			"index.php?module=EC_Flight_Bookings&action=updateflight&return_module=EC_Flight_Bookings&return_action=updateflight",
 			$mod_strings['LNK_UPDATE_FLIGHT'],
 			"EC_Flight_Bookings",
@@ -98,7 +107,7 @@ if($listRights) {
 	}
 
 	if ($viewRights) {
-		$module_menu[]= [
+		$module_menu[] = [
 			"index.php?module=EC_Flight_Bookings&action=bksalereport&return_module=EC_Flight_Bookings&return_action=bksalereport",
 			$mod_strings['LNK_SALE_REPORT'],
 			"growth",
@@ -120,7 +129,7 @@ if($listRights) {
 		"EC_Flight_Bookings"
 	];
 
-	if(is_admin($current_user)) {
+	if (is_admin($current_user)) {
 		$module_menu[] = [
 			"index.php?module=EC_Flight_Bookings&action=telesaleipmgr",
 			"Quản lý Login Telesale",
