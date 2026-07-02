@@ -3,18 +3,6 @@ if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
 
-// Handle CORS for local development/testing across different ports
-if (isset($_SERVER['HTTP_ORIGIN'])) {
-    header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
-    header("Access-Control-Allow-Credentials: true");
-    header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-    header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
-}
-
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    echo json_encode(['success' => true]);
-    exit;
-}
 
 
 require_once 'custom/entrypoints/entryClass.php';
@@ -41,6 +29,8 @@ class entryNextCloudPreviewClass extends entryClass
 
     public function getPublicLinkOCS($params = [])
     {
+        $this->handleCors();
+
         try {
             // Check if it's a POST request for uploading
             if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_FILES['images'])) {
@@ -462,7 +452,24 @@ class entryNextCloudPreviewClass extends entryClass
         }
         return $shareResult['data']['url'] . '/preview';
     }
+
+
+    /**
+     * Handle CORS for local development/testing across different ports
+     */
+    private function handleCors()
+    {
+        if (isset($_SERVER['HTTP_ORIGIN'])) {
+            header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+            header("Access-Control-Allow-Credentials: true");
+            header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+            header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            echo json_encode(['success' => true]);
+            exit;
+        }
+    }
 }
 
-$entryPointNextCloudPreview = new entryNextCloudPreviewClass();
-echo $entryPointNextCloudPreview->getPublicLinkOCS($_REQUEST);
