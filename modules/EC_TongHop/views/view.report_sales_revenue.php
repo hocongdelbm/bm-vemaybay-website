@@ -126,7 +126,7 @@ class Viewreport_sales_revenue extends SugarView
                 return $v !== '';
             })
             : (isset($_POST['customer_source']) && $_POST['customer_source'] !== '' ? [$_POST['customer_source']] : []);
-            
+
         $ticket_type = $_POST['ticket_type'] ?? '';
 
         $data = $this->bookingQuery($post_from_date, $post_to_date, ['payment_stt' => $payment_stt, 'customer_source' => $customer_source, 'ticket_type' => $ticket_type]);
@@ -210,9 +210,8 @@ class Viewreport_sales_revenue extends SugarView
                 $ticket_type_html = '';
                 if (!empty($row['ticket_type'])) {
                     $type_label = $app_list_strings['booking_ticket_type_list'][$row['ticket_type']];
-                    $type_color = ($row['ticket_type'] == '1') ? '#0073e6' : (($row['ticket_type'] == '2') ? '#d93025' : '#888');
-                    $type_bg = ($row['ticket_type'] == '1') ? '#e8f2fc' : (($row['ticket_type'] == '2') ? '#fdecec' : '#eee');
-                    $ticket_type_html = '<br><span style="display:inline-block; margin-top:3px; padding: 2px 6px; font-size: 11px; border-radius: 3px; background-color: ' . $type_bg . '; color: ' . $type_color . ';">' . $type_label . '</span>';
+                    $badge_class = ($row['ticket_type'] == '1') ? 'badge bg-primary' : (($row['ticket_type'] == '2') ? 'badge bg-success' : 'badge bg-secondary');
+                    $ticket_type_html = '<br><span class="' . $badge_class . '">' . $type_label . '</span>';
                 }
 
                 $html .= '<tr class="' . $bg_class . '" >';
@@ -273,7 +272,8 @@ class Viewreport_sales_revenue extends SugarView
         </tr>';
 
         $html .= '<tr class="footer-tr">
-            <td colspan="2" class="hide-mobile">&nbsp;</td>
+            <td class="hide-mobile">&nbsp;</td>
+            <td class="text-center fw-bold color-red">Tổng</td>
             <td class="text-center fw-semibold color-red total_quantity">' . format_number($total_quantity) . '</td>
             <td class="notes hide-mobile">&nbsp;</td>
             <td class="text-end fw-semibold color-red subtotal_amount hide-mobile">' . format_number($subtotal_amount) . '</td>
