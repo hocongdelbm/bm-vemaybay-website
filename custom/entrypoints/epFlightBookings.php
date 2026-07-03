@@ -2628,15 +2628,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getThamKhaoBooking') {
 		WHERE bk.deleted = 0
 		AND DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN "' . date('Y-m-d', strtotime($_POST['fdate'])) . '" AND "' . date('Y-m-d', strtotime($_POST['tdate'])) . '"
 		AND bk.created_by = "' . $_POST['user'] . '"
-		AND (
-			bk.contact_name IN ("Tham Khao")
-			OR EXISTS (
-				SELECT 1 FROM ec_flight_bookings_audit 
-				WHERE parent_id = bk.id 
-				AND field_name = "contact_name" 
-				AND before_value_string IN ("Tham Khao")
-			)
-		)
+		AND IFNULL(bk.is_reference, 0) = 1
 		ORDER BY FIELD(booking_status, 8, 7, 3, 2, 6, 1, 4), bk.date_entered DESC
 	';
 
