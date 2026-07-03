@@ -172,6 +172,7 @@ class Viewreport_sales_revenue extends SugarView
     // Thống kê doanh thu theo booking
     function bookingQuery($post_fdate, $post_tdate, $condition_arr)
     {
+        global $app_list_strings;
         $user_list = get_user_array(true, '', '', true);
 
         $i      = 0;
@@ -206,10 +207,18 @@ class Viewreport_sales_revenue extends SugarView
                     $paid_time = date('d-m-Y', $paid_time_timestp) . '<br>' . date('H:i', $paid_time_timestp);
                 } else $paid_time = '';
 
+                $ticket_type_html = '';
+                if (!empty($row['ticket_type'])) {
+                    $type_label = $app_list_strings['booking_ticket_type_list'][$row['ticket_type']];
+                    $type_color = ($row['ticket_type'] == '1') ? '#0073e6' : (($row['ticket_type'] == '2') ? '#d93025' : '#888');
+                    $type_bg = ($row['ticket_type'] == '1') ? '#e8f2fc' : (($row['ticket_type'] == '2') ? '#fdecec' : '#eee');
+                    $ticket_type_html = '<br><span style="display:inline-block; margin-top:3px; padding: 2px 6px; font-size: 11px; border-radius: 3px; background-color: ' . $type_bg . '; color: ' . $type_color . ';">' . $type_label . '</span>';
+                }
+
                 $html .= '<tr class="' . $bg_class . '" >';
                 $html .= '
                         <td class="text-center hide-mobile">' . ($i + 1) . '</td>
-                        <td class="text-center"><a target="_blank" title="Xem chi tiết" href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '">' . $row['parent_name'] . '</a></td>
+                        <td class="text-center"><a target="_blank" title="Xem chi tiết" href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '">' . $row['parent_name'] . '</a>' . $ticket_type_html . '</td>
                         <td class="text-center total_quantity">' . format_number($row['total_quantity']) . '</td>
                         <td class="text-start booking_description hide-mobile">' . $row['booking_description'] . '</td>
                         <td class="text-end hide-mobile">' . format_number($row['subtotal_amount']) . '</td>

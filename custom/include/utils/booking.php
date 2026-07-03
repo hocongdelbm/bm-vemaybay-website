@@ -1204,6 +1204,7 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
                 AND p.ngayhachtoan >= '$from_utc' AND p.ngayhachtoan <= '$to_utc'
                 AND p.deleted = 0
                 $where_receipt_voucher_only
+                $where_ticket_type
                 " . str_replace('bk.', 'p.', $sql_role) . "
                 AND IF(p.loai_thu = 10, IF(p.bought_amount IS NULL OR p.bought_amount = 0, 0, 1), 1) = 1
             GROUP BY p.id
@@ -1260,6 +1261,7 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
                 WHERE p.deleted=0
                     AND p.tinhtrang='1'
                     AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                    $where_ticket_type
                     " . $sql_role . "
                 GROUP BY p.id
 
@@ -1288,6 +1290,7 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
                 WHERE p.deleted=0
                     AND p.tinhtrang='1' 
                     AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                    $where_ticket_type
                     " . str_replace('bk', 'p', $sql_role) . "
                 GROUP BY p.id
                 HAVING SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) > 0
