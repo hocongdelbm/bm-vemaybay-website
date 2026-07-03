@@ -143,8 +143,8 @@
     </form>
 
     <ul class="bookingqtyreport-note alert alert-info text-dark fw-semibold">
-        <li>- Lọc theo <strong>ngày xuất vé</strong>, chỉ tính booking trạng thái đã thanh toán tiền <em>Xuất vé / Hoàn tất / Xác nhận</em>.</li>
-        <li>- Bấm vào tên hãng để lọc danh sách chi tiết booking bên dưới.</li>
+        <li>- Booking (BK): lọc theo <strong>ngày xuất vé</strong> (trạng thái <em>Xuất vé / Hoàn tất / Xác nhận</em>).</li>
+        <li>- Bấm vào tên hãng để lọc danh sách chi tiết bên dưới.</li>
     </ul>
 
     <table id="bkagent_tbl" class="list-data table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
@@ -153,7 +153,7 @@
             <th>Hãng</th>
             <th width="10%">SL BK</th>
             <th width="10%">SL vé</th>
-            <th width="18%">Tổng giá bán</th>
+            <th width="18%">Tổng doanh thu</th>
             <th width="18%">Tổng giá mua</th>
             <th width="18%">Tổng doanh số</th>
         </thead>
@@ -164,7 +164,6 @@
 </div>
 </div>
 
-<h2 class="change-title mt-4">Chi tiết:</h2>
 <div class="box-section box-details">
     <table id="booking_list" class="table-details__booking table-booking__list" cellpadding="0" cellspacing="0">
         <thead>
