@@ -214,6 +214,21 @@
       var lb = REPORT.labels;
 
       var isMobile = window.innerWidth < 768;
+
+      // Trên mobile: đặt min-width cho canvas wrapper để chart cuộn ngang
+      if (isMobile) {
+        var wrapper = canvas.parentElement;
+        if (wrapper) {
+          wrapper.style.overflowX = "auto";
+          wrapper.style.webkitOverflowScrolling = "touch";
+          // min-width = 120px mỗi nhóm * số quốc gia, tối thiểu 500px
+          var minW = Math.max(500, (d.labels ? d.labels.length : 3) * 160);
+          canvas.style.minWidth = minW + "px";
+          canvas.style.width = minW + "px";
+          canvas.style.height = "280px";
+        }
+      }
+
       builtCharts[key] = new Chart(canvas.getContext("2d"), {
         type: "bar",
         data: {
@@ -249,6 +264,7 @@
               backgroundColor: "rgba(26,127,55,0.8)",
               borderColor: "rgba(26,127,55,1)",
               borderWidth: 1,
+              hidden: isMobile,
             },
             {
               label: lb.p1,
@@ -267,26 +283,46 @@
           ],
         },
         options: {
-          responsive: true,
+          responsive: !isMobile,
           maintainAspectRatio: false,
-          // Chừa khoảng trống phía trên để số datalabel trên đỉnh cột cao nhất không bị cắt
-          layout: { padding: { top: 24 } },
+          layout: { padding: { top: isMobile ? 10 : 24 } },
           plugins: {
-            datalabels: {
-              anchor: "end",
-              align: "top",
-              offset: 2,
-              clamp: true,
-              formatter: Math.round,
-              font: { weight: "bold" },
+            datalabels: isMobile
+              ? { display: false }
+              : {
+                  anchor: "end",
+                  align: "top",
+                  offset: 2,
+                  clamp: true,
+                  formatter: Math.round,
+                  font: { weight: "bold" },
+                },
+            legend: {
+              position: "top",
+              labels: {
+                boxWidth: isMobile ? 10 : 40,
+                padding: isMobile ? 6 : 10,
+                font: { size: isMobile ? 11 : 12 },
+              },
             },
-            legend: { position: "top" },
           },
           scales: {
+            x: {
+              ticks: {
+                font: { size: isMobile ? 11 : 12 },
+                maxRotation: isMobile ? 0 : 0,
+              },
+            },
             y: {
               beginAtZero: true,
               grace: "12%",
-              title: { display: true, text: "BK hoàn tất" },
+              title: {
+                display: !isMobile,
+                text: "BK hoàn tất",
+              },
+              ticks: {
+                font: { size: isMobile ? 11 : 12 },
+              },
             },
           },
         },

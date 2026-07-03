@@ -55,6 +55,18 @@ canvas.report-chart {
   width: 100% !important;
   max-height: 320px !important;
 }
+/* Mobile chart: cuộn ngang, không bóp chart */
+@media (max-width: 767px) {
+  canvas.report-chart {
+    max-height: none !important;
+    width: auto !important;
+  }
+  .report-chart-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px;
+  }
+}
 .text-up {
   color: #198754;
 }
@@ -155,10 +167,20 @@ canvas.report-chart {
 
 .filter-notes {
   font-size: 1em;
-  line-height: 1.7;
+  line-height: 1.6;
+  margin: 10px 0 0 0;
+  padding: 8px 12px 8px 28px;
+  background: #e8f0fe;
+  border-radius: 6px;
+  border-left: 3px solid #1a73e8;
+  color: #333;
 }
 .filter-notes li {
   list-style: disc;
+  margin-bottom: 2px;
+}
+.filter-notes li:last-child {
+  margin-bottom: 0;
 }
 
 .filter-dates {
@@ -226,6 +248,105 @@ canvas.report-chart {
   font-weight: 700;
   color: #198754;
   white-space: nowrap;
+}
+/* Top-box: Top hành trình BK hoàn tất nhiều nhất */
+.top-box {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fefce8 100%);
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.top-box::before {
+  content: "";
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(
+    circle,
+    rgba(245, 158, 11, 0.15) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+}
+.top-box-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #92400e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.top-box-title svg {
+  color: #d97706;
+  flex-shrink: 0;
+}
+.top-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  position: relative;
+}
+.top-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.18);
+}
+.top-item--gold {
+  background: linear-gradient(135deg, #fffbeb 0%, #fff7d6 100%);
+  border-color: #f59e0b;
+  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.12);
+}
+.top-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 0.82rem;
+  background: #e5e7eb;
+  color: #374151;
+  flex-shrink: 0;
+}
+.top-item--gold .top-rank {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(217, 119, 6, 0.3);
+}
+.top-route-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+.top-route-name {
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 0.9rem;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.top-bk-count {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #92400e;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 /* Tabs */
 .report-tabs .nav-link {
@@ -295,12 +416,7 @@ canvas.report-chart {
 /* ===== Mobile ===== */
 @media (max-width: 576px) {
   .filter-section {
-    padding: 12px;
-  }
-  .filter-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
+    padding: 10px;
   }
   .filter-select-wrap,
   .filter-select-wrap .box-select {
@@ -327,12 +443,24 @@ canvas.report-chart {
     width: 100%;
   }
 
-  .mock-modal-content {
-    max-width: 94vw;
-    padding: 14px;
+  /* filter-notes: gọn gàng trên mobile */
+  .filter-notes {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    padding: 6px 10px 6px 22px;
+    margin-top: 8px;
+    border-radius: 5px;
+  }
+  .filter-notes li {
+    margin-bottom: 1px;
   }
 
-  /* Route sụt giảm mạnh: xuống dòng thay vì chèn ép "→ PQC (Phú / Quốc)" */
+  .mock-modal-content {
+    max-width: 96vw;
+    padding: 12px;
+  }
+
+  /* Route sụt giảm mạnh: xuống dòng thay vì chèn ép */
   .decline-item,
   .growth-item {
     flex-wrap: wrap;
@@ -355,6 +483,40 @@ canvas.report-chart {
     justify-content: space-between;
     padding-top: 6px;
     border-top: 1px dashed #dee2e6;
+  }
+
+  /* Top-box mobile */
+  .top-box {
+    padding: 12px;
+  }
+  .top-box-title {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+  .top-item {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  .top-route-name {
+    font-size: 0.82rem;
+  }
+  .top-bk-count {
+    font-size: 0.95rem;
+  }
+  .top-rank {
+    min-width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
+  }
+
+  /* Growth/Decline boxes mobile */
+  .growth-box,
+  .decline-box {
+    padding: 10px 12px;
+  }
+  .growth-box h5,
+  .decline-box h5 {
+    font-size: 0.88rem;
   }
 }
 

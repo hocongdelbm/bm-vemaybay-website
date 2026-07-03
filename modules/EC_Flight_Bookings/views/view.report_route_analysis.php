@@ -628,6 +628,18 @@ class Viewreport_route_analysis extends SugarView
         });
         $smartyobj->assign('GROWTH_ROUTES', array_slice($growths, 0, 9));
 
+        // ========= Top 9 hành trình có BK hoàn tất nhiều nhất (kỳ chọn) =========
+        usort($all_routes, function ($a, $b) {
+            return $b['p0_ok'] <=> $a['p0_ok'];
+        });
+        $topRoutes = [];
+        foreach ($all_routes as $r) {
+            if ($r['p0_ok'] < 1) continue;
+            $topRoutes[] = $r;
+            if (count($topRoutes) >= 9) break;
+        }
+        $smartyobj->assign('TOP_ROUTES', $topRoutes);
+
         // ========= Dữ liệu chart (JSON đóng gói cho JS ngoài) =========
         $reportJson = [
             'charts' => $chartsJson,

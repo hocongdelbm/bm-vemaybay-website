@@ -38,68 +38,103 @@
                     <input type="submit" class="btn btn-primary px-4 fw-bold" name="btnSearch" id="btnSearch" value="Xem báo cáo" title="Xem báo cáo" />
                 </div>
             </div>
-            <ul class="filter-notes">
-                <li><b>BK hoàn tất</b> = booking ở trạng thái <b>Xác nhận / Xuất vé / Hoàn tất</b>.</li>
-                <li>Khoảng thời gian lọc theo <b>ngày tạo booking</b>.</li>
-            </ul>
         </form>
+        <ul class="filter-notes">
+            <li><b>BK hoàn tất</b> = booking ở trạng thái <b>Xác nhận / Xuất vé / Hoàn tất</b>.</li>
+            <li>Khoảng thời gian lọc theo <b>ngày tạo booking</b>.</li>
+        </ul>
     </div>
 
-    {* ===== Route tăng mạnh nhất (Kỳ Chọn vs Kỳ Trước, BK hoàn tất) ===== *}
-    {if $GROWTH_ROUTES}
-    <div class="growth-box">
-        <h5 class="text-success fw-semibold fs-6 d-flex align-items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M0 0h1v15h15v1H0zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5"/></svg> Hành trình tăng mạnh nhất (BK hoàn tất, {$P0_LABEL} vs {$P1_LABEL})</h5>
-        <div class="row g-2">
-            {foreach from=$GROWTH_ROUTES item=gr}
-            <div class="col-md-6 col-lg-4">
-                <div class="growth-item">
-                    <img src="https://flagcdn.com/w20/{$gr.cc|lower}.png" alt="{$gr.cc}" class="shadow-sm border">
-                    <span class="growth-route">{$gr.dep} → {$gr.arr}</span>
-                    <span class="ms-auto">
-                        <span class="text-dark fw-semibold">{$gr.p1_ok} → {$gr.p0_ok}</span>
-                        <span class="growth-pct">↑ {$gr.pct_str}</span>
-                    </span>
-                </div>
-            </div>
-            {/foreach}
-        </div>
-    </div>
-    {/if}
-
-    {* ===== Cảnh báo: Route giảm mạnh nhất (Kỳ Chọn vs Kỳ Trước, BK hoàn tất) ===== *}
-    {if $DECLINE_ROUTES}
-    <div class="decline-box">
-        <h5 class="text-danger fw-semibold fs-6 d-flex align-items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/><path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/></svg> Hành trình sụt giảm mạnh nhất (BK hoàn tất, {$P0_LABEL} vs {$P1_LABEL})</h5>
-        <div class="row g-2">
-            {foreach from=$DECLINE_ROUTES item=dr}
-            <div class="col-md-6 col-lg-4">
-                <div class="decline-item">
-                    <img src="https://flagcdn.com/w20/{$dr.cc|lower}.png" alt="{$dr.cc}" class="shadow-sm border">
-                    <span class="decline-route">{$dr.dep} → {$dr.arr}</span>
-                    <span class="ms-auto">
-                        <span class="text-dark">{$dr.p1_ok} → {$dr.p0_ok}</span>
-                        <span class="decline-pct">↓ {$dr.pct_str}</span>
-                    </span>
-                </div>
-            </div>
-            {/foreach}
-        </div>
-    </div>
-    {/if}
-
-    {* ===== Tabs Quốc tế / Nội địa ===== *}
+    {* ===== Tabs Tổng quan / Quốc tế / Nội địa ===== *}
     <ul class="nav nav-tabs report-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link report-tab-link active" data-tab="overview">
+                Tổng quan
+            </a>
+        </li>
         {foreach from=$GROUPS key=gkey item=grp name=navloop}
         <li class="nav-item">
-            <a class="nav-link report-tab-link {if $smarty.foreach.navloop.first}active{/if}" data-tab="{$gkey}">
+            <a class="nav-link report-tab-link" data-tab="{$gkey}">
                 {$grp.title} <span class="badge bg-primary badge-count ms-2">{$grp.count}</span>
             </a>
         </li>
         {/foreach}
     </ul>
 
+    {* ===== Tab pane: Tổng quan ===== *}
+    <div class="report-tab-pane" id="tab-pane-overview">
+
+        {* ===== Top 9 hành trình có BK hoàn tất nhiều nhất (kỳ chọn) ===== *}
+        {if $TOP_ROUTES}
+        <div class="top-box">
+            <h5 class="top-box-title"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5q0 .807-.034 1.536a3 3 0 1 1-2.026 5.091 7 7 0 0 1-.853.9A7 7 0 0 1 8 9.967a7 7 0 0 1-2.587-1.94 7 7 0 0 1-.853-.9A3 3 0 1 1 2.534 2.036Q2.5 1.307 2.5.5m1.068.534a7 7 0 0 0-.574 3.14A3 3 0 0 1 5.174 5.4a7 7 0 0 1-.782-1.09c-.2-.345-.371-.7-.512-1.063A3 3 0 0 0 3.568 1.034M8 14.41c1.474-1.097 3.5-3.396 3.5-6.41C11.5 4.865 10.05 2.5 8 2.5S4.5 4.865 4.5 8c0 3.014 2.026 5.313 3.5 6.41m-.96-8.987A3 3 0 0 0 4.537 4.18a7 7 0 0 0-.512 1.063 7 7 0 0 1-.782 1.09A3 3 0 0 1 5.42 4.17a7 7 0 0 1 1.62-1.747M8 12.5a.5.5 0 0 1-.5-.5V9a.5.5 0 0 1 1 0v3a.5.5 0 0 1-.5.5"/><path d="M6.94 7.44a1.5 1.5 0 1 1 2.12 2.12 1.5 1.5 0 0 1-2.12-2.12"/></svg> Top hành trình có BK hoàn tất nhiều nhất ({$P0_LABEL})</h5>
+            <div class="row g-2">
+                {foreach from=$TOP_ROUTES item=tr name=topLoop}
+                <div class="col-md-6 col-lg-4">
+                    <div class="top-item {if $smarty.foreach.topLoop.iteration <= 3}top-item--gold{/if}">
+                        <span class="top-rank">{$smarty.foreach.topLoop.iteration}</span>
+                        <img src="https://flagcdn.com/w20/{$tr.cc|lower}.png" alt="{$tr.cc}" class="shadow-sm border">
+                        <div class="top-route-info">
+                            <span class="top-route-name">{$tr.dep} → {$tr.arr}</span>
+                        </div>
+                        <span class="top-bk-count">{$tr.p0_ok}</span>
+                    </div>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+        {/if}
+
+        {* ===== Route tăng mạnh nhất (Kỳ Chọn vs Kỳ Trước, BK hoàn tất) ===== *}
+        {if $GROWTH_ROUTES}
+        <div class="growth-box">
+            <h5 class="text-success fw-semibold fs-6 d-flex align-items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M0 0h1v15h15v1H0zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5"/></svg> Hành trình tăng mạnh nhất (BK hoàn tất, {$P0_LABEL} vs {$P1_LABEL})</h5>
+            <div class="row g-2">
+                {foreach from=$GROWTH_ROUTES item=gr}
+                <div class="col-md-6 col-lg-4">
+                    <div class="growth-item">
+                        <img src="https://flagcdn.com/w20/{$gr.cc|lower}.png" alt="{$gr.cc}" class="shadow-sm border">
+                        <span class="growth-route">{$gr.dep} → {$gr.arr}</span>
+                        <span class="ms-auto">
+                            <span class="text-dark fw-semibold">{$gr.p1_ok} → {$gr.p0_ok}</span>
+                            <span class="growth-pct">↑ {$gr.pct_str}</span>
+                        </span>
+                    </div>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+        {/if}
+
+        {* ===== Cảnh báo: Route giảm mạnh nhất (Kỳ Chọn vs Kỳ Trước, BK hoàn tất) ===== *}
+        {if $DECLINE_ROUTES}
+        <div class="decline-box">
+            <h5 class="text-danger fw-semibold fs-6 d-flex align-items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/><path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/></svg> Hành trình sụt giảm mạnh nhất (BK hoàn tất, {$P0_LABEL} vs {$P1_LABEL})</h5>
+            <div class="row g-2">
+                {foreach from=$DECLINE_ROUTES item=dr}
+                <div class="col-md-6 col-lg-4">
+                    <div class="decline-item">
+                        <img src="https://flagcdn.com/w20/{$dr.cc|lower}.png" alt="{$dr.cc}" class="shadow-sm border">
+                        <span class="decline-route">{$dr.dep} → {$dr.arr}</span>
+                        <span class="ms-auto">
+                            <span class="text-dark">{$dr.p1_ok} → {$dr.p0_ok}</span>
+                            <span class="decline-pct">↓ {$dr.pct_str}</span>
+                        </span>
+                    </div>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+        {/if}
+
+        {if !$TOP_ROUTES && !$GROWTH_ROUTES && !$DECLINE_ROUTES}
+        <div class="text-center text-muted p-4">Không có dữ liệu tổng quan trong kỳ đã chọn.</div>
+        {/if}
+    </div>
+
+    {* ===== Tab panes: Quốc tế / Nội địa ===== *}
     {foreach from=$GROUPS key=gkey item=grp name=paneloop}
-    <div class="report-tab-pane" id="tab-pane-{$gkey}" {if !$smarty.foreach.paneloop.first}style="display:none;"{/if}>
+    <div class="report-tab-pane" id="tab-pane-{$gkey}" style="display:none;">
 
         <div class="w-100 mb-4 bg-white p-3 border rounded">
             <canvas id="chartjs__report_{$gkey}" class="report-chart mx-auto"></canvas>

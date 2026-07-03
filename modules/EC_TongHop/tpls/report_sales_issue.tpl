@@ -126,7 +126,7 @@
                 <th width="5%" style="background-color: #068FFF; color: #fff" title="Số lượng BK 4-6 vé hoàn tất theo ngày xuất vé">BK 4-6 vé</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff" title="Số lượng BK quốc tế hoàn tất theo ngày xuất vé">BK <br> Quốc tế</th>
                 <th width="8%" style="background-color: #068FFF; color: #fff" title="Số lượng BK tham khảo hoàn tất / Tổng số lượng BK tham khảo">BK Tham khảo</th>
-                <th width="8%" style="background-color: #068FFF; color: #fff" title="BK hoàn tất / Gọi đến tạo BK / Tổng cuộc gọi đến. VD: 3 / 4 / 5 = có 5 cuộc gọi đến, 4 cuộc tạo BK, và 3 BK đã hoàn tất từ 4 BK đó">Cuộc gọi đến</th>
+                <th width="10%" style="background-color: #068FFF; color: #fff" title="BK hoàn tất / Gọi đến tạo BK / Tổng cuộc gọi đến. VD: 3 / 4 / 5 = có 5 cuộc gọi đến, 4 cuộc tạo BK, và 3 BK đã hoàn tất từ 4 BK đó">Cuộc gọi đến</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff">Gọi nhỡ</th>
             </tr>
         </thead>
