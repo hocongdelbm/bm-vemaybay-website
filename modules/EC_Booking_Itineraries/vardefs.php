@@ -80,14 +80,11 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'vname'     => 'LBL_DEPARTURE_DATE',
             'type'      => 'datetimecombo',
             'dbType'    => 'datetime',
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-            // 'enable_range_search' => true,
-            // 'options' => 'date_range_search_dom',
         ),
 
         'arrival_date' => array(
@@ -95,7 +92,6 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'vname'     => 'LBL_ARRIVAL_DATE',
             'type'      => 'datetimecombo',
             'dbType'    => 'datetime',
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -123,7 +119,6 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'type'      => 'id',
             'len'       => 36,
             'default'   => '',
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => 0,
@@ -142,7 +137,6 @@ $dictionary['EC_Booking_Itineraries'] = array(
         //     'vname'     => 'LBL_IS_BOOKED',
         //     'type'      => 'bool',
         //     'default'   => 0,
-
         //     'importable' => 'true',
         //     'duplicate_merge' => 'disabled',
         //     'duplicate_merge_dom_value' => ' ',
@@ -267,31 +261,32 @@ $dictionary['EC_Booking_Itineraries'] = array(
         ),
 
         'stops' => array(
-            'name'      => 'stops',
-            'vname'     => 'LBL_STOPS',
-            'type'      => 'int',
-            'default'   => 0,
-            'importable' => 'true',
+            'name'    => 'stops',
+            'vname'   => 'LBL_STOPS',
+            'type'    => 'int',
+            'dbtype'  => 'tinyint',
+            'default' => 0,
+            'audited' => 1,
+            'importable' => 1,
+            'reportable' => 0,
+            'disable_num_format' => '',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
-            'audited' => 1,
-            'reportable' => 0,
-            'disable_num_format' => '',
         ),
 
-        // Phân biệt dòng chi tiết được booker đổi ngày h bay
+        // Phân biệt dòng chi tiết được booker đổi ngày giờ bay (=2)
         'add_type' => array(
-            'required'  => false,
-            'name'      => 'add_type',
-            'vname'     => 'LBL_ADD_TYPE',
-            'type'      => 'int',
-            'default'   => 0,
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => ' ',
+            'name'    => 'add_type',
+            'vname'   => 'LBL_ADD_TYPE',
+            'type'    => 'int',
+            'dbtype'  => 'tinyint',
+            'default' => 0,
             'audited' => 1,
+            'importable' => 1,
             'reportable' => 0,
             'disable_num_format' => '',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
         ),
 
         // Phân biệt các dòng chi tiết mới được thay đổi thông tin

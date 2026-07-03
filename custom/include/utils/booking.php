@@ -1261,7 +1261,6 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
         'total_profit'  => 0,
         'total_revenue' => 0,
         'total_bought'  => 0,
-        'total_bonus'   => 0,
         'details' => []
     ];
 
@@ -1340,13 +1339,12 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
         $result['total_revenue'] += $revenue;
         $result['total_bought']  += $cost;
         $result['total_profit']  += $profit;
-        $result['total_bought']  += $total_bonus;
 
         $i++;
     }
     $result['count'] = $i;
 
-    pr(array_slice($result['details'], 0, 6));
+    pr(array_slice($result['details'], 0, 3));
     return $result;
 }
 

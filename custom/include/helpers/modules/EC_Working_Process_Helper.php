@@ -19,27 +19,26 @@ class EC_Working_Process_Helper {
 		try {
 			$user_tz = new DateTimeZone($timezone);
 		} catch (Exception $e) {
-			$GLOBALS['log']->error('Unknown user timezone: ' . $timezone);
 			$user_tz = new DateTimeZone('Asia/Ho_Chi_Minh');
 		}
+		$utc_tz = new DateTimeZone('UTC');
+		$vn_tz  = new DateTimeZone('Asia/Ho_Chi_Minh');
 
-		// Parse theo định dạng của user (fallback strtotime nếu không khớp), trả về Y-m-d
-		$parseUserDate = function ($value) use ($dateFormat, $user_tz) {
-			$value = trim((string) $value);
-			$dt = DateTime::createFromFormat($dateFormat . '|', $value, $user_tz);
-			if (!$dt instanceof DateTime) {
-				$ts = strtotime($value);
-				$dt = (new DateTime('@' . ($ts !== false ? $ts : time())))->setTimezone($user_tz);
-			}
-			return $dt->format('Y-m-d');
-		};
+		// $from_date_value / $to_date_value đã đúng định dạng của user, chỉ cần parse theo múi giờ user
+		$from_dt = DateTime::createFromFormat($dateFormat . '|', trim((string) $from_date_value), $user_tz) ?: new DateTime('now', $user_tz);
+		$to_dt   = DateTime::createFromFormat($dateFormat . '|', trim((string) $to_date_value), $user_tz) ?: new DateTime('now', $user_tz);
 
-		$from_db = $parseUserDate($from_date_value);
-		$to_db   = $parseUserDate($to_date_value);
+        // Đầu/cuối ngày theo múi giờ user, đổi sang UTC cho cột DATETIME: date_entered
+		$from_utc_datetime_db = (clone $from_dt)->setTime(0, 0, 0)->setTimezone($utc_tz)->format('Y-m-d H:i:s');
+		$to_utc_datetime_db   = (clone $to_dt)->setTime(23, 59, 59)->setTimezone($utc_tz)->format('Y-m-d H:i:s');
+
+		// Ngày (Y-m-d) theo giờ Việt Nam cho cột DATE: date_ticket_issue (lưu theo ngày VN)
+		$from_vn_date_db = (clone $from_dt)->setTime(0, 0, 0)->setTimezone($vn_tz)->format('Y-m-d');
+		$to_vn_date_db   = (clone $to_dt)->setTime(23, 59, 59)->setTimezone($vn_tz)->format('Y-m-d');
 
 		// Điều kiện lọc theo ngày
-		$sql_search  = " AND b.date_ticket_issue >= '{$from_db}' AND b.date_ticket_issue <= '{$to_db}' ";
-		$sql_search2 = " AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) >= '{$from_db}' AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) <= '{$to_db}' ";
+		$sql_search  = " AND b.date_ticket_issue >= '{$from_vn_date_db}' AND b.date_ticket_issue <= '{$to_vn_date_db}' ";
+		$sql_search2 = " AND w.date_entered >= '{$from_utc_datetime_db}' AND w.date_entered <= '{$to_utc_datetime_db}' ";
 
 		// Phân quyền dữ liệu: báo cáo cá nhân thì chỉ lấy của user hiện tại
 		if (!$is_admin_view) {
@@ -183,5 +182,93 @@ class EC_Working_Process_Helper {
                 FROM ec_working_process w
                 WHERE w.deleted=0 $sql_search2
             ) AS t";
+	}
+
+	/**
+	 * Lấy KPI theo danh sách booking, không phụ thuộc khoảng ngày.
+	 *
+	 * @param array $booking_ids Danh sách id của EC_Flight_Bookings
+	 * @return array [
+	 *   'total_kpi' => tổng KPI của tất cả user,
+	 *   'users'     => map assigned_user_id => tổng total_kpi của user đó,
+	 *   'bookings'  => map booking_id => [assigned_user_id => row KPI (called, completed, ..., total_kpi)]
+	 * ]
+	 */
+	public static function get_kpi_by_bookings(array $booking_ids) {
+		global $db;
+
+		$kpi = [
+			'total_kpi' => 0,
+			'users'     => [],
+			'bookings'  => [],
+		];
+		if (empty($booking_ids)) {
+			return $kpi;
+		}
+
+		$quoted = array_map(function ($id) use ($db) {
+			return "'" . $db->quote($id) . "'";
+		}, $booking_ids);
+		$in_clause = implode(',', $quoted);
+
+		$sql =
+            "SELECT w.parent_id AS booking_id
+                ,w.assigned_user_id
+                ,SUM(IFNULL(w.called,0)) AS called
+                ,SUM(IFNULL(w.completed,0)) AS completed
+                ,SUM(IFNULL(w.paid,0)) AS paid
+                ,SUM(IFNULL(w.recheck,0)) AS recheck
+                ,SUM(IFNULL(w.support,0)) AS support
+                ,SUM(IFNULL(w.invoice_issued,0) * 3) AS invoice_issued
+                ,SUM(IFNULL(w.ticket_delivery,0)) AS ticket_delivery
+                ,SUM(IFNULL(w.checkin_journey,0)) AS checkin_journey
+                ,SUM(IFNULL(w.recall,0)) AS recall
+                ,SUM(IFNULL(w.remind,0)) AS remind
+                ,SUM(IFNULL(w.check_debt,0)) AS check_debt
+                ,SUM(IFNULL(w.create_repaid,0)) AS create_repaid
+                ,SUM(IFNULL(w.process_repaid,0)) AS process_repaid
+                ,SUM(IFNULL(w.create_payment,0)) AS create_payment
+                ,SUM(IFNULL(w.create_receipt,0)) AS create_receipt
+                ,SUM(IFNULL(w.create_transfer,0)) AS create_transfer
+                ,SUM(IFNULL(w.invoice_input_issued,0)) AS invoice_input_issued
+                ,SUM(
+                    IFNULL(w.called,0)
+                    + IFNULL(w.completed,0)
+                    + IFNULL(w.paid,0)
+                    + IFNULL(w.recheck,0)
+                    + IFNULL(w.support,0)
+                    + (IFNULL(w.invoice_issued,0) * 3)
+                    + IFNULL(w.ticket_delivery,0)
+                    + IFNULL(w.checkin_journey,0)
+                    + IFNULL(w.recall,0)
+                    + IFNULL(w.remind,0)
+                    + IFNULL(w.check_debt,0)
+                    + IFNULL(w.create_repaid,0)
+                    + IFNULL(w.process_repaid,0)
+                    + IFNULL(w.create_payment,0)
+                    + IFNULL(w.create_receipt,0)
+                    + IFNULL(w.create_transfer,0)
+                    + IFNULL(w.invoice_input_issued,0)
+                ) AS total_kpi
+            FROM ec_working_process w
+            WHERE w.deleted = 0
+                AND w.parent_type = 'EC_Flight_Bookings'
+                AND w.parent_id IN ($in_clause)
+            GROUP BY w.parent_id, w.assigned_user_id";
+
+		$res = $db->query($sql);
+		while ($row = $db->fetchByAssoc($res)) {
+			$uid = $row['assigned_user_id'];
+
+			$kpi['bookings'][$row['booking_id']][$uid] = $row;
+
+			if (!isset($kpi['users'][$uid])) {
+				$kpi['users'][$uid] = 0;
+			}
+			$kpi['users'][$uid] += (int)$row['total_kpi'];
+			$kpi['total_kpi']   += (int)$row['total_kpi'];
+		}
+
+		return $kpi;
 	}
 }

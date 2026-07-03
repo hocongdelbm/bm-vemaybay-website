@@ -37,7 +37,6 @@ $mod_strings = array(
   'LBL_ACTIVITIES_SUBPANEL_TITLE' => 'Hoạt động',
   'LBL_EC_FLIGHT_BOOKINGS_SUBPANEL_TITLE' => 'Booking',
   'LBL_NEW_FORM_TITLE' => 'Mới Booking',
-
   'LBL_PANEL1' => 'Chi tiết đặt vé',
   'LBL_PANEL2' => 'Giá',
   'LBL_PANEL3' => 'Thông tin hóa đơn',
@@ -50,18 +49,14 @@ $mod_strings = array(
   'LBL_PANEL14' => 'Giá',
   'LBL_PANEL15' => 'Thông tin hóa đơn',
   'LBL_PANEL16' => 'Thông tin booking',
-
   'LBL_PANEL_BANK' => 'Chuyển khoản',
   'LBL_JOURNEY' => 'Hành trình',
-
   'LBL_BOOKING_CONTENT_OUTBOUND'  => 'Nội dung vé chiều đi',
   'LBL_BOOKING_CONTENT_INBOUND'   => 'Nội dung vé chiều về',
   'LBL_ISSUED_CONTENT_OUTBOUND'   => 'ND phát hành chiều đi',
   'LBL_ISSUED_CONTENT_INBOUND'    => 'ND phát hành chiều về',
   'LBL_RULE_CONTENT_OUTBOUND'     => 'ND quy định chiều đi',
   'LBL_RULE_CONTENT_INBOUND'      => 'ND quy định chiều về',
-
-
   'LBL_AIRLINE' => 'Hãng bay',
   'LBL_HOLDING_STATUS' => 'Quá trình xử lý',
   'LBL_PAYMENT_TYPE' => 'Thanh toán',
@@ -71,12 +66,9 @@ $mod_strings = array(
   'LBL_TAX_CODE' => 'Mã số thuế',
   'LBL_COMPANY_ADDRESS' => 'Địa chỉ',
   'LBL_SHIPPING_ADDRESS' => 'Địa chỉ nhận hóa đơn',
-
   'LBL_CURRENT_USER_FILTER' => 'Giao cho tôi',
   'LBL_ASSIGNED_TO' => 'Giao cho',
   'LBL_BOOKING_STATUS' => 'Tình trạng',
-  // 'LBL_ORDER_DATE' => 'Ngày đặt',
-
   'LBL_PASSENGER_SEARCH'        => 'Tên hành khách',
   'LBL_ITINERARY_SEARCH'        => 'Hành trình',
   'LBL_TICKET_CLASS_SEARCH'     => 'Hạng vé',
@@ -87,7 +79,6 @@ $mod_strings = array(
   'LBL_PNR_INBOUND_SEARCH'      => 'PNR về',
   'LBL_ELUGGAGE_OUTBOUND_SEARCH' => 'Số vé HL đi',
   'LBL_ELUGGAGE_INBOUND_SEARCH'  => 'Số vé HL về',
-
   'LBL_SENDMAIL_CONFIRM_DATE' => 'Ngày gửi mail xác nhận',
   'LBL_SENDMAIL_ETICKET_DATE' => 'Gửi vé qua mail',
   'LBL_DATE_TICKET_ISSUE' => 'Ngày xuất vé',
@@ -97,7 +88,6 @@ $mod_strings = array(
   'LBL_CURRENCY_RATE' => 'Tỉ giá',
   'LBL_CURRENCY_NOTE' => 'Nguồn tỉ giá',
   'LBL_THUEPHI_QUOCTE' => 'Thuế phí QT',
-
   'LBL_TOTAL_QTY' => 'SL',
   'LBL_TOTAL_BOUGHT_PRICE' => 'Tổng giá mua',
   'LBL_IS_MAIL_CONFIRM' => 'Đã gửi mail',
@@ -116,7 +106,6 @@ $mod_strings = array(
   'LBL_LINE_PASSENGERS_LUGGAGE_EXTRA' => 'Hành lý',
   'LBL_LINE_PASSENGERS_NAME_EXTRA' => 'Đổi tên liên hệ',
   'LBL_DEPARTURE_DATE' => 'Ngày giờ bay',
-
   'LBL_ASSIGNED_TO_2ND_ID' => 'Người duyệt',
   'LBL_ASSIGNED_TO_2ND_NAME' => 'Người duyệt',
   'LBL_STATUS' => 'Tình trạng',
@@ -246,7 +235,6 @@ $mod_strings = array(
   'LBL_IS_INVOICE_INPUT_EXPORT' => 'Hóa đơn đầu vào',
   'LBL_INVOICE' => 'Hóa đơn',
   'LBL_IS_TICKET_EXPORTED_OUTBOUND' => 'Đã xuất vé lượt về',
-
   'LBL_VOUCHER' => 'Voucher',
   'LBL_HAS_VOUCHER' => 'Có Voucher',
   'LBL_INFO_PAYMENT' => 'Thông tin thanh toán',
@@ -256,14 +244,12 @@ $mod_strings = array(
   'LBL_AGENT_NAME' => 'Tên đại lý',
   'LBL_SMS_INBOUND' => 'Hộp thư đi',
   'LBL_SMS_OUTBOUND' => 'Hộp thư đến',
-
   'LBL_IV_ACCOUNT_NAME' => 'Họ tên KH',
   'LBL_IV_EMAIL' => 'Email',
   'LBL_IV_IDENTITY_NUMBER' => 'CCCD/Hộ chiếu',
   'LBL_IV_BANK_ACCOUNT' => 'Số tài khoản',
   'LBL_IV_PAYMENT_METHOD' => 'Phương thức TT',
   'LBL_IV_NAME_BANKS' => 'Tên ngân hàng',
-
   'LBL_LINE_ITINERARIES'  => 'Hành trình',
   'LBL_LINE_DETAILS'      => 'Chi tiết',
   'LBL_LINE_PASSENGERS'   => 'Hành khách',
@@ -274,11 +260,9 @@ $mod_strings = array(
   'LBL_PANEL_PASSENGER'   => 'Hành khách',
   'LBL_BOOKINGS_PANEL' => 'Thông tin booking',
   'LBL_RELATE_PANEL' => 'Chứng từ liên quan',
-
   // IN VÉ
   'LBL_PRINT_AS_PDF' => 'In vé',
   'LBL_PASSENGER_LT_FILTER' => 'Lý thông',
-
   'LBL_CHECKIN_STATUS' => 'Trạng thái checkin',
   'LBL_RECALL_C' => 'Recall',
   'LBL_EMAIL_RESERVATION' => 'Email đặt chỗ',
@@ -292,4 +276,5 @@ $mod_strings = array(
   'LBL_TRANSACTION_HISTORY' => 'Lịch sử thanh toán',
   'LBL_PAYMENT' => 'Thanh toán',
   'LBL_ZALO' => 'Thông tin Zalo',
+  'LNK_BONUS' => 'Thưởng doanh số',
 );

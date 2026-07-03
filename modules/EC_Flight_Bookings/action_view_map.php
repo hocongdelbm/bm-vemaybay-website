@@ -15,6 +15,7 @@ $action_view_map['sendconfirm']         = 'sendconfirm';
 $action_view_map['recoveryorder']       = 'recoveryorder';
 $action_view_map['airportstatistics']   = 'airportstatistics';
 $action_view_map['bksalereport']        = 'bksalereport';
+$action_view_map['bonusreport']         = 'bonusreport';
 $action_view_map['recheckbk']           = 'recheckbk';
 $action_view_map['assignbk']            = 'assignbk';
 $action_view_map['bkagent']             = 'bkagent';
