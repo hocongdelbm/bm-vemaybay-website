@@ -2179,8 +2179,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 			<table class="detail_bk_tbl table-details__booking table-get_detail_call mb-3" cellspacing="0" cellpadding="0">
 				<thead>
 					<th width="5%">#</th>
-					<th width="10%">Mã cuộc gọi</th>
-					<th width="10%">Trạng thái</th>
+					<th width="12%">Mã cuộc gọi</th>
 					<th width="10%">Gọi từ</th>
 					<th width="10%">Gọi đến</th>
 					<th width="10%" class="hide-mobile">Thời gian</th>
@@ -2190,6 +2189,9 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 					<th class="hide-mobile">Ghi chú</th>
 				</thead>
 		';
+
+	// Màu trạng thái cuộc gọi (call_status_dom không có bảng màu riêng)
+	$call_status_colors = ['new' => '#6c757d', 'processing' => '#CF822E', 'done' => '#26A86A'];
 
 	$from_date = $_POST['fdate'];
 	$to_date = $_POST['tdate'];
@@ -2235,13 +2237,22 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 		$booking->retrieve($row['booking_id']);
 		$booking_name = $booking->name;
 
+		// Trạng thái cuộc gọi + trạng thái booking (kèm màu) để hiển thị dưới mã tương ứng
+		$call_stt_txt = $app_list_strings['call_status_dom'][$row['status']] ?? $row['status'];
+		$call_stt_color = $call_status_colors[$row['status']] ?? '#6c757d';
+		$call_stt_html = $call_stt_txt !== '' ? '<div class="fw-semibold" style="color:' . $call_stt_color . ';font-size:12px;">' . $call_stt_txt . '</div>' : '';
+
+		$bk_stt = $booking->booking_status;
+		$bk_stt_txt = $bk_stt !== '' ? ($app_list_strings['booking_status_list'][$bk_stt] ?? '') : '';
+		$bk_stt_color = $app_list_strings['booking_status_color_list'][$bk_stt] ?? '#000000';
+		$bk_stt_html = ($row['booking_id'] && $bk_stt_txt !== '') ? '<div class="fw-semibold" style="color:' . $bk_stt_color . ';font-size:12px;">' . $bk_stt_txt . '</div>' : '';
+
 		$html .= '
 				<tr>
 					<td class="text-center fw-semibold">' . ($i + 1) . '</td>
 					<td class="text-center">
-						<a href="index.php?module=Calls&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a>
+						<a href="index.php?module=Calls&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a>' . $call_stt_html . '
 					</td>
-					<td class="text-center hide-mobile">' . $app_list_strings['call_status_dom'][$row['status']] . '</td>
 					<td class="text-center">' . $row['call_from'] . '</td>
 					<td class="text-center">' . $row['call_to'] . '</td>
 					<td class="text-center">' . $row['date_start'] . '</td>
@@ -2250,7 +2261,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 						' . $row['call_sources'] . '
 					</td>
 					<td class="text-center hide-mobile">
-						<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">' . $booking_name . '</a>
+						<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">' . $booking_name . '</a>' . $bk_stt_html . '
 					</td>
 					<td class="text-start text-warp hide-mobile">
 						' . $row['description'] . '

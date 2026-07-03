@@ -709,6 +709,7 @@ $dictionary['Call'] = array(
         array('name' => 'idx_calls_assigned_del','type' => 'index','fields' => array('assigned_user_id', 'deleted')),
         array('name' => 'idx_calls_par_del','type' => 'index','fields' => array('parent_id', 'parent_type', 'deleted')),
         array('name' => 'idx_calls_direction', 'type' => 'index', 'fields' => array('direction')),
+        array('name' => 'idx_calls_dateen', 'type' => 'index', 'fields' => array('deleted', 'date_entered')),
     ),
     'relationships' => array(
         'calls_assigned_user' => array(
