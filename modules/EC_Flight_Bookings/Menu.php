@@ -43,10 +43,19 @@ if ($listRights) {
 
 		$module_menu[] = [
 			"index.php?module=EC_Flight_Bookings&action=bkagent&return_module=EC_Flight_Bookings&return_action=bkagent",
-			"Thống kê vé",
+			"Thống kê vé theo hãng",
 			"bkagent",
 			'EC_Flight_Bookings'
 		];
+
+		if ($current_user->user_name = 'hungnh') {
+			$module_menu[] = [
+				"index.php?module=EC_Flight_Bookings&action=bksupplier&return_module=EC_Flight_Bookings&return_action=bksupplier",
+				"Thống kê vé theo NCC",
+				"bkagent",
+				'EC_Flight_Bookings'
+			];
+		}
 
 		if (ACLController::checkAccess('Bugs', 'edit', true)) {
 			$module_menu[] = [

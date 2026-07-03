@@ -18,6 +18,7 @@ $action_view_map['bksalereport']        = 'bksalereport';
 $action_view_map['recheckbk']           = 'recheckbk';
 $action_view_map['assignbk']            = 'assignbk';
 $action_view_map['bkagent']             = 'bkagent';
+$action_view_map['bksupplier']             = 'bksupplier';
 $action_view_map['issueticket']         = 'issueticket';
 $action_view_map['updateflightfare']    = 'updateflightfare';
 $action_view_map['clientphonetcb']      = 'clientphonetcb';

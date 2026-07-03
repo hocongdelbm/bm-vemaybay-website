@@ -29,54 +29,44 @@
                 }
             });
 
-            // Filter bookings by airline
+            // ===== Bấm 1 NCC để xem chi tiết theo hãng =====
+            $('#supplier_summary_list').on('click', '.supplier-row', function() {
+                let selectedSupplier = $(this).attr('data-supplier');
 
-            $('.airline-row').on('click', function() {
-                let selectedAirline = $(this).attr('data-airline');
-                
-                // Highlight selected row
-                $('.airline-row').removeClass('bg-warning');
+                // highlight dòng đang chọn
+                $('#supplier_summary_list .supplier-row').removeClass('bg-warning');
                 $(this).addClass('bg-warning');
 
-                let totalQty = 0;
-                let totalAmount = 0;
                 let visibleIndex = 1;
-
-                $('.booking-row').each(function() {
-                    let rowAirline = $(this).attr('data-airline');
-                    
-                    // Treat N/A or empty as the same if we filter for Khác (N/A)
-                    if (selectedAirline === 'ALL' || rowAirline === selectedAirline || (selectedAirline === 'N/A' && !rowAirline)) {
+                $('#supplier_detail_list .supplier-detail-row').each(function() {
+                    if ($(this).attr('data-supplier') === selectedSupplier) {
                         $(this).show();
-                        $(this).find('.stt-cell').text(visibleIndex++);
-                        totalQty += parseFloat($(this).attr('data-qty') || 0);
-                        totalAmount += parseFloat($(this).attr('data-amount') || 0);
+                        $(this).find('.detail-stt').text(visibleIndex++);
                     } else {
                         $(this).hide();
                     }
                 });
 
-                // Update totals
-                $('#total_filtered_ticket_qty').text(formatNumber(totalQty));
-                $('#total_filtered_amount').text(formatNumber(totalAmount));
+                let label = $(this).find('td').eq(1).text().trim();
+                $('#supplier_detail_title').text('Chi tiết theo hãng: ' + label);
             });
         });
     </script>
 {/literal}
-<h1 class="title">Thống kê vé theo hãng</h1>
+<h1 class="title">Thống kê vé theo Nhà cung cấp</h1>
 
 <div class="box-section">
-<div id="bkagent_report">
+<div id="bksupplier_report">
     <form action="index.php" method="post" name="frmSearch" id="frmSearch">
         <input type="hidden" name="module" value="EC_Flight_Bookings" />
-        <input type="hidden" name="action" value="bkagent" />
-        <div class="d-flex align-items-center gap-2">
+        <input type="hidden" name="action" value="bksupplier" />
+        <div class="d-flex align-items-center gap-2 flex-wrap">
             <select class="box-select" id="date_select" name="date_select">
                 {$REPORT_TERM_LIST}
             </select>
             <div class="from-to-date--wrap d-inline-flex gap-2 align-items-center">
                 <div class="d-flex gap-2 align-items-center fdate_trigger--wrap">
-                    <span class="text-label">Từ ngày: </span>    
+                    <span class="text-label">Từ ngày: </span>
                     <div class="dateTime d-flex gap-2 position-relative">
                     <input class="date_input box-input" type="text" maxlength="10" size="8" tabindex="103" title="" value="{$FROM_DATE_VALUE}" id="from_date" name="from_date" autocomplete="off">
                     <button class="icon_dateTime" type="button" id="fdate_trigger" onclick="return false;">
@@ -85,22 +75,9 @@
                             <path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"/>
                             </svg>
                     </button>
-                    {literal}
-                        <script type="text/javascript">
-                            Calendar.setup({
-                                    inputField: "from_date",
-                                    daFormat: "%d-%m-%Y",
-                                    button: "from_date_trigger",
-                                    singleClick: true,
-                                    dateStr: "",
-                                    step: 1
-                                    }
-                            );
-                        </script>
-                    {/literal}
                     </div>
                 </div>
-        
+
                 <svg width="40" height="20" fill="none">
                     <g clip-path="url(#icon_arrow_flight_long_svg__clip0)" stroke="#718096" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M33.5 8.5L36 11M4 11h32"></path>
@@ -111,7 +88,7 @@
                     </clipPath>
                     </defs>
                 </svg>
-        
+
                 <div class="d-flex gap-2 align-items-center tdate_trigger--wrap">
                     <div class="dateTime d-flex gap-2 position-relative">
                     <input  class="date_input box-input" type="text" maxlength="10" size="8" title="" value="{$TO_DATE_VALUE}" id="to_date" name="to_date" autocomplete="off">
@@ -121,63 +98,60 @@
                             <path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"/>
                             </svg>
                     </button>
-                    {literal}
-                        <script type="text/javascript">
-                            Calendar.setup({
-                                    inputField: "to_date",
-                                    daFormat: "%d-%m-%Y",
-                                    button: "to_date_trigger",
-                                    singleClick: true,
-                                    dateStr: "",
-                                    step: 2
-                                    }
-                            );
-                        </script>
-                    {/literal}
                     </div>
                 </div>
-        
-                <input type="submit" id="btnView" name="btnView" class="btn btn-primary" value="Xem" title="Xem" />
             </div>
+
+            <div class="d-flex gap-2 align-items-center">
+                <span class="text-label">NCC: </span>
+                <select class="box-select" id="supplier_id" name="supplier_id">
+                    {$SUPPLIER_OPTIONS}
+                </select>
+            </div>
+
+            <input type="submit" id="btnView" name="btnView" class="btn btn-primary" value="Xem" title="Xem" />
         </div>
     </form>
 
     <ul class="bookingqtyreport-note alert alert-info text-dark fw-semibold">
-        <li>- Lọc theo <strong>ngày xuất vé</strong>, chỉ tính booking trạng thái đã thanh toán tiền <em>Xuất vé / Hoàn tất / Xác nhận</em>.</li>
-        <li>- Bấm vào tên hãng để lọc danh sách chi tiết booking bên dưới.</li>
+        <li>- Số liệu lấy theo mô hình <strong>công nợ phải trả NCC</strong>: tiền lấy trực tiếp từ dòng vé (<em>ec_booking_details</em>), trọng tâm <strong>Tổng giá mua</strong> = <em>total_bought_price</em>.</li>
+        <li>- Ghi nhận theo <strong>ngày xuất vé của từng chặng</strong> (chặng đi: <em>date_ticket_issue</em>, chặng về: <em>date_ticket_inbound_issue</em>).</li>
+        <li>- Chỉ tính booking <em>Hoàn tất / Xác nhận</em> đã xuất vé. Bấm vào một NCC để xem tách theo từng hãng bay.</li>
     </ul>
 
-    <table id="bkagent_tbl" class="list-data table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
+    <table id="supplier_summary_list" class="list-data table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
         <thead>
             <th width="5%">STT</th>
-            <th>Hãng</th>
+            <th width="25%">NCC</th>
             <th width="10%">SL BK</th>
             <th width="10%">SL vé</th>
-            <th width="18%">Tổng giá bán</th>
-            <th width="18%">Tổng giá mua</th>
-            <th width="18%">Tổng doanh số</th>
+            <th width="12%">Chiết khấu</th>
+            <th width="12%">Phí xuất vé</th>
+            <th width="13%">Tổng giá bán</th>
+            <th width="13%">Tổng giá mua</th>
         </thead>
         <tbody>
-            {$AGENT_LIST_TBL}
+            {$SUPPLIER_SUMMARY_TBL}
         </tbody>
     </table>
 </div>
 </div>
 
-<h2 class="change-title mt-4">Chi tiết:</h2>
+<h2 class="change-title mt-4" id="supplier_detail_title">Chi tiết theo hãng:</h2>
 <div class="box-section box-details">
-    <table id="booking_list" class="table-details__booking table-booking__list" cellpadding="0" cellspacing="0">
+    <table id="supplier_detail_list" class="table-details__booking table-booking__list" cellpadding="0" cellspacing="0">
         <thead>
             <th width="5%">STT</th>
-            <th width="25%">Booking</th>
+            <th width="25%">NCC</th>
             <th width="20%">Hãng bay</th>
-            <th width="15%">Chiều bay</th>
             <th width="10%">SL vé</th>
-            <th width="10%">Ngày xuất vé</th>
-            <th width="10%">Ngày tạo</th>
+            <th width="12%">Chiết khấu</th>
+            <th width="12%">Phí xuất vé</th>
+            <th width="8%">Giá bán</th>
+            <th width="8%">Giá mua</th>
         </thead>
         <tbody>
-            {$BOOKING_LIST_TBL}
+            {$SUPPLIER_DETAIL_TBL}
         </tbody>
     </table>
 </div>

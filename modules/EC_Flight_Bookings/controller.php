@@ -64,6 +64,9 @@ class EC_Flight_BookingsController extends SugarController
             case "bkagent":
                 $this->action = "bkagent";
                 break;
+            case "bksupplier":
+                $this->action = "bksupplier";
+                break;
             case "Save":
                 $this->action = "Save";
                 break;
