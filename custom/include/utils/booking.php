@@ -728,6 +728,98 @@ function calculateBKAmt($booking_id, $only_profit = false)
 }
 
 /**
+ * Chuẩn hoá mã hãng cho báo cáo (đồng nhất với bkagent).
+ */
+function myNormalizeAirlineCode($code)
+{
+    if ($code === 'VJ') return 'VJA';
+    if ($code === 'VN') return 'VNA';
+    return $code;
+}
+
+/**
+ * Suy ra mã hãng cho MỘT dòng Nhà cung cấp của phiếu thu (loại thu 4/5).
+ *
+ * Quy tắc (theo thống nhất nghiệp vụ: đổi ngày bay/hành trình KHÔNG đổi hãng,
+ * đổi hãng thì phải hoàn vé + tạo booking mới):
+ *   1. Nếu user đã chọn chiều bay (Lượt đi/về) -> hãng = itinerary của chiều đó (tường minh).
+ *   2. Auto: đối chiếu supplier_id với dòng vé (ec_booking_details) trong cùng booking:
+ *      2a. NCC chỉ phục vụ đúng 1 chiều  -> lấy hãng chiều đó.
+ *      2b. Booking chỉ có 1 hãng         -> gán hãng đó.
+ *   3. Còn lại (2 chiều khác hãng, hoặc NCC không khớp) -> nhập nhằng, cần chọn tay.
+ *
+ * @param string      $booking_id
+ * @param string      $supplier_id
+ * @param string|null $direction   '0'/'1' nếu user đã chọn; '' hoặc null = auto
+ * @return array ['airline_code' => string|null, 'direction' => string|null, 'ambiguous' => bool]
+ */
+function resolveRVSupplierAirline($booking_id, $supplier_id, $direction = null)
+{
+    global $db;
+
+    $result = ['airline_code' => null, 'direction' => null, 'ambiguous' => false];
+    if (empty($booking_id)) {
+        return $result;
+    }
+    $booking_id_q = $db->quote($booking_id);
+
+    // Hãng theo từng chiều của booking (ưu tiên dòng gốc sabre_logs = 0)
+    $legs = [];
+    $sql = 'SELECT direction, airline_code
+            FROM ec_booking_itineraries
+            WHERE deleted = 0 AND booking_id = "' . $booking_id_q . '"
+            ORDER BY CAST(IFNULL(sabre_logs, 0) AS UNSIGNED) ASC';
+    $res = $db->query($sql);
+    while ($row = $db->fetchByAssoc($res)) {
+        $dir = (string) $row['direction'];
+        if (!isset($legs[$dir]) && $row['airline_code'] !== '') {
+            $legs[$dir] = myNormalizeAirlineCode($row['airline_code']);
+        }
+    }
+
+    // 1) User đã chọn chiều -> tường minh
+    if ($direction !== null && $direction !== '') {
+        $dir = (string) $direction;
+        $result['direction'] = $dir;
+        $result['airline_code'] = $legs[$dir] ?? null;
+        return $result;
+    }
+
+    // 2) Auto: NCC khớp chiều nào trong dòng vé của booking
+    $dirs = [];
+    if (!empty($supplier_id)) {
+        $supplier_id_q = $db->quote($supplier_id);
+        $sql = 'SELECT DISTINCT direction
+                FROM ec_booking_details
+                WHERE deleted = 0 AND booking_id = "' . $booking_id_q . '"
+                AND supplier_id = "' . $supplier_id_q . '"';
+        $res = $db->query($sql);
+        while ($row = $db->fetchByAssoc($res)) {
+            $dirs[(string) $row['direction']] = true;
+        }
+    }
+
+    // 2a) NCC chỉ phục vụ đúng 1 chiều -> chắc chắn
+    if (count($dirs) === 1) {
+        $dir = (string) array_key_first($dirs);
+        $result['direction'] = $dir;
+        $result['airline_code'] = $legs[$dir] ?? null;
+        return $result;
+    }
+
+    // 2b) Booking chỉ 1 hãng -> gán hãng đó
+    $airlines = array_values(array_unique(array_values($legs)));
+    if (count($airlines) === 1) {
+        $result['airline_code'] = reset($airlines);
+        return $result;
+    }
+
+    // 3) Nhập nhằng -> cần chọn tay
+    $result['ambiguous'] = true;
+    return $result;
+}
+
+/**
  * Tính doanh số của 1 liên hệ
  *
  * @param string $contactId của liên hệ

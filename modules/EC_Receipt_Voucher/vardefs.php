@@ -745,6 +745,48 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'len' => 26,
         ),
 
+        // Chiều bay gắn cho từng dòng NCC (loại thu 4/5) -> dùng suy ra hãng.
+        // Để trống = tự động; '0' = Lượt đi, '1' = Lượt về. Xem resolveRVSupplierAirline().
+        'sup_direction' => array(
+            'name' => 'sup_direction',
+            'vname' => 'LBL_SUP_DIRECTION',
+            'type' => 'enum',
+            'dbType' => 'varchar',
+            'options' => 'bk_direction_list',
+            'len' => 1,
+            'default' => '',
+            'massupdate' => 0,
+            'importable' => 'true',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+        'sup_direction2' => array(
+            'name' => 'sup_direction2',
+            'vname' => 'LBL_SUP_DIRECTION',
+            'type' => 'enum',
+            'dbType' => 'varchar',
+            'options' => 'bk_direction_list',
+            'len' => 1,
+            'default' => '',
+            'massupdate' => 0,
+            'importable' => 'true',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+        'sup_direction3' => array(
+            'name' => 'sup_direction3',
+            'vname' => 'LBL_SUP_DIRECTION',
+            'type' => 'enum',
+            'dbType' => 'varchar',
+            'options' => 'bk_direction_list',
+            'len' => 1,
+            'default' => '',
+            'massupdate' => 0,
+            'importable' => 'true',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+
         // giá mua chưa VAT 1
         'bought_amount_no_vat' => array(
             'name' => 'bought_amount_no_vat',
