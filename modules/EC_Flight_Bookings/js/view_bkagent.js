@@ -1,16 +1,11 @@
-/**
- * JS cho báo cáo "Thống kê vé theo hãng" (action=bkagent).
- * - Thiết lập lịch chọn ngày
- * - Chọn nhanh khoảng thời gian
- * - Bấm hãng để lọc bảng chi tiết
- * - Loading overlay khi bấm "Xem báo cáo"
- */
 (function () {
   "use strict";
 
   function nf(n) {
     if (typeof num_grp_sep !== "undefined" && typeof dec_sep !== "undefined") {
-      let parts = Number(n || 0).toString().split(".");
+      let parts = Number(n || 0)
+        .toString()
+        .split(".");
       let formatted = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, num_grp_sep);
       return parts[1] ? formatted + dec_sep + parts[1] : formatted;
     }

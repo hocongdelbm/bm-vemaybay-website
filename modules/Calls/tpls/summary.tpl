@@ -89,31 +89,6 @@
           border-bottom-color: #2b2c40;
      }
 
-     .bg-label-primary {
-          background-color: #e7e7ff !important;
-          color: #696cff !important;
-     }
-
-     .bg-label-success {
-          background-color: #e8fadf !important;
-          color: #71dd37 !important;
-     }
-
-     .bg-label-warning {
-          background-color: #fff2d6 !important;
-          color: #ffab00 !important;
-     }
-
-     .bg-label-danger {
-          background-color: #ffe0db !important;
-          color: #ff3e1d !important;
-     }
-
-     .bg-label-dark {
-          background-color: #dddde0 !important;
-          color: #2b2c40 !important;
-     }
-
      .box-icon {
           position: relative;
           width: 2.375rem;

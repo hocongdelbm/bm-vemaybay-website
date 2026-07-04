@@ -61,7 +61,7 @@
     </form>
 
     <ul class="bookingqtyreport-note alert alert-info text-dark fw-semibold">
-        <li>- Hãng suy theo booking; Phiếu thu không gắn booking nằm ở nhóm <strong>Khác (N/A)</strong>.</li>
+        <li>- Hãng suy theo hành trình booking; Phiếu thu không gắn booking nằm ở nhóm <strong>Khác (N/A)</strong>.</li>
         <li>- Bấm vào tên hãng để lọc danh sách chi tiết bên dưới.</li>
     </ul>
 

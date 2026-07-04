@@ -6,16 +6,9 @@ require_once("include/Sugar_Smarty.php");
  *
  * Dùng CHUNG nguồn dữ liệu với báo cáo "Doanh thu bán vé" (report_sales_revenue):
  * hàm calculateRevenueOfDate() trả về mọi dòng BK + PT (phiếu thu 4/5/10-16) + HV (hoàn vé),
- * bkagent chỉ gom theo HÃNG. Nhờ vậy tổng của 2 báo cáo luôn khớp (một nguồn sự thật)
- * và tránh N truy vấn con như bản cũ (nhanh hơn).
- *
- * Suy ra hãng: theo hãng của booking (ec_booking_itineraries). Dòng không gắn booking
- * (VD phiếu thu khách sạn loại 14) rơi vào nhóm "Khác".
  *
  * Booking 2 chiều khác hãng (VD chặng đi VJA / chặng về VNA): được TÁCH theo từng chiều,
- * phân bổ tiền theo tỷ lệ giá mua (total_bought_price) của từng chiều trong
- * ec_booking_details — xem getDirectionSplitMap()/splitByDirection(). PT/HV chưa tách
- * theo chiều (giữ nguyên gán theo hãng đại diện).
+ * phân bổ tiền theo ec_booking_details 
  */
 class Viewbkagent extends SugarView
 {
@@ -92,12 +85,11 @@ class Viewbkagent extends SugarView
         $report = $this->buildAirlineReport($from_date, $to_date);
         $smarty->assign('AGENT_LIST_TBL', $report['summary']);
         $smarty->assign('BOOKING_LIST_TBL', $report['detail']);
-        $smarty->assign('VERSION', '1.3.1');
+        $smarty->assign('VERSION', '1.3.2');
     }
 
     /**
-     * Tên hiển thị của hãng theo mã. Có memoize vì myGetAirlineInfo2() đọc + parse file
-     * airlines.xml mỗi lần gọi — nếu gọi theo từng dòng (hàng trăm dòng) sẽ rất chậm.
+     * Tên hiển thị của hãng theo mã.
      */
     private function airlineDisplayName($code)
     {
@@ -107,12 +99,28 @@ class Viewbkagent extends SugarView
         if ($code === 'N/A' || $code === '') {
             return $cache[$code] = 'Khác';
         }
-        $airline = myGetAirlineInfo2($code, 'CODE');
-        $name = isset($airline['data'][0]['name']) ? $airline['data'][0]['name'] : '';
-        if (!empty($name)) {
-            return $cache[$code] = $name;
+
+        // Map mã 3 ký tự (hệ thống/Sabre) về mã 2 ký tự (IATA) có trong bảng ec_airlines
+        $mapCodes = array(
+            'VJA' => 'VJ',
+            'VNA' => 'VN',
+            'BBA' => 'QH',
+            'VTA' => 'VU',
+            'VNP' => 'BL',
+        );
+        $searchCode = isset($mapCodes[$code]) ? $mapCodes[$code] : $code;
+
+        global $db;
+        $qCode = $db->quote($searchCode);
+        $sql = "SELECT name FROM ec_airlines WHERE deleted = 0 AND (iata_code = '$qCode' OR icao_code = '$qCode') LIMIT 1";
+        $res = $db->query($sql);
+        $row = $db->fetchByAssoc($res);
+
+        if (!empty($row['name'])) {
+            return $cache[$code] = $row['name'];
         }
-        if ($code === '0V') {
+
+        if ($code === '0V' || $code === 'VTA') {
             return $cache[$code] = 'VASCO';
         }
         return $cache[$code] = 'Hãng khác';
@@ -122,10 +130,9 @@ class Viewbkagent extends SugarView
      * Map booking_id -> ['airline' => mã hãng đại diện, 'dir' => nhãn chiều bay,
      * 'dir_airline' => [direction => mã hãng], 'is_multi' => 2 chiều khác hãng].
      *
-     * 'airline' lấy theo chặng đầu (Lượt đi) — dùng khi booking chỉ 1 hãng.
-     * Khi 'is_multi' = true (đổi hãng ở chặng về, VD chặng đi VJA / chặng về VNA),
-     * buildAirlineReport() sẽ phân bổ tiền/vé theo TỪNG CHIỀU thay vì gán hết vào 1 hãng
-     * — xem getDirectionSplitMap()/splitByDirection().
+     * Hãng theo TỪNG CHIỀU lấy ưu tiên từ field cấp booking (ec_flight_bookings):
+     *   - chiều đi (0)  = airline
+     *   - chiều về (1)  = airline_inbound
      */
     private function getAirlineMap(array $bkIds)
     {
@@ -136,32 +143,54 @@ class Viewbkagent extends SugarView
             if (!empty($id)) $inList[] = "'" . $db->quote($id) . "'";
         }
         if (empty($inList)) return $map;
+        $inClause = implode(',', $inList);
 
-        // Lấy tất cả chặng của các booking, gom trong PHP: hãng theo từng chiều.
+        // Hãng cấp booking theo từng chiều (nguồn ưu tiên).
+        $bkAirline = array(); // booking_id => ['0' => code, '1' => code]
+        $resBk = $db->query("SELECT id, airline, airline_inbound FROM ec_flight_bookings WHERE id IN ($inClause)");
+        while ($row = $db->fetchByAssoc($resBk)) {
+            $bkAirline[$row['id']] = array(
+                '0' => (isset($row['airline']) && $row['airline'] !== '') ? myNormalizeAirlineCode($row['airline']) : '',
+                '1' => (isset($row['airline_inbound']) && $row['airline_inbound'] !== '') ? myNormalizeAirlineCode($row['airline_inbound']) : '',
+            );
+        }
+
+        // Itinerary: xác định chiều nào thực sự có chặng + fallback hãng chặng đầu khi field
+        // booking trống. ORDER BY transit_order để lấy đúng chặng đầu của hành trình transit.
         $sql = "SELECT booking_id, direction, airline_code
                 FROM ec_booking_itineraries
-                WHERE deleted = 0 AND booking_id IN (" . implode(',', $inList) . ")
-                ORDER BY booking_id, direction ASC, CAST(IFNULL(sabre_logs,0) AS UNSIGNED) ASC";
+                WHERE deleted = 0 AND booking_id IN ($inClause)
+                ORDER BY booking_id, direction ASC, transit_order ASC, CAST(IFNULL(sabre_logs,0) AS UNSIGNED) ASC";
         $res = $db->query($sql);
 
-        $tmp = array(); // booking_id => ['first' => code, 'dir_airline' => [dir => code]]
+        $itiFirst = array(); // booking_id => [dir => hãng chặng đầu itinerary]
         while ($row = $db->fetchByAssoc($res)) {
             $bid = $row['booking_id'];
-            if (!isset($tmp[$bid])) $tmp[$bid] = array('first' => '', 'dir_airline' => array());
-            $code = ($row['airline_code'] !== '') ? myNormalizeAirlineCode($row['airline_code']) : '';
-            // hãng đại diện = chặng đầu tiên có mã (đã ORDER BY chiều đi trước)
-            if ($tmp[$bid]['first'] === '' && $code !== '') {
-                $tmp[$bid]['first'] = $code;
-            }
+            if (!isset($itiFirst[$bid])) $itiFirst[$bid] = array();
             $d = (string) $row['direction'];
-            if ($d !== '' && $code !== '' && !isset($tmp[$bid]['dir_airline'][$d])) {
-                $tmp[$bid]['dir_airline'][$d] = $code;
+            $code = ($row['airline_code'] !== '') ? myNormalizeAirlineCode($row['airline_code']) : '';
+            if ($d !== '' && $code !== '' && !isset($itiFirst[$bid][$d])) {
+                $itiFirst[$bid][$d] = $code;
             }
         }
 
-        foreach ($tmp as $bid => $info) {
-            $has0 = isset($info['dir_airline']['0']);
-            $has1 = isset($info['dir_airline']['1']);
+        $allBids = array_unique(array_merge(array_keys($bkAirline), array_keys($itiFirst)));
+        foreach ($allBids as $bid) {
+            $iti = isset($itiFirst[$bid]) ? $itiFirst[$bid] : array();
+            $bk  = isset($bkAirline[$bid]) ? $bkAirline[$bid] : array('0' => '', '1' => '');
+
+            // Chiều có mặt = chiều có chặng trong itinerary; nếu booking thiếu itinerary thì
+            // dựa vào field hãng cấp booking. Mã hãng ưu tiên field booking, fallback itinerary.
+            $dirAirline = array();
+            foreach (array('0', '1') as $d) {
+                $present = isset($iti[$d]) || (empty($iti) && !empty($bk[$d]));
+                if (!$present) continue;
+                $code = ($bk[$d] !== '') ? $bk[$d] : (isset($iti[$d]) ? $iti[$d] : '');
+                if ($code !== '') $dirAirline[$d] = $code;
+            }
+
+            $has0 = isset($dirAirline['0']);
+            $has1 = isset($dirAirline['1']);
             if ($has0 && $has1) {
                 $dir = 'Lượt đi & về';
             } elseif ($has0) {
@@ -171,12 +200,13 @@ class Viewbkagent extends SugarView
             } else {
                 $dir = '-';
             }
-            $distinctAirlines = array_unique(array_values($info['dir_airline']));
+            $first = $has0 ? $dirAirline['0'] : ($has1 ? $dirAirline['1'] : '');
+            $distinctAirlines = array_unique(array_values($dirAirline));
 
             $map[$bid] = array(
-                'airline'     => ($info['first'] !== '') ? $info['first'] : 'N/A',
+                'airline'     => ($first !== '') ? $first : 'N/A',
                 'dir'         => $dir,
-                'dir_airline' => $info['dir_airline'], // [direction => code]
+                'dir_airline' => $dirAirline, // [direction => code]
                 'is_multi'    => count($distinctAirlines) > 1,
             );
         }
@@ -239,8 +269,14 @@ class Viewbkagent extends SugarView
     {
         $dirLabels = array('0' => 'Lượt đi', '1' => 'Lượt về');
 
-        // hợp các chiều xuất hiện ở itinerary (có hãng) hoặc ở booking_details (có tiền/vé)
-        $dirs = array_unique(array_merge(array_keys($dirAirline), array_keys($dirAmounts)));
+        // CHỈ tách theo các chiều CÓ dòng chi tiết vé (ec_booking_details). Chiều chỉ tồn tại ở
+        // itinerary/field booking mà KHÔNG có chi tiết vé (VD booking 2 chiều 2 hãng nhưng mới
+        // xuất/bán 1 chiều — chi tiết vé chỉ có Lượt đi) sẽ KHÔNG sinh phần riêng: toàn bộ tiền
+        // & SL BK dồn về (các) chiều có dữ liệu thật, tránh đếm khống hãng của chiều chưa xuất.
+        $dirs = array_keys($dirAmounts);
+        if (empty($dirs)) {
+            $dirs = array_unique(array_keys($dirAirline)); // an toàn: không có chi tiết vé thì giữ cũ
+        }
 
         $sumPrice = $sumBought = $sumQty = 0;
         foreach ($dirs as $d) {
@@ -487,6 +523,14 @@ class Viewbkagent extends SugarView
         foreach ($detailRows as $r) {
             $airline_disp = $this->airlineDisplayName($r['airline']) . ' (' . $r['airline'] . ')';
             $ve_cell = ($r['ve'] != 0) ? format_number($r['ve']) : '-';
+
+            $ticket_type_html = $r['ticket_type'];
+            if ($r['ticket_type'] === 'Quốc tế') {
+                $ticket_type_html = '<span class="badge bg-label-success">' . $r['ticket_type'] . '</span>';
+            } elseif ($r['ticket_type'] === 'Nội địa') {
+                $ticket_type_html = '<span class="badge bg-label-dark">' . $r['ticket_type'] . '</span>';
+            }
+
             $row_class = 'booking-row';
             if ($r['parent_type'] === 'EC_Receipt_Voucher') {
                 $row_class .= ' bg-label-info';
@@ -499,7 +543,7 @@ class Viewbkagent extends SugarView
                     <td class="center"><a href="index.php?module=' . $r['parent_type'] . '&action=DetailView&record=' . $r['parent_id'] . '" target="_blank">' . $r['name'] . '</a></td>
                     <td class="center">' . $airline_disp . '</td>
                     <td class="center">' . $r['direction'] . '</td>
-                    <td class="center">' . $r['ticket_type'] . '</td>
+                    <td class="center">' . $ticket_type_html . '</td>
                     <td class="center">' . $ve_cell . '</td>
                     <td class="text-end">' . format_number($r['dt']) . '</td>
                     <td class="text-end">' . format_number($r['gm']) . '</td>
