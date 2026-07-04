@@ -266,6 +266,35 @@ class Viewbksupplier extends SugarView
           return $map;
      }
 
+     private function getRefundLines(array $hvIds)
+     {
+          global $db;
+          $map = array();
+          $inList = array();
+          foreach ($hvIds as $id) {
+               if (!empty($id)) $inList[] = "'" . $db->quote($id) . "'";
+          }
+          if (empty($inList)) return $map;
+
+          $sql = "SELECT hoanve_id, IFNULL(airline_code,'') AS airline_code, IFNULL(chieubay,'') AS direction, IFNULL(nhacc_id,'') AS supplier_id, 
+                         IFNULL(sotienkhach,0) AS sell, IFNULL(sotienhang,0) AS bought
+                  FROM ec_chitiethoanve
+                  WHERE deleted = 0 AND dahoan = 1 AND hoanve_id IN (" . implode(',', $inList) . ")";
+          $res = $db->query($sql);
+          while ($row = $db->fetchByAssoc($res)) {
+               $hvid = $row['hoanve_id'];
+               if (!isset($map[$hvid])) $map[$hvid] = array();
+               $map[$hvid][] = array(
+                   'airline_code' => $row['airline_code'],
+                   'direction'    => $row['direction'],
+                   'supplier_id'  => $row['supplier_id'],
+                   'sell'         => (float) $row['sell'],
+                   'bought'       => (float) $row['bought']
+               );
+          }
+          return $map;
+     }
+
      /**
       * Map booking_id -> nhãn loại vé (Nội địa/Quốc tế) từ ec_flight_bookings.ticket_type.
       */
@@ -335,7 +364,7 @@ class Viewbksupplier extends SugarView
       * Mỗi phần: ['supplier_id','airline','direction','ve','dt','gm','ds'].
       * Tỷ lệ cộng lại = 1 nên tổng dt/gm/ds/ve LUÔN bằng giá trị gốc -> khớp bkagent.
       */
-     private function splitBySupplier($row, $bkid, $ve, $dt, $gm, $ds, array $supplierSplit, array $rvLines, $airlineInfo)
+     private function splitBySupplier($row, $bkid, $ve, $dt, $gm, $ds, array $supplierSplit, array $rvLines, array $hvLines, $airlineInfo)
      {
           $ptype = $row['parent_type'];
 
@@ -395,30 +424,66 @@ class Viewbksupplier extends SugarView
           $parts = array();
 
           if ($ptype === 'EC_HoanVe') {
-               $bySid = array();
-               foreach ($split as $inf) {
-                    $sid = $inf['sid'];
-                    if (!isset($bySid[$sid])) $bySid[$sid] = array('qty' => 0, 'bought' => 0);
-                    $bySid[$sid]['qty'] += $inf['qty'];
-                    $bySid[$sid]['bought'] += $inf['bought'];
-               }
-               $maxSid = null;
-               $maxB = -1;
-               foreach ($bySid as $sid => $inf) {
-                    if ($inf['bought'] > $maxB) {
-                         $maxB = $inf['bought'];
-                         $maxSid = $sid;
+               $hvid = $row['parent_id'];
+               $lines = isset($hvLines[$hvid]) ? $hvLines[$hvid] : array();
+               if (!empty($lines)) {
+                    $sumS = $sumB = 0;
+                    foreach ($lines as $ln) {
+                         $sumS += abs($ln['sell']);
+                         $sumB += abs($ln['bought']);
                     }
-               }
-               $nSid = count($bySid);
-               foreach ($bySid as $sid => $inf) {
-                    $ratio = ($sumBought > 0) ? $inf['bought'] / $sumBought : (($sumQty > 0) ? $inf['qty'] / $sumQty : (1 / $nSid));
-                    $pdt = $dt * $ratio;
-                    $pgm = $gm * $ratio;
-                    $pve = ($sid === $maxSid) ? $ve : 0;
-                    $dir = '-';
-                    $air = ($airlineInfo && !empty($airlineInfo['airline'])) ? $airlineInfo['airline'] : 'N/A';
-                    $parts[] = array('supplier_id' => $sid, 'airline' => $air, 'direction' => $dir, 've' => $pve, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
+                    $nHv = count($lines);
+                    
+                    $maxB = -1;
+                    $maxIdx = 0;
+                    foreach ($lines as $idx => $ln) {
+                         if (abs($ln['bought']) > $maxB) {
+                              $maxB = abs($ln['bought']);
+                              $maxIdx = $idx;
+                         }
+                    }
+
+                    foreach ($lines as $idx => $ln) {
+                         $ratioDt = ($sumS > 0) ? abs($ln['sell']) / $sumS : (($sumB > 0) ? abs($ln['bought']) / $sumB : (1 / $nHv));
+                         $ratioGm = ($sumB > 0) ? abs($ln['bought']) / $sumB : (1 / $nHv);
+
+                         $pdt = $dt * $ratioDt;
+                         $pgm = $gm * $ratioGm;
+                         $pve = ($idx === $maxIdx) ? $ve : 0;
+                         
+                         $air = !empty($ln['airline_code']) ? $ln['airline_code'] : ($airlineInfo && !empty($airlineInfo['airline']) ? $airlineInfo['airline'] : 'N/A');
+                         $dirLabels = array('0' => 'Lượt đi', '1' => 'Lượt về');
+                         $dir = isset($dirLabels[$ln['direction']]) ? $dirLabels[$ln['direction']] : '-';
+                         $sid = !empty($ln['supplier_id']) ? $ln['supplier_id'] : '';
+                         
+                         $parts[] = array('supplier_id' => $sid, 'airline' => $air, 'direction' => $dir, 've' => $pve, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
+                    }
+               } else {
+                    $bySid = array();
+                    foreach ($split as $inf) {
+                         $sid = $inf['sid'];
+                         if (!isset($bySid[$sid])) $bySid[$sid] = array('qty' => 0, 'bought' => 0);
+                         $bySid[$sid]['qty'] += $inf['qty'];
+                         $bySid[$sid]['bought'] += $inf['bought'];
+                    }
+                    $maxSid = null;
+                    $maxB = -1;
+                    foreach ($bySid as $sid => $inf) {
+                         if ($inf['bought'] > $maxB) {
+                              $maxB = $inf['bought'];
+                              $maxSid = $sid;
+                         }
+                    }
+                    $nSid = count($bySid);
+                    foreach ($bySid as $sid => $inf) {
+                         $ratio = ($sumBought > 0) ? $inf['bought'] / $sumBought : (($sumQty > 0) ? $inf['qty'] / $sumQty : (1 / $nSid));
+                         $pdt = $dt * $ratio;
+                         $pgm = $gm * $ratio;
+                         $pve = ($sid === $maxSid) ? $ve : 0;
+                         $dir = '-';
+                         $air = ($airlineInfo && !empty($airlineInfo['airline'])) ? $airlineInfo['airline'] : 'N/A';
+                         $parts[] = array('supplier_id' => $sid, 'airline' => $air, 'direction' => $dir, 've' => $pve, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
+                    }
                }
           } else {
                foreach ($split as $inf) {
@@ -472,6 +537,7 @@ class Viewbksupplier extends SugarView
           $supplierSplit = $this->getSupplierSplitMap(array_keys($bkIds));
           $airlineMap    = $this->getAirlineMap(array_keys($bkIds));
           $rvLines       = $this->getReceiptSupplierLines(array_keys($rvIds));
+          $hvLines       = $this->getRefundLines(array_keys($hvIds));
           $ticketTypeMap = $this->getTicketTypeMap(array_keys($bkIds));
 
           $bySupplier = array();
@@ -489,7 +555,7 @@ class Viewbksupplier extends SugarView
                $airlineInfo = (!empty($bkid) && isset($airlineMap[$bkid])) ? $airlineMap[$bkid] : null;
                $ticket_type_label = (!empty($bkid) && isset($ticketTypeMap[$bkid])) ? $ticketTypeMap[$bkid] : '-';
 
-               $parts = $this->splitBySupplier($r, $bkid, $ve, $dt, $gm, $ds, $supplierSplit, $rvLines, $airlineInfo);
+               $parts = $this->splitBySupplier($r, $bkid, $ve, $dt, $gm, $ds, $supplierSplit, $rvLines, $hvLines, $airlineInfo);
 
                $date_show = ($ptype === 'EC_Flight_Bookings')
                     ? (!empty($r['date_ticket_issue']) ? $r['date_ticket_issue'] : '')

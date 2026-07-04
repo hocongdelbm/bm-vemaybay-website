@@ -342,6 +342,78 @@ class Viewbkagent extends SugarView
         return array_values($agg);
     }
 
+    private function getRefundLines(array $hvIds)
+    {
+        global $db;
+        $map = array();
+        $inList = array();
+        foreach ($hvIds as $id) {
+            if (!empty($id)) $inList[] = "'" . $db->quote($id) . "'";
+        }
+        if (empty($inList)) return $map;
+
+        $sql = "SELECT hoanve_id, IFNULL(airline_code,'') AS airline_code, IFNULL(chieubay,'') AS direction, IFNULL(nhacc_id,'') AS supplier_id, 
+                       IFNULL(sotienkhach,0) AS sell, IFNULL(sotienhang,0) AS bought
+                FROM ec_chitiethoanve
+                WHERE deleted = 0 AND dahoan = 1 AND hoanve_id IN (" . implode(',', $inList) . ")";
+        $res = $db->query($sql);
+        while ($row = $db->fetchByAssoc($res)) {
+            $hvid = $row['hoanve_id'];
+            if (!isset($map[$hvid])) $map[$hvid] = array();
+            $map[$hvid][] = array(
+                'airline_code' => $row['airline_code'],
+                'direction'    => $row['direction'],
+                'supplier_id'  => $row['supplier_id'],
+                'sell'         => (float) $row['sell'],
+                'bought'       => (float) $row['bought']
+            );
+        }
+        return $map;
+    }
+
+    private function splitRefundByAirline($r, $ve, $dt, $gm, $ds, $hvLines, $info)
+    {
+        $hvid = $r['parent_id'];
+        $lines = isset($hvLines[$hvid]) ? $hvLines[$hvid] : array();
+        if (empty($lines)) {
+            $code = $info ? $info['airline'] : 'N/A';
+            return array(array('airline' => $code, 'direction' => '-', 've' => $ve, 'dt' => $dt, 'gm' => $gm, 'ds' => $ds));
+        }
+
+        $sumS = $sumB = 0;
+        foreach ($lines as $ln) {
+            $sumS += abs($ln['sell']);
+            $sumB += abs($ln['bought']);
+        }
+        $n = count($lines);
+
+        $parts = array();
+        $maxB = -1;
+        $maxIdx = 0;
+        foreach ($lines as $idx => $ln) {
+            if (abs($ln['bought']) > $maxB) {
+                $maxB = abs($ln['bought']);
+                $maxIdx = $idx;
+            }
+        }
+
+        foreach ($lines as $idx => $ln) {
+            $ratioDt = ($sumS > 0) ? abs($ln['sell']) / $sumS : (($sumB > 0) ? abs($ln['bought']) / $sumB : (1 / $n));
+            $ratioGm = ($sumB > 0) ? abs($ln['bought']) / $sumB : (1 / $n);
+
+            $pdt = $dt * $ratioDt;
+            $pgm = $gm * $ratioGm;
+            $pve = ($idx === $maxIdx) ? $ve : 0;
+            
+            $air = !empty($ln['airline_code']) ? $ln['airline_code'] : ($info ? $info['airline'] : 'N/A');
+            $dirLabels = array('0' => 'Lượt đi', '1' => 'Lượt về');
+            $dir = isset($dirLabels[$ln['direction']]) ? $dirLabels[$ln['direction']] : '-';
+            
+            $parts[] = array('airline' => $air, 'direction' => $dir, 've' => $pve, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
+        }
+        return $parts;
+    }
+
     /**
      * Phân bổ 1 dòng doanh thu BOOKING (subtotal_amount/total_bought_price ở cấp cả booking,
      * từ calculateRevenueOfDate) về từng (hãng, chiều):
@@ -481,6 +553,7 @@ class Viewbkagent extends SugarView
             if ($r['parent_type'] === 'EC_HoanVe') $hvIds[$r['parent_id']] = true;
         }
         $rvLines = $this->getReceiptSupplierLines(array_keys($rvIds));
+        $hvLines = $this->getRefundLines(array_keys($hvIds));
 
         // Gom theo hãng
         $byAirline = array();
@@ -507,6 +580,8 @@ class Viewbkagent extends SugarView
                 $parts = $this->splitByDirection($info['dir_airline'], $directionSplitMap[$bkid], $ve, $dt, $gm, $ds);
             } elseif ($r['parent_type'] === 'EC_Receipt_Voucher') {
                 $parts = $this->splitReceiptByAirline($r, $bkid, $dt, $gm, $ds, $rvLines, $info);
+            } elseif ($r['parent_type'] === 'EC_HoanVe') {
+                $parts = $this->splitRefundByAirline($r, $ve, $dt, $gm, $ds, $hvLines, $info);
             } else {
                 $code = $info ? $info['airline'] : 'N/A';
                 // Chiều bay chỉ có ý nghĩa với dòng booking (BK); HV để '-'
