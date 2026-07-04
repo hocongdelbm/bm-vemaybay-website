@@ -295,15 +295,18 @@ class Viewbksupplier extends SugarView
           static $cache = null;
           if ($cache === null) $cache = array();
           if ($sid === '' || $sid === null) return 'Khác (N/A)';
+
           if (isset($cache[$sid])) return $cache[$sid];
+
           global $db;
           $row = $db->fetchByAssoc($db->query(
-               "SELECT ticker_symbol, name FROM accounts WHERE id = '" . $db->quote($sid) . "'"
+               "SELECT name FROM accounts WHERE id = '" . $db->quote($sid) . "' AND deleted = 0 LIMIT 1"
           ));
           if (!$row) return $cache[$sid] = 'N/A';
-          $code = !empty($row['ticker_symbol']) ? $row['ticker_symbol'] : '';
+
           $name = !empty($row['name']) ? $row['name'] : 'N/A';
-          return $cache[$sid] = trim(($code !== '' ? $code . ' - ' : '') . $name);
+
+          return $cache[$sid] = trim($name);
      }
 
      /* ===================== TÁCH CHỨNG TỪ THEO NCC ===================== */
