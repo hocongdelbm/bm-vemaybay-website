@@ -73,6 +73,7 @@ class Viewbkagent extends SugarView
         }
         $report_term_list = '<option from_date="' . date('d-m-Y') . '" to_date="' . date('d-m-Y') . '">Hôm nay</option>';
         $report_term_list .= '<option from_date="' . date('d-m-Y', strtotime("-1 day")) . '" to_date="' . date('d-m-Y', strtotime("-1 day")) . '">Hôm qua</option>';
+        $report_term_list .= '<option from_date="' . date('d-m-Y', strtotime("-2 day")) . '" to_date="' . date('d-m-Y', strtotime("-2 day")) . '">Hôm trước</option>';
         $report_term_list .= '<option from_date="' . date('d-m-Y', strtotime("first day of this month")) . '" to_date="' . date('d-m-Y', strtotime("last day of this month")) . '">Tháng này</option>';
         $report_term_list .= '<option from_date="' . date('d-m-Y', strtotime("first day of previous month")) . '" to_date="' . date('d-m-Y', strtotime("last day of previous month")) . '">Tháng trước</option>';
         $report_term_list .= '<option from_date="' . date('d-m-Y', strtotime($cq_from_date)) . '" to_date="' . date('d-m-Y', strtotime($cq_to_date)) . '">Quý này</option>';
@@ -250,6 +251,119 @@ class Viewbkagent extends SugarView
     }
 
     /**
+     * Map receipt_voucher_id -> [ ['supplier_id','bought','sell'], ... ] cho tối đa 3 dòng NCC.
+     * Dùng để suy hãng cho phiếu thu loại 4/5 THEO TỪNG DÒNG NCC (mỗi dòng có chiều/hãng riêng),
+     * thay vì gán cả PT vào hãng đại diện (chặng đi) của booking — xem splitReceiptByAirline().
+     */
+    private function getReceiptSupplierLines(array $rvIds)
+    {
+        global $db;
+        $map = array();
+        $inList = array();
+        foreach ($rvIds as $id) {
+            if (!empty($id)) $inList[] = "'" . $db->quote($id) . "'";
+        }
+        if (empty($inList)) return $map;
+
+        $sql = "SELECT id,
+                    IFNULL(supplier_id,'')  AS s1, IFNULL(bought_amount,0)  AS b1, IFNULL(sell_amount,0)  AS se1, IFNULL(sup_direction,'')  AS d1,
+                    IFNULL(supplier2_id,'') AS s2, IFNULL(bought_amount2,0) AS b2, IFNULL(sell_amount2,0) AS se2, IFNULL(sup_direction2,'') AS d2,
+                    IFNULL(supplier3_id,'') AS s3, IFNULL(bought_amount3,0) AS b3, IFNULL(sell_amount3,0) AS se3, IFNULL(sup_direction3,'') AS d3
+                FROM ec_receipt_voucher
+                WHERE id IN (" . implode(',', $inList) . ")";
+        $res = $db->query($sql);
+        while ($row = $db->fetchByAssoc($res)) {
+            $lines = array();
+            foreach (array(array('s1', 'b1', 'se1', 'd1'), array('s2', 'b2', 'se2', 'd2'), array('s3', 'b3', 'se3', 'd3')) as $c) {
+                $sid = $row[$c[0]];
+                $bought = (float) $row[$c[1]];
+                $sell = (float) $row[$c[2]];
+                if ($sid !== '' || $bought != 0 || $sell != 0) {
+                    $lines[] = array('supplier_id' => $sid, 'bought' => $bought, 'sell' => $sell, 'direction' => $row[$c[3]]);
+                }
+            }
+            if (!empty($lines)) $map[$row['id']] = $lines;
+        }
+        return $map;
+    }
+
+    /**
+     * Map chứng_từ_id -> Ngày tạo (dd-mm-yyyy HH:mm, +7h) cho phiếu thu (PT) & hoàn vé (HV),
+     * vì calculateRevenueOfDate không trả date_entered cho 2 loại này.
+     */
+    private function getDocDateEntered(array $rvIds, array $hvIds)
+    {
+        global $db;
+        $map = array();
+        $fmt = "DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%d-%m-%Y %H:%i')";
+
+        foreach (array('ec_receipt_voucher' => $rvIds, 'ec_hoanve' => $hvIds) as $table => $ids) {
+            $inList = array();
+            foreach ($ids as $id) {
+                if (!empty($id)) $inList[] = "'" . $db->quote($id) . "'";
+            }
+            if (empty($inList)) continue;
+            $res = $db->query("SELECT id, $fmt AS de FROM $table WHERE id IN (" . implode(',', $inList) . ")");
+            while ($row = $db->fetchByAssoc($res)) $map[$row['id']] = $row['de'];
+        }
+        return $map;
+    }
+
+    /**
+     * Phân bổ 1 phiếu thu (PT loại 4/5...) về từng HÃNG theo dòng NCC của nó.
+     * Hãng mỗi dòng suy bằng resolveRVSupplierAirline() (khớp chiều mà NCC phục vụ) — GIỐNG cách
+     * màn hình chi tiết phiếu thu hiển thị, nên không còn gán nhầm vào hãng chặng đi.
+     * Tiền chia theo tỷ lệ giá bán (dt) / giá mua (gm) từng dòng -> tổng luôn khớp giá trị gốc.
+     * PT không gắn NCC/booking -> giữ 1 phần theo hãng đại diện (hoặc N/A).
+     */
+    private function splitReceiptByAirline($row, $bkid, $totalDt, $totalGm, $totalDs, array $rvLines, $info)
+    {
+        $rep = $info ? $info['airline'] : 'N/A';
+        $lines = isset($rvLines[$row['parent_id']]) ? $rvLines[$row['parent_id']] : array();
+        if (empty($lines)) {
+            return array(array('airline' => $rep, 'direction' => '-', 've' => 0, 'dt' => $totalDt, 'gm' => $totalGm, 'ds' => $totalDs));
+        }
+
+        $sumB = $sumS = 0;
+        foreach ($lines as $ln) {
+            $sumB += abs($ln['bought']);
+            $sumS += abs($ln['sell']);
+        }
+        $n = count($lines);
+        $dirLabels = array('0' => 'Lượt đi', '1' => 'Lượt về');
+
+        // gom theo (hãng, chiều) để không tạo nhiều dòng trùng khi các dòng NCC cùng hãng
+        $agg = array();
+        foreach ($lines as $ln) {
+            $ratioGm = ($sumB > 0) ? abs($ln['bought']) / $sumB : (1 / $n);
+            $ratioDt = ($sumS > 0) ? abs($ln['sell']) / $sumS : (($sumB > 0) ? abs($ln['bought']) / $sumB : (1 / $n));
+
+            $air = $rep;
+            $dir = '-';
+            if (!empty($bkid) && !empty($ln['supplier_id'])) {
+                // chiều đã chọn khi tạo phiếu (sup_direction) -> tường minh; trống -> auto
+                $lineDir = (isset($ln['direction']) && $ln['direction'] !== '') ? $ln['direction'] : null;
+                $rv = resolveRVSupplierAirline($bkid, $ln['supplier_id'], $lineDir);
+                if (!empty($rv['airline_code'])) $air = $rv['airline_code'];
+                $useDir = ($rv['direction'] !== null && $rv['direction'] !== '') ? $rv['direction'] : $lineDir;
+                if ($useDir !== null && $useDir !== '') {
+                    $dir = isset($dirLabels[(string) $useDir]) ? $dirLabels[(string) $useDir] : '-';
+                }
+            }
+            if ($air === '' || $air === null) $air = 'N/A';
+
+            $key = $air . '|' . $dir;
+            if (!isset($agg[$key])) $agg[$key] = array('airline' => $air, 'direction' => $dir, 've' => 0, 'dt' => 0, 'gm' => 0, 'ds' => 0);
+            $pdt = $totalDt * $ratioDt;
+            $pgm = $totalGm * $ratioGm;
+            $agg[$key]['dt'] += $pdt;
+            $agg[$key]['gm'] += $pgm;
+            $agg[$key]['ds'] += $pdt - $pgm;
+        }
+        return array_values($agg);
+    }
+
+    /**
      * Phân bổ 1 dòng doanh thu BOOKING (subtotal_amount/total_bought_price ở cấp cả booking,
      * từ calculateRevenueOfDate) về từng (hãng, chiều):
      *   - Doanh thu (dt) chia theo TỶ LỆ GIÁ BÁN (total_price) từng chiều
@@ -380,6 +494,17 @@ class Viewbkagent extends SugarView
         }
         $directionSplitMap = $this->getDirectionSplitMap($multiBkIds);
 
+        // Phiếu thu loại 4/5: hãng suy theo TỪNG DÒNG NCC (chiều NCC phục vụ), không gán hãng chặng đi.
+        $rvIds = array();
+        $hvIds = array();
+        foreach ($rows as $r) {
+            if ($r['parent_type'] === 'EC_Receipt_Voucher') $rvIds[$r['parent_id']] = true;
+            if ($r['parent_type'] === 'EC_HoanVe') $hvIds[$r['parent_id']] = true;
+        }
+        $rvLines = $this->getReceiptSupplierLines(array_keys($rvIds));
+        // Ngày tạo cho chứng từ PT/HV (calculateRevenueOfDate không trả date_entered cho 2 loại này)
+        $docDateMap = $this->getDocDateEntered(array_keys($rvIds), array_keys($hvIds));
+
         // Gom theo hãng
         $byAirline = array();
         $detailRows = array();
@@ -397,15 +522,17 @@ class Viewbkagent extends SugarView
             $gm = (float) $r['total_bought_price'];
             $ds = (float) $r['profit_amount'];
 
-            // Chỉ tách theo chiều cho dòng BOOKING có 2 chiều khác hãng; PT/HV giữ nguyên 1 dòng
-            // (gán theo hãng đại diện/chặng đầu) vì chưa có cơ sở tách theo chiều cho chứng từ.
+            // Tách theo chiều cho dòng BOOKING 2 chiều khác hãng; PT loại 4/5 tách theo dòng NCC
+            // (hãng theo chiều NCC phục vụ); còn lại (BK 1 hãng, HV) giữ 1 dòng theo hãng đại diện.
             $isMultiBooking = ($r['parent_type'] === 'EC_Flight_Bookings' && $info && !empty($info['is_multi']) && isset($directionSplitMap[$bkid]));
 
             if ($isMultiBooking) {
                 $parts = $this->splitByDirection($info['dir_airline'], $directionSplitMap[$bkid], $ve, $dt, $gm, $ds);
+            } elseif ($r['parent_type'] === 'EC_Receipt_Voucher') {
+                $parts = $this->splitReceiptByAirline($r, $bkid, $dt, $gm, $ds, $rvLines, $info);
             } else {
                 $code = $info ? $info['airline'] : 'N/A';
-                // Chiều bay chỉ có ý nghĩa với dòng booking (BK); PT/HV để '-'
+                // Chiều bay chỉ có ý nghĩa với dòng booking (BK); HV để '-'
                 $dir_label = ($r['parent_type'] === 'EC_Flight_Bookings' && $info) ? $info['dir'] : '-';
                 $parts = array(array('airline' => $code, 'direction' => $dir_label, 've' => $ve, 'dt' => $dt, 'gm' => $gm, 'ds' => $ds));
             }
@@ -414,7 +541,9 @@ class Viewbkagent extends SugarView
             $date_show = ($r['parent_type'] === 'EC_Flight_Bookings')
                 ? (!empty($r['date_ticket_issue']) ? $r['date_ticket_issue'] : '')
                 : (!empty($r['voucher_date']) ? $r['voucher_date'] : '');
-            $date_entered = ($r['parent_type'] === 'EC_Flight_Bookings' && !empty($r['bk_date_entered'])) ? $r['bk_date_entered'] : '';
+            $date_entered = ($r['parent_type'] === 'EC_Flight_Bookings')
+                ? (!empty($r['bk_date_entered']) ? $r['bk_date_entered'] : '')
+                : (isset($docDateMap[$r['parent_id']]) ? $docDateMap[$r['parent_id']] : '');
 
             foreach ($parts as $part) {
                 $code = $part['airline'];
@@ -507,14 +636,14 @@ class Viewbkagent extends SugarView
         $detail = '
             <tr id="booking_list_total_row" class="bg-label-secondary">
                 <td></td>
-                <td class="center"><b>Tổng</b></td>
+                <td class="text-center"><b>Tổng</b></td>
                 <td></td>
                 <td></td>
                 <td></td>
-                <td class="center"><b id="total_filtered_ticket_qty">' . format_number($g_ve) . '</b></td>
-                <td class="center"><b id="total_filtered_dt">' . format_number($g_dt) . '</b></td>
-                <td class="center"><b id="total_filtered_gm">' . format_number($g_gm) . '</b></td>
-                <td class="center"><b id="total_filtered_ds">' . format_number($g_ds) . '</b></td>
+                <td class="text-center"><b id="total_filtered_ticket_qty">' . format_number($g_ve) . '</b></td>
+                <td class="text-end"><b id="total_filtered_dt">' . format_number($g_dt) . '</b></td>
+                <td class="text-end"><b id="total_filtered_gm">' . format_number($g_gm) . '</b></td>
+                <td class="text-end"><b id="total_filtered_ds">' . format_number($g_ds) . '</b></td>
                 <td></td>
                 <td></td>
             </tr>

@@ -1,58 +1,3 @@
-{literal}
-    <script>
-        $(document).ready(function() {
-            Calendar.setup({
-                inputField: "from_date",
-                daFormat: "%d-%m-%Y",
-                button: "fdate_trigger",
-                singleClick: true,
-                dateStr: "",
-                step: 1,
-                position: [230, 202],
-            });
-            Calendar.setup({
-                inputField: "to_date",
-                daFormat: "%d-%m-%Y",
-                button: "tdate_trigger",
-                singleClick: true,
-                dateStr: "",
-                step: 2
-            });
-            $("#date_select").change(function() {
-                var fdate_val = $(this).children("option:selected").attr("from_date");
-                var tdate_val = $(this).children("option:selected").attr("to_date");
-                if(fdate_val != "") {
-                    $("#from_date").val(fdate_val);
-                }
-                if(tdate_val != "") {
-                    $("#to_date").val(tdate_val);
-                }
-            });
-
-            // ===== Bấm 1 NCC để xem chi tiết theo hãng =====
-            $('#supplier_summary_list').on('click', '.supplier-row', function() {
-                let selectedSupplier = $(this).attr('data-supplier');
-
-                // highlight dòng đang chọn
-                $('#supplier_summary_list .supplier-row').removeClass('bg-warning');
-                $(this).addClass('bg-warning');
-
-                let visibleIndex = 1;
-                $('#supplier_detail_list .supplier-detail-row').each(function() {
-                    if ($(this).attr('data-supplier') === selectedSupplier) {
-                        $(this).show();
-                        $(this).find('.detail-stt').text(visibleIndex++);
-                    } else {
-                        $(this).hide();
-                    }
-                });
-
-                let label = $(this).find('td').eq(1).text().trim();
-                $('#supplier_detail_title').text('Chi tiết theo hãng: ' + label);
-            });
-        });
-    </script>
-{/literal}
 <h1 class="title">Thống kê vé theo Nhà cung cấp</h1>
 
 <div class="box-section">
@@ -102,56 +47,57 @@
                 </div>
             </div>
 
-            <div class="d-flex gap-2 align-items-center">
-                <span class="text-label">NCC: </span>
-                <select class="box-select" id="supplier_id" name="supplier_id">
-                    {$SUPPLIER_OPTIONS}
-                </select>
-            </div>
-
-            <input type="submit" id="btnView" name="btnView" class="btn btn-primary" value="Xem" title="Xem" />
+            <input type="submit" id="btnView" name="btnView" class="btn btn-primary" value="Xem báo cáo" title="Xem báo cáo" />
         </div>
     </form>
 
     <ul class="bookingqtyreport-note alert alert-info text-dark fw-semibold">
-        <li>- Số liệu lấy theo mô hình <strong>công nợ phải trả NCC</strong>: tiền lấy trực tiếp từ dòng vé (<em>ec_booking_details</em>), trọng tâm <strong>Tổng giá mua</strong> = <em>total_bought_price</em>.</li>
-        <li>- Ghi nhận theo <strong>ngày xuất vé của từng chặng</strong> (chặng đi: <em>date_ticket_issue</em>, chặng về: <em>date_ticket_inbound_issue</em>).</li>
-        <li>- Chỉ tính booking <em>Hoàn tất / Xác nhận</em> đã xuất vé. Bấm vào một NCC để xem tách theo từng hãng bay.</li>
+        <li>- Chứng từ không xác định NCC nằm ở nhóm <strong>Khác (N/A)</strong>.</li>
+        <li>- Bấm vào tên NCC để lọc danh sách chi tiết bên dưới.</li>
     </ul>
 
+    <div class="bkagent-table-wrap overflow-auto">
     <table id="supplier_summary_list" class="list-data table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
         <thead>
             <th width="5%">STT</th>
-            <th width="25%">NCC</th>
+            <th>NCC</th>
             <th width="10%">SL BK</th>
             <th width="10%">SL vé</th>
-            <th width="12%">Chiết khấu</th>
-            <th width="12%">Phí xuất vé</th>
-            <th width="13%">Tổng giá bán</th>
-            <th width="13%">Tổng giá mua</th>
+            <th width="18%">Tổng doanh thu</th>
+            <th width="18%">Tổng giá mua</th>
+            <th width="18%">Tổng doanh số</th>
         </thead>
         <tbody>
             {$SUPPLIER_SUMMARY_TBL}
         </tbody>
     </table>
+    </div>
 </div>
 </div>
 
-<h2 class="change-title mt-4" id="supplier_detail_title">Chi tiết theo hãng:</h2>
+<h2 class="change-title mt-4" id="supplier_detail_title">Chi tiết chứng từ: Tất cả NCC</h2>
 <div class="box-section box-details">
+    <div class="bkagent-table-wrap">
     <table id="supplier_detail_list" class="table-details__booking table-booking__list" cellpadding="0" cellspacing="0">
         <thead>
-            <th width="5%">STT</th>
-            <th width="25%">NCC</th>
-            <th width="20%">Hãng bay</th>
-            <th width="10%">SL vé</th>
-            <th width="12%">Chiết khấu</th>
-            <th width="12%">Phí xuất vé</th>
-            <th width="8%">Giá bán</th>
+            <th width="3%">#</th>
+            <th width="8%">Chứng từ</th>
+            <th width="12%">NCC</th>
+            <th width="13%">Hãng bay</th>
+            <th width="8%">Chiều bay</th>
+            <th width="6%">Loại vé</th>
+            <th width="5%">SL vé</th>
+            <th width="8%">Doanh thu</th>
             <th width="8%">Giá mua</th>
+            <th width="8%">Doanh số</th>
+            <th width="8%">Ngày CT</th>
+            <th width="8%">Ngày tạo</th>
         </thead>
         <tbody>
             {$SUPPLIER_DETAIL_TBL}
         </tbody>
     </table>
+    </div>
 </div>
+
+<script src="modules/EC_Flight_Bookings/js/view_bksupplier.js?v={$VERSION}"></script>

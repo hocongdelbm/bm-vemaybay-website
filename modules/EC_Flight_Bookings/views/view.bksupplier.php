@@ -4,12 +4,21 @@ require_once("include/Sugar_Smarty.php");
 /**
  * Thống kê vé theo Nhà cung cấp (NCC).
  *
- * Khác với "Thống kê vé" (bkagent - gom theo hãng, tiền ở cấp booking qua calculateBKAmt):
- * báo cáo này lấy theo mô hình CÔNG NỢ PHẢI TRẢ NCC:
- *   - Số tiền lấy trực tiếp từ dòng vé ec_booking_details (total_bought_price = công nợ phải trả).
- *   - Ghi nhận theo NGÀY XUẤT VÉ CỦA TỪNG CHẶNG:
- *       IF(direction = 0, date_ticket_issue, date_ticket_inbound_issue).
- *   - Lọc booking hợp lệ giống debtopay: booking_status IN (7,8) AND is_ticket_exported = 1.
+ * Dùng CHUNG nguồn dữ liệu với "Thống kê vé theo hãng" (bkagent) và "Doanh thu bán vé"
+ * (report_sales_revenue): hàm calculateRevenueOfDate() trả về mọi chứng từ BK + PT (phiếu thu
+ * 4/5/10-16) + HV (hoàn vé). Nhờ vậy TỔNG của báo cáo này luôn khớp bkagent — chỉ khác GÓC NHÌN:
+ * gom theo NCC thay vì theo hãng.
+ *
+ * Suy NCC cho từng chứng từ:
+ *   - BK: theo dòng vé ec_booking_details (supplier_id). 1 booking có thể nhiều NCC -> TÁCH tiền
+ *     theo tỷ lệ giá bán (doanh thu) / giá mua (giá mua) của từng NCC — xem getSupplierSplitMap().
+ *   - PT loại 4/5: có tối đa 3 dòng NCC (supplier_id/2/3 + bought_amount/2/3 + sell_amount/2/3),
+ *     tách theo từng dòng — xem getReceiptSupplierLines(). PT khác (10-16) thường không gắn NCC
+ *     -> nhóm "Khác (N/A)".
+ *   - HV: không có NCC riêng -> theo NCC của booking (tách theo tỷ lệ giá mua).
+ *
+ * Hãng bay của mỗi dòng suy y hệt bkagent: BK/HV lấy theo hãng chiều mà NCC phục vụ (field
+ * airline/airline_inbound của booking — getAirlineMap); PT loại 4/5 lấy theo resolveRVSupplierAirline().
  */
 class Viewbksupplier extends SugarView
 {
@@ -38,9 +47,6 @@ class Viewbksupplier extends SugarView
           if (empty($_REQUEST['from_date'])) {
                $from_date = date('Y-m-d', strtotime($to_date));
           } else $from_date = $_REQUEST['from_date'];
-
-          // NCC được chọn (rỗng = tất cả)
-          $supplier_id = !empty($_REQUEST['supplier_id']) ? $_REQUEST['supplier_id'] : '';
 
           // OPTION DATE - check quarter (đồng bộ với bkagent)
           switch (ceil(date('n') / 3)) {
@@ -77,6 +83,7 @@ class Viewbksupplier extends SugarView
           }
           $report_term_list = '<option from_date="' . date('d-m-Y') . '" to_date="' . date('d-m-Y') . '">Hôm nay</option>';
           $report_term_list .= '<option from_date="' . date('d-m-Y', strtotime("-1 day")) . '" to_date="' . date('d-m-Y', strtotime("-1 day")) . '">Hôm qua</option>';
+          $report_term_list .= '<option from_date="' . date('d-m-Y', strtotime("-2 day")) . '" to_date="' . date('d-m-Y', strtotime("-2 day")) . '">Hôm trước</option>';
           $report_term_list .= '<option from_date="' . date('d-m-Y', strtotime("first day of this month")) . '" to_date="' . date('d-m-Y', strtotime("last day of this month")) . '">Tháng này</option>';
           $report_term_list .= '<option from_date="' . date('d-m-Y', strtotime("first day of previous month")) . '" to_date="' . date('d-m-Y', strtotime("last day of previous month")) . '">Tháng trước</option>';
           $report_term_list .= '<option from_date="' . date('d-m-Y', strtotime($cq_from_date)) . '" to_date="' . date('d-m-Y', strtotime($cq_to_date)) . '">Quý này</option>';
@@ -85,224 +92,563 @@ class Viewbksupplier extends SugarView
 
           $smarty->assign('FROM_DATE_VALUE', date('d-m-Y', strtotime($from_date)));
           $smarty->assign('TO_DATE_VALUE', date('d-m-Y', strtotime($to_date)));
-          $smarty->assign('SUPPLIER_OPTIONS', $this->getSupplierOptions($supplier_id));
-          $smarty->assign('SUPPLIER_SUMMARY_TBL', $this->populateSupplierSummary($from_date, $to_date, $supplier_id));
-          $smarty->assign('SUPPLIER_DETAIL_TBL', $this->populateSupplierAirlineDetail($from_date, $to_date, $supplier_id));
+
+          $report = $this->buildSupplierReport($from_date, $to_date);
+          $smarty->assign('SUPPLIER_SUMMARY_TBL', $report['summary']);
+          $smarty->assign('SUPPLIER_DETAIL_TBL', $report['detail']);
+          $smarty->assign('VERSION', '2.0.1');
+     }
+
+     /* ===================== HELPER MAP ===================== */
+
+     /**
+      * Tên hiển thị của hãng theo mã (memoize vì myGetAirlineInfo2 đọc/parse airlines.xml mỗi lần).
+      * Copy logic bkagent để đồng bộ nhãn hãng.
+      */
+     private function airlineDisplayName($code)
+     {
+          static $cache = array();
+          if (isset($cache[$code])) return $cache[$code];
+          if ($code === 'N/A' || $code === '') return $cache[$code] = 'Khác';
+
+          // Map mã 3 ký tự (hệ thống/Sabre) về mã 2 ký tự (IATA) có trong bảng ec_airlines
+          $mapCodes = array('VJA' => 'VJ', 'VNA' => 'VN', 'BBA' => 'QH', 'VTA' => 'VU', 'VNP' => 'BL');
+          $searchCode = isset($mapCodes[$code]) ? $mapCodes[$code] : $code;
+
+          global $db;
+          $qCode = $db->quote($searchCode);
+          $sql = "SELECT name FROM ec_airlines WHERE deleted = 0 AND (iata_code = '$qCode' OR icao_code = '$qCode') LIMIT 1";
+          $row = $db->fetchByAssoc($db->query($sql));
+          if (!empty($row['name'])) return $cache[$code] = $row['name'];
+
+          if ($code === '0V' || $code === 'VTA') return $cache[$code] = 'VASCO';
+          return $cache[$code] = 'Hãng khác';
+     }
+
+     private function airlineLabel($code)
+     {
+          if ($code === 'N/A' || $code === '') return 'Khác (N/A)';
+          return $this->airlineDisplayName($code) . ' (' . $code . ')';
      }
 
      /**
-      * Dropdown chọn NCC (Supplier còn theo dõi). Rỗng = tất cả.
+      * Nhãn chiều bay từ tập direction phục vụ.
       */
-     function getSupplierOptions($selected)
+     private function directionLabel(array $dirs)
+     {
+          // PHP ép key chuỗi số '0'/'1' thành int khi lấy array_keys -> chuẩn hoá về chuỗi để so sánh
+          $dirs = array_map('strval', $dirs);
+          $h0 = in_array('0', $dirs, true);
+          $h1 = in_array('1', $dirs, true);
+          if ($h0 && $h1) return 'Lượt đi & về';
+          if ($h0) return 'Lượt đi';
+          if ($h1) return 'Lượt về';
+          return '-';
+     }
+
+     /**
+      * Map booking_id -> ['airline','dir','dir_airline'=>[dir=>code]] — GIỐNG bkagent::getAirlineMap:
+      * hãng theo từng chiều ưu tiên field cấp booking (airline=đi, airline_inbound=về), fallback
+      * chặng đầu itinerary (ORDER BY transit_order). Tránh lấy nhầm hãng chặng transit.
+      */
+     private function getAirlineMap(array $bkIds)
      {
           global $db;
-          $html = '<option value="">-- Tất cả NCC --</option>';
-          $sql = "SELECT id, ticker_symbol, name
-                  FROM accounts
-                  WHERE deleted = 0 AND account_type = 'Supplier' AND is_stop_tracking = 0
-                  ORDER BY name";
-          $res = $db->query($sql);
-          while ($r = $db->fetchByAssoc($res)) {
-               $label = trim(($r['ticker_symbol'] !== '' ? $r['ticker_symbol'] . ' - ' : '') . $r['name']);
-               $sel = ($selected === $r['id']) ? ' selected' : '';
-               $html .= '<option value="' . $r['id'] . '"' . $sel . '>' . htmlspecialchars($label) . '</option>';
+          $map = array();
+          $inList = array();
+          foreach ($bkIds as $id) {
+               if (!empty($id)) $inList[] = "'" . $db->quote($id) . "'";
           }
-          return $html;
-     }
+          if (empty($inList)) return $map;
+          $inClause = implode(',', $inList);
 
-     /**
-      * Điều kiện WHERE dùng chung cho cả summary & detail.
-      */
-     private function buildWhere($from_date, $to_date, $supplier_id)
-     {
-          global $db;
-          $from = date('Y-m-d', strtotime($from_date));
-          $to   = date('Y-m-d', strtotime($to_date));
-
-          $where = " d.deleted = 0
-                    AND p.deleted = 0
-                    AND p.booking_status IN ('7','8')
-                    AND p.is_ticket_exported = 1
-                    AND d.supplier_id IS NOT NULL AND d.supplier_id <> ''
-                    AND (IF(d.direction = 0, p.date_ticket_issue, p.date_ticket_inbound_issue)
-                         BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59') ";
-          if (!empty($supplier_id)) {
-               $where .= " AND d.supplier_id = '" . $db->quote($supplier_id) . "' ";
+          $bkAirline = array();
+          $resBk = $db->query("SELECT id, airline, airline_inbound FROM ec_flight_bookings WHERE id IN ($inClause)");
+          while ($row = $db->fetchByAssoc($resBk)) {
+               $bkAirline[$row['id']] = array(
+                    '0' => (isset($row['airline']) && $row['airline'] !== '') ? myNormalizeAirlineCode($row['airline']) : '',
+                    '1' => (isset($row['airline_inbound']) && $row['airline_inbound'] !== '') ? myNormalizeAirlineCode($row['airline_inbound']) : '',
+               );
           }
-          return $where;
-     }
 
-     /**
-      * Bảng tổng hợp: mỗi dòng = 1 NCC. Trọng tâm Tổng giá mua (công nợ phải trả).
-      */
-     function populateSupplierSummary($from_date, $to_date, $supplier_id)
-     {
-          global $db;
-
-          $html = '
-            <tr id="supplier_total_row">
-                <td></td>
-                <td class="text-center text-decoration-underline"><b>Tổng</b></td>
-                <td class="text-center"><b>$TOTAL_BK</b></td>
-                <td class="text-center"><b>$TOTAL_VE</b></td>
-                <td class="text-center"><b>$TOTAL_CK</b></td>
-                <td class="text-center"><b>$TOTAL_FEE</b></td>
-                <td class="text-center"><b>$TOTAL_BAN</b></td>
-                <td class="text-center"><b>$TOTAL_MUA</b></td>
-            </tr>
-        ';
-
-          $sql = "
-            SELECT d.supplier_id,
-                   a.ticker_symbol AS supplier_code,
-                   a.name          AS supplier_name,
-                   COUNT(DISTINCT d.booking_id)        AS sl_bk,
-                   SUM(IFNULL(d.quantity, 0))          AS sl_ve,
-                   SUM(IFNULL(d.supplier_discount, 0)) AS chiet_khau,
-                   SUM(IFNULL(d.fee_bought, 0))        AS phi_xuat_ve,
-                   SUM(IFNULL(d.total_price, 0))       AS gia_ban,
-                   SUM(IFNULL(d.total_bought_price, 0)) AS gia_mua
-            FROM ec_booking_details d
-            INNER JOIN ec_flight_bookings p ON d.booking_id = p.id
-            LEFT JOIN accounts a ON a.id = d.supplier_id AND a.deleted = 0
-            WHERE " . $this->buildWhere($from_date, $to_date, $supplier_id) . "
-            GROUP BY d.supplier_id, a.ticker_symbol, a.name
-            ORDER BY gia_mua DESC
-        ";
-
+          $sql = "SELECT booking_id, direction, airline_code
+                  FROM ec_booking_itineraries
+                  WHERE deleted = 0 AND booking_id IN ($inClause)
+                  ORDER BY booking_id, direction ASC, transit_order ASC, CAST(IFNULL(sabre_logs,0) AS UNSIGNED) ASC";
           $res = $db->query($sql);
-          $i = 0;
-          $t_bk = $t_ve = $t_ck = $t_fee = $t_ban = $t_mua = 0;
+          $itiFirst = array();
           while ($row = $db->fetchByAssoc($res)) {
-               $sup_code = !empty($row['supplier_code']) ? $row['supplier_code'] : '';
-               $sup_name = !empty($row['supplier_name']) ? $row['supplier_name'] : 'N/A';
-               $label = trim(($sup_code !== '' ? $sup_code . ' - ' : '') . $sup_name);
-
-               $html .= '
-                <tr class="supplier-row cursor-pointer" data-supplier="' . $row['supplier_id'] . '" title="Bấm để xem chi tiết theo hãng của NCC này">
-                    <td class="text-center">' . ($i + 1) . '</td>
-                    <td class="text-center fw-semibold text-decoration-underline">
-                        <a href="index.php?module=Accounts&action=DetailView&record=' . $row['supplier_id'] . '" target="_blank">' . htmlspecialchars($label) . '</a>
-                    </td>
-                    <td class="text-center">' . format_number($row['sl_bk']) . '</td>
-                    <td class="text-center">' . format_number($row['sl_ve']) . '</td>
-                    <td class="text-center">' . format_number($row['chiet_khau']) . '</td>
-                    <td class="text-center">' . format_number($row['phi_xuat_ve']) . '</td>
-                    <td class="text-center">' . format_number($row['gia_ban']) . '</td>
-                    <td class="text-center fw-bold">' . format_number($row['gia_mua']) . '</td>
-                </tr>
-            ';
-               $i++;
-               $t_bk  += $row['sl_bk'];
-               $t_ve  += $row['sl_ve'];
-               $t_ck  += $row['chiet_khau'];
-               $t_fee += $row['phi_xuat_ve'];
-               $t_ban += $row['gia_ban'];
-               $t_mua += $row['gia_mua'];
+               $bid = $row['booking_id'];
+               if (!isset($itiFirst[$bid])) $itiFirst[$bid] = array();
+               $d = (string) $row['direction'];
+               $code = ($row['airline_code'] !== '') ? myNormalizeAirlineCode($row['airline_code']) : '';
+               if ($d !== '' && $code !== '' && !isset($itiFirst[$bid][$d])) {
+                    $itiFirst[$bid][$d] = $code;
+               }
           }
 
-          if ($i === 0) {
-               $html .= '<tr><td colspan="8" class="text-center text-muted">Không có dữ liệu trong kỳ.</td></tr>';
+          $allBids = array_unique(array_merge(array_keys($bkAirline), array_keys($itiFirst)));
+          foreach ($allBids as $bid) {
+               $iti = isset($itiFirst[$bid]) ? $itiFirst[$bid] : array();
+               $bk  = isset($bkAirline[$bid]) ? $bkAirline[$bid] : array('0' => '', '1' => '');
+               $dirAirline = array();
+               foreach (array('0', '1') as $d) {
+                    $present = isset($iti[$d]) || (empty($iti) && !empty($bk[$d]));
+                    if (!$present) continue;
+                    $code = ($bk[$d] !== '') ? $bk[$d] : (isset($iti[$d]) ? $iti[$d] : '');
+                    if ($code !== '') $dirAirline[$d] = $code;
+               }
+               $has0 = isset($dirAirline['0']);
+               $has1 = isset($dirAirline['1']);
+               $first = $has0 ? $dirAirline['0'] : ($has1 ? $dirAirline['1'] : '');
+               $map[$bid] = array(
+                    'airline'     => ($first !== '') ? $first : 'N/A',
+                    'dir'         => $this->directionLabel(array_keys($dirAirline)),
+                    'dir_airline' => $dirAirline,
+               );
           }
-
-          $html = str_replace(
-               array('$TOTAL_BK', '$TOTAL_VE', '$TOTAL_CK', '$TOTAL_FEE', '$TOTAL_BAN', '$TOTAL_MUA'),
-               array(
-                    format_number($t_bk),
-                    format_number($t_ve),
-                    format_number($t_ck),
-                    format_number($t_fee),
-                    format_number($t_ban),
-                    format_number($t_mua),
-               ),
-               $html
-          );
-
-          return $html;
+          return $map;
      }
 
      /**
-      * Bảng chi tiết: tách theo NCC × Hãng bay.
-      * Hãng lấy theo chặng (itinerary khớp direction) bằng subquery LIMIT 1 để KHÔNG nhân đôi
-      * giá trị dòng vé khi chặng có nhiều segment nối chuyến.
+      * Map booking_id -> [supplier_id => ['qty','price','bought','dirs'=>[dir=>true]]] từ ec_booking_details.
+      * Dùng để TÁCH tiền booking theo NCC. supplier_id rỗng -> gom nhóm '' (Khác).
       */
-     function populateSupplierAirlineDetail($from_date, $to_date, $supplier_id)
+     private function getSupplierSplitMap(array $bkIds)
      {
           global $db;
+          $map = array();
+          $inList = array();
+          foreach ($bkIds as $id) {
+               if (!empty($id)) $inList[] = "'" . $db->quote($id) . "'";
+          }
+          if (empty($inList)) return $map;
 
-          $sql = "
-            SELECT t.supplier_id, t.supplier_code, t.supplier_name,
-                   CASE
-                        WHEN t.airline_code = 'VJ' THEN 'VJA'
-                        WHEN t.airline_code = 'VN' THEN 'VNA'
-                        WHEN t.airline_code IS NULL OR t.airline_code = '' THEN 'N/A'
-                        ELSE t.airline_code
-                   END AS airline_code,
-                   SUM(IFNULL(t.quantity, 0))          AS sl_ve,
-                   SUM(IFNULL(t.supplier_discount, 0)) AS chiet_khau,
-                   SUM(IFNULL(t.fee_bought, 0))        AS phi_xuat_ve,
-                   SUM(IFNULL(t.total_price, 0))       AS gia_ban,
-                   SUM(IFNULL(t.total_bought_price, 0)) AS gia_mua
-            FROM (
-                SELECT d.supplier_id,
-                       a.ticker_symbol AS supplier_code,
-                       a.name          AS supplier_name,
-                       d.quantity, d.supplier_discount, d.fee_bought, d.total_price, d.total_bought_price,
-                       (
-                            SELECT i.airline_code
-                            FROM ec_booking_itineraries i
-                            WHERE i.booking_id = d.booking_id
-                              AND i.direction = d.direction
-                              AND i.deleted = 0
-                            LIMIT 1
-                       ) AS airline_code
-                FROM ec_booking_details d
-                INNER JOIN ec_flight_bookings p ON d.booking_id = p.id
-                LEFT JOIN accounts a ON a.id = d.supplier_id AND a.deleted = 0
-                WHERE " . $this->buildWhere($from_date, $to_date, $supplier_id) . "
-            ) t
-            GROUP BY t.supplier_id, t.supplier_code, t.supplier_name, airline_code
-            ORDER BY t.supplier_name, gia_mua DESC
-        ";
-
+          $sql = "SELECT booking_id, IFNULL(supplier_id,'') AS supplier_id, direction,
+                       SUM(IFNULL(quantity,0))          AS qty,
+                       SUM(IFNULL(total_price,0))       AS price,
+                       SUM(IFNULL(total_bought_price,0)) AS bought
+                  FROM ec_booking_details
+                  WHERE deleted = 0 AND booking_id IN (" . implode(',', $inList) . ")
+                  GROUP BY booking_id, supplier_id, direction";
           $res = $db->query($sql);
-          $html = '';
-          $i = 0;
           while ($row = $db->fetchByAssoc($res)) {
-               $sup_code = !empty($row['supplier_code']) ? $row['supplier_code'] : '';
-               $sup_name = !empty($row['supplier_name']) ? $row['supplier_name'] : 'N/A';
-               $label = trim(($sup_code !== '' ? $sup_code . ' - ' : '') . $sup_name);
+               $bid = $row['booking_id'];
+               $sid = $row['supplier_id'];
+               if (!isset($map[$bid])) $map[$bid] = array();
+               if (!isset($map[$bid][$sid])) $map[$bid][$sid] = array('qty' => 0, 'price' => 0.0, 'bought' => 0.0, 'dirs' => array());
+               $map[$bid][$sid]['qty']    += (int) $row['qty'];
+               $map[$bid][$sid]['price']  += (float) $row['price'];
+               $map[$bid][$sid]['bought'] += (float) $row['bought'];
+               $d = (string) $row['direction'];
+               if ($d !== '') $map[$bid][$sid]['dirs'][$d] = true;
+          }
+          return $map;
+     }
 
-               // tên hãng
-               $airline_code = $row['airline_code'];
-               $airline_label = $airline_code;
-               if ($airline_code !== 'N/A') {
-                    $airline = myGetAirlineInfo2($airline_code, 'CODE');
-                    $airline_name = isset($airline['data'][0]['name']) ? $airline['data'][0]['name'] : '';
-                    if (!empty($airline_name)) {
-                         $airline_label = $airline_name . ' (' . $airline_code . ')';
+     /**
+      * Map receipt_voucher_id -> [ ['supplier_id','bought','sell'], ... ] cho tối đa 3 dòng NCC.
+      */
+     private function getReceiptSupplierLines(array $rvIds)
+     {
+          global $db;
+          $map = array();
+          $inList = array();
+          foreach ($rvIds as $id) {
+               if (!empty($id)) $inList[] = "'" . $db->quote($id) . "'";
+          }
+          if (empty($inList)) return $map;
+
+          $sql = "SELECT id,
+                       IFNULL(supplier_id,'')  AS s1, IFNULL(bought_amount,0)  AS b1, IFNULL(sell_amount,0)  AS se1, IFNULL(sup_direction,'')  AS d1,
+                       IFNULL(supplier2_id,'') AS s2, IFNULL(bought_amount2,0) AS b2, IFNULL(sell_amount2,0) AS se2, IFNULL(sup_direction2,'') AS d2,
+                       IFNULL(supplier3_id,'') AS s3, IFNULL(bought_amount3,0) AS b3, IFNULL(sell_amount3,0) AS se3, IFNULL(sup_direction3,'') AS d3
+                  FROM ec_receipt_voucher
+                  WHERE id IN (" . implode(',', $inList) . ")";
+          $res = $db->query($sql);
+          while ($row = $db->fetchByAssoc($res)) {
+               $lines = array();
+               foreach (array(array('s1', 'b1', 'se1', 'd1'), array('s2', 'b2', 'se2', 'd2'), array('s3', 'b3', 'se3', 'd3')) as $c) {
+                    $sid = $row[$c[0]];
+                    $bought = (float) $row[$c[1]];
+                    $sell = (float) $row[$c[2]];
+                    // giữ dòng có NCC, hoặc có phát sinh tiền (để không mất tổng)
+                    if ($sid !== '' || $bought != 0 || $sell != 0) {
+                         $lines[] = array('supplier_id' => $sid, 'bought' => $bought, 'sell' => $sell, 'direction' => $row[$c[3]]);
                     }
                }
+               if (!empty($lines)) $map[$row['id']] = $lines;
+          }
+          return $map;
+     }
 
-               $html .= '
-                <tr class="supplier-detail-row" data-supplier="' . $row['supplier_id'] . '" style="display:none;">
-                    <td class="text-center detail-stt">' . ($i + 1) . '</td>
-                    <td class="text-center">' . htmlspecialchars($label) . '</td>
-                    <td class="text-center">' . htmlspecialchars($airline_label) . '</td>
-                    <td class="text-center">' . format_number($row['sl_ve']) . '</td>
-                    <td class="text-center">' . format_number($row['chiet_khau']) . '</td>
-                    <td class="text-center">' . format_number($row['phi_xuat_ve']) . '</td>
-                    <td class="text-center">' . format_number($row['gia_ban']) . '</td>
-                    <td class="text-center fw-bold">' . format_number($row['gia_mua']) . '</td>
+     /**
+      * Map booking_id -> nhãn loại vé (Nội địa/Quốc tế) từ ec_flight_bookings.ticket_type.
+      */
+     /**
+      * Map chứng_từ_id -> Ngày tạo (dd-mm-yyyy HH:mm, +7h) cho phiếu thu (PT) & hoàn vé (HV),
+      * vì calculateRevenueOfDate không trả date_entered cho 2 loại này.
+      */
+     private function getDocDateEntered(array $rvIds, array $hvIds)
+     {
+          global $db;
+          $map = array();
+          $fmt = "DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%d-%m-%Y %H:%i')";
+
+          foreach (array('ec_receipt_voucher' => $rvIds, 'ec_hoanve' => $hvIds) as $table => $ids) {
+               $inList = array();
+               foreach ($ids as $id) {
+                    if (!empty($id)) $inList[] = "'" . $db->quote($id) . "'";
+               }
+               if (empty($inList)) continue;
+               $res = $db->query("SELECT id, $fmt AS de FROM $table WHERE id IN (" . implode(',', $inList) . ")");
+               while ($row = $db->fetchByAssoc($res)) $map[$row['id']] = $row['de'];
+          }
+          return $map;
+     }
+
+     private function getTicketTypeMap(array $bkIds)
+     {
+          global $db, $app_list_strings;
+          $map = array();
+          $inList = array();
+          foreach ($bkIds as $id) {
+               if (!empty($id)) $inList[] = "'" . $db->quote($id) . "'";
+          }
+          if (empty($inList)) return $map;
+          $sql = "SELECT id, ticket_type FROM ec_flight_bookings WHERE id IN (" . implode(',', $inList) . ")";
+          $res = $db->query($sql);
+          while ($row = $db->fetchByAssoc($res)) {
+               $tt = $row['ticket_type'];
+               $map[$row['id']] = isset($app_list_strings['booking_ticket_type_list'][$tt])
+                    ? $app_list_strings['booking_ticket_type_list'][$tt] : '-';
+          }
+          return $map;
+     }
+
+     /**
+      * Nhãn NCC theo id (memoize). '' -> "Khác (N/A)".
+      */
+     private function supplierLabel($sid)
+     {
+          static $cache = null;
+          if ($cache === null) $cache = array();
+          if ($sid === '' || $sid === null) return 'Khác (N/A)';
+          if (isset($cache[$sid])) return $cache[$sid];
+          global $db;
+          $row = $db->fetchByAssoc($db->query(
+               "SELECT ticker_symbol, name FROM accounts WHERE id = '" . $db->quote($sid) . "'"
+          ));
+          if (!$row) return $cache[$sid] = 'N/A';
+          $code = !empty($row['ticker_symbol']) ? $row['ticker_symbol'] : '';
+          $name = !empty($row['name']) ? $row['name'] : 'N/A';
+          return $cache[$sid] = trim(($code !== '' ? $code . ' - ' : '') . $name);
+     }
+
+     /* ===================== TÁCH CHỨNG TỪ THEO NCC ===================== */
+
+     /**
+      * Hãng của phần NCC trong 1 booking: theo chiều mà NCC phục vụ (dir_airline), fallback hãng
+      * đại diện của booking.
+      */
+     private function airlineForDirs(array $dirs, $airlineInfo)
+     {
+          if ($airlineInfo) {
+               sort($dirs);
+               foreach ($dirs as $d) {
+                    if (isset($airlineInfo['dir_airline'][$d])) return $airlineInfo['dir_airline'][$d];
+               }
+               if (!empty($airlineInfo['airline'])) return $airlineInfo['airline'];
+          }
+          return 'N/A';
+     }
+
+     /**
+      * Tách 1 dòng doanh thu (BK/PT/HV) từ calculateRevenueOfDate thành các phần theo NCC.
+      * Mỗi phần: ['supplier_id','airline','direction','ve','dt','gm','ds'].
+      * Tỷ lệ cộng lại = 1 nên tổng dt/gm/ds/ve LUÔN bằng giá trị gốc -> khớp bkagent.
+      */
+     private function splitBySupplier($row, $bkid, $ve, $dt, $gm, $ds, array $supplierSplit, array $rvLines, $airlineInfo)
+     {
+          $ptype = $row['parent_type'];
+
+          if ($ptype === 'EC_Receipt_Voucher') {
+               $lines = isset($rvLines[$row['parent_id']]) ? $rvLines[$row['parent_id']] : array();
+               if (empty($lines)) {
+                    // PT không gắn NCC (VD loại 14 khách sạn) -> nhóm Khác
+                    return array(array('supplier_id' => '', 'airline' => 'N/A', 'direction' => '-', 've' => 0, 'dt' => $dt, 'gm' => $gm, 'ds' => $ds));
+               }
+               $sumB = $sumS = 0;
+               foreach ($lines as $ln) {
+                    $sumB += abs($ln['bought']);
+                    $sumS += abs($ln['sell']);
+               }
+               $n = count($lines);
+               $parts = array();
+               foreach ($lines as $ln) {
+                    $ratioGm = ($sumB > 0) ? abs($ln['bought']) / $sumB : (1 / $n);
+                    $ratioDt = ($sumS > 0) ? abs($ln['sell']) / $sumS : (($sumB > 0) ? abs($ln['bought']) / $sumB : (1 / $n));
+                    $pdt = $dt * $ratioDt;
+                    $pgm = $gm * $ratioGm;
+                    $air = 'N/A';
+                    if (!empty($bkid) && !empty($ln['supplier_id'])) {
+                         // chiều đã chọn khi tạo phiếu (sup_direction) -> tường minh; trống -> auto
+                         $lineDir = (isset($ln['direction']) && $ln['direction'] !== '') ? $ln['direction'] : null;
+                         $r = resolveRVSupplierAirline($bkid, $ln['supplier_id'], $lineDir);
+                         if (!empty($r['airline_code'])) $air = $r['airline_code'];
+                    }
+                    if ($air === 'N/A' && $airlineInfo && !empty($airlineInfo['airline'])) $air = $airlineInfo['airline'];
+                    $parts[] = array('supplier_id' => $ln['supplier_id'], 'airline' => $air, 'direction' => '-', 've' => 0, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
+               }
+               return $parts;
+          }
+
+          // BK & HV: tách theo NCC của booking (ec_booking_details)
+          $split = (!empty($bkid) && isset($supplierSplit[$bkid])) ? $supplierSplit[$bkid] : array();
+          if (empty($split)) {
+               $air = ($airlineInfo && !empty($airlineInfo['airline'])) ? $airlineInfo['airline'] : 'N/A';
+               $dir = ($ptype === 'EC_Flight_Bookings' && $airlineInfo) ? $airlineInfo['dir'] : '-';
+               return array(array('supplier_id' => '', 'airline' => $air, 'direction' => $dir, 've' => $ve, 'dt' => $dt, 'gm' => $gm, 'ds' => $ds));
+          }
+
+          $sumPrice = $sumBought = $sumQty = 0;
+          foreach ($split as $inf) {
+               $sumPrice  += $inf['price'];
+               $sumBought += $inf['bought'];
+               $sumQty    += $inf['qty'];
+          }
+          $n = count($split);
+
+          // HV: dồn SL vé (âm) vào NCC có giá mua lớn nhất để tránh vé phân số
+          $maxSid = null;
+          if ($ptype === 'EC_HoanVe') {
+               $maxB = -1;
+               foreach ($split as $sid => $inf) {
+                    if ($inf['bought'] > $maxB) {
+                         $maxB = $inf['bought'];
+                         $maxSid = $sid;
+                    }
+               }
+          }
+
+          $parts = array();
+          foreach ($split as $sid => $inf) {
+               if ($ptype === 'EC_HoanVe') {
+                    // hoàn vé: chia theo tỷ lệ GIÁ MUA (đảo chiều công nợ phải trả NCC)
+                    $ratio = ($sumBought > 0) ? $inf['bought'] / $sumBought : (($sumQty > 0) ? $inf['qty'] / $sumQty : (1 / $n));
+                    $pdt = $dt * $ratio;
+                    $pgm = $gm * $ratio;
+                    $pve = ($sid === $maxSid) ? $ve : 0;
+                    $dir = '-';
+               } else {
+                    // BK: doanh thu theo tỷ lệ giá bán, giá mua theo tỷ lệ giá mua; SL vé đúng theo NCC
+                    $ratioDt = ($sumPrice > 0) ? $inf['price'] / $sumPrice : (($sumQty > 0) ? $inf['qty'] / $sumQty : (1 / $n));
+                    $ratioGm = ($sumBought > 0) ? $inf['bought'] / $sumBought : (($sumQty > 0) ? $inf['qty'] / $sumQty : (1 / $n));
+                    $pdt = $dt * $ratioDt;
+                    $pgm = $gm * $ratioGm;
+                    $pve = $inf['qty'];
+                    $dir = $this->directionLabel(array_keys($inf['dirs']));
+               }
+               $air = $this->airlineForDirs(array_keys($inf['dirs']), $airlineInfo);
+               $parts[] = array('supplier_id' => $sid, 'airline' => $air, 'direction' => $dir, 've' => $pve, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
+          }
+          return $parts;
+     }
+
+     /* ===================== BUILD REPORT ===================== */
+
+     /**
+      * Gom BK + PT + HV theo NCC -> 2 bảng HTML: summary (theo NCC) & detail (theo chứng từ).
+      */
+     function buildSupplierReport($from_date, $to_date)
+     {
+          $fromD = date('Y-m-d', strtotime($from_date));
+          $toD   = date('Y-m-d', strtotime($to_date));
+
+          $rev  = calculateRevenueOfDate($fromD, $toD, array());
+          $rows = (!empty($rev['details']) && is_array($rev['details'])) ? $rev['details'] : array();
+
+          $bkIds = array();
+          $rvIds = array();
+          $hvIds = array();
+          foreach ($rows as $r) {
+               if (!empty($r['booking_id'])) $bkIds[$r['booking_id']] = true;
+               if ($r['parent_type'] === 'EC_Receipt_Voucher') $rvIds[$r['parent_id']] = true;
+               if ($r['parent_type'] === 'EC_HoanVe') $hvIds[$r['parent_id']] = true;
+          }
+          $supplierSplit = $this->getSupplierSplitMap(array_keys($bkIds));
+          $airlineMap    = $this->getAirlineMap(array_keys($bkIds));
+          $rvLines       = $this->getReceiptSupplierLines(array_keys($rvIds));
+          $ticketTypeMap = $this->getTicketTypeMap(array_keys($bkIds));
+          $docDateMap    = $this->getDocDateEntered(array_keys($rvIds), array_keys($hvIds));
+
+          $bySupplier = array();
+          $detailRows = array();
+          $g_ve = $g_dt = $g_gm = $g_ds = 0;
+          $g_bk_ids = array();
+
+          foreach ($rows as $r) {
+               $bkid  = isset($r['booking_id']) ? $r['booking_id'] : '';
+               $ptype = $r['parent_type'];
+               $ve = (int) $r['total_quantity'];
+               $dt = (float) $r['subtotal_amount'];
+               $gm = (float) $r['total_bought_price'];
+               $ds = (float) $r['profit_amount'];
+               $airlineInfo = (!empty($bkid) && isset($airlineMap[$bkid])) ? $airlineMap[$bkid] : null;
+               $ticket_type_label = (!empty($bkid) && isset($ticketTypeMap[$bkid])) ? $ticketTypeMap[$bkid] : '-';
+
+               $parts = $this->splitBySupplier($r, $bkid, $ve, $dt, $gm, $ds, $supplierSplit, $rvLines, $airlineInfo);
+
+               $date_show = ($ptype === 'EC_Flight_Bookings')
+                    ? (!empty($r['date_ticket_issue']) ? $r['date_ticket_issue'] : '')
+                    : (!empty($r['voucher_date']) ? $r['voucher_date'] : '');
+               $date_entered = ($ptype === 'EC_Flight_Bookings')
+                    ? (!empty($r['bk_date_entered']) ? $r['bk_date_entered'] : '')
+                    : (isset($docDateMap[$r['parent_id']]) ? $docDateMap[$r['parent_id']] : '');
+
+               foreach ($parts as $p) {
+                    $sid = $p['supplier_id'];
+
+                    if (!isset($bySupplier[$sid])) {
+                         $bySupplier[$sid] = array(
+                              'label'  => $this->supplierLabel($sid),
+                              'bk_ids' => array(),
+                              've' => 0,
+                              'dt' => 0,
+                              'gm' => 0,
+                              'ds' => 0,
+                         );
+                    }
+                    $bySupplier[$sid]['ve'] += $p['ve'];
+                    $bySupplier[$sid]['dt'] += $p['dt'];
+                    $bySupplier[$sid]['gm'] += $p['gm'];
+                    $bySupplier[$sid]['ds'] += $p['ds'];
+                    if ($ptype === 'EC_Flight_Bookings' && !empty($bkid)) {
+                         $bySupplier[$sid]['bk_ids'][$bkid] = true;
+                    }
+
+                    $g_ve += $p['ve'];
+                    $g_dt += $p['dt'];
+                    $g_gm += $p['gm'];
+                    $g_ds += $p['ds'];
+                    if ($ptype === 'EC_Flight_Bookings' && !empty($bkid)) $g_bk_ids[$bkid] = true;
+
+                    $detailRows[] = array(
+                         'supplier_id' => $sid,
+                         'supplier'    => $bySupplier[$sid]['label'],
+                         'airline'     => $p['airline'],
+                         'direction'   => $p['direction'],
+                         'ticket_type' => $ticket_type_label,
+                         'parent_type' => $ptype,
+                         'parent_id'   => $r['parent_id'],
+                         'name'        => $r['parent_name'],
+                         've' => $p['ve'],
+                         'dt' => $p['dt'],
+                         'gm' => $p['gm'],
+                         'ds' => $p['ds'],
+                         'date_show' => $date_show,
+                         'date_entered' => $date_entered,
+                    );
+               }
+          }
+
+          // ===== Bảng tổng hợp theo NCC =====
+          uasort($bySupplier, function ($a, $b) {
+               if ($b['gm'] != $a['gm']) return ($b['gm'] <=> $a['gm']);
+               return $b['dt'] <=> $a['dt'];
+          });
+
+          $summary = '
+            <tr class="supplier-row cursor-pointer bg-label-secondary" data-supplier="ALL" title="Bấm để xem tất cả">
+                <td></td>
+                <td class="text-center text-decoration-underline"><b>Tổng</b></td>
+                <td class="text-center"><b>' . format_number(count($g_bk_ids)) . '</b></td>
+                <td class="text-center"><b>' . format_number($g_ve) . '</b></td>
+                <td class="text-center"><b>' . format_number($g_dt) . '</b></td>
+                <td class="text-center"><b>' . format_number($g_gm) . '</b></td>
+                <td class="text-center"><b>' . format_number($g_ds) . '</b></td>
+            </tr>
+        ';
+          $i = 0;
+          foreach ($bySupplier as $sid => $s) {
+               $summary .= '
+                <tr class="supplier-row cursor-pointer" data-supplier="' . $sid . '" title="Bấm để lọc chứng từ của NCC này">
+                    <td class="text-center">' . ($i + 1) . '</td>
+                    <td class="text-center fw-semibold text-decoration-underline">' . htmlspecialchars($s['label']) . '</td>
+                    <td class="text-center">' . format_number(count($s['bk_ids'])) . '</td>
+                    <td class="text-center">' . format_number($s['ve']) . '</td>
+                    <td class="text-center">' . format_number($s['dt']) . '</td>
+                    <td class="text-center fw-bold">' . format_number($s['gm']) . '</td>
+                    <td class="text-center">' . format_number($s['ds']) . '</td>
                 </tr>
             ';
                $i++;
           }
-
-          if ($html === '') {
-               $html = '<tr><td colspan="8" class="text-center text-muted">Bấm vào một NCC ở bảng trên để xem chi tiết theo hãng.</td></tr>';
+          if ($i === 0) {
+               $summary .= '<tr><td colspan="7" class="text-center text-muted">Không có dữ liệu trong kỳ.</td></tr>';
           }
 
-          return $html;
+          // ===== Bảng chi tiết theo chứng từ =====
+          usort($detailRows, function ($a, $b) {
+               if ($b['gm'] != $a['gm']) return ($b['gm'] <=> $a['gm']);
+               return $b['ve'] <=> $a['ve'];
+          });
+
+          $detail = '
+            <tr id="supplier_detail_total_row" class="bg-label-secondary">
+                <td></td>
+                <td class="center"><b>Tổng</b></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="center"><b id="total_filtered_ve">' . format_number($g_ve) . '</b></td>
+                <td class="center"><b id="total_filtered_dt">' . format_number($g_dt) . '</b></td>
+                <td class="center"><b id="total_filtered_gm">' . format_number($g_gm) . '</b></td>
+                <td class="center"><b id="total_filtered_ds">' . format_number($g_ds) . '</b></td>
+                <td></td>
+                <td></td>
+            </tr>
+        ';
+          $d = 0;
+          foreach ($detailRows as $r) {
+               $ve_cell = ($r['ve'] != 0) ? format_number($r['ve']) : '-';
+
+               $ticket_type_html = $r['ticket_type'];
+               if ($r['ticket_type'] === 'Quốc tế') {
+                    $ticket_type_html = '<span class="badge bg-label-success">' . $r['ticket_type'] . '</span>';
+               } elseif ($r['ticket_type'] === 'Nội địa') {
+                    $ticket_type_html = '<span class="badge bg-label-dark">' . $r['ticket_type'] . '</span>';
+               }
+
+               $row_class = 'supplier-detail-row';
+               if ($r['parent_type'] === 'EC_Receipt_Voucher') {
+                    $row_class .= ' bg-label-info';
+               } elseif ($r['parent_type'] === 'EC_HoanVe') {
+                    $row_class .= ' bg-label-danger';
+               }
+               $detail .= '
+                <tr class="' . $row_class . '" data-supplier="' . $r['supplier_id'] . '" data-qty="' . (int)$r['ve'] . '" data-dt="' . round($r['dt']) . '" data-gm="' . round($r['gm']) . '" data-ds="' . round($r['ds']) . '">
+                    <td class="text-center detail-stt">' . ($d + 1) . '</td>
+                    <td class="text-center"><a href="index.php?module=' . $r['parent_type'] . '&action=DetailView&record=' . $r['parent_id'] . '" target="_blank">' . htmlspecialchars($r['name']) . '</a></td>
+                    <td class="text-center">' . htmlspecialchars($r['supplier']) . '</td>
+                    <td class="text-center">' . htmlspecialchars($this->airlineLabel($r['airline'])) . '</td>
+                    <td class="text-center">' . $r['direction'] . '</td>
+                    <td class="text-center">' . $ticket_type_html . '</td>
+                    <td class="text-center">' . $ve_cell . '</td>
+                    <td class="text-end">' . format_number($r['dt']) . '</td>
+                    <td class="text-end">' . format_number($r['gm']) . '</td>
+                    <td class="text-end">' . format_number($r['ds']) . '</td>
+                    <td class="text-center">' . $r['date_show'] . '</td>
+                    <td class="text-center">' . $r['date_entered'] . '</td>
+                </tr>
+            ';
+               $d++;
+          }
+          if ($d === 0) {
+               $detail .= '<tr><td colspan="12" class="text-center text-muted">Không có dữ liệu trong kỳ.</td></tr>';
+          }
+
+          return array('summary' => $summary, 'detail' => $detail);
      }
 }
