@@ -1317,7 +1317,12 @@ class EC_Flight_Bookings extends Basic
 			$iti->name = $pass_name;
 		}
 
-		$iti->airline_code = $this->_resolveAirlineCode($post_fields, $direction);
+		// Không ghi đè hãng bằng giá trị rỗng (đổi hành trình KHÔNG đổi hãng) —
+		// tránh làm mất mã hãng của dòng vé sau khi đổi.
+		$resolvedAirline = $this->_resolveAirlineCode($post_fields, $direction);
+		if ($resolvedAirline !== '') {
+			$iti->airline_code = $resolvedAirline;
+		}
 		$iti->flight_number = $post_fields['flight_number' . $direction] ?? '';
 		$iti->ticket_class = $post_fields['ticket_class' . $direction] ?? '';
 		$iti->departure = $post_fields['departure' . $direction] ?? '';
@@ -1339,8 +1344,9 @@ class EC_Flight_Bookings extends Basic
 	/**
 	 * Resolve airline code theo thứ tự ưu tiên:
 	 * 1. bk_airline{direction} — field riêng cho VNA/VNP
-	 * 2. airline_code_inbound  — lượt về của các hãng khác
-	 * 3. airline_code          — lượt đi mặc định
+	 * 2. airline_code_inbound / airline_code — hidden theo chiều (lấy từ booking-level)
+	 * 3. Fallback: kế thừa mã hãng từ itinerary gốc của booking cùng chiều
+	 *    (đổi hành trình KHÔNG đổi hãng — tránh mất mã hãng khi booking-level airline rỗng)
 	 */
 	private function _resolveAirlineCode(array $post_fields, $direction): string
 	{
@@ -1348,10 +1354,32 @@ class EC_Flight_Bookings extends Basic
 			return $post_fields['bk_airline' . $direction];
 		}
 
-		if ($direction == 1) {
-			return $post_fields['airline_code_inbound'] ?? '';
+		$code = ($direction == 1)
+			? ($post_fields['airline_code_inbound'] ?? '')
+			: ($post_fields['airline_code'] ?? '');
+		if (trim((string) $code) !== '') {
+			return $code;
 		}
-		return $post_fields['airline_code'] ?? '';
+
+		// Fallback: hãng vốn nằm sẵn trên itinerary gốc của booking (chỉ áp dụng cho chiều 0/1)
+		if (in_array((string) $direction, ['0', '1'], true)) {
+			$booking_id = $post_fields['booking_id'] ?? $this->id;
+			if (!empty($booking_id)) {
+				$existing = $this->db->getOne(sprintf(
+					'SELECT airline_code FROM ec_booking_itineraries
+					 WHERE deleted = 0 AND booking_id = %s AND direction = %s
+					 AND IFNULL(airline_code, "") <> ""
+					 ORDER BY CAST(IFNULL(sabre_logs, 0) AS UNSIGNED) ASC LIMIT 1',
+					$this->db->quoted($booking_id),
+					$this->db->quoted((string) $direction)
+				));
+				if (!empty($existing)) {
+					return (string) $existing;
+				}
+			}
+		}
+
+		return (string) $code;
 	}
 
 	// Lưu thông tin hoá đơn

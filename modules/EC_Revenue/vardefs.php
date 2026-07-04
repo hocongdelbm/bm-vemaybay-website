@@ -236,6 +236,11 @@ $dictionary['EC_Revenue'] = array(
         array('name' => 'idx_rv_bkid', 'type' => 'index', 'fields' => array('booking_id')),
         array('name' => 'idx_rv_assign', 'type' => 'index', 'fields' => array('assigned_user_id')),
         array('name' => 'idx_rv_date_ticket_issue', 'type' => 'index', 'fields' => array('date_ticket_issue')),
+        array(
+            'name' => 'idx_rv_deleted_bkid_cover',
+            'type' => 'index',
+            'fields' => array('deleted', 'booking_id', 'total_amount', 'total_profit')
+        ),
     ),
     'relationships' => array(),
     'optimistic_locking' => true,

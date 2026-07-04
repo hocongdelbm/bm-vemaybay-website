@@ -58,6 +58,7 @@ $mod_strings = array(
     'LBL_SELL_AMOUNT' => 'Giá bán 1',
     'LBL_SELL_AMOUNT2' => 'Giá bán 2',
     'LBL_SELL_AMOUNT3' => 'Giá bán 3',
+    'LBL_SUP_DIRECTION' => 'Chiều bay (theo NCC)',
     'LBL_SUPPLIER' => 'Nhà cung cấp 1',
     'LBL_EMPLOYEE_NAME' => 'Nhân viên',
     'LBL_IS_SENT_TELE' => 'Đã gửi telegram',

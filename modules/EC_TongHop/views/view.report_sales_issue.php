@@ -244,7 +244,7 @@ class Viewreport_sales_issue extends SugarView
                         'dayminus4_current' => $mkWeekRange($weekAnchor, 0),
                         'dayminus4_prev1'   => $mkWeekRange($weekAnchor, -1),
                         'dayminus4_prev2'   => $mkWeekRange($weekAnchor, -2),
-                        
+
                         'dayminus5_current' => $mkWeekRange($weekAnchor, 0),
                         'dayminus5_prev1'   => $mkWeekRange($weekAnchor, -1),
                         'dayminus5_prev2'   => $mkWeekRange($weekAnchor, -2),
@@ -459,6 +459,17 @@ class Viewreport_sales_issue extends SugarView
                             OR date_ticket_issue BETWEEN '{$ranges['dayminus5_prev2']['from']}'   AND '{$ranges['dayminus5_prev2']['to']}'
                         )";
 
+        // Phiên bản WHERE sargable cho các bảng dùng date_entered (calls, ec_flight_bookings).
+        // date_entered lưu ở UTC, nên convert mốc ngày local (Asia/Ho_Chi_Minh) -> UTC ngay trong PHP
+        // rồi so với cột date_entered trần (dùng được index, không bọc cột bằng hàm).
+        $entered_conditions = [];
+        foreach ($ranges as $r) {
+            $from_utc = gmdate('Y-m-d H:i:s', strtotime($r['from'] . ' 00:00:00'));
+            $to_utc   = gmdate('Y-m-d H:i:s', strtotime($r['to'] . ' 23:59:59'));
+            $entered_conditions[] = "date_entered BETWEEN '{$from_utc}' AND '{$to_utc}'";
+        }
+        $where_period_entered = 'AND (' . implode(' OR ', $entered_conditions) . ')';
+
         ad_cost_ensure_table($db);
         $adMin = null;
         $adMax = null;
@@ -484,46 +495,6 @@ class Viewreport_sales_issue extends SugarView
                         WHEN t.period IN ('today_prev2', 'yesterday_prev2', 'daybefore_prev2', 'dayminus3_prev2', 'dayminus4_prev2', 'dayminus5_prev2')
                             THEN 'prev2'
                     END AS period_group,
-                    CASE
-                        WHEN t.period = 'today_current' THEN '{$ranges['today_current']['from']}'
-                        WHEN t.period = 'today_prev1'   THEN '{$ranges['today_prev1']['from']}'
-                        WHEN t.period = 'today_prev2'   THEN '{$ranges['today_prev2']['from']}'
-                        WHEN t.period = 'yesterday_current' THEN '{$ranges['yesterday_current']['from']}'
-                        WHEN t.period = 'yesterday_prev1'   THEN '{$ranges['yesterday_prev1']['from']}'
-                        WHEN t.period = 'yesterday_prev2'   THEN '{$ranges['yesterday_prev2']['from']}'
-                        WHEN t.period = 'daybefore_current' THEN '{$ranges['daybefore_current']['from']}'
-                        WHEN t.period = 'daybefore_prev1'   THEN '{$ranges['daybefore_prev1']['from']}'
-                        WHEN t.period = 'daybefore_prev2'   THEN '{$ranges['daybefore_prev2']['from']}'
-                        WHEN t.period = 'dayminus3_current' THEN '{$ranges['dayminus3_current']['from']}'
-                        WHEN t.period = 'dayminus3_prev1'   THEN '{$ranges['dayminus3_prev1']['from']}'
-                        WHEN t.period = 'dayminus3_prev2'   THEN '{$ranges['dayminus3_prev2']['from']}'
-                        WHEN t.period = 'dayminus4_current' THEN '{$ranges['dayminus4_current']['from']}'
-                        WHEN t.period = 'dayminus4_prev1'   THEN '{$ranges['dayminus4_prev1']['from']}'
-                        WHEN t.period = 'dayminus4_prev2'   THEN '{$ranges['dayminus4_prev2']['from']}'
-                        WHEN t.period = 'dayminus5_current' THEN '{$ranges['dayminus5_current']['from']}'
-                        WHEN t.period = 'dayminus5_prev1'   THEN '{$ranges['dayminus5_prev1']['from']}'
-                        WHEN t.period = 'dayminus5_prev2'   THEN '{$ranges['dayminus5_prev2']['from']}'
-                    END AS from_date,
-                    CASE
-                        WHEN t.period = 'today_current' THEN '{$ranges['today_current']['to']}'
-                        WHEN t.period = 'today_prev1'   THEN '{$ranges['today_prev1']['to']}'
-                        WHEN t.period = 'today_prev2'   THEN '{$ranges['today_prev2']['to']}'
-                        WHEN t.period = 'yesterday_current' THEN '{$ranges['yesterday_current']['to']}'
-                        WHEN t.period = 'yesterday_prev1'   THEN '{$ranges['yesterday_prev1']['to']}'
-                        WHEN t.period = 'yesterday_prev2'   THEN '{$ranges['yesterday_prev2']['to']}'
-                        WHEN t.period = 'daybefore_current' THEN '{$ranges['daybefore_current']['to']}'
-                        WHEN t.period = 'daybefore_prev1'   THEN '{$ranges['daybefore_prev1']['to']}'
-                        WHEN t.period = 'daybefore_prev2'   THEN '{$ranges['daybefore_prev2']['to']}'
-                        WHEN t.period = 'dayminus3_current' THEN '{$ranges['dayminus3_current']['to']}'
-                        WHEN t.period = 'dayminus3_prev1'   THEN '{$ranges['dayminus3_prev1']['to']}'
-                        WHEN t.period = 'dayminus3_prev2'   THEN '{$ranges['dayminus3_prev2']['to']}'
-                        WHEN t.period = 'dayminus4_current' THEN '{$ranges['dayminus4_current']['to']}'
-                        WHEN t.period = 'dayminus4_prev1'   THEN '{$ranges['dayminus4_prev1']['to']}'
-                        WHEN t.period = 'dayminus4_prev2'   THEN '{$ranges['dayminus4_prev2']['to']}'
-                        WHEN t.period = 'dayminus5_current' THEN '{$ranges['dayminus5_current']['to']}'
-                        WHEN t.period = 'dayminus5_prev1'   THEN '{$ranges['dayminus5_prev1']['to']}'
-                        WHEN t.period = 'dayminus5_prev2'   THEN '{$ranges['dayminus5_prev2']['to']}'
-                    END AS to_date,
                     SUM(t.total_qty)             AS total_qty,
                     SUM(t.total_ticket_qty)      AS total_ticket_qty,
                     SUM(t.total_bk_2_3)          AS total_bk_2_3,
@@ -534,7 +505,9 @@ class Viewreport_sales_issue extends SugarView
                     SUM(t.inbound) AS inbound,
                     SUM(t.missed) AS missed,
                     SUM(t.inbound_bk) AS inbound_bk,
+                    SUM(t.inbound_bk_com) AS inbound_bk_com,
                     SUM(t.tham_khao_bk) AS tham_khao_bk,
+                    SUM(t.tham_khao_bk_com) AS tham_khao_bk_com,
                     SUM(t.total_qty_inter) AS total_qty_inter,
                     SUM(t.total_qty_inter_com) AS total_qty_inter_com
                 FROM (
@@ -564,7 +537,9 @@ class Viewreport_sales_issue extends SugarView
                         0 AS inbound_bk,
                         0 AS tham_khao_bk,
                         0 AS total_qty_inter,
-                        SUM(CASE WHEN ticket_type = 2 THEN 1 ELSE 0 END) AS total_qty_inter_com
+                        SUM(CASE WHEN ticket_type = 2 THEN 1 ELSE 0 END) AS total_qty_inter_com,
+                        0 AS tham_khao_bk_com,
+                        0 AS inbound_bk_com
                     FROM ec_revenue
                     WHERE deleted = 0
                     $where_period
@@ -592,10 +567,15 @@ class Viewreport_sales_issue extends SugarView
 						SUM(CASE WHEN direction = 'inbound' AND booking_id IS NOT NULL AND booking_id <> '' THEN 1 ELSE 0 END) AS inbound_bk,
                         0 AS tham_khao_bk,
                         0 AS total_qty_inter,
-                        0 AS total_qty_inter_com
+                        0 AS total_qty_inter_com,
+                        0 AS tham_khao_bk_com,
+                        -- BK hoàn tất từ gọi đến tạo BK: cuộc gọi inbound có booking_id, booking đó đã xuất vé (có ec_revenue)
+                        SUM(CASE WHEN direction = 'inbound' AND booking_id IS NOT NULL AND booking_id <> ''
+                            AND EXISTS(SELECT 1 FROM ec_revenue r WHERE r.booking_id = calls.booking_id AND r.deleted = 0)
+                            THEN 1 ELSE 0 END) AS inbound_bk_com
 					FROM calls
 					WHERE deleted = 0
-					" . str_replace('date_ticket_issue', 'DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR))', $where_period) . "
+					" . $where_period_entered . "
 					GROUP BY period
 
                     -- Block 3: Booking tham khảo
@@ -620,10 +600,15 @@ class Viewreport_sales_issue extends SugarView
 						0 AS inbound_bk,
                         SUM(CASE WHEN is_reference = 1 THEN 1 ELSE 0 END) AS tham_khao_bk,
                         SUM(CASE WHEN ticket_type = 2 THEN 1 ELSE 0 END) AS total_qty_inter,
-                        0 AS total_qty_inter_com
+                        0 AS total_qty_inter_com,
+                        -- BK tham khảo hoàn tất (theo ngày tạo): booking is_reference = 1 và đã xuất vé (có ec_revenue)
+                        SUM(CASE WHEN is_reference = 1
+                            AND EXISTS(SELECT 1 FROM ec_revenue r WHERE r.booking_id = bk.id AND r.deleted = 0)
+                            THEN 1 ELSE 0 END) AS tham_khao_bk_com,
+                        0 AS inbound_bk_com
 					FROM ec_flight_bookings bk
 					WHERE deleted = 0
-					" . str_replace('date_ticket_issue', 'DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR))', $where_period) . "
+					" . $where_period_entered . "
 					GROUP BY period
                 ) t
                 GROUP BY period
@@ -656,9 +641,18 @@ class Viewreport_sales_issue extends SugarView
             $mark_previous2 = false;
 
             if (is_admin($current_user)) {
+                $profitByDay = $this->buildIssueProfitByDayMap($adMin, $adMax);
+
                 $res = $db->query($sql);
                 while ($row = $db->fetchByAssoc($res)) {
-                    $ds_pt_arr = calculateRevenueOfDate($row['from_date'], $row['to_date']);
+                    if (!isset($ranges[$row['period']])) {
+                        continue; // period 'unknown' — không thuộc khoảng nào
+                    }
+
+                    $row['from_date'] = $ranges[$row['period']]['from'];
+                    $row['to_date']   = $ranges[$row['period']]['to'];
+
+                    $ds_pt_arr = ['total_profit' => $this->sumProfitInRange($profitByDay, $row['from_date'], $row['to_date'])];
 
                     $from_date_row = 'Từ ngày <span class="form-label fw-semibold text-danger">' . date('d-m-Y', strtotime($row['from_date'])) . '</span> Đến ngày <span class="form-label fw-semibold text-danger">' . date('d-m-Y', strtotime($row['to_date'])) . '</span>';
                     if (strtotime($row['from_date']) === strtotime($row['to_date'])) {
@@ -669,7 +663,7 @@ class Viewreport_sales_issue extends SugarView
                         $mark_current = true;
 
                         $html .= '<tr style="background-color: #fff2cc;">
-								<td colspan="16">
+								<td colspan="14">
 									<span class="form-label text-dark fw-semibold">' . $title_current . '</span> 
 								</td>
 							</tr>';
@@ -677,7 +671,7 @@ class Viewreport_sales_issue extends SugarView
                         $mark_previous1 = true;
 
                         $html .= '<tr style="background-color: #fff2cc;">
-								<td colspan="16">
+								<td colspan="14">
 									<span class="form-label text-dark fw-semibold">' . $title_prev1 . '</span> 
 								</td>
 							</tr>';
@@ -685,24 +679,21 @@ class Viewreport_sales_issue extends SugarView
                         $mark_previous2 = true;
 
                         $html .= '<tr style="background-color: #fff2cc;">
-								<td colspan="16">
+								<td colspan="14">
 									<span class="form-label text-dark fw-semibold">' . $title_prev2 . '</span> 
 								</td>
 							</tr>';
                     }
 
-                    // Column SL BK quốc tế
-                    $column_inter = 0;
-                    if ($row['total_qty_inter'] > 0) {
-                        $column_inter = format_number($row['total_qty_inter']) . ' / ' . format_number($row['total_qty_inter_com']);
+                    // Column SL BK tham khảo: hiển thị "hoàn tất / tổng"
+                    $column_reference = 0;
+                    if ($row['tham_khao_bk'] > 0 || $row['tham_khao_bk_com'] > 0) {
+                        $column_reference = format_number($row['tham_khao_bk_com']) . ' / ' . format_number($row['tham_khao_bk']);
                     }
 
                     $html .= '<tr data-period="' . $row['period'] . '">
                                 <td align="center" data-label="Ngày" class="text-nowrap">
                                     ' . $from_date_row . '
-                                </td>
-                                <td align="center" data-label="Tổng số vé">
-                                    <span class="detail_domestic" title="Chi tiết booking theo ngày xuất vé" data-from-date="' . $row['from_date'] . '" data-to-date="' . $row['to_date'] . '">' . format_number($row['total_ticket_qty']) . '</span>
                                 </td>
                                 <td align="right" data-label="Nội địa">' . format_number($row['total_profit_domestic']) . '</td>
                                 <td align="right" data-label="Quốc tế">
@@ -711,16 +702,18 @@ class Viewreport_sales_issue extends SugarView
                                 <td align="right" data-label="Doanh số tổng">' . format_number($row['total_profit']) . '</td>
                                 <td align="right" data-label="Doanh số PThu">' . format_number($ds_pt_arr['total_profit']) . '</td>
                                 <td align="right" data-label="Chi phí Quảng cáo">' . $this->buildDailyAdCostCell($row['from_date'], $row['to_date'], $adCosts) . '</td>
-                                <td align="center" data-label="Booking">' . format_number($row['total_qty']) . '</td>
+                                <td align="center" data-label="Booking">
+                                    <span class="detail_domestic" title="Chi tiết booking theo ngày xuất vé" data-from-date="' . $row['from_date'] . '" data-to-date="' . $row['to_date'] . '">' . format_number($row['total_qty']) . '</span>
+                                </td>
+                                <td align="center" data-label="Tổng số vé">' . format_number($row['total_ticket_qty']) . '</td>
                                 <td align="center" data-label="BK 2-3 vé">' . format_number($row['total_bk_2_3']) . '</td>
                                 <td align="center" data-label="BK 4-6 vé">' . format_number($row['total_bk_4_6']) . '</td>
-                                <td align="center" data-label="BK tham khảo">' . $column_inter . '</td>
-                                <td align="center" data-label="BK tham khảo">' . format_number($row['tham_khao_bk']) . '</td>
-                                <td align="center" data-label="Cuộc gọi đến">
-                                    <span class="show_detail_call text-decoration-underline cursor-pointer text-primary fw-bold" data-from-date="' . $row['from_date'] . '" data-to-date="' . $row['to_date'] . '" data-direction="inbound" data-is-booking="0">' . format_number($row['inbound']) . '</span>
-                                </td>
-                                <td align="center" data-label="Gọi đến tạo BK">
-                                    <span class="show_detail_call text-decoration-underline cursor-pointer text-primary fw-bold" data-from-date="' . $row['from_date'] . '" data-to-date="' . $row['to_date'] . '" data-direction="inbound" data-is-booking="1">' . format_number($row['inbound_bk']) . '</span>
+                                <td align="center" data-label="BK Quốc tế">' . format_number($row['total_qty_inter_com']) . '</td>
+                                <td align="center" data-label="BK tham khảo">' . $column_reference . '</td>
+                                <td align="center" data-label="Cuộc gọi đến" title="BK hoàn tất / Gọi đến tạo BK / Tổng cuộc gọi đến">
+                                    <span class="fw-bold text-success">' . format_number($row['inbound_bk_com']) . '</span>
+                                    / <span class="show_detail_call text-decoration-underline cursor-pointer text-primary fw-bold" data-from-date="' . $row['from_date'] . '" data-to-date="' . $row['to_date'] . '" data-direction="inbound" data-is-booking="1">' . format_number($row['inbound_bk']) . '</span>
+                                    / <span class="show_detail_call text-decoration-underline cursor-pointer text-primary fw-bold" data-from-date="' . $row['from_date'] . '" data-to-date="' . $row['to_date'] . '" data-direction="inbound" data-is-booking="0">' . format_number($row['inbound']) . '</span>
                                 </td>
                                 <td align="center" data-label="Gọi nhỡ">
                                     <span class="show_detail_call text-decoration-underline cursor-pointer text-primary fw-bold" data-from-date="' . $row['from_date'] . '" data-to-date="' . $row['to_date'] . '" data-direction="missed">' . format_number($row['missed']) . '</span>
@@ -728,7 +721,7 @@ class Viewreport_sales_issue extends SugarView
                             </tr>';
                 }
             } else {
-                $html .= '<tr><td colspan="16">0</td></tr>';
+                $html .= '<tr><td colspan="14">0</td></tr>';
             }
 
             $smartyobj->assign('DATA', $html);
@@ -793,6 +786,64 @@ class Viewreport_sales_issue extends SugarView
     }
 
     /**
+     * Dựng map [Y-m-d => tổng doanh số phát thu] cho cả khoảng [$fromYmd, $toYmd].
+     *
+     *  - EC_Flight_Bookings  → date_ticket_issue
+     *  - EC_Receipt_Voucher / EC_HoanVe → voucher_date
+     *
+     * @return array<string,float>
+     */
+    protected function buildIssueProfitByDayMap($fromYmd, $toYmd)
+    {
+        $map = [];
+        $data = calculateRevenueOfDate($fromYmd, $toYmd);
+        if (empty($data['details']) || !is_array($data['details'])) {
+            return $map;
+        }
+
+        foreach ($data['details'] as $row) {
+            $dateStr = ($row['parent_type'] === 'EC_Flight_Bookings')
+                ? ($row['date_ticket_issue'] ?? '')
+                : ($row['voucher_date'] ?? '');
+            if ($dateStr === '' || $dateStr === null) {
+                continue;
+            }
+
+            // Các cột ngày trả về ở dạng d-m-Y
+            $dt = DateTime::createFromFormat('d-m-Y', $dateStr);
+            if ($dt === false) {
+                continue;
+            }
+            $key = $dt->format('Y-m-d');
+
+            $map[$key] = ($map[$key] ?? 0) + (float) $row['profit_amount'];
+        }
+
+        return $map;
+    }
+
+    /**
+     * Cộng dồn doanh số phát thu của các ngày trong khoảng [$fromYmd, $toYmd] (inclusive).
+     *
+     * @param array<string,float> $profitByDay
+     */
+    protected function sumProfitInRange(array $profitByDay, $fromYmd, $toYmd)
+    {
+        $sum = 0;
+        $cur = strtotime($fromYmd);
+        $end = strtotime($toYmd);
+        while ($cur <= $end) {
+            $key = date('Y-m-d', $cur);
+            if (isset($profitByDay[$key])) {
+                $sum += $profitByDay[$key];
+            }
+            $cur = strtotime('+1 day', $cur);
+        }
+
+        return $sum;
+    }
+
+    /**
      * Get paid booking list but ticket not issued
      * @return array
      */
@@ -810,9 +861,11 @@ class Viewreport_sales_issue extends SugarView
 
         // Booking ở tình trạng xác nhận -> hiện hết lên báo cáo
         // Booking ở tình trạng xuất vé -> chỉ lấy booking có những vé chưa xuất
-        $sql = "SELECT 
-                    (SELECT u.user_name FROM users u WHERE u.id=b.assigned_user_id AND u.deleted=0 LIMIT 1) AS user_name,
-                    (SELECT u.id FROM users u WHERE u.id=b.assigned_user_id AND u.deleted=0 LIMIT 1) AS user_id,
+        // Tối ưu: gộp 3 subquery ec_booking_details thành 1 derived-table JOIN, users -> LEFT JOIN,
+        // và đẩy điều kiện lọc "chưa xuất hết vé" vào SQL (thay vì fetch hết rồi lọc PHP).
+        $sql = "SELECT
+                    u.user_name AS user_name,
+                    u.id AS user_id,
 					b.name AS booking,
 					b.id AS booking_id,
 					(SELECT i.departure FROM ec_booking_itineraries i WHERE i.booking_id=b.id AND i.direction='0' AND i.deleted=0 LIMIT 1) AS dep_code,
@@ -825,12 +878,27 @@ class Viewreport_sales_issue extends SugarView
 					b.description,
 					b.total_amount,
 					b.date_entered,
-					(SELECT SUM(d.quantity) FROM ec_booking_details d WHERE d.booking_id=b.id AND d.deleted=0 LIMIT 1) AS total_tkt,
-                    (SELECT SUM(d.quantity) FROM ec_booking_details d WHERE d.booking_id=b.id AND d.supplier_id IS NULL AND d.deleted=0 LIMIT 1) AS total_not_issued,
-                    (SELECT SUM(d.total_bought_price) FROM ec_booking_details d WHERE d.booking_id=b.id AND d.deleted=0 LIMIT 1) AS total_bought_price,
+					d.total_tkt AS total_tkt,
+                    d.total_not_issued AS total_not_issued,
+                    d.total_bought_price AS total_bought_price,
 					b.flight_type
 				FROM ec_flight_bookings b
-				WHERE b.booking_status IN ('3', '7') AND b.deleted = 0
+				LEFT JOIN users u ON u.id = b.assigned_user_id AND u.deleted = 0
+				LEFT JOIN (
+					SELECT d.booking_id,
+						SUM(d.quantity) AS total_tkt,
+						SUM(CASE WHEN d.supplier_id IS NULL THEN d.quantity ELSE 0 END) AS total_not_issued,
+						SUM(d.total_bought_price) AS total_bought_price
+					FROM ec_booking_details d
+					WHERE d.deleted = 0
+					GROUP BY d.booking_id
+				) d ON d.booking_id = b.id
+				WHERE b.deleted = 0
+					AND b.booking_status IN ('3', '7')
+					AND (
+						b.booking_status = '3'
+						OR (d.total_not_issued IS NOT NULL AND d.total_not_issued <> 0 AND d.total_not_issued < d.total_tkt)
+					)
 				ORDER BY b.date_entered ";
 
         // if($current_user->user_name == 'hungnh'){
@@ -839,8 +907,7 @@ class Viewreport_sales_issue extends SugarView
 
         $res = $db->query($sql);
         while ($row = $db->fetchByAssoc($res)) {
-            if ($row['booking_status'] == '3' || !empty($row['total_not_issued']) && $row['total_not_issued'] < $row['total_tkt']) {
-                $html .= '<tr>
+            $html .= '<tr>
     				<td align="center"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">' . $row['booking'] . '</a></td>
     				<td align="center">' . $row['dep_code'] . ' - ' . $row['arv_code'] . ($row['flight_type'] == '0' ? ' - ' . $row['dep_code'] : '') . '</td>
     				<td align="center" class="hide-mobile">' . $row['dep_airline'] . ($row['flight_type'] == '0' ? '-' . $row['ret_airline'] : '') . '</td>
@@ -854,11 +921,10 @@ class Viewreport_sales_issue extends SugarView
     				<td align="center" class="hide-mobile">' . date('d-m-Y H:i', strtotime($row['date_entered']) + 7 * 3600) . '</td>
     			</tr>';
 
-                $total_row++;
-                $total_tkt += $row['total_tkt'];
-                $total_amt += $row['total_amount'];
-                $total_ds += ($row['total_amount'] - $row['total_bought_price']);
-            }
+            $total_row++;
+            $total_tkt += $row['total_tkt'];
+            $total_amt += $row['total_amount'];
+            $total_ds += ($row['total_amount'] - $row['total_bought_price']);
         }
         $arr['total_row']   = $total_row;
         $arr['total_amt']   = $total_amt;

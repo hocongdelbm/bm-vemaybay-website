@@ -1,98 +1,87 @@
 /* ==========  GLOBALS  ========== */
-:root, [data-bs-theme=light] {
-    --primary-color: #0a58ca;
-    --white-color: #fff;
-    --black-color: #000000;
-    --green-color: #36ae7c;
-    --red-color: #EB5353;
-    --red-vj-color: #EC2029;
-    --yellow-color: #F9D923;
-    --yellow-bg-color: #fff2cc;
-    --blue-color: #009FBD;
+:root,
+[data-bs-theme="light"] {
+  --primary-color: #0a58ca;
+  --white-color: #fff;
+  --black-color: #000000;
+  --green-color: #36ae7c;
+  --red-color: #eb5353;
+  --red-vj-color: #ec2029;
+  --yellow-color: #f9d923;
+  --yellow-bg-color: #fff2cc;
+  --blue-color: #009fbd;
 
-    
-    /**********  TEXT COLOR  **********/
-    --text-color: #444444;
-    --text-primary-color: #012970;
-    --text-primary-2-color: #303030;
+  /**********  TEXT COLOR  **********/
+  --text-color: #444444;
+  --text-primary-color: #012970;
+  --text-primary-2-color: #303030;
 
-    --success-color: #82ce34;
-    --warning-color: #ffc107;
-    --danger-color: #ec2029;
-    --success-text-color: #444;
-    --warning-text-color: #000;
-    --danger-text-color: #fff;
+  --success-color: #82ce34;
+  --warning-color: #ffc107;
+  --danger-color: #ec2029;
+  --success-text-color: #444;
+  --warning-text-color: #000;
+  --danger-text-color: #fff;
 
+  /*********** BUTTON ***********/
+  --btn-primary-2-color: rgb(224, 235, 252);
+  --btn-confirm-color: rgb(13, 110, 253);
+  --btn-email-color: rgb(234, 67, 53);
 
-    /*********** BUTTON ***********/
-    --btn-primary-2-color: rgb(224, 235, 252);
-    --btn-confirm-color: rgb(13, 110, 253);
-    --btn-email-color: rgb(234, 67, 53);
-    
+  /**********  HOVER  **********/
+  --primary-hover-color: #0b5ed7;
+  --primary-hover-border-color: #0a58ca;
 
-    /**********  HOVER  **********/
-    --primary-hover-color: #0b5ed7;
-    --primary-hover-border-color: #0a58ca;
+  --primary-2-hover-color: rgb(185, 214, 255);
+  --primary-2-hover-text-color: rgb(37, 111, 212);
 
-    --primary-2-hover-color: rgb(185, 214, 255);
-    --primary-2-hover-text-color: rgb(37, 111, 212);
+  --confirm-hover-color: rgb(0, 82, 198);
+  --email-hover-color: rgb(225, 34, 21);
 
-    --confirm-hover-color: rgb(0, 82, 198);
-    --email-hover-color: rgb(225, 34, 21);
+  /**********  ACTIVE  **********/
+  --primary-active-color: #0a58ca;
+  --primary-active-border-color: #0a53be;
 
+  --primary-2-active-color: rgb(180, 204, 244);
+  --primary-2-active-text-color: rgb(3, 97, 237);
 
-    /**********  ACTIVE  **********/
-    --primary-active-color: #0a58ca;
-    --primary-active-border-color: #0a53be;
+  --confirm-active-color: rgb(0, 43, 102);
 
-    --primary-2-active-color: rgb(180, 204, 244);
-    --primary-2-active-text-color: rgb(3, 97, 237);
+  /**********  DISABLE  **********/
+  --primary-disabled-color: #d0e0f8;
+  --primary-disabled-border-color: #d0e0f8;
 
-    --confirm-active-color: rgb(0, 43, 102);
+  /**********  HEIGHT  **********/
+  --height-header: 45px;
+  --height-footer: 50px;
+  --height-header-bottom: 30px;
 
+  /**********  WIDTH  **********/
+  --width-sidebar: 220px;
 
-    /**********  DISABLE  **********/
-    --primary-disabled-color: #d0e0f8;
-    --primary-disabled-border-color: #d0e0f8;
+  /**********  BORDER  **********/
+  --border-color: #dee2e6;
+  --border-focus-color: #088395;
+  --border-radius: 5px;
 
-
-
-
-
-    /**********  HEIGHT  **********/
-    --height-header: 45px;
-    --height-footer: 50px;
-    --height-header-bottom: 30px;
-
-    /**********  WIDTH  **********/
-    --width-sidebar: 200px;
-
-
-    /**********  BORDER  **********/
-    --border-color: #dee2e6;
-    --border-focus-color: #088395;
-    --border-radius: 5px;
-
-
-
-    --main-bg-color: #f6f9ff;
-    --bgdecs-color: #f3f7fe;
-    --hidden-color: #7F8487;
+  --main-bg-color: #f6f9ff;
+  --bgdecs-color: #f3f7fe;
+  --hidden-color: #7f8487;
 }
 
-[data-bs-theme=dark]{
-    --main-bg-color: #232333;
-    --white-color: #2b2c40;
-    --black-color: #fff;
-    --text-color: #d5d5e2;
-    --text-primary-color: #e6e6f1;
-    --border-color: #2b2c40;
-    --bs-black-rgb: 255, 255, 255;
-    --bs-white-rgb: 0, 0, 0;
+[data-bs-theme="dark"] {
+  --main-bg-color: #232333;
+  --white-color: #2b2c40;
+  --black-color: #fff;
+  --text-color: #d5d5e2;
+  --text-primary-color: #e6e6f1;
+  --border-color: #2b2c40;
+  --bs-black-rgb: 255, 255, 255;
+  --bs-white-rgb: 0, 0, 0;
 }
 
-[data-bs-theme=dark] .card {
-    --bs-card-bg: #2b2c40;
-    --bs-card-subtitle-color: color-mix(in srgb, #e6e6f1 55%, #393a5a);
-    --bs-card-color: #e6e6f1;
+[data-bs-theme="dark"] .card {
+  --bs-card-bg: #2b2c40;
+  --bs-card-subtitle-color: color-mix(in srgb, #e6e6f1 55%, #393a5a);
+  --bs-card-color: #e6e6f1;
 }

@@ -1,20 +1,11 @@
-<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/view_bkagent.css?v={$VERSION}">
-
-<div id="bkagent-loading">
-    <div class="bkagent-loading__box">
-        <div class="bkagent-spinner"></div>
-        Đang tải báo cáo...
-    </div>
-</div>
-
-<h1 class="title">Thống kê vé theo hãng</h1>
+<h1 class="title">Thống kê vé theo Nhà cung cấp</h1>
 
 <div class="box-section">
-<div id="bkagent_report">
+<div id="bksupplier_report">
     <form action="index.php" method="post" name="frmSearch" id="frmSearch">
         <input type="hidden" name="module" value="EC_Flight_Bookings" />
-        <input type="hidden" name="action" value="bkagent" />
-        <div class="d-flex align-items-center gap-2 flex-wrap bkagent-filter">
+        <input type="hidden" name="action" value="bksupplier" />
+        <div class="d-flex align-items-center gap-2 flex-wrap">
             <select class="box-select" id="date_select" name="date_select">
                 {$REPORT_TERM_LIST}
             </select>
@@ -61,15 +52,15 @@
     </form>
 
     <ul class="bookingqtyreport-note alert alert-info text-dark fw-semibold">
-        <li>- Hãng suy theo hành trình booking; Phiếu thu không gắn booking nằm ở nhóm <strong>Khác (N/A)</strong>.</li>
-        <li>- Bấm vào tên hãng để lọc danh sách chi tiết bên dưới.</li>
+        <li>- Chứng từ không xác định NCC nằm ở nhóm <strong>Khác (N/A)</strong>.</li>
+        <li>- Bấm vào tên NCC để lọc danh sách chi tiết bên dưới.</li>
     </ul>
 
-    <div class="bkagent-table-wrap">
-    <table id="bkagent_tbl" class="list-data table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
+    <div class="bkagent-table-wrap overflow-auto">
+    <table id="supplier_summary_list" class="list-data table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
         <thead>
             <th width="5%">#</th>
-            <th>Hãng</th>
+            <th>NCC</th>
             <th width="10%">SL BK</th>
             <th width="10%">SL vé</th>
             <th width="18%">Tổng doanh thu</th>
@@ -77,7 +68,7 @@
             <th width="18%">Tổng doanh số</th>
         </thead>
         <tbody>
-            {$AGENT_LIST_TBL}
+            {$SUPPLIER_SUMMARY_TBL}
         </tbody>
     </table>
     </div>
@@ -86,24 +77,25 @@
 
 <div class="box-section box-details">
     <div class="bkagent-table-wrap">
-    <table id="booking_list" class="table-details__booking table-booking__list" cellpadding="0" cellspacing="0">
+    <table id="supplier_detail_list" class="table-details__booking table-booking__list" cellpadding="0" cellspacing="0">
         <thead>
-            <th width="4%">#</th>
-            <th width="10%">Booking</th>
-            <th width="12%">Hãng bay</th>
-            <th width="9%">Chiều bay</th>
-            <th width="8%">Loại vé</th>
-            <th width="6%">SL vé</th>
-            <th width="10%">Doanh thu</th>
-            <th width="10%">Giá mua</th>
-            <th width="10%">Doanh số</th>
-            <th width="7%">Ngày chứng từ</th>
+            <th width="3%">#</th>
+            <th width="8%">Chứng từ</th>
+            <th width="12%">NCC</th>
+            <th width="13%">Hãng bay</th>
+            <th width="8%">Chiều bay</th>
+            <th width="6%">Loại vé</th>
+            <th width="5%">SL vé</th>
+            <th width="8%">Doanh thu</th>
+            <th width="8%">Giá mua</th>
+            <th width="8%">Doanh số</th>
+            <th width="8%">Ngày chứng từ</th>
         </thead>
         <tbody>
-            {$BOOKING_LIST_TBL}
+            {$SUPPLIER_DETAIL_TBL}
         </tbody>
     </table>
     </div>
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/view_bkagent.js?v={$VERSION}"></script>
+<script src="modules/EC_Flight_Bookings/js/view_bksupplier.js?v={$VERSION}"></script>

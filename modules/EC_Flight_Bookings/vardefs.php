@@ -338,7 +338,7 @@ $dictionary['EC_Flight_Bookings'] = array(
             'name' => 'city',
             'vname' => 'LBL_CITY',
             'type' => 'varchar',
-            'len' => 60,
+            'len' => 100,
             'default' => '',
             'importable' => true,
             'reportable' => false,
@@ -820,7 +820,7 @@ $dictionary['EC_Flight_Bookings'] = array(
             'importable' => true,
             'reportable' => false,
         ),
-        
+
         // Add by DucPham - 13/01/2026
         'customer_source' => array(
             'name'       => 'customer_source',

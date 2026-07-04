@@ -695,7 +695,10 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeOnlinePosition') {
 
 // Cập nhật danh sách ec_online_report (thêm user còn thiếu trong ngày)
 if (isset($_POST['for']) && $_POST['for'] == 'updateOnlineReport') {
-	if (!is_admin($current_user)) { echo 0; exit; }
+	if (!is_admin($current_user)) {
+		echo 0;
+		exit;
+	}
 
 	$onl = new EC_Online_Report;
 	$onl->populateOnlineReport();
@@ -2176,8 +2179,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 			<table class="detail_bk_tbl table-details__booking table-get_detail_call mb-3" cellspacing="0" cellpadding="0">
 				<thead>
 					<th width="5%">#</th>
-					<th width="10%">Mã cuộc gọi</th>
-					<th width="10%">Trạng thái</th>
+					<th width="12%">Mã cuộc gọi</th>
 					<th width="10%">Gọi từ</th>
 					<th width="10%">Gọi đến</th>
 					<th width="10%" class="hide-mobile">Thời gian</th>
@@ -2187,6 +2189,9 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 					<th class="hide-mobile">Ghi chú</th>
 				</thead>
 		';
+
+	// Màu trạng thái cuộc gọi (call_status_dom không có bảng màu riêng)
+	$call_status_colors = ['new' => '#6c757d', 'processing' => '#CF822E', 'done' => '#26A86A'];
 
 	$from_date = $_POST['fdate'];
 	$to_date = $_POST['tdate'];
@@ -2232,13 +2237,22 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 		$booking->retrieve($row['booking_id']);
 		$booking_name = $booking->name;
 
+		// Trạng thái cuộc gọi + trạng thái booking (kèm màu) để hiển thị dưới mã tương ứng
+		$call_stt_txt = $app_list_strings['call_status_dom'][$row['status']] ?? $row['status'];
+		$call_stt_color = $call_status_colors[$row['status']] ?? '#6c757d';
+		$call_stt_html = $call_stt_txt !== '' ? '<div class="fw-semibold" style="color:' . $call_stt_color . ';font-size:12px;">' . $call_stt_txt . '</div>' : '';
+
+		$bk_stt = $booking->booking_status;
+		$bk_stt_txt = $bk_stt !== '' ? ($app_list_strings['booking_status_list'][$bk_stt] ?? '') : '';
+		$bk_stt_color = $app_list_strings['booking_status_color_list'][$bk_stt] ?? '#000000';
+		$bk_stt_html = ($row['booking_id'] && $bk_stt_txt !== '') ? '<div class="fw-semibold" style="color:' . $bk_stt_color . ';font-size:12px;">' . $bk_stt_txt . '</div>' : '';
+
 		$html .= '
 				<tr>
 					<td class="text-center fw-semibold">' . ($i + 1) . '</td>
 					<td class="text-center">
-						<a href="index.php?module=Calls&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a>
+						<a href="index.php?module=Calls&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a>' . $call_stt_html . '
 					</td>
-					<td class="text-center hide-mobile">' . $app_list_strings['call_status_dom'][$row['status']] . '</td>
 					<td class="text-center">' . $row['call_from'] . '</td>
 					<td class="text-center">' . $row['call_to'] . '</td>
 					<td class="text-center">' . $row['date_start'] . '</td>
@@ -2247,7 +2261,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 						' . $row['call_sources'] . '
 					</td>
 					<td class="text-center hide-mobile">
-						<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">' . $booking_name . '</a>
+						<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">' . $booking_name . '</a>' . $bk_stt_html . '
 					</td>
 					<td class="text-start text-warp hide-mobile">
 						' . $row['description'] . '
@@ -2614,15 +2628,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getThamKhaoBooking') {
 		WHERE bk.deleted = 0
 		AND DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN "' . date('Y-m-d', strtotime($_POST['fdate'])) . '" AND "' . date('Y-m-d', strtotime($_POST['tdate'])) . '"
 		AND bk.created_by = "' . $_POST['user'] . '"
-		AND (
-			bk.contact_name IN ("Tham Khao")
-			OR EXISTS (
-				SELECT 1 FROM ec_flight_bookings_audit 
-				WHERE parent_id = bk.id 
-				AND field_name = "contact_name" 
-				AND before_value_string IN ("Tham Khao")
-			)
-		)
+		AND IFNULL(bk.is_reference, 0) = 1
 		ORDER BY FIELD(booking_status, 8, 7, 3, 2, 6, 1, 4), bk.date_entered DESC
 	';
 
@@ -3373,7 +3379,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 								<th class="hide-mobile">Hành trình</th>
 								<th class="hide-mobile">Tình trạng</th>
 								<th>Ngày đặt</th>
-						<th>Ngày xuất v�</th>
+								<th>Ngày xuất vé</th>
 								<th>Liên hệ</th>
 								<th>Số vé</th>
 								<th>Doanh thu</th>
@@ -3381,7 +3387,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 							</tr>
 						</thead>';
 
-		$sql = "SELECT id, name, contact_name, phone, email, journey, booking_status, total_amount, total_qty, date_entered
+		$sql = "SELECT id, name, contact_name, phone, email, journey, booking_status, total_amount, total_qty, date_entered, date_ticket_issue
 				FROM ec_flight_bookings
 				WHERE contact_id = '$contact_id' AND deleted = 0
 				" . $where . "
@@ -3443,6 +3449,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 							<td class="' . $current_booking . ' hide-mobile text-center">' . $journey . '</td>
 							<td class="' . $current_booking . ' hide-mobile text-center fw-bold ' . $class_color . '">' . $app_list_strings['booking_status_list'][(int) $row['booking_status']] . '</td>
 							<td class="' . $current_booking . ' text-center">' . date('H:i d-m-Y', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
+							<td class="' . $current_booking . ' text-center">' . (!empty($row['date_ticket_issue']) ? date('d-m-Y', strtotime($row['date_ticket_issue'])) : '') . '</td>
 							<td class="' . $current_booking . '">' . $row['contact_name'] . '</td>
 							<td class="' . $current_booking . ' text-center fw-bold">' . $row['total_qty'] . '</td>
 							<td class="' . $current_booking . ' text-end fw-bold">' . format_number((int) $row['total_amount']) . '</td>
@@ -3721,12 +3728,26 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 
 	$departure     = $_POST['departure'] ?? '';
 	$arrival       = $_POST['arrival'] ?? '';
-	$status_filter = isset($_POST['status_filter']) && ctype_digit((string)$_POST['status_filter']) ? (int)$_POST['status_filter'] : null;
+	$raw_status    = isset($_POST['status_filter']) ? (string)$_POST['status_filter'] : '';
 	$scope         = $_POST['scope'] ?? '';
 
 	$user_list = get_user_array(true, 'Active', '', true);
 
-	$status_where = $status_filter !== null ? "AND bk.booking_status = '{$status_filter}'" : '';
+	// Khớp với report (bk = tổng tất cả BK; Tham khảo là tập con is_reference=1):
+	//   'reference' → chỉ BK tham khảo (khớp cột Tham khảo)
+	//   'completed' → BK hoàn tất (8/7/3), gồm cả tham khảo (khớp bk_ok)
+	//   'booker'/'customer' → lọc thêm ở PHP sau khi fetch (xem ec_classify_booking_source bên dưới)
+	//   digit       → theo 1 trạng thái
+	//   '' (tất cả) → tất cả BK, không lọc gì (khớp mẫu số bk)
+	if ($raw_status === 'reference') {
+		$status_where = "AND IFNULL(bk.is_reference, 0) = 1";
+	} elseif ($raw_status === 'completed') {
+		$status_where = "AND bk.booking_status IN ('8','7','3')";
+	} elseif (ctype_digit($raw_status)) {
+		$status_where = "AND bk.booking_status = '" . (int)$raw_status . "'";
+	} else {
+		$status_where = '';
+	}
 
 	// Chuyển khoảng ngày sang UTC để dùng index trên date_entered (stored in UTC)
 	$from_utc_detail = gmdate('Y-m-d H:i:s', strtotime($from_date . ' 00:00:00'));
@@ -3752,6 +3773,23 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 		$dom_keys = array_keys($app_list_strings['domestic_airport_list']);
 		$dom_in   = "'" . implode("','", $dom_keys) . "'";
 		$route_filter = "AND (route.departure NOT IN ({$dom_in}) OR route.arrival NOT IN ({$dom_in}))";
+	} elseif ($scope === 'country' && !empty($_POST['dest_country'])) {
+		$dest_country = $db->quote($_POST['dest_country']);
+		$cond = "(SELECT country FROM ec_airports WHERE iata_code = route.arrival AND deleted = 0 LIMIT 1) = '{$dest_country}'";
+		// Ràng buộc theo nhóm (report tách Nội địa/Quốc tế theo cả điểm đi & đến)
+		$grp = $_POST['grp'] ?? '';
+		if ($grp === 'dom' || $grp === 'intl') {
+			$dom_keys = array_keys($app_list_strings['domestic_airport_list']);
+			$dom_in   = "'" . implode("','", $dom_keys) . "'";
+			if ($grp === 'dom') {
+				$cond .= " AND route.departure IN ({$dom_in}) AND route.arrival IN ({$dom_in})";
+			} else {
+				$cond .= " AND (route.departure NOT IN ({$dom_in}) OR route.arrival NOT IN ({$dom_in}))";
+			}
+		}
+		$route_filter = "AND {$cond}";
+	} elseif ($scope === 'all') {
+		$route_filter = "";
 	} else {
 		$route_filter = "AND route.departure = '{$departure}' AND route.arrival = '{$arrival}'";
 	}
@@ -3765,17 +3803,46 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 			bk.date_entered,
 			bk.date_ticket_issue,
 			bk.total_qty,
-			bk.created_by
+			bk.created_by,
+			bk.description,
+			MAX(u.last_name) AS site_name
 		FROM ec_flight_bookings bk
 		INNER JOIN ({$route_subquery}) route ON route.booking_id = bk.id
 			{$route_filter}
-		WHERE DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$from_date}' AND '{$to_date}'
+		LEFT JOIN users u ON u.id = bk.created_by AND u.deleted = 0
+		WHERE bk.date_entered BETWEEN '{$from_utc_detail}' AND '{$to_utc_detail}'
 		AND bk.deleted = 0
 		{$status_where}
 		GROUP BY bk.id
 		ORDER BY bk.created_by, bk.date_entered DESC
 	";
+
+	// pr($sql);
+
 	$res = $db->query($sql);
+
+	// Lấy toàn bộ dòng trước, tính doanh số real-time 1 lần (batch) để nhanh
+	$rows = [];
+	$bk_ids = [];
+	while ($row = $db->fetchByAssoc($res)) {
+		$rows[]   = $row;
+		$bk_ids[] = $row['id'];
+	}
+
+	// 'booker'/'customer' không lọc được thuần SQL (cần đối chiếu audit) nên lọc ở PHP,
+	// dùng chung hàm phân loại với report (1 query phẳng, không EXISTS tương quan).
+	if ($raw_status === 'booker' || $raw_status === 'customer') {
+		$contact_names = array_column($rows, 'contact_name', 'id');
+		$source_map    = ec_classify_booking_source($bk_ids, $contact_names);
+		$want_booker   = ($raw_status === 'booker');
+		$rows = array_values(array_filter($rows, function ($row) use ($source_map, $want_booker) {
+			$src = $source_map[$row['id']] ?? ['is_booker' => false, 'is_customer' => false];
+			return $want_booker ? $src['is_booker'] : $src['is_customer'];
+		}));
+		$bk_ids = array_column($rows, 'id');
+	}
+
+	$revenue_map = calculateBKTotalAmtBatch($bk_ids); // [booking_id => doanh số ròng] (chỉ status 8/7/3)
 
 	$html = '<table class="tbl-check-details-airport-analysis table-details__booking">
 				<thead>
@@ -3785,8 +3852,9 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 						<th class="hide-mobile">Tình trạng</th>
 						<th>Ngày đặt</th>
 						<th>Ngày xuất vé</th>
-						<th>Đặt bởi</th>
+						<th title="Site/tài khoản tạo booking">Trang web</th>
 						<th>Liên hệ</th>
+						<th>Ghi chú</th>
 						<th>Số vé</th>
 						<th>Doanh số</th>
 					</tr>
@@ -3795,7 +3863,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 	$i             = 1;
 	$total_qty     = 0;
 	$total_revenue = 0;
-	while ($row = $db->fetchByAssoc($res)) {
+	foreach ($rows as $row) {
 		if ($row['booking_status'] == 2) { // CHỜ THANH TOÁN
 			$class_color = 'text-warning';
 		} elseif ($row['booking_status'] == 3 || $row['booking_status'] == 7) { // XÁC NHẬN
@@ -3810,7 +3878,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 			$class_color = 'text-dark';
 		}
 
-		$bk_revenue     = (int)calculateBKTotalAmt($row['id']);
+		$bk_revenue     = (int)($revenue_map[$row['id']] ?? 0);
 		$total_qty     += (int)$row['total_qty'];
 		$total_revenue += $bk_revenue;
 
@@ -3820,10 +3888,11 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 					<td class=" hide-mobile text-center fw-bold ' . $class_color . '">' . $app_list_strings['booking_status_list'][(int) $row['booking_status']] . '</td>
 					<td class=" text-center">' . date('H:i d-m-Y', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
 					<td class=" text-center">' . (!empty($row['date_ticket_issue']) ? date('d-m-Y', strtotime($row['date_ticket_issue'])) : '') . '</td>
-					<td class="">' . $user_list[$row['created_by']] . '</td>
+					<td class="">' . htmlspecialchars((string)($row['site_name'] ?? ''), ENT_QUOTES, 'UTF-8') . '</td>
 					<td class="">' . $row['contact_name'] . '</td>
-					<td class=" text-center fw-bold">' . $row['total_qty'] . '</td>
-					<td class=" text-end fw-bold">' . format_number($bk_revenue) . '</td>
+					<td class="text-wrap">' . $row['description'] . '</td>
+					<td class="text-center fw-bold">' . $row['total_qty'] . '</td>
+					<td class="text-end fw-bold">' . format_number($bk_revenue) . '</td>
 				</tr>';
 		$i++;
 	}
@@ -3831,7 +3900,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 	$html .= '</tbody>
 			<tfoot>
 				<tr class="fw-bold">
-					<td colspan="7" class="text-end"><i>Tổng cộng</i></td>
+					<td colspan="8" class="text-end"><i>Tổng cộng</i></td>
 					<td class="text-center">' . format_number($total_qty) . '</td>
 					<td class="text-end">' . format_number($total_revenue) . '</td>
 				</tr>

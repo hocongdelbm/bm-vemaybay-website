@@ -46,19 +46,21 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail
 			$loai_thu .= '<table cellpadding="0" cellspacing="0" border="0" class="table-details__booking mt-2">
 					<thead>
 						<tr>
-							<th style="width:50%;" class="text-start">Nhà cung cấp</th>
-							<th style="width:25%;" class="text-center">Giá bán</th>
-							<th style="width:25%;" class="text-center">Giá mua</th>
+							<th style="width:38%;" class="text-start">Nhà cung cấp</th>
+							<th style="width:12%;" class="text-center">Chiều bay</th>
+							<th style="width:12%;" class="text-center">Hãng</th>
+							<th style="width:19%;" class="text-center">Giá bán</th>
+							<th style="width:19%;" class="text-center">Giá mua</th>
 						</tr>
 					</thead>';
 
 			foreach ([
-				[$this->bean->supplier_id,  $this->bean->supplier,  $this->bean->sell_amount,  $this->bean->bought_amount],
-				[$this->bean->supplier2_id, $this->bean->supplier2, $this->bean->sell_amount2, $this->bean->bought_amount2],
-				[$this->bean->supplier3_id, $this->bean->supplier3, $this->bean->sell_amount3, $this->bean->bought_amount3],
-			] as [$id, $name, $sell, $buy]) {
+				[$this->bean->supplier_id,  $this->bean->supplier,  $this->bean->sell_amount,  $this->bean->bought_amount,  $this->bean->sup_direction],
+				[$this->bean->supplier2_id, $this->bean->supplier2, $this->bean->sell_amount2, $this->bean->bought_amount2, $this->bean->sup_direction2],
+				[$this->bean->supplier3_id, $this->bean->supplier3, $this->bean->sell_amount3, $this->bean->bought_amount3, $this->bean->sup_direction3],
+			] as [$id, $name, $sell, $buy, $dir]) {
 				if ($id !== '') {
-					$loai_thu .= $this->buildSupplierRow($name, $sell, $buy);
+					$loai_thu .= $this->buildSupplierRow($name, $sell, $buy, $id, $dir);
 				}
 			}
 			$loai_thu .= '</table>';
@@ -203,10 +205,24 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail
 		}
 	}
 
-	private function buildSupplierRow($name, $sellAmount, $boughtAmount)
+	private function buildSupplierRow($name, $sellAmount, $boughtAmount, $supplierId = '', $direction = '')
 	{
+		global $app_list_strings;
+
+		$resolved = resolveRVSupplierAirline($this->bean->booking_id, $supplierId, $direction);
+		$dirLabel = ($resolved['direction'] !== null && $resolved['direction'] !== '')
+			? ($app_list_strings['bk_direction_list'][$resolved['direction']] ?? '')
+			: '';
+		if ($resolved['ambiguous']) {
+			$airlineLabel = '<span style="color:#c00;" title="Không xác định được hãng - hãy chọn chiều bay trên phiếu">? (chọn chiều)</span>';
+		} else {
+			$airlineLabel = $resolved['airline_code'] ?? '';
+		}
+
 		return '<tr>
 				<td class="text-start">' . $name . '</td>
+				<td class="text-center">' . $dirLabel . '</td>
+				<td class="text-center">' . $airlineLabel . '</td>
 				<td class="text-end">' . format_number($sellAmount) . '</td>
 				<td class="text-end">' . format_number($boughtAmount) . '</td>
 			</tr>';

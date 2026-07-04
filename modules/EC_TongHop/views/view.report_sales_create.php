@@ -353,7 +353,7 @@ class Viewreport_sales_create extends SugarView
 		//                     OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_prev2']['from']}'   AND '{$ranges['daybefore_prev2']['to']}'
 		//                 )";
 
-		$from_date_sql =   date('Y-m-d', strtotime($from_date . ' -1 days'));
+
 
 		$where_period = "AND (
                             bk.date_entered_bk BETWEEN '" . $this->toSqlDateMinusDays($ranges['today_current']['from']) . " 17:00:00' AND '{$ranges['today_current']['to']} 16:59:59'
@@ -677,7 +677,7 @@ class Viewreport_sales_create extends SugarView
 
 			$res = $this->bean->db->query($sql);
 
-			$html = '<tbody><form id="booking_search" name="search_form" method="POST" action="index.php?module=EC_TongHop&action=ListView" target="_blank">';
+			$html = '';
 			$i = 0;
 			$mark_current = false;
 			$mark_previous1 = false;
@@ -708,7 +708,7 @@ class Viewreport_sales_create extends SugarView
 				'1_3_bk_sales' => 0,
 				'4_8_bk' => 0,
 				'com_4_8_bk' => 0,
-				'com_4_8ticket' => 0,
+				'com_4_8_ticket' => 0,
 				'4_8_bk_sales' => 0,
 
 				'inter_bk' => 0,
@@ -774,7 +774,7 @@ class Viewreport_sales_create extends SugarView
 						<td class="text-end">' . format_number($s['4_8_bk']) . '&nbsp;/&nbsp;' . format_number($s['com_4_8_bk']) . '</td>
 						<td colspan="2">
 							<div class="d-flex align-items-center justify-content-between gap-1">
-							<div class="text-start">(' . format_number($s['com_4_8ticket']) . ' vé)</div>
+							<div class="text-start">(' . format_number($s['com_4_8_ticket']) . ' vé)</div>
 							<div class="text-end">' . format_number($s['4_8_bk_sales']) . '</div>
 							</div>
 						</td>
@@ -829,7 +829,7 @@ class Viewreport_sales_create extends SugarView
 
 				$sub['4_8_bk']        += (int)($row['4_8_bk'] ?? 0);
 				$sub['com_4_8_bk']    += (int)($row['com_4_8_bk'] ?? 0);
-				$sub['com_4_8ticket'] += (int)($row['com_4_8ticket'] ?? 0);
+				$sub['com_4_8_ticket'] += (int)($row['com_4_8_ticket'] ?? 0);
 				$sub['4_8_bk_sales']  += (float)($row['4_8_bk_sales'] ?? 0);
 
 				$sub['inter_bk']      += (int)($row['inter_bk'] ?? 0);
@@ -940,7 +940,7 @@ class Viewreport_sales_create extends SugarView
 							<td class="text-end"><span class="show_detail_bk show_detail" from_date="' . $ranges[$row['period']]['from'] . '" to_date="' . $ranges[$row['period']]['to'] . '" sname="' . $row['last_name'] . '" type="show_4to8ticket_bk" user="' . $row['user_id'] . '">' . format_number($row['4_8_bk']) . '&nbsp;/&nbsp;' . format_number($row['com_4_8_bk']) . '</span></td>
 							<td colspan="2">
 								<div class="d-flex align-items-center justify-content-between gap-1">
-									<div class="com_4_8ticket text-start">(' . format_number($row['com_4_8ticket'] ?? 0) . '&nbsp;vé)</div>
+									<div class="com_4_8ticket text-start">(' . format_number($row['com_4_8_ticket'] ?? 0) . '&nbsp;vé)</div>
 									<div class="new_4to8ticket_sales text-end">' . format_number($row['4_8_bk_sales'] ?? 0) . '</div>
 								</div>
 							</td>

@@ -126,7 +126,7 @@ class Viewreport_sales_revenue extends SugarView
                 return $v !== '';
             })
             : (isset($_POST['customer_source']) && $_POST['customer_source'] !== '' ? [$_POST['customer_source']] : []);
-            
+
         $ticket_type = $_POST['ticket_type'] ?? '';
 
         $data = $this->bookingQuery($post_from_date, $post_to_date, ['payment_stt' => $payment_stt, 'customer_source' => $customer_source, 'ticket_type' => $ticket_type]);
@@ -172,6 +172,7 @@ class Viewreport_sales_revenue extends SugarView
     // Thống kê doanh thu theo booking
     function bookingQuery($post_fdate, $post_tdate, $condition_arr)
     {
+        global $app_list_strings;
         $user_list = get_user_array(true, '', '', true);
 
         $i      = 0;
@@ -206,10 +207,17 @@ class Viewreport_sales_revenue extends SugarView
                     $paid_time = date('d-m-Y', $paid_time_timestp) . '<br>' . date('H:i', $paid_time_timestp);
                 } else $paid_time = '';
 
+                $ticket_type_html = '';
+                if (!empty($row['ticket_type'])) {
+                    $type_label = $app_list_strings['booking_ticket_type_list'][$row['ticket_type']];
+                    $badge_class = ($row['ticket_type'] == '1') ? 'badge bg-primary' : (($row['ticket_type'] == '2') ? 'badge bg-success' : 'badge bg-secondary');
+                    $ticket_type_html = '<br><span class="' . $badge_class . '">' . $type_label . '</span>';
+                }
+
                 $html .= '<tr class="' . $bg_class . '" >';
                 $html .= '
                         <td class="text-center hide-mobile">' . ($i + 1) . '</td>
-                        <td class="text-center"><a target="_blank" title="Xem chi tiết" href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '">' . $row['parent_name'] . '</a></td>
+                        <td class="text-center"><a target="_blank" title="Xem chi tiết" href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '">' . $row['parent_name'] . '</a>' . $ticket_type_html . '</td>
                         <td class="text-center total_quantity">' . format_number($row['total_quantity']) . '</td>
                         <td class="text-start description hide-mobile">' . ($row['description'] ?? '') . '</td>
                         <td class="text-end hide-mobile">' . format_number($row['subtotal_amount']) . '</td>
@@ -264,7 +272,8 @@ class Viewreport_sales_revenue extends SugarView
         </tr>';
 
         $html .= '<tr class="footer-tr">
-            <td colspan="2" class="hide-mobile">&nbsp;</td>
+            <td class="hide-mobile">&nbsp;</td>
+            <td class="text-center fw-bold color-red">Tổng</td>
             <td class="text-center fw-semibold color-red total_quantity">' . format_number($total_quantity) . '</td>
             <td class="notes hide-mobile">&nbsp;</td>
             <td class="text-end fw-semibold color-red subtotal_amount hide-mobile">' . format_number($subtotal_amount) . '</td>

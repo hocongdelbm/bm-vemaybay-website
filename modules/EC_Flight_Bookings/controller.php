@@ -67,6 +67,9 @@ class EC_Flight_BookingsController extends SugarController
             case "bkagent":
                 $this->action = "bkagent";
                 break;
+            case "bksupplier":
+                $this->action = "bksupplier";
+                break;
             case "Save":
                 $this->action = "Save";
                 break;
@@ -94,8 +97,12 @@ class EC_Flight_BookingsController extends SugarController
             case "bookerips":
                 $this->action = "bookerips";
                 break;
+            case "report_route_analysis":
+                $this->action = "report_route_analysis";
+                break;
             default:
                 $this->action = "ListView";
+
                 break;
         }
 
@@ -139,5 +146,7 @@ class EC_Flight_BookingsController extends SugarController
             $this->action = "updateflight";
         if ($this->return_action == "telesaleipmgr")
             $this->action = "telesaleipmgr";
+        if ($this->return_action == "report_route_analysis")
+            $this->action = "report_route_analysis";
     }
 }
