@@ -65,7 +65,7 @@
         <li>- Bấm vào tên hãng để lọc danh sách chi tiết bên dưới.</li>
     </ul>
 
-    <div class="bkagent-table-wrap">
+    <div class="bkagent-table-wrap overflow-auto">
     <table id="bkagent_tbl" class="list-data table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
         <thead>
             <th width="5%">#</th>
