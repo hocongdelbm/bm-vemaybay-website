@@ -86,7 +86,7 @@ class Viewbkagent extends SugarView
         $report = $this->buildAirlineReport($from_date, $to_date);
         $smarty->assign('AGENT_LIST_TBL', $report['summary']);
         $smarty->assign('BOOKING_LIST_TBL', $report['detail']);
-        $smarty->assign('VERSION', '1.3.2');
+        $smarty->assign('VERSION', '1.3.3');
     }
 
     /**

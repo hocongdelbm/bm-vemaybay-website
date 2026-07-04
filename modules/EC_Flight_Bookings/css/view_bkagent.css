@@ -34,25 +34,6 @@
   }
 }
 
-/* Bảng cuộn ngang trên màn nhỏ */
-.bkagent-table-wrap {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Sticky header cho table chi tiết */
-.box-details .bkagent-table-wrap {
-  max-height: 70vh;
-  overflow-y: auto;
-}
-.box-details .bkagent-table-wrap thead th {
-  position: sticky;
-  top: -1px;
-  z-index: 10;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
 /* Tương tác dòng hãng */
 .airline-row {
   transition: background-color 0.15s ease;
