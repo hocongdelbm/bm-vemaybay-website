@@ -426,15 +426,13 @@ class CustomController extends BaseController
 
                     // Bước 2: Có booking nhưng chưa có cái nào hoàn tất → Case 1
                     if ($total > 0 && $total_completed === 0) {
-                        $sql_booking = '
-                            SELECT id
+                        $sql_booking = "SELECT id
                             FROM ec_flight_bookings
-                            WHERE phone = ' . $db->quote(trim($call_from)) . ' 
-                            AND date_entered >= DATE_SUB(NOW(), INTERVAL 3 DAY)
-                            AND deleted = 0
+                            WHERE phone = '" . $db->quote(trim($call_from)) . "'
+                                AND date_entered >= DATE_SUB(NOW(), INTERVAL 3 DAY)
+                                AND deleted = 0
                             ORDER BY date_entered DESC
-                            LIMIT 1
-                        ';
+                            LIMIT 1";
                         $booking_id_auto = $db->getOne($sql_booking);
 
                         if (!empty($booking_id_auto)) {
