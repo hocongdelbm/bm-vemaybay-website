@@ -42,15 +42,8 @@ if ($listRights) {
 		];
 
 		$module_menu[] = [
-			"index.php?module=EC_Flight_Bookings&action=bkagent&return_module=EC_Flight_Bookings&return_action=bkagent",
-			"Thống kê vé theo hãng",
-			"bkagent",
-			'EC_Flight_Bookings'
-		];
-
-		$module_menu[] = [
-			"index.php?module=EC_Flight_Bookings&action=bksupplier&return_module=EC_Flight_Bookings&return_action=bksupplier",
-			"Thống kê vé theo NCC",
+			"index.php?module=EC_Flight_Bookings&action=bkreport&return_module=EC_Flight_Bookings&return_action=bkreport",
+			"Thống kê vé",
 			"bkagent",
 			'EC_Flight_Bookings'
 		];

@@ -1,12 +1,11 @@
 <?php
-require_once("include/Sugar_Smarty.php");
 
 /**
  * Thống kê vé theo Nhà cung cấp (NCC).
  *
  * Suy NCC cho từng chứng từ theo dòng vé ec_booking_details (supplier_id).
  */
-class Viewbksupplier extends SugarView
+class Viewbkreport extends SugarView
 {
      function display()
      {
@@ -15,7 +14,7 @@ class Viewbksupplier extends SugarView
           if (is_admin($current_user) || isManagerUser($current_user->id)) {
                $smartyCont = new Sugar_Smarty();
                $this->populateContent($smartyCont);
-               $smartyCont->display('modules/EC_Flight_Bookings/tpls/view_bksupplier.tpl');
+               $smartyCont->display('modules/EC_Flight_Bookings/tpls/view_bkreport.tpl');
           } else {
                header("Location: index.php?module=EC_Flight_Bookings&action=Error&error_string=" . urlencode("Bạn không được quyền truy cập vào mục này"));
                exit();
@@ -79,7 +78,12 @@ class Viewbksupplier extends SugarView
           $smarty->assign('FROM_DATE_VALUE', date('d-m-Y', strtotime($from_date)));
           $smarty->assign('TO_DATE_VALUE', date('d-m-Y', strtotime($to_date)));
 
-          $report = $this->buildSupplierReport($from_date, $to_date);
+
+          $mode = isset($_REQUEST['mode']) && $_REQUEST['mode'] === 'airline' ? 'airline' : 'supplier';
+          $smarty->assign('REPORT_MODE', $mode);
+
+          $report = $this->buildRevenueReport($from_date, $to_date, $mode);
+
           $smarty->assign('SUPPLIER_SUMMARY_TBL', $report['summary']);
           $smarty->assign('SUPPLIER_DETAIL_TBL', $report['detail']);
           $smarty->assign('VERSION', '2.0.2');
@@ -217,14 +221,14 @@ class Viewbksupplier extends SugarView
                $bid = $row['booking_id'];
                $sid = $row['supplier_id'];
                $d = (string) $row['direction'];
-               
+
                if (!isset($map[$bid])) $map[$bid] = array();
                $map[$bid][] = array(
-                   'sid'    => $sid,
-                   'dir'    => $d,
-                   'qty'    => (int) $row['qty'],
-                   'price'  => (float) $row['price'],
-                   'bought' => (float) $row['bought']
+                    'sid'    => $sid,
+                    'dir'    => $d,
+                    'qty'    => (int) $row['qty'],
+                    'price'  => (float) $row['price'],
+                    'bought' => (float) $row['bought']
                );
           }
           return $map;
@@ -285,11 +289,11 @@ class Viewbksupplier extends SugarView
                $hvid = $row['hoanve_id'];
                if (!isset($map[$hvid])) $map[$hvid] = array();
                $map[$hvid][] = array(
-                   'airline_code' => $row['airline_code'],
-                   'direction'    => $row['direction'],
-                   'supplier_id'  => $row['supplier_id'],
-                   'sell'         => (float) $row['sell'],
-                   'bought'       => (float) $row['bought']
+                    'airline_code' => $row['airline_code'],
+                    'direction'    => $row['direction'],
+                    'supplier_id'  => $row['supplier_id'],
+                    'sell'         => (float) $row['sell'],
+                    'bought'       => (float) $row['bought']
                );
           }
           return $map;
@@ -433,7 +437,7 @@ class Viewbksupplier extends SugarView
                          $sumB += abs($ln['bought']);
                     }
                     $nHv = count($lines);
-                    
+
                     $maxB = -1;
                     $maxIdx = 0;
                     foreach ($lines as $idx => $ln) {
@@ -450,12 +454,22 @@ class Viewbksupplier extends SugarView
                          $pdt = $dt * $ratioDt;
                          $pgm = $gm * $ratioGm;
                          $pve = ($idx === $maxIdx) ? $ve : 0;
-                         
-                         $air = !empty($ln['airline_code']) ? $ln['airline_code'] : ($airlineInfo && !empty($airlineInfo['airline']) ? $airlineInfo['airline'] : 'N/A');
+
                          $dirLabels = array('0' => 'Lượt đi', '1' => 'Lượt về');
                          $dir = isset($dirLabels[$ln['direction']]) ? $dirLabels[$ln['direction']] : '-';
-                         $sid = !empty($ln['supplier_id']) ? $ln['supplier_id'] : '';
                          
+                         $air = 'N/A';
+                         if (!empty($ln['airline_code'])) {
+                             $air = $ln['airline_code'];
+                         } elseif ($airlineInfo) {
+                             if (isset($airlineInfo['dir_airline'][$ln['direction']])) {
+                                 $air = $airlineInfo['dir_airline'][$ln['direction']];
+                             } elseif (!empty($airlineInfo['airline'])) {
+                                 $air = $airlineInfo['airline'];
+                             }
+                         }
+                         $sid = !empty($ln['supplier_id']) ? $ln['supplier_id'] : '';
+
                          $parts[] = array('supplier_id' => $sid, 'airline' => $air, 'direction' => $dir, 've' => $pve, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
                     }
                } else {
@@ -494,10 +508,10 @@ class Viewbksupplier extends SugarView
                     $pdt = $dt * $ratioDt;
                     $pgm = $gm * $ratioGm;
                     $pve = $inf['qty'];
-                    
+
                     $dirLabels = array('0' => 'Lượt đi', '1' => 'Lượt về');
                     $dir = isset($dirLabels[$d]) ? $dirLabels[$d] : '-';
-                    
+
                     $air = 'N/A';
                     if ($airlineInfo) {
                          if (isset($airlineInfo['dir_airline'][$d])) {
@@ -506,7 +520,7 @@ class Viewbksupplier extends SugarView
                               $air = $airlineInfo['airline'];
                          }
                     }
-                    
+
                     $parts[] = array('supplier_id' => $sid, 'airline' => $air, 'direction' => $dir, 've' => $pve, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
                }
           }
@@ -518,7 +532,7 @@ class Viewbksupplier extends SugarView
      /**
       * Gom BK + PT + HV theo NCC -> 2 bảng HTML: summary (theo NCC) & detail (theo chứng từ).
       */
-     function buildSupplierReport($from_date, $to_date)
+     function buildRevenueReport($from_date, $to_date, $mode)
      {
           $fromD = date('Y-m-d', strtotime($from_date));
           $toD   = date('Y-m-d', strtotime($to_date));
@@ -541,6 +555,7 @@ class Viewbksupplier extends SugarView
           $ticketTypeMap = $this->getTicketTypeMap(array_keys($bkIds));
 
           $bySupplier = array();
+          $byAirline = array();
           $detailRows = array();
           $g_ve = $g_dt = $g_gm = $g_ds = 0;
           $g_bk_ids = array();
@@ -563,141 +578,231 @@ class Viewbksupplier extends SugarView
 
                foreach ($parts as $p) {
                     $sid = $p['supplier_id'];
-
-                    if (!isset($bySupplier[$sid])) {
-                         $bySupplier[$sid] = array(
-                              'label'  => $this->supplierLabel($sid),
-                              'bk_ids' => array(),
-                              've' => 0,
-                              'dt' => 0,
-                              'gm' => 0,
-                              'ds' => 0,
-                              'airlines' => array(),
-                         );
-                    }
-                    $bySupplier[$sid]['ve'] += $p['ve'];
-                    $bySupplier[$sid]['dt'] += $p['dt'];
-                    $bySupplier[$sid]['gm'] += $p['gm'];
-                    $bySupplier[$sid]['ds'] += $p['ds'];
-                    if ($ptype === 'EC_Flight_Bookings' && !empty($bkid)) {
-                         $bySupplier[$sid]['bk_ids'][$bkid] = true;
-                    }
-
                     $air = $p['airline'];
-                    if (!isset($bySupplier[$sid]['airlines'][$air])) {
-                         $bySupplier[$sid]['airlines'][$air] = array('ve' => 0, 'dt' => 0, 'gm' => 0, 'ds' => 0, 'bk_ids' => array());
-                    }
-                    $bySupplier[$sid]['airlines'][$air]['ve'] += $p['ve'];
-                    $bySupplier[$sid]['airlines'][$air]['dt'] += $p['dt'];
-                    $bySupplier[$sid]['airlines'][$air]['gm'] += $p['gm'];
-                    $bySupplier[$sid]['airlines'][$air]['ds'] += $p['ds'];
-                    if ($ptype === 'EC_Flight_Bookings' && !empty($bkid)) {
-                         $bySupplier[$sid]['airlines'][$air]['bk_ids'][$bkid] = true;
+
+                    if ($mode === 'supplier') {
+                         if (!isset($bySupplier[$sid])) {
+                              $bySupplier[$sid] = array(
+                                   'label'  => $this->supplierLabel($sid),
+                                   'bk_ids' => array(),
+                                   've' => 0,
+                                   'dt' => 0,
+                                   'gm' => 0,
+                                   'ds' => 0,
+                                   'airlines' => array(),
+                              );
+                         }
+                         $bySupplier[$sid]['ve'] += $p['ve'];
+                         $bySupplier[$sid]['dt'] += $p['dt'];
+                         $bySupplier[$sid]['gm'] += $p['gm'];
+                         $bySupplier[$sid]['ds'] += $p['ds'];
+                         if ($ptype === 'EC_Flight_Bookings' && !empty($bkid)) {
+                              $bySupplier[$sid]['bk_ids'][$bkid] = true;
+                         }
+
+                         if (!isset($bySupplier[$sid]['airlines'][$air])) {
+                              $bySupplier[$sid]['airlines'][$air] = array('ve' => 0, 'dt' => 0, 'gm' => 0, 'ds' => 0, 'bk_ids' => array());
+                         }
+                         $bySupplier[$sid]['airlines'][$air]['ve'] += $p['ve'];
+                         $bySupplier[$sid]['airlines'][$air]['dt'] += $p['dt'];
+                         $bySupplier[$sid]['airlines'][$air]['gm'] += $p['gm'];
+                         $bySupplier[$sid]['airlines'][$air]['ds'] += $p['ds'];
+                         if ($ptype === 'EC_Flight_Bookings' && !empty($bkid)) {
+                              $bySupplier[$sid]['airlines'][$air]['bk_ids'][$bkid] = true;
+                         }
+                    } else {
+                         if (!isset($byAirline[$air])) {
+                              $byAirline[$air] = array(
+                                   'name'  => $this->airlineDisplayName($air),
+                                   'bk_ids' => array(),
+                                   've' => 0,
+                                   'dt' => 0,
+                                   'gm' => 0,
+                                   'ds' => 0,
+                              );
+                         }
+                         $byAirline[$air]['ve'] += $p['ve'];
+                         $byAirline[$air]['dt'] += $p['dt'];
+                         $byAirline[$air]['gm'] += $p['gm'];
+                         $byAirline[$air]['ds'] += $p['ds'];
+                         if ($ptype === 'EC_Flight_Bookings' && !empty($bkid)) {
+                              $byAirline[$air]['bk_ids'][$bkid] = true;
+                         }
                     }
 
                     $g_ve += $p['ve'];
                     $g_dt += $p['dt'];
                     $g_gm += $p['gm'];
                     $g_ds += $p['ds'];
-                    if ($ptype === 'EC_Flight_Bookings' && !empty($bkid)) $g_bk_ids[$bkid] = true;
 
-                    $detailRows[] = array(
-                         'supplier_id' => $sid,
-                         'supplier'    => $bySupplier[$sid]['label'],
-                         'airline'     => $p['airline'],
-                         'direction'   => $p['direction'],
-                         'ticket_type' => $ticket_type_label,
-                         'parent_type' => $ptype,
-                         'parent_id'   => $r['parent_id'],
-                         'name'        => $r['parent_name'],
-                         've' => $p['ve'],
-                         'dt' => $p['dt'],
-                         'gm' => $p['gm'],
-                         'ds' => $p['ds'],
-                         'date_show' => $date_show,
-                    );
-               }
-          }
-
-          // ===== Bảng tổng hợp theo NCC =====
-          uasort($bySupplier, function ($a, $b) {
-               if ($b['gm'] != $a['gm']) return ($b['gm'] <=> $a['gm']);
-               return $b['dt'] <=> $a['dt'];
-          });
-
-          $summary = '
-            <tr class="supplier-row cursor-pointer bg-label-secondary" data-supplier="ALL" title="Bấm để xem tất cả">
-                <td class="text-center text-decoration-underline" colspan="2"><b>Tổng</b></td>
-                <td class="text-center"><b>' . format_number(count($g_bk_ids)) . '</b></td>
-                <td class="text-center"><b>' . format_number($g_ve) . '</b></td>
-                <td class="text-center"><b>' . format_number($g_dt) . '</b></td>
-                <td class="text-center"><b>' . format_number($g_gm) . '</b></td>
-                <td class="text-center"><b>' . format_number($g_ds) . '</b></td>
-            </tr>
-        ';
-          $i = 0;
-          foreach ($bySupplier as $sid => $s) {
-               $summary .= '
-                <tr class="supplier-row cursor-pointer" data-supplier="' . $sid . '" title="Bấm để lọc chứng từ của NCC này">
-                    <td class="text-center fw-semibold">' . ($i + 1) . '</td>
-                    <td class="text-center fw-semibold text-decoration-underline">' . htmlspecialchars($s['label']) . '</td>
-                    <td class="text-center fw-semibold">' . format_number(count($s['bk_ids'])) . '</td>
-                    <td class="text-center fw-semibold">' . format_number($s['ve']) . '</td>
-                    <td class="text-center fw-semibold">' . format_number($s['dt']) . '</td>
-                    <td class="text-center fw-semibold">' . format_number($s['gm']) . '</td>
-                    <td class="text-center fw-semibold">' . format_number($s['ds']) . '</td>
-                </tr>
-            ';
-               if (count($s['airlines']) > 0) {
-                    uasort($s['airlines'], function ($a, $b) {
-                         if ($b['ve'] != $a['ve']) return $b['ve'] <=> $a['ve'];
-                         return $b['dt'] <=> $a['dt'];
-                    });
-                    foreach ($s['airlines'] as $airCode => $airData) {
-                         $summary .= '
-                         <tr class="supplier-row-airline cursor-pointer" data-supplier="' . $sid . '" data-airline="' . $airCode . '" title="Bấm để lọc chứng từ của hãng này">
-                             <td></td>
-                             <td class="text-start ps-4">&#8618; ' . htmlspecialchars($this->airlineLabel($airCode)) . '</td>
-                             <td class="text-center">' . format_number(count($airData['bk_ids'])) . '</td>
-                             <td class="text-center">' . format_number($airData['ve']) . '</td>
-                             <td class="text-center">' . format_number($airData['dt']) . '</td>
-                             <td class="text-center">' . format_number($airData['gm']) . '</td>
-                             <td class="text-center">' . format_number($airData['ds']) . '</td>
-                         </tr>
-                         ';
+                    if ($mode === 'supplier') {
+                         $detailRows[] = array(
+                              'supplier_id' => $sid,
+                              'supplier'    => $this->supplierLabel($sid),
+                              'airline'     => $air,
+                              'direction'   => $p['direction'],
+                              'ticket_type' => $ticket_type_label,
+                              'parent_type' => $ptype,
+                              'parent_id'   => $r['parent_id'],
+                              'name'        => $r['parent_name'],
+                              've' => $p['ve'],
+                              'dt' => $p['dt'],
+                              'gm' => $p['gm'],
+                              'ds' => $p['ds'],
+                              'date_show' => $date_show,
+                         );
+                    } else {
+                         $detailRows[] = array(
+                              'airline'     => $air,
+                              'direction'   => $p['direction'],
+                              'ticket_type' => $ticket_type_label,
+                              'parent_type' => $ptype,
+                              'parent_id'   => $r['parent_id'],
+                              'name'        => $r['parent_name'],
+                              've' => $p['ve'],
+                              'dt' => $p['dt'],
+                              'gm' => $p['gm'],
+                              'ds' => $p['ds'],
+                              'date_show' => $date_show,
+                         );
                     }
                }
-               $i++;
+               if ($ptype === 'EC_Flight_Bookings' && !empty($bkid)) $g_bk_ids[$bkid] = true;
           }
-          if ($i === 0) {
-               $summary .= '<tr><td colspan="7" class="text-center text-muted">Không có dữ liệu trong kỳ.</td></tr>';
+          if ($mode === 'supplier') {
+               // ===== Bảng tổng hợp theo NCC =====
+               uasort($bySupplier, function ($a, $b) {
+                    if ($b['gm'] != $a['gm']) return ($b['gm'] <=> $a['gm']);
+                    return $b['dt'] <=> $a['dt'];
+               });
+
+               $summary = '
+                 <tr class="supplier-row cursor-pointer bg-label-secondary" data-supplier="ALL" title="Bấm để xem tất cả">
+                     <td class="text-center text-decoration-underline" colspan="2"><b>Tổng</b></td>
+                     <td class="text-center"><b>' . format_number(count($g_bk_ids)) . '</b></td>
+                     <td class="text-center"><b>' . format_number($g_ve) . '</b></td>
+                     <td class="text-center"><b>' . format_number($g_dt) . '</b></td>
+                     <td class="text-center"><b>' . format_number($g_gm) . '</b></td>
+                     <td class="text-center"><b>' . format_number($g_ds) . '</b></td>
+                 </tr>
+               ';
+               $i = 0;
+               foreach ($bySupplier as $sid => $s) {
+                    $summary .= '
+                     <tr class="supplier-row cursor-pointer" data-supplier="' . $sid . '" title="Bấm để lọc chứng từ của NCC này">
+                         <td class="text-center fw-semibold">' . ($i + 1) . '</td>
+                         <td class="text-center fw-semibold text-decoration-underline">' . htmlspecialchars($s['label']) . '</td>
+                         <td class="text-center fw-semibold">' . format_number(count($s['bk_ids'])) . '</td>
+                         <td class="text-center fw-semibold">' . format_number($s['ve']) . '</td>
+                         <td class="text-center fw-semibold">' . format_number($s['dt']) . '</td>
+                         <td class="text-center fw-semibold">' . format_number($s['gm']) . '</td>
+                         <td class="text-center fw-semibold">' . format_number($s['ds']) . '</td>
+                     </tr>
+                    ';
+                    if (count($s['airlines']) > 0) {
+                         uasort($s['airlines'], function ($a, $b) {
+                              if ($b['ve'] != $a['ve']) return $b['ve'] <=> $a['ve'];
+                              return $b['dt'] <=> $a['dt'];
+                         });
+                         foreach ($s['airlines'] as $airCode => $airData) {
+                              $summary .= '
+                              <tr class="supplier-row-airline cursor-pointer" data-supplier="' . $sid . '" data-airline="' . $airCode . '" title="Bấm để lọc chứng từ của hãng này">
+                                  <td></td>
+                                  <td class="text-start ps-4">&#8618; ' . htmlspecialchars($this->airlineLabel($airCode)) . '</td>
+                                  <td class="text-center">' . format_number(count($airData['bk_ids'])) . '</td>
+                                  <td class="text-center">' . format_number($airData['ve']) . '</td>
+                                  <td class="text-center">' . format_number($airData['dt']) . '</td>
+                                  <td class="text-center">' . format_number($airData['gm']) . '</td>
+                                  <td class="text-center">' . format_number($airData['ds']) . '</td>
+                              </tr>
+                              ';
+                         }
+                    }
+                    $i++;
+               }
+               if ($i === 0) {
+                    $summary .= '<tr><td colspan="7" class="text-center text-muted">Không có dữ liệu trong kỳ.</td></tr>';
+               }
+          } else {
+               // ===== Bảng tổng hợp theo Hãng =====
+               uasort($byAirline, function ($a, $b) {
+                    if ($b['ve'] !== $a['ve']) return $b['ve'] <=> $a['ve'];
+                    return $b['dt'] <=> $a['dt'];
+               });
+
+               $summary = '
+                   <tr class="airline-row cursor-pointer bg-label-secondary" data-airline="ALL" title="Bấm để xem tất cả">
+                       <td></td>
+                       <td class="text-center text-decoration-underline"><b>Tổng</b></td>
+                       <td class="text-center"><b>' . format_number(count($g_bk_ids)) . '</b></td>
+                       <td class="text-center"><b>' . format_number($g_ve) . '</b></td>
+                       <td class="text-center"><b>' . format_number($g_dt) . '</b></td>
+                       <td class="text-center"><b>' . format_number($g_gm) . '</b></td>
+                       <td class="text-center"><b>' . format_number($g_ds) . '</b></td>
+                   </tr>
+               ';
+               $i = 0;
+               foreach ($byAirline as $code => $a) {
+                    $summary .= '
+                       <tr class="airline-row cursor-pointer" data-airline="' . $code . '" title="Bấm để lọc vé của hãng này">
+                           <td class="text-center">' . ($i + 1) . '</td>
+                           <td class="text-center fw-semibold text-decoration-underline">' . $a['name'] . ' (' . $code . ')</td>
+                           <td class="text-center">' . format_number(count($a['bk_ids'])) . '</td>
+                           <td class="text-center">' . format_number($a['ve']) . '</td>
+                           <td class="text-center">' . format_number($a['dt']) . '</td>
+                           <td class="text-center">' . format_number($a['gm']) . '</td>
+                           <td class="text-center">' . format_number($a['ds']) . '</td>
+                       </tr>
+                   ';
+                    $i++;
+               }
+               if ($i === 0) {
+                    $summary .= '<tr><td colspan="7" class="text-center text-muted">Không có dữ liệu trong kỳ.</td></tr>';
+               }
           }
 
-          // ===== Bảng chi tiết theo chứng từ =====
+          // ===== Bảng chi tiết =====
           usort($detailRows, function ($a, $b) {
                if ($b['ve'] != $a['ve']) return ($b['ve'] <=> $a['ve']);
                return $b['dt'] <=> $a['dt'];
           });
 
-          $detail = '
-            <tr id="supplier_detail_total_row" class="bg-label-secondary">
-                <td></td>
-                <td class="text-center"><b>Tổng</b></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td class="text-center"><b id="total_filtered_ve">' . format_number($g_ve) . '</b></td>
-                <td class="text-end"><b id="total_filtered_dt">' . format_number($g_dt) . '</b></td>
-                <td class="text-end"><b id="total_filtered_gm">' . format_number($g_gm) . '</b></td>
-                <td class="text-end"><b id="total_filtered_ds">' . format_number($g_ds) . '</b></td>
-                <td></td>
-            </tr>
-        ';
+          if ($mode === 'supplier') {
+               $detail = '
+                 <tr id="supplier_detail_total_row" class="bg-label-secondary">
+                     <td></td>
+                     <td class="text-center"><b>Tổng</b></td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td class="text-center"><b id="total_filtered_ve">' . format_number($g_ve) . '</b></td>
+                     <td class="text-end"><b id="total_filtered_dt">' . format_number($g_dt) . '</b></td>
+                     <td class="text-end"><b id="total_filtered_gm">' . format_number($g_gm) . '</b></td>
+                     <td class="text-end"><b id="total_filtered_ds">' . format_number($g_ds) . '</b></td>
+                     <td></td>
+                 </tr>
+               ';
+          } else {
+               $detail = '
+                 <tr id="booking_list_total_row" class="bg-label-secondary">
+                     <td></td>
+                     <td class="text-center"><b>Tổng</b></td>
+                     <td></td>
+                     <td></td>
+                     <td></td>
+                     <td class="text-center"><b id="total_filtered_ticket_qty">' . format_number($g_ve) . '</b></td>
+                     <td class="text-end"><b id="total_filtered_dt">' . format_number($g_dt) . '</b></td>
+                     <td class="text-end"><b id="total_filtered_gm">' . format_number($g_gm) . '</b></td>
+                     <td class="text-end"><b id="total_filtered_ds">' . format_number($g_ds) . '</b></td>
+                     <td></td>
+                 </tr>
+               ';
+          }
+
           $d = 0;
           foreach ($detailRows as $r) {
                $ve_cell = ($r['ve'] != 0) ? format_number($r['ve']) : '-';
-
                $ticket_type_html = $r['ticket_type'];
                if ($r['ticket_type'] === 'Quốc tế') {
                     $ticket_type_html = '<span class="badge bg-label-success">' . $r['ticket_type'] . '</span>';
@@ -705,31 +810,51 @@ class Viewbksupplier extends SugarView
                     $ticket_type_html = '<span class="badge bg-label-dark">' . $r['ticket_type'] . '</span>';
                }
 
-               $row_class = 'supplier-detail-row';
+               $row_class = $mode === 'supplier' ? 'supplier-detail-row' : 'booking-row';
                if ($r['parent_type'] === 'EC_Receipt_Voucher') {
                     $row_class .= ' bg-label-info';
                } elseif ($r['parent_type'] === 'EC_HoanVe') {
                     $row_class .= ' bg-label-danger';
                }
-               $detail .= '
-                <tr class="' . $row_class . '" data-supplier="' . $r['supplier_id'] . '" data-airline="' . $r['airline'] . '" data-qty="' . (int)$r['ve'] . '" data-dt="' . round($r['dt']) . '" data-gm="' . round($r['gm']) . '" data-ds="' . round($r['ds']) . '">
-                    <td class="text-center detail-stt">' . ($d + 1) . '</td>
-                    <td class="text-center"><a href="index.php?module=' . $r['parent_type'] . '&action=DetailView&record=' . $r['parent_id'] . '" target="_blank">' . htmlspecialchars($r['name']) . '</a></td>
-                    <td class="text-center">' . htmlspecialchars($r['supplier']) . '</td>
-                    <td class="text-center">' . htmlspecialchars($this->airlineLabel($r['airline'])) . '</td>
-                    <td class="text-center">' . $r['direction'] . '</td>
-                    <td class="text-center">' . $ticket_type_html . '</td>
-                    <td class="text-center">' . $ve_cell . '</td>
-                    <td class="text-end">' . format_number($r['dt']) . '</td>
-                    <td class="text-end">' . format_number($r['gm']) . '</td>
-                    <td class="text-end">' . format_number($r['ds']) . '</td>
-                    <td class="text-center">' . $r['date_show'] . '</td>
-                </tr>
-            ';
+
+               if ($mode === 'supplier') {
+                    $detail .= '
+                     <tr class="' . $row_class . '" data-supplier="' . $r['supplier_id'] . '" data-airline="' . $r['airline'] . '" data-qty="' . (int)$r['ve'] . '" data-dt="' . round($r['dt']) . '" data-gm="' . round($r['gm']) . '" data-ds="' . round($r['ds']) . '">
+                         <td class="text-center detail-stt">' . ($d + 1) . '</td>
+                         <td class="text-center"><a href="index.php?module=' . $r['parent_type'] . '&action=DetailView&record=' . $r['parent_id'] . '" target="_blank">' . htmlspecialchars($r['name']) . '</a></td>
+                         <td class="text-center">' . htmlspecialchars($r['supplier']) . '</td>
+                         <td class="text-center">' . htmlspecialchars($this->airlineLabel($r['airline'])) . '</td>
+                         <td class="text-center">' . $r['direction'] . '</td>
+                         <td class="text-center">' . $ticket_type_html . '</td>
+                         <td class="text-center">' . $ve_cell . '</td>
+                         <td class="text-end">' . format_number($r['dt']) . '</td>
+                         <td class="text-end">' . format_number($r['gm']) . '</td>
+                         <td class="text-end">' . format_number($r['ds']) . '</td>
+                         <td class="text-center">' . $r['date_show'] . '</td>
+                     </tr>
+                    ';
+               } else {
+                    $airline_disp = $this->airlineDisplayName($r['airline']) . ' (' . $r['airline'] . ')';
+                    $detail .= '
+                     <tr class="' . $row_class . '" data-airline="' . $r['airline'] . '" data-qty="' . (int)$r['ve'] . '" data-dt="' . round($r['dt']) . '" data-gm="' . round($r['gm']) . '" data-amount="' . round($r['ds']) . '">
+                         <td class="center stt-cell">' . ($d + 1) . '</td>
+                         <td class="center"><a href="index.php?module=' . $r['parent_type'] . '&action=DetailView&record=' . $r['parent_id'] . '" target="_blank">' . htmlspecialchars($r['name']) . '</a></td>
+                         <td class="center">' . $airline_disp . '</td>
+                         <td class="center">' . $r['direction'] . '</td>
+                         <td class="center">' . $ticket_type_html . '</td>
+                         <td class="center">' . $ve_cell . '</td>
+                         <td class="text-end">' . format_number($r['dt']) . '</td>
+                         <td class="text-end">' . format_number($r['gm']) . '</td>
+                         <td class="text-end">' . format_number($r['ds']) . '</td>
+                         <td class="center">' . $r['date_show'] . '</td>
+                     </tr>
+                    ';
+               }
                $d++;
           }
           if ($d === 0) {
-               $detail .= '<tr><td colspan="11" class="text-center text-muted">Không có dữ liệu trong kỳ.</td></tr>';
+               $colCount = $mode === 'supplier' ? 11 : 10;
+               $detail .= '<tr><td colspan="' . $colCount . '" class="text-center text-muted">Không có dữ liệu trong kỳ.</td></tr>';
           }
 
           return array('summary' => $summary, 'detail' => $detail);
