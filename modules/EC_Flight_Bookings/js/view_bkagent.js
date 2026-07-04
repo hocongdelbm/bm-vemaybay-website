@@ -9,13 +9,12 @@
   "use strict";
 
   function nf(n) {
-    if (typeof formatNumber === "function") return formatNumber(n);
-    return (n || 0).toLocaleString("vi-VN");
-  }
-
-  function showLoading() {
-    $("#bkagent-loading").css("display", "flex");
-    $("#btnView").prop("disabled", true).val("Đang tải...");
+    if (typeof num_grp_sep !== "undefined" && typeof dec_sep !== "undefined") {
+      let parts = Number(n || 0).toString().split(".");
+      let formatted = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, num_grp_sep);
+      return parts[1] ? formatted + dec_sep + parts[1] : formatted;
+    }
+    return Number(n || 0).toLocaleString("en-US");
   }
 
   $(document).ready(function () {
@@ -55,7 +54,9 @@
       $(this).addClass("bg-warning");
 
       var totalQty = 0;
-      var totalAmount = 0;
+      var totalDt = 0;
+      var totalGm = 0;
+      var totalDs = 0;
       var visibleIndex = 1;
 
       $(".booking-row").each(function () {
@@ -68,14 +69,18 @@
           $(this).show();
           $(this).find(".stt-cell").text(visibleIndex++);
           totalQty += parseFloat($(this).attr("data-qty") || 0);
-          totalAmount += parseFloat($(this).attr("data-amount") || 0);
+          totalDt += parseFloat($(this).attr("data-dt") || 0);
+          totalGm += parseFloat($(this).attr("data-gm") || 0);
+          totalDs += parseFloat($(this).attr("data-amount") || 0);
         } else {
           $(this).hide();
         }
       });
 
       $("#total_filtered_ticket_qty").text(nf(totalQty));
-      $("#total_filtered_amount").text(nf(totalAmount));
+      $("#total_filtered_dt").text(nf(totalDt));
+      $("#total_filtered_gm").text(nf(totalGm));
+      $("#total_filtered_ds").text(nf(totalDs));
     });
 
     // ===== Loading khi xem báo cáo =====
