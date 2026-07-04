@@ -142,5 +142,7 @@ class EC_Flight_BookingsController extends SugarController
             $this->action = "telesaleipmgr";
         if ($this->return_action == "report_route_analysis")
             $this->action = "report_route_analysis";
+        if ($this->return_action == "bkreport")
+            $this->action = "bkreport";
     }
 }
