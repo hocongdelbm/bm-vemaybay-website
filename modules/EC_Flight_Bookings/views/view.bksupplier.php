@@ -216,13 +216,16 @@ class Viewbksupplier extends SugarView
           while ($row = $db->fetchByAssoc($res)) {
                $bid = $row['booking_id'];
                $sid = $row['supplier_id'];
-               if (!isset($map[$bid])) $map[$bid] = array();
-               if (!isset($map[$bid][$sid])) $map[$bid][$sid] = array('qty' => 0, 'price' => 0.0, 'bought' => 0.0, 'dirs' => array());
-               $map[$bid][$sid]['qty']    += (int) $row['qty'];
-               $map[$bid][$sid]['price']  += (float) $row['price'];
-               $map[$bid][$sid]['bought'] += (float) $row['bought'];
                $d = (string) $row['direction'];
-               if ($d !== '') $map[$bid][$sid]['dirs'][$d] = true;
+               
+               if (!isset($map[$bid])) $map[$bid] = array();
+               $map[$bid][] = array(
+                   'sid'    => $sid,
+                   'dir'    => $d,
+                   'qty'    => (int) $row['qty'],
+                   'price'  => (float) $row['price'],
+                   'bought' => (float) $row['bought']
+               );
           }
           return $map;
      }
@@ -389,38 +392,58 @@ class Viewbksupplier extends SugarView
           }
           $n = count($split);
 
-          // HV: dồn SL vé (âm) vào NCC có giá mua lớn nhất để tránh vé phân số
-          $maxSid = null;
+          $parts = array();
+
           if ($ptype === 'EC_HoanVe') {
+               $bySid = array();
+               foreach ($split as $inf) {
+                    $sid = $inf['sid'];
+                    if (!isset($bySid[$sid])) $bySid[$sid] = array('qty' => 0, 'bought' => 0);
+                    $bySid[$sid]['qty'] += $inf['qty'];
+                    $bySid[$sid]['bought'] += $inf['bought'];
+               }
+               $maxSid = null;
                $maxB = -1;
-               foreach ($split as $sid => $inf) {
+               foreach ($bySid as $sid => $inf) {
                     if ($inf['bought'] > $maxB) {
                          $maxB = $inf['bought'];
                          $maxSid = $sid;
                     }
                }
-          }
-
-          $parts = array();
-          foreach ($split as $sid => $inf) {
-               if ($ptype === 'EC_HoanVe') {
-                    // hoàn vé: chia theo tỷ lệ GIÁ MUA (đảo chiều công nợ phải trả NCC)
-                    $ratio = ($sumBought > 0) ? $inf['bought'] / $sumBought : (($sumQty > 0) ? $inf['qty'] / $sumQty : (1 / $n));
+               $nSid = count($bySid);
+               foreach ($bySid as $sid => $inf) {
+                    $ratio = ($sumBought > 0) ? $inf['bought'] / $sumBought : (($sumQty > 0) ? $inf['qty'] / $sumQty : (1 / $nSid));
                     $pdt = $dt * $ratio;
                     $pgm = $gm * $ratio;
                     $pve = ($sid === $maxSid) ? $ve : 0;
                     $dir = '-';
-               } else {
-                    // BK: doanh thu theo tỷ lệ giá bán, giá mua theo tỷ lệ giá mua; SL vé đúng theo NCC
+                    $air = ($airlineInfo && !empty($airlineInfo['airline'])) ? $airlineInfo['airline'] : 'N/A';
+                    $parts[] = array('supplier_id' => $sid, 'airline' => $air, 'direction' => $dir, 've' => $pve, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
+               }
+          } else {
+               foreach ($split as $inf) {
+                    $sid = $inf['sid'];
+                    $d = $inf['dir'];
                     $ratioDt = ($sumPrice > 0) ? $inf['price'] / $sumPrice : (($sumQty > 0) ? $inf['qty'] / $sumQty : (1 / $n));
                     $ratioGm = ($sumBought > 0) ? $inf['bought'] / $sumBought : (($sumQty > 0) ? $inf['qty'] / $sumQty : (1 / $n));
                     $pdt = $dt * $ratioDt;
                     $pgm = $gm * $ratioGm;
                     $pve = $inf['qty'];
-                    $dir = $this->directionLabel(array_keys($inf['dirs']));
+                    
+                    $dirLabels = array('0' => 'Lượt đi', '1' => 'Lượt về');
+                    $dir = isset($dirLabels[$d]) ? $dirLabels[$d] : '-';
+                    
+                    $air = 'N/A';
+                    if ($airlineInfo) {
+                         if (isset($airlineInfo['dir_airline'][$d])) {
+                              $air = $airlineInfo['dir_airline'][$d];
+                         } elseif (!empty($airlineInfo['airline'])) {
+                              $air = $airlineInfo['airline'];
+                         }
+                    }
+                    
+                    $parts[] = array('supplier_id' => $sid, 'airline' => $air, 'direction' => $dir, 've' => $pve, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
                }
-               $air = $this->airlineForDirs(array_keys($inf['dirs']), $airlineInfo);
-               $parts[] = array('supplier_id' => $sid, 'airline' => $air, 'direction' => $dir, 've' => $pve, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
           }
           return $parts;
      }
