@@ -1,68 +1,12 @@
-{literal}
-    <script>
-        $(document).ready(function() {
-            Calendar.setup({
-                inputField: "from_date",
-                daFormat: "%d-%m-%Y",
-                button: "fdate_trigger",
-                singleClick: true,
-                dateStr: "",
-                step: 1,
-                position: [230, 202],
-            });
-            Calendar.setup({
-                inputField: "to_date",
-                daFormat: "%d-%m-%Y",
-                button: "tdate_trigger",
-                singleClick: true,
-                dateStr: "",
-                step: 2
-            });
-            $("#date_select").change(function() {
-                var fdate_val = $(this).children("option:selected").attr("from_date");
-                var tdate_val = $(this).children("option:selected").attr("to_date");
-                if(fdate_val != "") {
-                    $("#from_date").val(fdate_val);
-                }
-                if(tdate_val != "") {
-                    $("#to_date").val(tdate_val);
-                }
-            });
+<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/view_bkagent.css?v={$VERSION}">
 
-            // Filter bookings by airline
+<div id="bkagent-loading">
+    <div class="bkagent-loading__box">
+        <div class="bkagent-spinner"></div>
+        Đang tải báo cáo...
+    </div>
+</div>
 
-            $('.airline-row').on('click', function() {
-                let selectedAirline = $(this).attr('data-airline');
-                
-                // Highlight selected row
-                $('.airline-row').removeClass('bg-warning');
-                $(this).addClass('bg-warning');
-
-                let totalQty = 0;
-                let totalAmount = 0;
-                let visibleIndex = 1;
-
-                $('.booking-row').each(function() {
-                    let rowAirline = $(this).attr('data-airline');
-                    
-                    // Treat N/A or empty as the same if we filter for Khác (N/A)
-                    if (selectedAirline === 'ALL' || rowAirline === selectedAirline || (selectedAirline === 'N/A' && !rowAirline)) {
-                        $(this).show();
-                        $(this).find('.stt-cell').text(visibleIndex++);
-                        totalQty += parseFloat($(this).attr('data-qty') || 0);
-                        totalAmount += parseFloat($(this).attr('data-amount') || 0);
-                    } else {
-                        $(this).hide();
-                    }
-                });
-
-                // Update totals
-                $('#total_filtered_ticket_qty').text(formatNumber(totalQty));
-                $('#total_filtered_amount').text(formatNumber(totalAmount));
-            });
-        });
-    </script>
-{/literal}
 <h1 class="title">Thống kê vé theo hãng</h1>
 
 <div class="box-section">
@@ -70,13 +14,13 @@
     <form action="index.php" method="post" name="frmSearch" id="frmSearch">
         <input type="hidden" name="module" value="EC_Flight_Bookings" />
         <input type="hidden" name="action" value="bkagent" />
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap bkagent-filter">
             <select class="box-select" id="date_select" name="date_select">
                 {$REPORT_TERM_LIST}
             </select>
             <div class="from-to-date--wrap d-inline-flex gap-2 align-items-center">
                 <div class="d-flex gap-2 align-items-center fdate_trigger--wrap">
-                    <span class="text-label">Từ ngày: </span>    
+                    <span class="text-label">Từ ngày: </span>
                     <div class="dateTime d-flex gap-2 position-relative">
                     <input class="date_input box-input" type="text" maxlength="10" size="8" tabindex="103" title="" value="{$FROM_DATE_VALUE}" id="from_date" name="from_date" autocomplete="off">
                     <button class="icon_dateTime" type="button" id="fdate_trigger" onclick="return false;">
@@ -85,22 +29,9 @@
                             <path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"/>
                             </svg>
                     </button>
-                    {literal}
-                        <script type="text/javascript">
-                            Calendar.setup({
-                                    inputField: "from_date",
-                                    daFormat: "%d-%m-%Y",
-                                    button: "from_date_trigger",
-                                    singleClick: true,
-                                    dateStr: "",
-                                    step: 1
-                                    }
-                            );
-                        </script>
-                    {/literal}
                     </div>
                 </div>
-        
+
                 <svg width="40" height="20" fill="none">
                     <g clip-path="url(#icon_arrow_flight_long_svg__clip0)" stroke="#718096" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M33.5 8.5L36 11M4 11h32"></path>
@@ -111,7 +42,7 @@
                     </clipPath>
                     </defs>
                 </svg>
-        
+
                 <div class="d-flex gap-2 align-items-center tdate_trigger--wrap">
                     <div class="dateTime d-flex gap-2 position-relative">
                     <input  class="date_input box-input" type="text" maxlength="10" size="8" title="" value="{$TO_DATE_VALUE}" id="to_date" name="to_date" autocomplete="off">
@@ -121,35 +52,23 @@
                             <path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"/>
                             </svg>
                     </button>
-                    {literal}
-                        <script type="text/javascript">
-                            Calendar.setup({
-                                    inputField: "to_date",
-                                    daFormat: "%d-%m-%Y",
-                                    button: "to_date_trigger",
-                                    singleClick: true,
-                                    dateStr: "",
-                                    step: 2
-                                    }
-                            );
-                        </script>
-                    {/literal}
                     </div>
                 </div>
-        
-                <input type="submit" id="btnView" name="btnView" class="btn btn-primary" value="Xem" title="Xem" />
             </div>
+
+            <input type="submit" id="btnView" name="btnView" class="btn btn-primary" value="Xem báo cáo" title="Xem báo cáo" />
         </div>
     </form>
 
     <ul class="bookingqtyreport-note alert alert-info text-dark fw-semibold">
-        <li>- Booking (BK): lọc theo <strong>ngày xuất vé</strong> (trạng thái <em>Xuất vé / Hoàn tất / Xác nhận</em>).</li>
+        <li>- Hãng suy theo booking; Phiếu thu không gắn booking nằm ở nhóm <strong>Khác (N/A)</strong>.</li>
         <li>- Bấm vào tên hãng để lọc danh sách chi tiết bên dưới.</li>
     </ul>
 
+    <div class="bkagent-table-wrap">
     <table id="bkagent_tbl" class="list-data table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
         <thead>
-            <th width="5%">STT</th>
+            <th width="5%">#</th>
             <th>Hãng</th>
             <th width="10%">SL BK</th>
             <th width="10%">SL vé</th>
@@ -161,22 +80,28 @@
             {$AGENT_LIST_TBL}
         </tbody>
     </table>
+    </div>
 </div>
 </div>
 
 <div class="box-section box-details">
+    <div class="bkagent-table-wrap">
     <table id="booking_list" class="table-details__booking table-booking__list" cellpadding="0" cellspacing="0">
         <thead>
             <th width="5%">STT</th>
-            <th width="25%">Booking</th>
-            <th width="20%">Hãng bay</th>
-            <th width="15%">Chiều bay</th>
-            <th width="10%">SL vé</th>
-            <th width="10%">Ngày xuất vé</th>
-            <th width="10%">Ngày tạo</th>
+            <th width="20%">Booking</th>
+            <th width="15%">Hãng bay</th>
+            <th width="12%">Chiều bay</th>
+            <th width="10%">Loại vé</th>
+            <th width="8%">SL vé</th>
+            <th width="15%">Ngày chứng từ</th>
+            <th width="15%">Ngày tạo</th>
         </thead>
         <tbody>
             {$BOOKING_LIST_TBL}
         </tbody>
     </table>
+    </div>
 </div>
+
+<script src="modules/EC_Flight_Bookings/js/view_bkagent.js?v={$VERSION}"></script>
