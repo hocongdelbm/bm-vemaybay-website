@@ -82,7 +82,7 @@ class Viewbksupplier extends SugarView
           $report = $this->buildSupplierReport($from_date, $to_date);
           $smarty->assign('SUPPLIER_SUMMARY_TBL', $report['summary']);
           $smarty->assign('SUPPLIER_DETAIL_TBL', $report['detail']);
-          $smarty->assign('VERSION', '2.0.1');
+          $smarty->assign('VERSION', '2.0.2');
      }
 
      /* ===================== HELPER MAP ===================== */
@@ -483,6 +483,7 @@ class Viewbksupplier extends SugarView
                               'dt' => 0,
                               'gm' => 0,
                               'ds' => 0,
+                              'airlines' => array(),
                          );
                     }
                     $bySupplier[$sid]['ve'] += $p['ve'];
@@ -491,6 +492,18 @@ class Viewbksupplier extends SugarView
                     $bySupplier[$sid]['ds'] += $p['ds'];
                     if ($ptype === 'EC_Flight_Bookings' && !empty($bkid)) {
                          $bySupplier[$sid]['bk_ids'][$bkid] = true;
+                    }
+
+                    $air = $p['airline'];
+                    if (!isset($bySupplier[$sid]['airlines'][$air])) {
+                         $bySupplier[$sid]['airlines'][$air] = array('ve' => 0, 'dt' => 0, 'gm' => 0, 'ds' => 0, 'bk_ids' => array());
+                    }
+                    $bySupplier[$sid]['airlines'][$air]['ve'] += $p['ve'];
+                    $bySupplier[$sid]['airlines'][$air]['dt'] += $p['dt'];
+                    $bySupplier[$sid]['airlines'][$air]['gm'] += $p['gm'];
+                    $bySupplier[$sid]['airlines'][$air]['ds'] += $p['ds'];
+                    if ($ptype === 'EC_Flight_Bookings' && !empty($bkid)) {
+                         $bySupplier[$sid]['airlines'][$air]['bk_ids'][$bkid] = true;
                     }
 
                     $g_ve += $p['ve'];
@@ -525,8 +538,7 @@ class Viewbksupplier extends SugarView
 
           $summary = '
             <tr class="supplier-row cursor-pointer bg-label-secondary" data-supplier="ALL" title="Bấm để xem tất cả">
-                <td></td>
-                <td class="text-center text-decoration-underline"><b>Tổng</b></td>
+                <td class="text-center text-decoration-underline" colspan="2"><b>Tổng</b></td>
                 <td class="text-center"><b>' . format_number(count($g_bk_ids)) . '</b></td>
                 <td class="text-center"><b>' . format_number($g_ve) . '</b></td>
                 <td class="text-center"><b>' . format_number($g_dt) . '</b></td>
@@ -538,15 +550,34 @@ class Viewbksupplier extends SugarView
           foreach ($bySupplier as $sid => $s) {
                $summary .= '
                 <tr class="supplier-row cursor-pointer" data-supplier="' . $sid . '" title="Bấm để lọc chứng từ của NCC này">
-                    <td class="text-center">' . ($i + 1) . '</td>
+                    <td class="text-center fw-semibold">' . ($i + 1) . '</td>
                     <td class="text-center fw-semibold text-decoration-underline">' . htmlspecialchars($s['label']) . '</td>
-                    <td class="text-center">' . format_number(count($s['bk_ids'])) . '</td>
-                    <td class="text-center">' . format_number($s['ve']) . '</td>
-                    <td class="text-center">' . format_number($s['dt']) . '</td>
-                    <td class="text-center">' . format_number($s['gm']) . '</td>
-                    <td class="text-center">' . format_number($s['ds']) . '</td>
+                    <td class="text-center fw-semibold">' . format_number(count($s['bk_ids'])) . '</td>
+                    <td class="text-center fw-semibold">' . format_number($s['ve']) . '</td>
+                    <td class="text-center fw-semibold">' . format_number($s['dt']) . '</td>
+                    <td class="text-center fw-semibold">' . format_number($s['gm']) . '</td>
+                    <td class="text-center fw-semibold">' . format_number($s['ds']) . '</td>
                 </tr>
             ';
+               if (count($s['airlines']) > 0) {
+                    uasort($s['airlines'], function ($a, $b) {
+                         if ($b['ve'] != $a['ve']) return $b['ve'] <=> $a['ve'];
+                         return $b['dt'] <=> $a['dt'];
+                    });
+                    foreach ($s['airlines'] as $airCode => $airData) {
+                         $summary .= '
+                         <tr class="supplier-row-airline cursor-pointer" data-supplier="' . $sid . '" data-airline="' . $airCode . '" title="Bấm để lọc chứng từ của hãng này">
+                             <td></td>
+                             <td class="text-start ps-4">&#8618; ' . htmlspecialchars($this->airlineLabel($airCode)) . '</td>
+                             <td class="text-center">' . format_number(count($airData['bk_ids'])) . '</td>
+                             <td class="text-center">' . format_number($airData['ve']) . '</td>
+                             <td class="text-center">' . format_number($airData['dt']) . '</td>
+                             <td class="text-center">' . format_number($airData['gm']) . '</td>
+                             <td class="text-center">' . format_number($airData['ds']) . '</td>
+                         </tr>
+                         ';
+                    }
+               }
                $i++;
           }
           if ($i === 0) {
@@ -592,7 +623,7 @@ class Viewbksupplier extends SugarView
                     $row_class .= ' bg-label-danger';
                }
                $detail .= '
-                <tr class="' . $row_class . '" data-supplier="' . $r['supplier_id'] . '" data-qty="' . (int)$r['ve'] . '" data-dt="' . round($r['dt']) . '" data-gm="' . round($r['gm']) . '" data-ds="' . round($r['ds']) . '">
+                <tr class="' . $row_class . '" data-supplier="' . $r['supplier_id'] . '" data-airline="' . $r['airline'] . '" data-qty="' . (int)$r['ve'] . '" data-dt="' . round($r['dt']) . '" data-gm="' . round($r['gm']) . '" data-ds="' . round($r['ds']) . '">
                     <td class="text-center detail-stt">' . ($d + 1) . '</td>
                     <td class="text-center"><a href="index.php?module=' . $r['parent_type'] . '&action=DetailView&record=' . $r['parent_id'] . '" target="_blank">' . htmlspecialchars($r['name']) . '</a></td>
                     <td class="text-center">' . htmlspecialchars($r['supplier']) . '</td>

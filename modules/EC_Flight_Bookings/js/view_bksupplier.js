@@ -42,10 +42,11 @@
     });
 
     // ===== Bấm 1 NCC để lọc bảng chi tiết chứng từ =====
-    $("#supplier_summary_list").on("click", ".supplier-row", function () {
+    $("#supplier_summary_list").on("click", ".supplier-row, .supplier-row-airline", function () {
       var selectedSupplier = $(this).attr("data-supplier");
+      var selectedAirline = $(this).attr("data-airline");
 
-      $("#supplier_summary_list .supplier-row").removeClass("bg-warning");
+      $("#supplier_summary_list tr").removeClass("bg-warning");
       $(this).addClass("bg-warning");
 
       var totalVe = 0;
@@ -56,7 +57,12 @@
 
       $("#supplier_detail_list .supplier-detail-row").each(function () {
         var rowSupplier = $(this).attr("data-supplier");
-        if (selectedSupplier === "ALL" || rowSupplier === selectedSupplier) {
+        var rowAirline = $(this).attr("data-airline");
+        
+        var matchSupplier = (selectedSupplier === "ALL" || rowSupplier === selectedSupplier);
+        var matchAirline = (!selectedAirline || rowAirline === selectedAirline);
+
+        if (matchSupplier && matchAirline) {
           $(this).show();
           $(this).find(".detail-stt").text(visibleIndex++);
           totalVe += parseFloat($(this).attr("data-qty") || 0);
@@ -76,8 +82,14 @@
       if (selectedSupplier === "ALL") {
         $("#supplier_detail_title").text("Chi tiết chứng từ: Tất cả NCC");
       } else {
-        var label = $(this).find("td").eq(1).text().trim();
-        $("#supplier_detail_title").text("Chi tiết chứng từ: " + label);
+        var label = $(this).find("td").eq(1).text().replace("↳", "").trim();
+        if (selectedAirline) {
+           // Lấy tên NCC từ data-supplier
+           var supplierName = $('#supplier_summary_list .supplier-row[data-supplier="' + selectedSupplier + '"]').find("td").eq(1).text().trim();
+           $("#supplier_detail_title").text("Chi tiết chứng từ: " + supplierName + " - " + label);
+        } else {
+           $("#supplier_detail_title").text("Chi tiết chứng từ: " + label);
+        }
       }
     });
 
