@@ -352,14 +352,20 @@ class Viewbksupplier extends SugarView
                     $pdt = $dt * $ratioDt;
                     $pgm = $gm * $ratioGm;
                     $air = 'N/A';
+                    $dir = '-';
                     if (!empty($bkid) && !empty($ln['supplier_id'])) {
                          // chiều đã chọn khi tạo phiếu (sup_direction) -> tường minh; trống -> auto
                          $lineDir = (isset($ln['direction']) && $ln['direction'] !== '') ? $ln['direction'] : null;
                          $r = resolveRVSupplierAirline($bkid, $ln['supplier_id'], $lineDir);
                          if (!empty($r['airline_code'])) $air = $r['airline_code'];
+                         $useDir = ($r['direction'] !== null && $r['direction'] !== '') ? $r['direction'] : $lineDir;
+                         if ($useDir !== null && $useDir !== '') {
+                              $dirLabels = array('0' => 'Lượt đi', '1' => 'Lượt về');
+                              $dir = isset($dirLabels[(string) $useDir]) ? $dirLabels[(string) $useDir] : '-';
+                         }
                     }
                     if ($air === 'N/A' && $airlineInfo && !empty($airlineInfo['airline'])) $air = $airlineInfo['airline'];
-                    $parts[] = array('supplier_id' => $ln['supplier_id'], 'airline' => $air, 'direction' => '-', 've' => 0, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
+                    $parts[] = array('supplier_id' => $ln['supplier_id'], 'airline' => $air, 'direction' => $dir, 've' => 0, 'dt' => $pdt, 'gm' => $pgm, 'ds' => $pdt - $pgm);
                }
                return $parts;
           }
