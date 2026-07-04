@@ -287,27 +287,6 @@ class Viewbkagent extends SugarView
         return $map;
     }
 
-    /**
-     * Map chứng_từ_id -> Ngày tạo (dd-mm-yyyy HH:mm, +7h) cho phiếu thu (PT) & hoàn vé (HV),
-     * vì calculateRevenueOfDate không trả date_entered cho 2 loại này.
-     */
-    private function getDocDateEntered(array $rvIds, array $hvIds)
-    {
-        global $db;
-        $map = array();
-        $fmt = "DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%d-%m-%Y %H:%i')";
-
-        foreach (array('ec_receipt_voucher' => $rvIds, 'ec_hoanve' => $hvIds) as $table => $ids) {
-            $inList = array();
-            foreach ($ids as $id) {
-                if (!empty($id)) $inList[] = "'" . $db->quote($id) . "'";
-            }
-            if (empty($inList)) continue;
-            $res = $db->query("SELECT id, $fmt AS de FROM $table WHERE id IN (" . implode(',', $inList) . ")");
-            while ($row = $db->fetchByAssoc($res)) $map[$row['id']] = $row['de'];
-        }
-        return $map;
-    }
 
     /**
      * Phân bổ 1 phiếu thu (PT loại 4/5...) về từng HÃNG theo dòng NCC của nó.
@@ -502,8 +481,6 @@ class Viewbkagent extends SugarView
             if ($r['parent_type'] === 'EC_HoanVe') $hvIds[$r['parent_id']] = true;
         }
         $rvLines = $this->getReceiptSupplierLines(array_keys($rvIds));
-        // Ngày tạo cho chứng từ PT/HV (calculateRevenueOfDate không trả date_entered cho 2 loại này)
-        $docDateMap = $this->getDocDateEntered(array_keys($rvIds), array_keys($hvIds));
 
         // Gom theo hãng
         $byAirline = array();
@@ -541,9 +518,6 @@ class Viewbkagent extends SugarView
             $date_show = ($r['parent_type'] === 'EC_Flight_Bookings')
                 ? (!empty($r['date_ticket_issue']) ? $r['date_ticket_issue'] : '')
                 : (!empty($r['voucher_date']) ? $r['voucher_date'] : '');
-            $date_entered = ($r['parent_type'] === 'EC_Flight_Bookings')
-                ? (!empty($r['bk_date_entered']) ? $r['bk_date_entered'] : '')
-                : (isset($docDateMap[$r['parent_id']]) ? $docDateMap[$r['parent_id']] : '');
 
             foreach ($parts as $part) {
                 $code = $part['airline'];
@@ -584,7 +558,6 @@ class Viewbkagent extends SugarView
                     'gm' => $part['gm'],
                     'ds' => $part['ds'],
                     'date_show' => $date_show,
-                    'date_entered' => $date_entered,
                 );
             }
 
@@ -645,7 +618,6 @@ class Viewbkagent extends SugarView
                 <td class="text-end"><b id="total_filtered_gm">' . format_number($g_gm) . '</b></td>
                 <td class="text-end"><b id="total_filtered_ds">' . format_number($g_ds) . '</b></td>
                 <td></td>
-                <td></td>
             </tr>
         ';
         $d = 0;
@@ -678,13 +650,12 @@ class Viewbkagent extends SugarView
                     <td class="text-end">' . format_number($r['gm']) . '</td>
                     <td class="text-end">' . format_number($r['ds']) . '</td>
                     <td class="center">' . $r['date_show'] . '</td>
-                    <td class="center">' . $r['date_entered'] . '</td>
                 </tr>
             ';
             $d++;
         }
         if ($d === 0) {
-            $detail .= '<tr><td colspan="11" class="text-center text-muted">Không có dữ liệu trong kỳ.</td></tr>';
+            $detail .= '<tr><td colspan="10" class="text-center text-muted">Không có dữ liệu trong kỳ.</td></tr>';
         }
 
         return array('summary' => $summary, 'detail' => $detail);

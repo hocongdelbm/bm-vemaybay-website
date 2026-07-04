@@ -88,7 +88,7 @@
     <div class="bkagent-table-wrap">
     <table id="booking_list" class="table-details__booking table-booking__list" cellpadding="0" cellspacing="0">
         <thead>
-            <th width="4%">STT</th>
+            <th width="4%">#</th>
             <th width="10%">Booking</th>
             <th width="12%">Hãng bay</th>
             <th width="9%">Chiều bay</th>
@@ -97,8 +97,7 @@
             <th width="10%">Doanh thu</th>
             <th width="10%">Giá mua</th>
             <th width="10%">Doanh số</th>
-            <th width="7%">Ngày CT</th>
-            <th width="7%">Ngày tạo</th>
+            <th width="7%">Ngày chứng từ</th>
         </thead>
         <tbody>
             {$BOOKING_LIST_TBL}

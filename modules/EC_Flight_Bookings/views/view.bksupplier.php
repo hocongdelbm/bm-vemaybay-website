@@ -4,21 +4,7 @@ require_once("include/Sugar_Smarty.php");
 /**
  * Thống kê vé theo Nhà cung cấp (NCC).
  *
- * Dùng CHUNG nguồn dữ liệu với "Thống kê vé theo hãng" (bkagent) và "Doanh thu bán vé"
- * (report_sales_revenue): hàm calculateRevenueOfDate() trả về mọi chứng từ BK + PT (phiếu thu
- * 4/5/10-16) + HV (hoàn vé). Nhờ vậy TỔNG của báo cáo này luôn khớp bkagent — chỉ khác GÓC NHÌN:
- * gom theo NCC thay vì theo hãng.
- *
- * Suy NCC cho từng chứng từ:
- *   - BK: theo dòng vé ec_booking_details (supplier_id). 1 booking có thể nhiều NCC -> TÁCH tiền
- *     theo tỷ lệ giá bán (doanh thu) / giá mua (giá mua) của từng NCC — xem getSupplierSplitMap().
- *   - PT loại 4/5: có tối đa 3 dòng NCC (supplier_id/2/3 + bought_amount/2/3 + sell_amount/2/3),
- *     tách theo từng dòng — xem getReceiptSupplierLines(). PT khác (10-16) thường không gắn NCC
- *     -> nhóm "Khác (N/A)".
- *   - HV: không có NCC riêng -> theo NCC của booking (tách theo tỷ lệ giá mua).
- *
- * Hãng bay của mỗi dòng suy y hệt bkagent: BK/HV lấy theo hãng chiều mà NCC phục vụ (field
- * airline/airline_inbound của booking — getAirlineMap); PT loại 4/5 lấy theo resolveRVSupplierAirline().
+ * Suy NCC cho từng chứng từ theo dòng vé ec_booking_details (supplier_id).
  */
 class Viewbksupplier extends SugarView
 {
@@ -101,10 +87,6 @@ class Viewbksupplier extends SugarView
 
      /* ===================== HELPER MAP ===================== */
 
-     /**
-      * Tên hiển thị của hãng theo mã (memoize vì myGetAirlineInfo2 đọc/parse airlines.xml mỗi lần).
-      * Copy logic bkagent để đồng bộ nhãn hãng.
-      */
      private function airlineDisplayName($code)
      {
           static $cache = array();
@@ -136,7 +118,6 @@ class Viewbksupplier extends SugarView
       */
      private function directionLabel(array $dirs)
      {
-          // PHP ép key chuỗi số '0'/'1' thành int khi lấy array_keys -> chuẩn hoá về chuỗi để so sánh
           $dirs = array_map('strval', $dirs);
           $h0 = in_array('0', $dirs, true);
           $h1 = in_array('1', $dirs, true);
@@ -285,27 +266,7 @@ class Viewbksupplier extends SugarView
      /**
       * Map booking_id -> nhãn loại vé (Nội địa/Quốc tế) từ ec_flight_bookings.ticket_type.
       */
-     /**
-      * Map chứng_từ_id -> Ngày tạo (dd-mm-yyyy HH:mm, +7h) cho phiếu thu (PT) & hoàn vé (HV),
-      * vì calculateRevenueOfDate không trả date_entered cho 2 loại này.
-      */
-     private function getDocDateEntered(array $rvIds, array $hvIds)
-     {
-          global $db;
-          $map = array();
-          $fmt = "DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%d-%m-%Y %H:%i')";
 
-          foreach (array('ec_receipt_voucher' => $rvIds, 'ec_hoanve' => $hvIds) as $table => $ids) {
-               $inList = array();
-               foreach ($ids as $id) {
-                    if (!empty($id)) $inList[] = "'" . $db->quote($id) . "'";
-               }
-               if (empty($inList)) continue;
-               $res = $db->query("SELECT id, $fmt AS de FROM $table WHERE id IN (" . implode(',', $inList) . ")");
-               while ($row = $db->fetchByAssoc($res)) $map[$row['id']] = $row['de'];
-          }
-          return $map;
-     }
 
      private function getTicketTypeMap(array $bkIds)
      {
@@ -480,7 +441,6 @@ class Viewbksupplier extends SugarView
           $airlineMap    = $this->getAirlineMap(array_keys($bkIds));
           $rvLines       = $this->getReceiptSupplierLines(array_keys($rvIds));
           $ticketTypeMap = $this->getTicketTypeMap(array_keys($bkIds));
-          $docDateMap    = $this->getDocDateEntered(array_keys($rvIds), array_keys($hvIds));
 
           $bySupplier = array();
           $detailRows = array();
@@ -502,9 +462,6 @@ class Viewbksupplier extends SugarView
                $date_show = ($ptype === 'EC_Flight_Bookings')
                     ? (!empty($r['date_ticket_issue']) ? $r['date_ticket_issue'] : '')
                     : (!empty($r['voucher_date']) ? $r['voucher_date'] : '');
-               $date_entered = ($ptype === 'EC_Flight_Bookings')
-                    ? (!empty($r['bk_date_entered']) ? $r['bk_date_entered'] : '')
-                    : (isset($docDateMap[$r['parent_id']]) ? $docDateMap[$r['parent_id']] : '');
 
                foreach ($parts as $p) {
                     $sid = $p['supplier_id'];
@@ -547,7 +504,6 @@ class Viewbksupplier extends SugarView
                          'gm' => $p['gm'],
                          'ds' => $p['ds'],
                          'date_show' => $date_show,
-                         'date_entered' => $date_entered,
                     );
                }
           }
@@ -578,7 +534,7 @@ class Viewbksupplier extends SugarView
                     <td class="text-center">' . format_number(count($s['bk_ids'])) . '</td>
                     <td class="text-center">' . format_number($s['ve']) . '</td>
                     <td class="text-center">' . format_number($s['dt']) . '</td>
-                    <td class="text-center fw-bold">' . format_number($s['gm']) . '</td>
+                    <td class="text-center">' . format_number($s['gm']) . '</td>
                     <td class="text-center">' . format_number($s['ds']) . '</td>
                 </tr>
             ';
@@ -597,16 +553,15 @@ class Viewbksupplier extends SugarView
           $detail = '
             <tr id="supplier_detail_total_row" class="bg-label-secondary">
                 <td></td>
-                <td class="center"><b>Tổng</b></td>
+                <td class="text-center"><b>Tổng</b></td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
-                <td class="center"><b id="total_filtered_ve">' . format_number($g_ve) . '</b></td>
-                <td class="center"><b id="total_filtered_dt">' . format_number($g_dt) . '</b></td>
-                <td class="center"><b id="total_filtered_gm">' . format_number($g_gm) . '</b></td>
-                <td class="center"><b id="total_filtered_ds">' . format_number($g_ds) . '</b></td>
-                <td></td>
+                <td class="text-center"><b id="total_filtered_ve">' . format_number($g_ve) . '</b></td>
+                <td class="text-end"><b id="total_filtered_dt">' . format_number($g_dt) . '</b></td>
+                <td class="text-end"><b id="total_filtered_gm">' . format_number($g_gm) . '</b></td>
+                <td class="text-end"><b id="total_filtered_ds">' . format_number($g_ds) . '</b></td>
                 <td></td>
             </tr>
         ';
@@ -640,13 +595,12 @@ class Viewbksupplier extends SugarView
                     <td class="text-end">' . format_number($r['gm']) . '</td>
                     <td class="text-end">' . format_number($r['ds']) . '</td>
                     <td class="text-center">' . $r['date_show'] . '</td>
-                    <td class="text-center">' . $r['date_entered'] . '</td>
                 </tr>
             ';
                $d++;
           }
           if ($d === 0) {
-               $detail .= '<tr><td colspan="12" class="text-center text-muted">Không có dữ liệu trong kỳ.</td></tr>';
+               $detail .= '<tr><td colspan="11" class="text-center text-muted">Không có dữ liệu trong kỳ.</td></tr>';
           }
 
           return array('summary' => $summary, 'detail' => $detail);

@@ -59,7 +59,7 @@
     <div class="bkagent-table-wrap overflow-auto">
     <table id="supplier_summary_list" class="list-data table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
         <thead>
-            <th width="5%">STT</th>
+            <th width="5%">#</th>
             <th>NCC</th>
             <th width="10%">SL BK</th>
             <th width="10%">SL vé</th>
@@ -75,7 +75,6 @@
 </div>
 </div>
 
-<h2 class="change-title mt-4" id="supplier_detail_title">Chi tiết chứng từ: Tất cả NCC</h2>
 <div class="box-section box-details">
     <div class="bkagent-table-wrap">
     <table id="supplier_detail_list" class="table-details__booking table-booking__list" cellpadding="0" cellspacing="0">
@@ -90,8 +89,7 @@
             <th width="8%">Doanh thu</th>
             <th width="8%">Giá mua</th>
             <th width="8%">Doanh số</th>
-            <th width="8%">Ngày CT</th>
-            <th width="8%">Ngày tạo</th>
+            <th width="8%">Ngày chứng từ</th>
         </thead>
         <tbody>
             {$SUPPLIER_DETAIL_TBL}
