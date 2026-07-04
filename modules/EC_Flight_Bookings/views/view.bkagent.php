@@ -603,7 +603,8 @@ class Viewbkagent extends SugarView
         // ===== Bảng chi tiết (BK + PT + HV) =====
         // Sắp theo SL vé giảm dần
         usort($detailRows, function ($a, $b) {
-            return $b['ve'] <=> $a['ve'];
+            if ($b['ve'] != $a['ve']) return $b['ve'] <=> $a['ve'];
+            return $b['dt'] <=> $a['dt'];
         });
 
         $detail = '

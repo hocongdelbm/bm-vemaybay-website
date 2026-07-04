@@ -552,8 +552,8 @@ class Viewbksupplier extends SugarView
 
           // ===== Bảng chi tiết theo chứng từ =====
           usort($detailRows, function ($a, $b) {
-               if ($b['gm'] != $a['gm']) return ($b['gm'] <=> $a['gm']);
-               return $b['ve'] <=> $a['ve'];
+               if ($b['ve'] != $a['ve']) return ($b['ve'] <=> $a['ve']);
+               return $b['dt'] <=> $a['dt'];
           });
 
           $detail = '
