@@ -1,0 +1,170 @@
+.booking-search-hit td {
+	background-color: #fff3cd !important;
+}
+
+/* The theme's .table-details__booking tbody tr:hover rule also matches the
+   wrapper row holding the nested detail table, painting the whole detail
+   block blue; keep hover on the inner booking rows only */
+#bonus-report-tbl > tbody > tr.bonus-detail-row:hover,
+#bonus-report-tbl > tbody > tr.bonus-detail-row:hover > td {
+	background-color: transparent;
+}
+
+/* Distinguish the nested detail table header from the parent table header
+   (same wash the theme uses for other nested detail tables) */
+#bonus-report-tbl .bonus-detail-row .table-details__booking thead tr th {
+	background: #fff2cc;
+}
+
+.bonus-detail-pager {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 8px 4px;
+}
+
+.bonus-detail-pager .pager-btn {
+	min-width: 30px;
+	padding: 3px 8px;
+	border: 1px solid #cbd5e0;
+	border-radius: 4px;
+	background: #fff;
+	cursor: pointer;
+}
+
+.bonus-detail-pager .pager-btn:hover:not([disabled]) {
+	background: #edf2f7;
+}
+
+.bonus-detail-pager .pager-btn[disabled] {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.bonus-detail-pager .pager-btn.active {
+	background: #3182ce;
+	border-color: #3182ce;
+	color: #fff;
+	font-weight: 600;
+}
+
+.bonus-detail-pager .pager-ellipsis {
+	padding: 0 2px;
+	color: #718096;
+}
+
+.bonus-detail-pager .pager-info {
+	margin-left: 8px;
+	color: #718096;
+	font-size: 12px;
+}
+
+/* Badge marking an international booking */
+.intl-badge {
+	display: inline-block;
+	margin-left: 4px;
+	padding: 0 5px;
+	border-radius: 3px;
+	background: #d6336c;
+	color: #fff;
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 16px;
+	vertical-align: middle;
+	cursor: default;
+}
+
+/* Icon link opening the booking DetailView in a new tab */
+#bonus-report-tbl a.parent-detail-link {
+	margin-left: 4px;
+	text-decoration: none;
+	color: #3182ce;
+	vertical-align: middle;
+}
+#bonus-report-tbl a.parent-detail-link:hover {
+	color: #1a5da8;
+}
+
+/* Parent bonus modal */
+.bonus-modal-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 1050;
+	background: rgba(0, 0, 0, 0.45);
+	align-items: center;
+	justify-content: center;
+}
+
+.bonus-modal {
+	min-width: 340px;
+	max-width: 90vw;
+	background: #fff;
+	border-radius: 6px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+	overflow: hidden;
+}
+
+.bonus-modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 10px 14px;
+	background: #fff2cc;
+	font-weight: 700;
+}
+
+.bonus-modal-close {
+	border: none;
+	background: none;
+	font-size: 20px;
+	line-height: 1;
+	cursor: pointer;
+	color: #4a5568;
+}
+.bonus-modal-close:hover {
+	color: #000;
+}
+
+.bonus-modal-body {
+	padding: 14px;
+}
+
+.bonus-modal-tbl {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.bonus-modal-tbl td {
+	padding: 6px 8px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+.bonus-modal-tbl tr.bonus-modal-total td {
+	border-bottom: none;
+	font-weight: 700;
+}
+
+/* Calculation formula under the label: first line the concrete numbers,
+   second line the formula description */
+.bonus-modal-tbl .formula-note {
+	display: block;
+	margin-top: 2px;
+	max-width: 320px;
+	font-size: 11px;
+	font-weight: 400;
+	line-height: 1.4;
+}
+
+.bonus-modal-tbl .formula-note > span {
+	display: block;
+}
+
+.bonus-modal-tbl .formula-num {
+	color: #4a5568;
+}
+
+.bonus-modal-tbl .formula-desc {
+	color: #a0aec0;
+	font-style: italic;
+}

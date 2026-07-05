@@ -148,22 +148,51 @@ class Viewbonusreport extends SugarView {
 		$total_indirect = 0;
 
 		foreach (($report['details'][$user_id] ?? []) as $booking_id => $row) {
+			$parent = $report['parentInfo'][$booking_id] ?? [];
+
 			$kpi 	  = $row['kpi'] ?? 0;
 			$direct   = $row['directBonus'] ?? 0;
 			$indirect = $row['indirectBonus'] ?? 0;
 
-			$parent_type = !empty($row['parentType']) ? $row['parentType'] : 'EC_Flight_Bookings';
+			$parent_type = !empty($parent['parentType']) ? $parent['parentType'] : 'EC_Flight_Bookings';
 			$link = "index.php?module={$parent_type}&action=DetailView&record={$booking_id}";
 
-			$html .= '<tr class="bonus-booking-row" data-booking-name="' . htmlspecialchars(mb_strtolower((string) $row['parentName']), ENT_QUOTES) . '">
+			$parent_name = htmlspecialchars((string) ($parent['parentName'] ?? ''), ENT_QUOTES);
+
+			$intl_badge = !empty($parent['isInter'])
+				? '<span class="intl-badge" title="Vé quốc tế">QT</span>'
+				: '';
+
+			$html .= '<tr class="bonus-booking-row" data-booking-name="' . htmlspecialchars(mb_strtolower((string) ($parent['parentName'] ?? '')), ENT_QUOTES) . '">
 				<td class="text-center fw-semibold">' . $i . '</td>
 				<td class="text-center">
-					<a href="' . $link . '" target="_blank">' . $row['parentName'] . '</a>
+					<a href="javascript:void(0);" class="js-parent-bonus"
+						data-name="' . $parent_name . '"
+						data-qty="' . round($parent['totalTicketQty'] ?? 0) . '"
+						data-revenue="' . round($parent['totalRevenue'] ?? 0) . '"
+						data-cost="' . round($parent['totalCost'] ?? 0) . '"
+						data-profit="' . round($parent['totalProfit'] ?? 0) . '"
+						data-avgprofit="' . round($parent['avgProfit'] ?? 0) . '"
+						data-minthreshold="' . round($parent['minThresholdValue'] ?? 0) . '"
+						data-extrathreshold="' . round($parent['extraThresholdValue'] ?? 0) . '"
+						data-bonuspercent="' . round(($parent['bonusPercent'] ?? 0) * 100) . '"
+						data-extrapercent="' . round(($parent['extraBonusPercent'] ?? 0) * 100) . '"
+						data-perticket="' . round($parent['bonusPerTicket'] ?? 0) . '"
+						data-indirectkpi="' . round($parent['totalIndirectKPI'] ?? 0) . '"
+						data-direct="' . round($parent['totalDirectBonus'] ?? 0) . '"
+						data-indirect="' . round($parent['totalIndirectBonus'] ?? 0) . '">' . ($parent['parentName'] ?? '') . '</a>
+					' . $intl_badge . '
+					<a href="' . $link . '" target="_blank" class="parent-detail-link" title="Xem chi tiết booking">
+						<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+							<path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+							<path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+						</svg>
+					</a>
 				</td>
-				<td class="text-center">' . $row['flightDate'] . '</td>
+				<td class="text-center">' . ($parent['flightDate'] ?? '') . '</td>
 				<td class="text-center">' . format_number($kpi) . '</td>
-				<td class="text-end">' . format_number(round($direct)) . '</td>
 				<td class="text-end">' . format_number(round($indirect)) . '</td>
+				<td class="text-end">' . format_number(round($direct)) . '</td>
 				<td class="text-end">' . format_number(round($direct + $indirect)) . '</td>
 			</tr>';
 
@@ -183,10 +212,10 @@ class Viewbonusreport extends SugarView {
 				<thead>
 					<th width="5%">STT</th>
 					<th width="25%">Booking</th>
-					<th width="15%">Ngày bay</th>
+					<th width="15%">Ngày bay cuối</th>
 					<th width="10%">KPI</th>
-					<th width="15%">Thưởng trực tiếp</th>
 					<th width="15%">Thưởng gián tiếp</th>
+					<th width="15%">Thưởng trực tiếp</th>
 					<th width="15%">Tổng thưởng</th>
 				</thead>
 				<tbody>
@@ -196,8 +225,8 @@ class Viewbonusreport extends SugarView {
 						<td>Tổng cộng</td>
 						<td></td>
 						<td class="text-center">{$total_kpi}</td>
-						<td class="text-end">{$total_direct}</td>
 						<td class="text-end">{$total_indirect}</td>
+						<td class="text-end">{$total_direct}</td>
 						<td class="text-end">{$total_bonus}</td>
 					</tr>
 				</tbody>
