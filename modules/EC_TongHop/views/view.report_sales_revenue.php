@@ -219,7 +219,7 @@ class Viewreport_sales_revenue extends SugarView
                         <td class="text-center hide-mobile">' . ($i + 1) . '</td>
                         <td class="text-center"><a target="_blank" title="Xem chi tiết" href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '">' . $row['parent_name'] . '</a>' . $ticket_type_html . '</td>
                         <td class="text-center total_quantity">' . format_number($row['total_quantity']) . '</td>
-                        <td class="text-start booking_description hide-mobile">' . $row['booking_description'] . '</td>
+                        <td class="text-start description hide-mobile">' . ($row['description'] ?? '') . '</td>
                         <td class="text-end hide-mobile">' . format_number($row['subtotal_amount']) . '</td>
                         <td class="text-end total_bought_price hide-mobile">' . format_number($row['total_bought_price']) . '</td>
                         <td class="text-end">' . format_number($profit_amount) . ' ' . ((int)$row['total_points_amount'] > 0 ? '<span class="total_points_amount fw-semibold text-dark"> / ' . format_number($row['total_points_amount']) . '</span>' : '') . '</label></td>';

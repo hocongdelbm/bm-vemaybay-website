@@ -78,7 +78,6 @@ $dictionary['EC_Booking_Details'] = array(
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-
         ),
 
         'total_price' => array(
@@ -87,13 +86,11 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-
         ),
 
         'booking_id' => array(
@@ -102,29 +99,18 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'id',
             'len'       => 36,
             'default'   => '',
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => 0,
             'audited' => 0,
             'reportable' => 0,
         ),
-
         'booking' => array(
             'required' => false,
             'source' => 'non-db',
             'name' => 'booking',
             'vname' => 'LBL_BOOKING',
             'type' => 'relate',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => ' ',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '255',
             'id_name' => 'booking_id',
             'ext2' => 'EC_Flight_Bookings',
             'module' => 'EC_Flight_Bookings',
@@ -203,16 +189,17 @@ $dictionary['EC_Booking_Details'] = array(
         ),
 
         'fee_bought' => array(
-            'name'      => 'fee_bought',
-            'vname'     => 'LBL_FEE_BOUGHT',
-            'type'      => 'currency',
-            'len'       => 26,
-            'default'   => 0,
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => ' ',
+            'name' => 'fee_bought',
+            'vname' => 'LBL_FEE_BOUGHT',
+            'type' => 'currency',
+            'len' => 26,
+            'default' => 0,
             'audited' => 1,
+            'importable' => 1,
             'reportable' => 0,
+            'comment' => 'Ticketing fee (Including the quantity)',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '',
         ),
 
         'total_bought_price' => array(
@@ -270,11 +257,6 @@ $dictionary['EC_Booking_Details'] = array(
             'name'      => 'supplier',
             'vname'     => 'LBL_SUPPLIER',
             'type'      => 'relate',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '',
-            'audited' => 1,
-            'reportable' => 0,
             'id_name' => 'supplier_id',
             'ext2' => 'Accounts',
             'module' => 'Accounts',
@@ -284,16 +266,17 @@ $dictionary['EC_Booking_Details'] = array(
         ),
 
         'supplier_discount' => array(
-            'name'      => 'supplier_discount',
-            'vname'     => 'LBL_SUPPLIER_DISCOUNT',
-            'type'      => 'currency',
-            'len'       => 26,
-            'default'   => 0,
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => ' ',
+            'name' => 'supplier_discount',
+            'vname' => 'LBL_SUPPLIER_DISCOUNT',
+            'type' => 'currency',
+            'len' => 26,
+            'default' => 0,
             'audited' => 1,
+            'importable' => 1,
             'reportable' => 0,
+            'comment' => 'Commission fee (Including the quantity)',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '',
         ),
 
         // Tiền VAT phí admin
@@ -329,8 +312,6 @@ $dictionary['EC_Booking_Details'] = array(
         array('name' => 'idx_bkd_booking', 'type' => 'index', 'fields' => array('booking_id')),
         array('name' => 'idx_bkd_assign', 'type' => 'index', 'fields' => array('assigned_user_id')),
         array('name' => 'idx_bkd_supplier', 'type' => 'index', 'fields' => array('supplier_id')),
-        array('name' => 'idx_bkd_psgtype', 'type' => 'index', 'fields' => array('passenger_type')),
-        // array('name' => 'idx_bkd_del', 'type' => 'index', 'fields' => array('deleted')),
     ),
     'relationships' => array(),
     'optimistic_locking' => true,

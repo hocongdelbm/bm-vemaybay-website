@@ -105,9 +105,16 @@ if ($listRights) {
 	}
 
 	if ($viewRights) {
-		$module_menu[] = [
-			"index.php?module=EC_Flight_Bookings&action=bksalereport&return_module=EC_Flight_Bookings&return_action=bksalereport",
+		$module_menu[]= [
+			"index.php?module=EC_Flight_Bookings&action=bksalereport",
 			$mod_strings['LNK_SALE_REPORT'],
+			"growth",
+			"EC_Flight_Bookings"
+		];
+
+		$module_menu[]= [
+			"index.php?module=EC_Flight_Bookings&action=bonusreport",
+			$mod_strings['LNK_BONUS'],
 			"growth",
 			"EC_Flight_Bookings"
 		];

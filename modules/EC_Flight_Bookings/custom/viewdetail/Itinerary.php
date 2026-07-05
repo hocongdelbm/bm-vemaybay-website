@@ -175,11 +175,10 @@ trait ItineraryTrait
 					bk.name AS bk_name,
 					bk.booking_status AS booking_status
 				FROM ec_booking_itineraries iti
-				LEFT JOIN ec_flight_bookings bk ON bk.id = iti.booking_id AND bk.deleted = 0
-				WHERE iti.booking_id = '" . $this->bean->id . "' 
+					LEFT JOIN ec_flight_bookings bk ON bk.id = iti.booking_id
+				WHERE iti.booking_id = '{$this->bean->id}' 
 					AND iti.deleted = 0 
-					AND iti.add_type IN (0, 3)
-				ORDER BY iti.add_type, iti.sabre_logs, iti.date_entered, iti.direction, iti.transit_order";
+				ORDER BY iti.sabre_logs, iti.direction, iti.transit_order";
 
 		$res = $this->bean->db->query($sql);
 
@@ -354,12 +353,9 @@ trait ItineraryTrait
 	}
 
 	// Direction (0: lượt đi ; 1: lượt về)	
-
-	private function renderEditedLineItineraries($rows)
-	{
+	private function renderEditedLineItineraries($rows){
 		global $timedate;
 
-		$rows = $rows ?? [];
 		$date_format = $timedate->get_date_format();
 		$user_list = get_user_array(true, '', '', true);
 		$airport_list = $this->getAirportList();

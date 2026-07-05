@@ -1016,15 +1016,14 @@ function markPassengerRowDeleted(ln) {
 
 // Check ncc
 function setPhiXuatVeHNH(ln) {
-	var supplier_fee = $('#bkd_supplier_id' + ln + ' :selected').val();
-	var quantity = unformatNumber($('#bkd_quantity' + ln).val());
-
+	var supplier_fee = $(`#bkd_supplier_id${ln} :selected`).val();
+	var quantity = unformatNumber($(`#bkd_quantity${ln}`).val());
+	
 	var supplier_ticketing_fee = 0;
-	if (supplier_fee == 'ebdf163a-7b85-30bf-62be-5a4af5a1166c') // ncc hong ngoc ha
-	{
-		supplier_ticketing_fee = 5000 * quantity;                // phi xuat ve HNH 07/2020 5k/1ve
+	if (supplier_fee == 'ebdf163a-7b85-30bf-62be-5a4af5a1166c') { // NCC Hong Ngoc Ha (HNH)
+		supplier_ticketing_fee = 5000 * quantity; // Phi xuat ve 5k/1ve (07/2020)
 	}
-	$('#bkd_supplier_ticketing_fee' + ln).val(supplier_ticketing_fee);
+	$(`#bkd_supplier_ticketing_fee${ln}`).val(supplier_ticketing_fee);
 	calculateLineTotal(ln);
 }
 
@@ -1069,14 +1068,8 @@ function calculateLineTotal(ln, is_cal_admin = 0, is_cal_tax = 0) {
 	var total_price = 0;
 	var total_bought_price = 0;
 
-	// VE QUOC TE
-	// if(ticket_type == '2') {
-	//	total_price = price + tax_fee + service_fee + admin_fee + airport_fee;
-	//	total_bought_price = price + tax_fee + admin_fee + airport_fee;
-	// } else {
 	total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
 	total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
-	// }
 
 	// Chiết khấu
 	if (supplier_discount != 0) {
