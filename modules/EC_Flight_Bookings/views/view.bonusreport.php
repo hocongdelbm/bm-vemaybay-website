@@ -2,8 +2,14 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class Viewbonusreport extends SugarView {
+	/** The bonus policy starts on this date — the report cannot go earlier */
+	private const MIN_REPORT_DATE = '01-07-2026';
+
 	/** @var Sugar_Smarty **/
 	public $smartyObj;
+
+	/** @var bool Whether the current user may open the booking bonus modal */
+	private $canViewParentBonus = false;
 
 	public function display() {
 		$this->smartyObj = new Sugar_Smarty();
@@ -12,7 +18,18 @@ class Viewbonusreport extends SugarView {
 	}
 
 	public function populateContent() {
-		global $current_user;
+		global $current_user, $db;
+
+		// Only admins and chief accountants get the booking bonus modal —
+		// it exposes revenue/cost figures. Everyone else gets a plain label
+		$is_chief_accountant = $db->getOne(
+			"SELECT COUNT(id)
+			FROM acl_roles_users
+			WHERE user_id = '{$current_user->id}'
+				AND role_id = '{$GLOBALS['app_list_strings']['roles_users']['KETOAN']}'
+				AND deleted = 0"
+		);
+		$this->canViewParentBonus = $is_chief_accountant || is_admin($current_user);
 
 		$current_year = date('Y');
 		$last_year = date("Y", strtotime("- 1 year"));
@@ -52,19 +69,45 @@ class Viewbonusreport extends SugarView {
 				break;
 		}
 
-		$report_term_list = '<option ' . (($_POST['report_term_list'] ?? '') === 'today' ? 'selected' : '') . ' value="today" data-fromdate="' . date('d-m-Y') . '" data-todate="' . date('d-m-Y') . '" data-term="' . date('m') . '" data-year="' . date('Y') . '">Hôm nay</option>';
-		$report_term_list .= '<option ' . (($_POST['report_term_list'] ?? '') === 'yesterday' ? 'selected' : '') . ' value="yesterday" data-fromdate="' . date('d-m-Y', strtotime("-1 day")) . '" data-todate="' . date('d-m-Y', strtotime("-1 day")) . '" data-term="' . date('m', strtotime("-1 day")) . '" data-year="' . date('Y', strtotime("-1 day")) . '">Hôm qua</option>';
-		$report_term_list .= '<option ' . (($_POST['report_term_list'] ?? '') === 'this_week' ? 'selected' : '') . ' value="this_week" data-fromdate="' . date('d-m-Y', strtotime("monday this week")) . '" data-todate="' . date('d-m-Y', strtotime("sunday this week")) . '" data-term="' . date('m', strtotime("sunday this week")) . '" data-year="' . date('Y', strtotime("sunday this week")) . '">Tuần này</option>';
-		$report_term_list .= '<option ' . (($_POST['report_term_list'] ?? '') === 'previous_week' ? 'selected' : '') . ' value="previous_week" data-fromdate="' . date('d-m-Y', strtotime("monday previous week")) . '" data-todate="' . date('d-m-Y', strtotime("sunday previous week")) . '" data-term="' . date('m', strtotime("sunday previous week")) . '" data-year="' . date('Y', strtotime("sunday previous week")) . '">Tuần trước</option>';
-		$report_term_list .= '<option ' . (($_POST['report_term_list'] ?? '') === 'this_month' ? 'selected' : '') . ' value="this_month" data-fromdate="' . date('d-m-Y', strtotime("first day of this month")) . '" data-todate="' . date('d-m-Y', strtotime("last day of this month")) . '" data-term="' . date('m', strtotime("last day of this month")) . '" data-year="' . date('Y', strtotime("last day of this month")) . '">Tháng này</option>';
-		$report_term_list .= '<option ' . (($_POST['report_term_list'] ?? '') === 'previous_month' ? 'selected' : '') . ' value="previous_month" data-fromdate="' . date('d-m-Y', strtotime("first day of previous month")) . '" data-todate="' . date('d-m-Y', strtotime("last day of previous month")) . '" data-term="' . date('m', strtotime("last day of previous month")) . '" data-year="' . date('Y', strtotime("last day of previous month")) . '">Tháng trước</option>';
-		$report_term_list .= '<option ' . (($_POST['report_term_list'] ?? '') === 'this_quater' ? 'selected' : '') . ' value="this_quater" data-fromdate="' . date('d-m-Y', strtotime($cq_from_date)) . '" data-todate="' . date('d-m-Y', strtotime($cq_to_date)) . '" data-term="' . date('m', strtotime($cq_from_date)) . '" data-year="' . date('Y', strtotime($cq_from_date)) . '">Quý này</option>';
-		$report_term_list .= '<option ' . (($_POST['report_term_list'] ?? '') === 'previous_quater' ? 'selected' : '') . ' value="previous_quater" data-fromdate="' . date('d-m-Y', strtotime($lq_from_date)) . '" data-todate="' . date('d-m-Y', strtotime($lq_to_date)) . '" data-term="' . date('m', strtotime($lq_from_date)) . '" data-year="' . date('Y', strtotime($lq_from_date)) . '">Quý trước</option>';
+		// value, label, from/to range, and the date whose month/year fills
+		// data-term / data-year (all as timestamps)
+		$presets = [
+			['value' => 'today', 			'label' => 'Hôm nay', 	 'from' => strtotime('today'), 						'to' => strtotime('today'), 					 'term' => strtotime('today')],
+			['value' => 'yesterday', 		'label' => 'Hôm qua', 	 'from' => strtotime('-1 day'), 					'to' => strtotime('-1 day'), 					 'term' => strtotime('-1 day')],
+			['value' => 'this_week', 		'label' => 'Tuần này', 	 'from' => strtotime('monday this week'), 			'to' => strtotime('sunday this week'), 			 'term' => strtotime('sunday this week')],
+			['value' => 'previous_week', 	'label' => 'Tuần trước', 'from' => strtotime('monday previous week'), 		'to' => strtotime('sunday previous week'), 		 'term' => strtotime('sunday previous week')],
+			['value' => 'this_month', 		'label' => 'Tháng này',  'from' => strtotime('first day of this month'), 	'to' => strtotime('last day of this month'), 	 'term' => strtotime('last day of this month')],
+			['value' => 'previous_month', 	'label' => 'Tháng trước','from' => strtotime('first day of previous month'),'to' => strtotime('last day of previous month'), 'term' => strtotime('last day of previous month')],
+			['value' => 'this_quater', 		'label' => 'Quý này', 	 'from' => strtotime($cq_from_date), 				'to' => strtotime($cq_to_date), 				 'term' => strtotime($cq_from_date)],
+			['value' => 'previous_quater', 	'label' => 'Quý trước',  'from' => strtotime($lq_from_date), 				'to' => strtotime($lq_to_date), 				 'term' => strtotime($lq_from_date)],
+		];
+
+		$min_report_ts = DateTime::createFromFormat('!d-m-Y', self::MIN_REPORT_DATE)->getTimestamp();
+
+		$report_term_list = '';
+		foreach ($presets as $preset) {
+			// Hide presets whose whole range ends before the policy start
+			if ($preset['to'] < $min_report_ts) {
+				continue;
+			}
+
+			$selected = (($_REQUEST['report_term_list'] ?? '') === $preset['value']) ? 'selected' : '';
+			$report_term_list .= '<option ' . $selected . ' value="' . $preset['value'] . '"'
+				. ' data-fromdate="' . date('d-m-Y', $preset['from']) . '"'
+				. ' data-todate="' . date('d-m-Y', $preset['to']) . '"'
+				. ' data-term="' . date('m', $preset['term']) . '"'
+				. ' data-year="' . date('Y', $preset['term']) . '">'
+				. $preset['label'] . '</option>';
+		}
 		$this->smartyObj->assign('REPORT_TERM_LIST', $report_term_list);
 
 		// Form submits via POST, detail links pass dates via GET
 		$from_date 	= (empty($_REQUEST['from_date'])) ? $current_date : $_REQUEST['from_date'];
 		$to_date 	= (empty($_REQUEST['to_date'])) ? $current_date : $_REQUEST['to_date'];
+
+		// The JS enforces the same limit, but requests can bypass the form
+		$from_date 	= $this->clampToMinReportDate($from_date);
+		$to_date 	= $this->clampToMinReportDate($to_date);
 
 		// Helper expects date-only values in the user's format and expands
 		// them to full-day boundaries itself
@@ -73,6 +116,18 @@ class Viewbonusreport extends SugarView {
 		$this->smartyObj->assign('FROM_DATE', $from_date);
 		$this->smartyObj->assign('TO_DATE', $to_date);
 		$this->smartyObj->assign('BONUS_DATA', $this->renderBonusTotal($report));
+	}
+
+	/**
+	 * Clamp a date to MIN_REPORT_DATE so the report can never cover days
+	 * before the policy start. Users type both 01-07-2026 and 01/07/2026;
+	 * anything else (unparseable) also falls back to the minimum date.
+	 */
+	private function clampToMinReportDate(string $date): string {
+		$min = DateTime::createFromFormat('!d-m-Y', self::MIN_REPORT_DATE);
+		$dt  = DateTime::createFromFormat('!d-m-Y', str_replace('/', '-', trim($date)));
+
+		return ($dt === false || $dt < $min) ? self::MIN_REPORT_DATE : $date;
 	}
 
 	/**
@@ -163,24 +218,32 @@ class Viewbonusreport extends SugarView {
 				? '<span class="intl-badge" title="Vé quốc tế">QT</span>'
 				: '';
 
+			// The modal anchor carries booking-level revenue/cost figures, so
+			// unauthorized users get the bare name — no click, no data
+			if ($this->canViewParentBonus) {
+				$parent_name_html = '<a href="javascript:void(0);" class="js-parent-bonus"
+					data-name="' . $parent_name . '"
+					data-qty="' . round($parent['totalTicketQty'] ?? 0) . '"
+					data-revenue="' . round($parent['totalRevenue'] ?? 0) . '"
+					data-cost="' . round($parent['totalCost'] ?? 0) . '"
+					data-profit="' . round($parent['totalProfit'] ?? 0) . '"
+					data-avgprofit="' . round($parent['avgProfit'] ?? 0) . '"
+					data-minthreshold="' . round($parent['minThresholdValue'] ?? 0) . '"
+					data-extrathreshold="' . round($parent['extraThresholdValue'] ?? 0) . '"
+					data-bonuspercent="' . round(($parent['bonusPercent'] ?? 0) * 100) . '"
+					data-extrapercent="' . round(($parent['extraBonusPercent'] ?? 0) * 100) . '"
+					data-perticket="' . round($parent['bonusPerTicket'] ?? 0) . '"
+					data-indirectkpi="' . round($parent['totalIndirectKPI'] ?? 0) . '"
+					data-direct="' . round($parent['totalDirectBonus'] ?? 0) . '"
+					data-indirect="' . round($parent['totalIndirectBonus'] ?? 0) . '">' . ($parent['parentName'] ?? '') . '</a>';
+			} else {
+				$parent_name_html = $parent_name;
+			}
+
 			$html .= '<tr class="bonus-booking-row" data-booking-name="' . htmlspecialchars(mb_strtolower((string) ($parent['parentName'] ?? '')), ENT_QUOTES) . '">
 				<td class="text-center fw-semibold">' . $i . '</td>
 				<td class="text-center">
-					<a href="javascript:void(0);" class="js-parent-bonus"
-						data-name="' . $parent_name . '"
-						data-qty="' . round($parent['totalTicketQty'] ?? 0) . '"
-						data-revenue="' . round($parent['totalRevenue'] ?? 0) . '"
-						data-cost="' . round($parent['totalCost'] ?? 0) . '"
-						data-profit="' . round($parent['totalProfit'] ?? 0) . '"
-						data-avgprofit="' . round($parent['avgProfit'] ?? 0) . '"
-						data-minthreshold="' . round($parent['minThresholdValue'] ?? 0) . '"
-						data-extrathreshold="' . round($parent['extraThresholdValue'] ?? 0) . '"
-						data-bonuspercent="' . round(($parent['bonusPercent'] ?? 0) * 100) . '"
-						data-extrapercent="' . round(($parent['extraBonusPercent'] ?? 0) * 100) . '"
-						data-perticket="' . round($parent['bonusPerTicket'] ?? 0) . '"
-						data-indirectkpi="' . round($parent['totalIndirectKPI'] ?? 0) . '"
-						data-direct="' . round($parent['totalDirectBonus'] ?? 0) . '"
-						data-indirect="' . round($parent['totalIndirectBonus'] ?? 0) . '">' . ($parent['parentName'] ?? '') . '</a>
+					' . $parent_name_html . '
 					' . $intl_badge . '
 					<a href="' . $link . '" target="_blank" class="parent-detail-link" title="Xem chi tiết booking">
 						<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">

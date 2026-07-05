@@ -44,7 +44,7 @@ class EC_Flight_Bookings_Helper
         } catch (Exception $e) {
             $user_tz = new DateTimeZone('Asia/Ho_Chi_Minh');
         }
-        $utc_tz = new DateTimeZone('UTC');
+        // $utc_tz = new DateTimeZone('UTC');
         $vn_tz  = new DateTimeZone('Asia/Ho_Chi_Minh');
 
         // $from_datetime / $to_datetime đã đúng định dạng của user, chỉ cần parse theo múi giờ user
@@ -211,6 +211,7 @@ class EC_Flight_Bookings_Helper
                 $avgProfit = $profit / $bkTicketQty;
 
                 $bonusPerTicket = 0;
+                if($avgProfit < $minThresholdValue) continue;
                 if($avgProfit >= $minThresholdValue) $bonusPerTicket = ($bonusPercent * $minThresholdValue);
                 if($avgProfit > $extraThresholdValue) $bonusPerTicket += $extraBonusPercent * ($avgProfit - $extraThresholdValue);
 

@@ -139,9 +139,6 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail
 			</form>';
 			$this->ss->assign('CHANGE_STATUS', $change_status);
 		} else if ($this->bean->rv_status == '1' && ACLController::checkAccess('EC_HoaDonBan', 'edit', true)) {
-			$bk = new EC_Flight_Bookings();
-			$bk->retrieve($this->bean->booking_id);
-
 			$change_status = '</form>
 			<form action="index.php" name="frmChangeStatus" id="frmChangeStatus" method="post">
 				<input type="hidden" name="module" value="EC_HoaDonBan" />
@@ -150,17 +147,17 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail
 				<input type="hidden" name="phieuthu" value="' . $this->bean->name . '" />
 				<input type="hidden" name="booking_id" value="' . $this->bean->booking_id . '" />
 				<input type="hidden" name="booking" value="' . $this->bean->booking_name . '" />
-				<input type="hidden" name="doituong_id" value="' . $bk->account_id . '" />
-				<input type="hidden" name="doituong" value="' . $bk->account_name . '" />
-				<input type="hidden" name="diachi" value="' . $bk->address . '" />
-				<input type="hidden" name="lienhe" value="' . $bk->contact_name . '" />
+				<input type="hidden" name="doituong_id" value="' . $this->bean->account_id . '" />
+				<input type="hidden" name="doituong" value="' . $this->bean->account_name . '" />
+				<input type="hidden" name="diachi" value="' . $this->bean->address . '" />
+				<input type="hidden" name="lienhe" value="' . $this->bean->contact_name . '" />
 				<input type="hidden" name="pt_thanhtoan" value="' . $this->bean->receipt_type . '" />
-				<input type="hidden" name="phihanhly" value="' . $bk->luggage_fee . '" />
+				<input type="hidden" name="phihanhly" value="' . $this->bean->luggage_fee . '" />
 				<input type="hidden" name="phihoandoive" value="" />
 				<input type="hidden" name="phidichvu" value="" />
-				<input type="hidden" name="giamgia" value="' . $bk->discount_amount . '" />
-				<input type="hidden" name="ptram_giamgia" value="' . $bk->discount_percent . '" />
-				<input type="hidden" name="tongtien" value="' . $bk->total_amount . '" />
+				<input type="hidden" name="giamgia" value="' . $this->bean->discount_amount . '" />
+				<input type="hidden" name="ptram_giamgia" value="' . $this->bean->discount_percent . '" />
+				<input type="hidden" name="tongtien" value="' . $this->bean->total_amount . '" />
 				<input type="submit" class="btn btn-warning" name="frmChangeStatus" value="Tạo hóa đơn" title="Tạo hóa đơn" style="font-weight:bold;" />
 			</form>';
 			$this->ss->assign('CHANGE_STATUS', $change_status);

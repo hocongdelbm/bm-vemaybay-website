@@ -443,7 +443,7 @@ class CustomController extends BaseController
                                 AND deleted = 0
                             ');
 
-                            $GLOBALS['log']->fatal('DEBUG: Auto-link call from save_call ' . $call->id . ' → booking ' . $booking_id_auto . ' (phone: ' . $call_from . ') and sql: ' . $sql_booking);
+                            $GLOBALS['log']->fatal("Auto-link call from save_call $call->id → booking $booking_id_auto (phone: $call_from) and sql: $sql_booking");
                         }
                     }
                     // Bước 3: Không có booking nào → không làm gì

@@ -64,11 +64,8 @@ class EC_Flight_BookingsController extends SugarController
             case "assignbk":
                 $this->action = "assignbk";
                 break;
-            case "bkagent":
-                $this->action = "bkagent";
-                break;
-            case "bksupplier":
-                $this->action = "bksupplier";
+            case "bkreport":
+                $this->action = "bkreport";
                 break;
             case "Save":
                 $this->action = "Save";
@@ -148,5 +145,7 @@ class EC_Flight_BookingsController extends SugarController
             $this->action = "telesaleipmgr";
         if ($this->return_action == "report_route_analysis")
             $this->action = "report_route_analysis";
+        if ($this->return_action == "bkreport")
+            $this->action = "bkreport";
     }
 }

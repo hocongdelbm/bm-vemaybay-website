@@ -1,10 +1,10 @@
-<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/view_bonusreport.css?v=1.0.4">
-<script src="modules/EC_Flight_Bookings/js/view_bonusreport.js?v=1.0.7"></script>
+<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/view_bonusreport.css?v=1.0.6">
+<script src="modules/EC_Flight_Bookings/js/view_bonusreport.js?v=1.0.9"></script>
 
 <h1 id="report-title" class="title">BÁO CÁO THƯỞNG</h1>
 
 <div id="bk-bonus-report" class="box-section">
-	<form action="index.php" method="post">
+	<form action="index.php" method="get">
 		<input type="hidden" name="module" value="EC_Flight_Bookings">
 		<input type="hidden" name="action" value="bonusreport">
 
@@ -113,7 +113,7 @@
 						<td>
 							Tổng giá vốn
 							<span class="formula-note">
-								<span class="formula-desc">Đã trừ phí xuất vé</span>
+								<span class="formula-desc">Gồm phí xuất vé</span>
 							</span>
 						</td>
 						<td class="text-end" id="parent-bonus-cost"></td>
@@ -129,21 +129,10 @@
 							Doanh số bình quân/vé
 							<span class="formula-note">
 								<span class="formula-num" id="parent-bonus-avgprofit-note"></span>
-								<span class="formula-desc">= Tổng doanh số / Số vé</span>
 							</span>
 						</td>
 						<td class="text-end" id="parent-bonus-avgprofit"></td>
 					</tr>
-					<tr>
-						<td>
-							Ngưỡng doanh số
-							<span class="formula-note">
-								<span class="formula-desc">Ngưỡng tối thiểu / Ngưỡng tính thưởng thêm</span>
-							</span>
-						</td>
-						<td class="text-end" id="parent-bonus-thresholds"></td>
-					</tr>
-
 					<tr>
 						<td>
 							Thưởng mỗi vé
@@ -153,46 +142,47 @@
 						</td>
 						<td class="text-end" id="parent-bonus-per-ticket"></td>
 					</tr>
-
-					<tr class="bonus-modal-total">
+					<tr>
 						<td>
 							Tổng thưởng
 							<span class="formula-note">
 								<span class="formula-num" id="parent-bonus-total-note"></span>
-								<span class="formula-desc">= Thưởng trực tiếp + Thưởng gián tiếp</span>
 							</span>
 						</td>
 						<td class="text-end" id="parent-bonus-total"></td>
-					</tr>
-
-					<tr>
-						<td>
-							Tổng KPI gián tiếp
-							<span class="formula-note">
-								<span class="formula-desc">Tổng KPI của các nhân viên tham gia xử lý booking</span>
-							</span>
-						</td>
-						<td class="text-end" id="parent-bonus-indirectkpi"></td>
-					</tr>
-					<tr>
-						<td>
-							Tổng thưởng gián tiếp (30%)
-							<span class="formula-note">
-								<span class="formula-num" id="parent-bonus-indirect-note"></span>
-								<span class="formula-desc">= 30% x Tổng thưởng, chia theo KPI từng nhân viên</span>
-							</span>
-						</td>
-						<td class="text-end" id="parent-bonus-indirect"></td>
 					</tr>
 					<tr>
 						<td>
 							Tổng thưởng trực tiếp (70%)
 							<span class="formula-note">
 								<span class="formula-num" id="parent-bonus-direct-note"></span>
-								<span class="formula-desc">= 70% x Tổng thưởng</span>
 							</span>
 						</td>
 						<td class="text-end" id="parent-bonus-direct"></td>
+					</tr>
+					<tr>
+						<td>
+							Tổng thưởng gián tiếp (30%)
+							<span class="formula-note">
+								<span class="formula-num" id="parent-bonus-indirect-note"></span>
+							</span>
+						</td>
+						<td class="text-end" id="parent-bonus-indirect"></td>
+					</tr>
+					<tr>
+						<td>
+							Tổng KPI gián tiếp
+						</td>
+						<td class="text-end" id="parent-bonus-indirectkpi"></td>
+					</tr>
+					<tr>
+						<td>
+							Thưởng gián tiếp mỗi KPI
+							<span class="formula-note">
+								<span class="formula-num" id="parent-bonus-indirect-perkpi-note"></span>
+							</span>
+						</td>
+						<td class="text-end" id="parent-bonus-indirect-perkpi"></td>
 					</tr>
 				</table>
 			</div>

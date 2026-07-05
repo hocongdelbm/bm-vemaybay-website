@@ -1,11 +1,15 @@
-<h1 class="title">Thống kê vé theo Nhà cung cấp</h1>
+<h1 class="title">Thống kê vé</h1>
 
 <div class="box-section">
 <div id="bksupplier_report">
     <form action="index.php" method="post" name="frmSearch" id="frmSearch">
         <input type="hidden" name="module" value="EC_Flight_Bookings" />
-        <input type="hidden" name="action" value="bksupplier" />
+        <input type="hidden" name="action" value="bkreport" />
         <div class="d-flex align-items-center gap-2 flex-wrap">
+            <select class="box-select" id="report_mode" name="mode" title="Chế độ xem">
+                <option value="supplier" {if $REPORT_MODE == 'supplier'}selected{/if}>Theo NCC</option>
+                <option value="airline" {if $REPORT_MODE == 'airline'}selected{/if}>Theo Hãng bay</option>
+            </select>
             <select class="box-select" id="date_select" name="date_select">
                 {$REPORT_TERM_LIST}
             </select>
@@ -52,15 +56,15 @@
     </form>
 
     <ul class="bookingqtyreport-note alert alert-info text-dark fw-semibold">
-        <li>- Chứng từ không xác định NCC nằm ở nhóm <strong>Khác (N/A)</strong>.</li>
-        <li>- Bấm vào tên NCC để lọc danh sách chi tiết bên dưới.</li>
+        <li>- Chứng từ không xác định NCC/Hãng nằm ở nhóm <strong>Khác (N/A)</strong>.</li>
+        <li>- Bấm vào tên để lọc danh sách chi tiết bên dưới.</li>
     </ul>
 
     <div class="bkagent-table-wrap overflow-auto">
     <table id="supplier_summary_list" class="list-data table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
         <thead>
             <th width="5%">#</th>
-            <th>NCC</th>
+            <th>{if $REPORT_MODE == 'supplier'}NCC / Hãng{else}Hãng bay{/if}</th>
             <th width="10%">SL BK</th>
             <th width="10%">SL vé</th>
             <th width="18%">Tổng doanh thu</th>
@@ -81,7 +85,7 @@
         <thead>
             <th width="3%">#</th>
             <th width="8%">Chứng từ</th>
-            <th width="12%">NCC</th>
+            {if $REPORT_MODE == 'supplier'}<th width="12%">NCC</th>{/if}
             <th width="13%">Hãng bay</th>
             <th width="8%">Chiều bay</th>
             <th width="6%">Loại vé</th>
@@ -98,4 +102,4 @@
     </div>
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/view_bksupplier.js?v={$VERSION}"></script>
+<script src="modules/EC_Flight_Bookings/js/view_bkreport.js?v={$VERSION}"></script>

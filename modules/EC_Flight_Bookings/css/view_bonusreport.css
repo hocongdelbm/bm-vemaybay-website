@@ -11,8 +11,10 @@
 }
 
 /* Distinguish the nested detail table header from the parent table header
-   (same wash the theme uses for other nested detail tables) */
-#bonus-report-tbl .bonus-detail-row .table-details__booking thead tr th {
+   (same wash the theme uses for other nested detail tables); the totals
+   footer row gets the same color as its header */
+#bonus-report-tbl .bonus-detail-row .table-details__booking thead tr th,
+#bonus-report-tbl .bonus-detail-row .table-details__booking tr.last-row.footer-tr td {
 	background: #fff2cc;
 }
 
@@ -112,6 +114,8 @@
 	padding: 10px 14px;
 	background: #fff2cc;
 	font-weight: 700;
+	cursor: move;
+	user-select: none;
 }
 
 .bonus-modal-close {
@@ -140,9 +144,8 @@
 	border-bottom: 1px solid #e2e8f0;
 }
 
-.bonus-modal-tbl tr.bonus-modal-total td {
+.bonus-modal-tbl tr:last-child td {
 	border-bottom: none;
-	font-weight: 700;
 }
 
 /* Calculation formula under the label: first line the concrete numbers,
@@ -167,4 +170,11 @@
 .bonus-modal-tbl .formula-desc {
 	color: #a0aec0;
 	font-style: italic;
+}
+
+/* Threshold values carry their explanation in the title attribute */
+.bonus-modal-tbl .formula-num a[title] {
+	color: inherit;
+	text-decoration: underline;
+	cursor: help;
 }

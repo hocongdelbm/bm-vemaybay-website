@@ -291,10 +291,11 @@ class EC_Flight_Bookings extends Basic
 
 	private function _normalizeLuggageFee()
 	{
-		$postedFee = $_POST['luggage_fee'] ?? 0;
-		if ((int) $postedFee > 10) {
+		$postedFee = unformat_number($_POST['luggage_fee'] ?? 0);
+		if ($postedFee > 999) {
 			$this->luggage_fee = $postedFee;
-		} elseif ($this->luggage_fee < 10) {
+		}
+		elseif ((int) $this->luggage_fee < 10) {
 			$this->luggage_fee = 0;
 		}
 	}
