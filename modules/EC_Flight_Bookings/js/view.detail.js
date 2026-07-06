@@ -788,17 +788,17 @@ $(document).ready(function () {
 	$('.frmBookingStatus').submit(function (e) {
 		var frmSaveWorkingProcess = $(this).attr('id');
 		$('#frmSaveWorkingProcess').val(frmSaveWorkingProcess);
-		var booking_status = $('#' + frmSaveWorkingProcess + ' input:hidden[name="booking_status"]').val();
+		var booking_status = $(`#${frmSaveWorkingProcess} input:hidden[name="booking_status"]`).val();
 
-		if ($('#' + frmSaveWorkingProcess + ' input:hidden[name="bonus"]').length > 0) {
-			$('#txtBonus').val($('#' + frmSaveWorkingProcess + ' input:hidden[name="bonus"]').val());
+		if ($(`#${frmSaveWorkingProcess} input:hidden[name="bonus"]`).length > 0) {
+			$('#txtBonus').val($(`#${frmSaveWorkingProcess} input:hidden[name="bonus"]`).val());
 			$('#txtBonus').parent().parent().show();
 		}
 
 		if (booking_status == '8' && frmSaveWorkingProcess == 'frmCompleted') {
 			let complete_ok = parseInt($(`#${frmSaveWorkingProcess} input:hidden[name="complete_ok"]`).val());
 			if (!complete_ok) {
-				showModalNotify(2, "Vui lòng điền đầy đủ giá bán hành lý trước khi hoàn tất");
+				showModalNotify(2, "Vui lòng điền đầy đủ giá bán, giá mua hành lý để hoàn tất");
 				return;
 			}
 			$(this).submit();
@@ -2314,21 +2314,16 @@ function markNoteLineDeleted(ln) {
 
 // Add new note
 function insertNoteLine(ln) {
-	var html = '';
-
-	html += `<tr id="note_line${ln}">
-				<td width="3%" class="text-center align-top">
-					<button title="Xóa" type="button" onclick="markNoteLineDeleted(${ln});">
-						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
-					</button>
-					<input type="hidden" value="0" name="note_deleted[]" id="note_deleted${ln}" />
-					<input type="hidden" name="note_detail_id[]" id="note_detail_id${ln}" value="" />
-				</td>
-				<td colspan="5" width="40%"><textarea rows="3" type="text" value="" id="note_desc${ln}" name="note_desc[]"></textarea></td>
-			</tr>
-	`;
-
-	return html;
+	return `<tr id="note_line${ln}">
+		<td width="3%" class="text-center align-top">
+			<button title="Xóa" type="button" onclick="markNoteLineDeleted(${ln});">
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
+			</button>
+			<input type="hidden" value="0" name="note_deleted[]" id="note_deleted${ln}" />
+			<input type="hidden" name="note_detail_id[]" id="note_detail_id${ln}" value="" />
+		</td>
+		<td colspan="5" width="40%"><textarea rows="3" type="text" value="" id="note_desc${ln}" name="note_desc[]"></textarea></td>
+	</tr>`;
 }
 
 // Check note line valid
@@ -2399,77 +2394,8 @@ function checkLineItems(type) {
 				}
 			}
 		}
-		// end if
-		// if(psg_arr.length > 0){
-		// 	var psg_has_eticket_outb = [
-		// 		['0', 0],
-		// 		['1', 0],
-		// 		['2', 0]
-		// 	];
-		// 	var psg_has_eticket_inb = [
-		// 		['0', 0],
-		// 		['1', 0],
-		// 		['2', 0]
-		// 	];
-		// 	for(var i=0; i<psg_arr.length; i++){
-		// 		// || $.trim($('#psg_full_name' + i).val()).length < 5
-		// 		if(psg_arr[i].value == '0' && ($.trim($('#psg_full_name' + i).val()) == '')){
-		// 			alert('Họ tên hành khách không hợp lệ');
-		// 			$('#psg_full_name' + i).focus();
-		// 			$('#psg_full_name' + i).select();
-		// 			return false;
-		// 		}
-		// 		if(psg_arr[i].value == '0' && $.trim($('#psg_eticket_outbound' + i).val()) != '' && $.trim($('#psg_eticket_outbound' + i).val()).length < 5){
-		// 			alert('Số vé chiều đi không hợp lệ');
-		// 			$('#psg_eticket_outbound' + i).focus();
-		// 			$('#psg_eticket_outbound' + i).select();
-		// 			return false;
-		// 		}
-		// 		if(psg_arr[i].value == '0' && $.trim($('#psg_eticket_inbound' + i).val()) != '' && $.trim($('#psg_eticket_inbound' + i).val()).length < 5){
-		// 			alert('Số vé chiều về không hợp lệ');
-		// 			$('#psg_eticket_inbound' + i).focus();
-		// 			$('#psg_eticket_inbound' + i).select();
-		// 			return false;
-		// 		}
-		// 		if(psg_arr[i].value == '0' && $.trim($('#psg_pnr_outbound' + i).val()) != '' && $.trim($('#psg_pnr_outbound' + i).val()).length < 5){
-		// 			alert('PNR chiều đi không hợp lệ');
-		// 			$('#psg_pnr_outbound' + i).focus();
-		// 			$('#psg_pnr_outbound' + i).select();
-		// 			return false;
-		// 		}
-		// 		if(psg_arr[i].value == '0' && $.trim($('#psg_pnr_inbound' + i).val()) != '' && $.trim($('#psg_pnr_inbound' + i).val()).length < 5){
-		// 			alert('PNR chiều về không hợp lệ');
-		// 			$('#psg_pnr_inbound' + i).focus();
-		// 			$('#psg_pnr_inbound' + i).select();
-		// 			return false;
-		// 		}
-
-		// 		// booking ở trạng thái xuất vé
-		// 		// lấy số lượng hành khách có code vé
-		// 		if(psg_arr[i].value == '0') {
-		// 			// lượt đi
-		// 			if($('#psg_eticket_outbound' + i).val() != '') {
-		// 				psg_has_eticket_outb[$('#psg_traveller_type' + i).val()][1] += 1;
-		// 			}
-
-		// 			//lượt về nếu là khứ hồi
-		// 			if($('#flight_type').val() == '0') {
-		// 				if($('#psg_eticket_inbound' + i).val() != '') {
-		// 					psg_has_eticket_inb[$('#psg_traveller_type' + i).val()][1] += 1;
-		// 				}
-		// 			}
-		// 		} 
-
-		// 	}
-
-		// 	// kiểm tra sl nhà cung cấp tương ứng với số vé của hành khách
-		// 	// lượt đi
-		// 	if(psg_has_eticket_outb[0][1] > bkd_has_supplier_outb[0][1] || psg_has_eticket_outb[1][1] > bkd_has_supplier_outb[1][1] || psg_has_eticket_outb[2][1] > bkd_has_supplier_outb[2][1] || psg_has_eticket_inb[0][1] > bkd_has_supplier_inb[0][1] || psg_has_eticket_inb[1][1] > bkd_has_supplier_inb[1][1] || psg_has_eticket_inb[2][1] > bkd_has_supplier_inb[2][1]) {
-		// 		alert("Xuất vé lượt nào vui lòng chọn nhà cung cấp tương ứng cho lượt đó.");
-		// 		return false;
-		// 	}
-		// }// end if
-	} else if (type == 1) {
+	}
+	else if (type == 1) {
 		var luggage_arr = document.getElementsByName('psg_detail_id[]');
 		for (i = 0; i < luggage_arr.length; i++) {
 			if ($('#psg_luggage_price' + i).val() != '0') {
@@ -2507,7 +2433,8 @@ function checkLineItems(type) {
 				}
 			}
 		}
-	} else if (type == 2) {
+	}
+	else if (type == 2) {
 		var name_arr = document.getElementsByName('psg_detail_id[]');
 		for (i = 0; i < name_arr.length; i++) {
 			if ($.trim($("#new_psg_full_name" + i).val()) == '' || $.trim($("#new_psg_full_name" + i).val().length) < 5) {
@@ -2519,7 +2446,8 @@ function checkLineItems(type) {
 				return false;
 			}
 		}
-	} else if (type == 3) { // check thông tin đổi ngày bay, hành trình
+	}
+	else if (type == 3) { // check thông tin đổi ngày bay, hành trình
 
 		// tối đa 4 ô, 2 ô ở chiều đi, 2 ô ở chiều về (nếu có)
 		var iti_hour_arr = document.getElementsByClassName('input_hour');
@@ -2669,9 +2597,6 @@ function getPassengerLine(booking_id, pass_id = '', type = '') {
 				$("#line_itineraries_area").append(response);
 			}
 
-			// $(".pass_luggage").select2();
-			// $(".supplier_line>select").select2();
-
 			// chỉnh lại stt
 			$("input[name='pass_id[]']").each(function (index) {
 				$(".pass_birthday").eq(index).attr("name", "pass_birthday" + index);
@@ -2784,12 +2709,7 @@ function calculateTotal() {
 	var other_fee = unformatNumber($.trim($('#other_fee').text()));
 	var total_amount = subtotal_amt + luggage_fee + other_fee;
 
-	// Hiện tại đã off % discount
-	// var discount_percent = unformatNumber($('#discount_percent :selected').val());
 	var discount_amount = unformatNumber($.trim($('#discount_amount span.discount_value').text()));
-	// if (discount_percent > 0) {
-	// 	discount_amount = total_amount * discount_percent / 100;
-	// }
 	total_amount -= discount_amount;
 
 	// Display
@@ -2831,4 +2751,3 @@ function renderPreloadedChangeState() {
 		$passengerTable.find("#no-change__edit-pass").text("Chưa có hành khách nào thay đổi thông tin.");
 	}
 }
-
