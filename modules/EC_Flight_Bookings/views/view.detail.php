@@ -2,6 +2,7 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('modules/EC_Messages/SMS.php');
 require_once 'custom/include/helpers/api/Onepay.php';
+
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Assets.php';
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Buttons.php';
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/BookingFields.php';
@@ -16,10 +17,7 @@ require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Permissions.php';
 
 class EC_Flight_BookingsViewDetail extends ViewDetail
 {
-	use AssetsTrait {
-		displayCSS as private displayCSSTrait;
-		displayJS as private displayJSTrait;
-	}
+	use AssetsTrait;
 	use ButtonsTrait;
 	use BookingFieldsTrait;
 	use ItineraryTrait;
@@ -31,9 +29,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	use TemplatesTrait;
 	use PermissionsTrait;
 
-	/**
-	 * @var EC_Flight_Bookings
-	 */
 	public $bean;
 	private $_outbound_airline = '';
 	private $_inbound_airline = '';
@@ -49,6 +44,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->editing_rights = ACLController::checkAccess($this->bean->object_name, 'edit', true);
 
 		$this->displayCSSTrait();
+
 		$this->populateCustomButtons($deparment_info);
 		$this->populateCustomFields();
 		$this->populateLineNotesMessage();
@@ -65,9 +61,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Related vouchers
 		$this->ss->assign('LINE_RELATE_VOUCHER', $this->populateLineRelateVoucher());
 
-		$this->createModal(); // Modal for confirm action
+		$this->createModal();
 
 		parent::display();
+
 		$this->displayJSTrait();
 	}
 

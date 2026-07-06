@@ -195,4 +195,7 @@
     </section> 
 </div>
 
+<script>
+    var airline_logo_map = {$AIRLINE_LOGO_MAP};
+</script>
 <script src="modules/EC_Flight_Bookings/js/view.issueticket.js?v=1.0.7"></script>
