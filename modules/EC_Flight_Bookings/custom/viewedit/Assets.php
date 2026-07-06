@@ -31,7 +31,7 @@ trait ECFlightBookingEditAssetsTrait {
 		}
 
 		// Load JS chính của edit view: render row, tính tổng, xử lý hành lý/hành trình.
-		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.9.1"></script>';
+		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.9.2"></script>';
 		echo $js;
 	}
 

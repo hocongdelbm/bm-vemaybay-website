@@ -69,21 +69,23 @@ class EC_Flight_Bookings_Helper
 
         /******  2. HANDLING CONDITIONS  ******/
 
-        // Chỉ kế toán trưởng hoặc admin hệ thống mới được xem hết, còn lại xem của mình
-        $is_manager = $db->getOne(
-            "SELECT COUNT(id) 
-            FROM acl_roles_users 
-            WHERE user_id = '{$current_user->id}'
-                AND role_id IN (
-                    '{$GLOBALS['app_list_strings']['roles_users']['QUANLY']}',
-                    '{$GLOBALS['app_list_strings']['roles_users']['KETOAN']}'
-                )
-                AND deleted = 0"
-        );
-
         $sql_role = "";
-        if (!$is_manager && !is_admin($current_user)) {
-            $sql_role .= " AND bk.assigned_user_id = '{$current_user->id}' ";
+        if(!is_admin($current_user) && $current_user->title != 'QuanLy') {
+            // Chỉ kế toán trưởng hoặc admin hệ thống mới được xem hết, còn lại xem của mình
+            $is_manager = $db->getOne(
+                "SELECT COUNT(id) 
+                FROM acl_roles_users 
+                WHERE user_id = '{$current_user->id}'
+                    AND role_id IN (
+                        '{$GLOBALS['app_list_strings']['roles_users']['QUANLY']}',
+                        '{$GLOBALS['app_list_strings']['roles_users']['KETOAN']}'
+                    )
+                    AND deleted = 0"
+            );
+
+            if(!$is_manager) {
+                $sql_role .= " AND bk.assigned_user_id = '{$current_user->id}' ";
+            }
         }
 
         // Main query

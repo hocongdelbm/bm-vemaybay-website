@@ -1440,13 +1440,12 @@ class EC_Flight_Bookings extends Basic
 	 * @param string $created_by
 	 * @return bool
 	 */
-	public function isUseNewBaggage($date_entered, $created_by)
-	{
+	public function isUseNewBaggage($date_entered, $created_by) {
+		if(is_null($date_entered) || is_null($created_by) || empty($date_entered) || empty($created_by)) return true;
 		global $sugar_config, $current_user;
 		$dateFormat = $current_user->getPreference('datef') ?? $sugar_config['datef'] ?? 'd-m-Y';
 		$timeFormat = $current_user->getPreference('timef') ?? $sugar_config['timef'] ?? 'H:i';
 
-		// $date_entered = str_replace("/", "-", trim($date_entered));
 		if (strtotime($date_entered) > strtotime("$dateFormat $timeFormat"))
 			return true;
 		return false;

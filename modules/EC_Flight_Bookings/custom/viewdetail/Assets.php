@@ -19,8 +19,8 @@ trait AssetsTrait
 
 		// Load các file JS riêng của detail view: xử lý popup, autobook, Zalo/SMS, tài liệu, in vé.
 		$js = <<<HTML
-			<script src="modules/{$this->bean->module_dir}/js/view.detail.js?v=1.2.1"></script>
-			<script src="modules/{$this->bean->module_dir}/js/autobook.js?v=1.2.1"></script>
+			<script src="modules/{$this->bean->module_dir}/js/view.detail.js?v=1.2.2"></script>
+			<script src="modules/{$this->bean->module_dir}/js/autobook.js?v=1.2.2"></script>
 			<script src="modules/{$this->bean->module_dir}/js/api_zalo.js?v=1.2.1"></script>
 			<script src="modules/{$this->bean->module_dir}/js/api_sms.js?v=1.2.1"></script>
 			<script src="modules/{$this->bean->module_dir}/js/doc_list.js?v=1.2.1"></script>

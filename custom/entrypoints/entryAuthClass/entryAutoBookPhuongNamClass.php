@@ -753,7 +753,6 @@ class entryAutoBookPhuongNamClass extends entryClass {
                 "status" => 0,
                 "message" => "Vé cận phải giữ chung 1 hãng",
             ];
-            exit();
         }
         // The other domestic airlines allow close-in ticket holds
         $isIssueTicket = $isWithin24h;
@@ -834,10 +833,11 @@ class entryAutoBookPhuongNamClass extends entryClass {
 
             // VN combines round trips with the same session verification and fare pricing
             if(count(array_unique($airlineCodes)) === 1 && $airlineCodes[0] === 'VN' && count($flights) == 2) {
-                $sessionVerify = $responseData[0]['SessionVerify'] ?? '';
-                $verifyData = $responseData[0]['VerifyData'] ?? [];
+                $statusId       = isset($responseData[0]['ID']) ? (int)$responseData[0]['ID'] : 0;
+                $sessionVerify  = $responseData[0]['SessionVerify'] ?? '';
+                $verifyData     = $responseData[0]['VerifyData'] ?? [];
 
-                if(!empty($sessionVerify) && is_array($verifyData) && !empty($verifyData)) {
+                if($statusId === 1 && !empty($sessionVerify) && is_array($verifyData) && !empty($verifyData)) {
                     foreach($requestBody['Flights'] as $i => $f) {
                         $requestBody['Flights'][$i]['VerifySession'] = $sessionVerify;
                     }
@@ -850,7 +850,9 @@ class entryAutoBookPhuongNamClass extends entryClass {
             else {
                 foreach($requestBody['Flights'] as $i => $f) {
                     foreach(($responseData ?? []) as $res) {
-                        if(!isset($res['SessionVerify']) || !$res['SessionVerify'] || empty($res['SessionVerify'])) {
+                        $statusId = isset($res['ID']) ? (int)$res['ID'] : 0;
+                        
+                        if($statusId === 0 || !isset($res['SessionVerify']) || !$res['SessionVerify'] || empty($res['SessionVerify'])) {
                             $isVerifyFailed = false;
                             $verifyFailedMessage = $res['Message'] ?? '';
                             break;
@@ -886,8 +888,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
         }
 
         $responseArr['isWithin24h'] = $isWithin24h;
-        echo json_encode($responseArr);
-        exit();
+        return $responseArr;
     }
 
     /**

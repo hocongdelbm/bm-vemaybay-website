@@ -145,16 +145,23 @@ trait ButtonsTrait
 		// Completed button
 		else if ($this->bean->booking_status == '7' && $this->editing_rights) {
 			// Check booking with full baggage price or not
-			$complete_ok = $this->bean->db->getOne("SELECT COUNT(*)
+			$complete_ok = $this->bean->db->getOne(
+				"SELECT COUNT(*)
 				FROM ec_booking_passengers 
 				WHERE booking_id = '{$this->bean->id}'
 					AND deleted = 0
 					AND (
-						(luggage_purchase > 0 AND (luggage_price IS NULL OR luggage_price = 0))
+						(luggage_purchase_text IS NOT NULL AND luggage_purchase_text <> '' AND
+							(luggage_purchase IS NULL OR luggage_purchase = 0
+							OR luggage_price IS NULL OR luggage_price = 0)
+						)
 						OR
-						(luggage_purchase_inbound > 0 AND (luggage_price_inbound IS NULL OR luggage_price_inbound = 0))
-					)
-			") > 0 ? 0 : 1;
+						(luggage_purchase_text_inbound IS NOT NULL AND luggage_purchase_text_inbound <> '' AND
+							(luggage_purchase_inbound IS NULL OR luggage_purchase_inbound = 0
+							OR luggage_price_inbound IS NULL OR luggage_price_inbound = 0)
+						)
+					)"
+			) > 0 ? 0 : 1;
 
 			$status_button = '</form>
 				<form class="frmBookingStatus" action="index.php" method="post" name="frmCompleted" id="frmCompleted">
@@ -209,13 +216,12 @@ trait ButtonsTrait
 		}
 	}
 
-	private function assignChangeBookingStatusButton()
-	{
+	private function assignChangeBookingStatusButton() {
 		global $app_list_strings, $current_user;
 
-		// Change booking status button
-		$now = date("Y-m-d H:i:s");
-		$time_current = date("H:i:s", strtotime('+7 hours', strtotime($now)));
+		// // Change booking status button
+		// $now = date("Y-m-d H:i:s");
+		// $time_current = date("H:i:s", strtotime('+7 hours', strtotime($now)));
 
 		/**
 		 * Trong khung giờ 21h - 6h sáng thì được thấy nút "chuyển trạng thái booking"
@@ -235,22 +241,22 @@ trait ButtonsTrait
 		}
 	}
 
-	private function assignViewedBookingButton()
-	{
+	private function assignViewedBookingButton() {
 		global $current_user;
 
 		// Những nhân viên đã xem booking
 		if (is_admin($current_user) && $current_user->title != 'QuanLy') {
-			$viewed = '</form>
-			<form action="index.php" method="post" name="frmViewedBooking" id="frmViewedBooking" class="d-flex align-items-center gap-2">
-				<input type="hidden" name="module" value="EC_Flight_Bookings" />
-				<input type="hidden" name="record" value="' . $this->bean->id . '" />
-				<button type="button" class="btn btn-secondary" id="btnViewBooking" value="Đã xem Booking" >
-					<span>Đã xem</span>
-				</button>
-				<div id="viewed_booking--wrap"></div>
-			</form>';
-			$this->ss->assign('VIEWED_BOOKING', $viewed);
+			$this->ss->assign('VIEWED_BOOKING', <<<HTML
+				</form>
+				<form action="index.php" method="post" name="frmViewedBooking" id="frmViewedBooking" class="d-flex align-items-center gap-2">
+					<input type="hidden" name="module" value="EC_Flight_Bookings" />
+					<input type="hidden" name="record" value="{$this->bean->id}" />
+					<button type="button" class="btn btn-secondary" id="btnViewBooking" value="Đã xem Booking" >
+						<span>Đã xem</span>
+					</button>
+					<div id="viewed_booking--wrap"></div>
+				</form>
+			HTML);
 		}
 	}
 
@@ -328,35 +334,38 @@ trait ButtonsTrait
 		// Mark as preference button
 		$mask_as_refer = '';
 		if (!$this->bean->is_reference) {
-			$mask_as_refer = '</form>
-								<form action="index.php" method="post" name="frmMarkAdPreferance" id="frmMarkAdPreferance">
-									<input type="hidden" name="module" value="' . $this->bean->object_name . '" />
-									<input type="hidden" name="action" value="Save" />
-									<input type="hidden" name="record" value="' . $this->bean->id . '" />
-										<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-									<input type="hidden" name="is_reference" value="1" />
-									<input type="submit" name="btnMarkAsPreference" id="btnMarkAsPreference" class="btn btn-primary" value="BK tham khảo" title="BK tham khảo" onclick="return confirm(\'Bạn có chắc chắn muốn đánh dấu đây là BK tham khảo?\');"/>									
-								</form>';
+			$mask_as_refer = <<<HTML
+				</form>
+				<form action="index.php" method="post" name="frmMarkAdPreferance" id="frmMarkAdPreferance">
+					<input type="hidden" name="module" value="{$this->bean->object_name}" />
+					<input type="hidden" name="action" value="Save" />
+					<input type="hidden" name="record" value="{$this->bean->id}" />
+					<input type="hidden" name="record_name" value="{$this->bean->name}" />
+					<input type="hidden" name="is_reference" value="1" />
+					<input type="submit" name="btnMarkAsPreference" id="btnMarkAsPreference" class="btn btn-primary" value="BK tham khảo" title="BK tham khảo" onclick="return confirm('Bạn có chắc chắn muốn đánh dấu đây là BK tham khảo?');"/>									
+				</form>
+			HTML;
 		}
 		$this->ss->assign('MARK_AS_REFERENCE', $mask_as_refer);
 	}
 
 	private function assignTicketReturnButton()
 	{
-		// Ticket return button
 		if (
 			($this->bean->booking_status == '7' || $this->bean->booking_status == '8')
 			&& $this->editing_rights
-			&& !myCheckValueExist('EC_HoanVe', array('booking_id'), array($this->bean->id), '')
+			&& !myCheckValueExist('EC_HoanVe', ['booking_id'], [$this->bean->id], '')
 		) {
-			$ticket_return = '</form>
-			<form action="index.php" method="post" name="frmTicketReturn" id="frmTicketReturn">
-			  <input type="hidden" name="module" value="EC_HoanVe" />
-			  <input type="hidden" name="action" value="EditView" />
-			  <input type="hidden" name="booking" value="' . $this->bean->name . '" />
-			  <input type="hidden" name="booking_id" value="' . $this->bean->id . '" />
-			  <input type="submit" class="btn btn-danger" name="btnTicketReturn" id="btnTicketReturn" value="Hoàn vé" title="Hoàn vé" />
-			</form>';
+			$ticket_return = <<<HTML
+				</form>
+				<form action="index.php" method="post" name="frmTicketReturn" id="frmTicketReturn">
+					<input type="hidden" name="module" value="EC_HoanVe" />
+					<input type="hidden" name="action" value="EditView" />
+					<input type="hidden" name="booking" value="{$this->bean->name}" />
+					<input type="hidden" name="booking_id" value="{$this->bean->id}" />
+					<input type="submit" class="btn btn-danger" name="btnTicketReturn" id="btnTicketReturn" value="Hoàn vé" title="Hoàn vé" />
+				</form>
+			HTML;
 			$this->ss->assign('TICKET_RETURN', $ticket_return);
 		}
 	}
@@ -428,9 +437,7 @@ trait ButtonsTrait
 	{
 		global $current_user;
 
-		// Auto book
 		if (!$this->isTelesaleRole($current_user->id) && in_array($this->bean->booking_status, [1, 2, 3, 6])) {
-			// if (in_array($this->bean->booking_status, [1, 2, 3, 6]) && !$this->bean->is_hold && !$this->bean->holding_status) {
 			$agencyOptions = '
 				<li>
 					<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookDatacomClass">
@@ -467,26 +474,22 @@ trait ButtonsTrait
 
 	private function assignPrintTicketButton()
 	{
-		// Print ticket button (old)
-		$this->ss->assign(
-			'PRINT_TICKET',
-			'<div class="btn-group btnPrintEticket-selection">
+		$this->ss->assign('PRINT_TICKET', <<<HTML
+			<div class="btn-group btnPrintEticket-selection">
 				<button type="button" class="btn btn-secondary btnPrintEticket" data-bs-display="static" aria-expanded="false">In vé</button>
-			</div>'
-		);
+			</div>
+		HTML);
 	}
 
 	private function assignSendTicketButton()
 	{
-		// Send ticket button
-		$this->ss->assign(
-			'SEND_TICKET',
-			'<div class="btn-group btnSendEticket-selection">
+		$this->ss->assign('SEND_TICKET', <<<HTML
+			<div class="btn-group btnSendEticket-selection">
 				<button type="button" class="btn btn-secondary btnSendEticket" data-bs-display="static" aria-expanded="false">
 					Gửi vé
 				</button>
-			</div>'
-		);
+			</div>
+		HTML);
 	}
 
 	private function assignPrintAndSendTicketButton()
