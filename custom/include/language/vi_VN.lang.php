@@ -108,6 +108,7 @@ $app_list_strings['moduleList']['EC_Zalo_Messages'] = 'Tin nhắn Zalo';
 $app_list_strings['moduleList']['EC_Online_Report'] = 'Tình trạng online';
 $app_list_strings['moduleList']['EC_Outbound_Phone'] = 'Số gọi ra';
 $app_list_strings['moduleList']['EC_Revenue'] = 'Doanh thu';
+$app_list_strings['moduleList']['EC_Booking_Bonus'] = 'Thưởng booking';
 $app_list_strings['moduleList']['EC_WorkHistory'] = 'Lịch sử làm việc';
 $app_list_strings['moduleList']['EC_Working_Process'] = 'Quá trình làm việc';
 
