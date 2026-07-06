@@ -1412,25 +1412,6 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
         $result['total_revenue'] += $revenue; // Total Revenue
         $result['total_bought']  += $cost; // Total Cost
 
-        // // Total bonus
-        // if($row['parent_type'] == 'EC_Flight_Bookings') {
-        //     $ticket_qty = $result['total_quantity'] ?? 1;
-        //     $avg_profit = $profit / $ticket_qty;
-
-        //     if($avg_profit >= 120000) {
-        //         $bonus_per_ticket = 
-        //     }
-        //     else if($avg_profit >= 110000) {
-        //         $bonus_per_ticket = 
-        //     }
-        //     else {
-        //         $bonus_per_ticket = 0;
-        //     }
-        // }
-        // else if($row['parent_type'] == 'EC_Receipt_Voucher') {
-
-        // }
-
         // Details
         $result['details'][$row['parent_id']] = $row;
         $result['details'][$row['parent_id']]['profit_amount'] = $profit;
