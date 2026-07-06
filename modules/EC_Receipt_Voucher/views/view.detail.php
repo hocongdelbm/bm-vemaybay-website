@@ -1,8 +1,10 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-class EC_Receipt_VoucherViewDetail extends ViewDetail
-{
+class EC_Receipt_VoucherViewDetail extends ViewDetail {
+	/** @var EC_Receipt_Voucher **/
+	public $bean;
+
 	function display()
 	{
 		$this->displayJS();
@@ -36,7 +38,7 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail
 		</span>';
 		$this->ss->assign('AMOUNT', $amount);
 
-		$loaithu_arr = array('4', '5', '10', '11', '12', '13', '14', '16', '27');
+		$loaithu_arr = ['4', '5', '10', '11', '12', '13', '14', '16', '27'];
 		$loai_thu = '<label>' . $app_list_strings['loai_thu_list'][(int)$this->bean->loai_thu] . '</label>';
 		if (($this->bean->loai_thu == 4 || $this->bean->loai_thu == 5) && ($this->bean->is_debt || !empty($this->bean->customer))) {
 			$loai_thu .= '&nbsp;-&nbsp;Đối tượng:&nbsp;<label>' . $this->bean->customer . '</label>';

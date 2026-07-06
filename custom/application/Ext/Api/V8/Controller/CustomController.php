@@ -28,7 +28,7 @@ class CustomController extends BaseController
             if (!in_array($request_ip, $sugar_config['ip_whitelist']))
                 return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
 
-            // Save booking
+            /** @var EC_Flight_Bookings */
             $booking = BeanFactory::newBean("EC_Flight_Bookings");
             if (isset($params['ec_flight_bookings']) && !empty($params['ec_flight_bookings'])) {
                 foreach ($params['ec_flight_bookings'] as $key => $value) {
@@ -41,19 +41,13 @@ class CustomController extends BaseController
             $booking->created_by = $user_id;
             $booking->modified_user_id = $user_id;
 
-            // Save nganluong
-            if (!isset($params['ec_flight_bookings']['nganluong_code']) || empty($params['ec_flight_bookings']['nganluong_code'])) {
-                $booking->nganluong_code = get_payment_link();
-                $booking->nganluong_datepaid = date('Y-m-d H:i:s');
-            }
-
             /**
              * Map calls and booking telesale - get lastest call telesale of phone
              * Loại trừ các booking tham khảo, booking TEST
              */
             if (!empty($booking->phone) && !empty($booking->contact_name) && !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore)) {
                 /**
-                 * @var Calls $call
+                 * @var Call $call
                  */
                 $call = BeanFactory::newBean("Calls");
                 $call_id = $call->getTelesaleCalls($booking->phone, date('Y-m-d H:i:s'));
@@ -104,6 +98,7 @@ class CustomController extends BaseController
                             AND deleted = 0
                         ');
 
+                        /** @var Note */
                         $bean_note = BeanFactory::newBean("Notes");
                         $bean_note->id                  = '';
                         $bean_note->name                = $booking->name;
@@ -276,15 +271,14 @@ class CustomController extends BaseController
             $GLOBALS['log']->fatal('Lỗi params. Lưu thông tin cuộc gọi thất bại');
             write_file_backup_log_calls(json_encode($params));
 
-            $response['fail'] = array(
-                'error' => true,
-                'code' => 400,
-                'message' => 'Bad request params',
-                'data_post' => json_encode($params)
-
-            );
-            echo json_encode($response);
-            exit();
+            return $response->withJson([
+                'fail' => [
+                    'error' => true,
+                    'code' => 400,
+                    'message' => 'Bad request params',
+                    'data_post' => json_encode($params)
+                ]
+            ], 400);
         }
 
         global $db;
@@ -305,6 +299,7 @@ class CustomController extends BaseController
         $res = $db->query($contact_query);
         $row = $db->fetchByAssoc($res);
 
+        /** @var Call */
         $call = BeanFactory::newBean("Calls");
         if (!empty($row['id'])) { // Cập nhật thông tin liên hệ cho Call
             $call->parent_type = 'Contacts';
@@ -715,12 +710,10 @@ class CustomController extends BaseController
             }
         }
         catch (Throwable $th) {
-            $logId = LoggerHelper::generateLogId();
-            $GLOBALS['log']->fatal("[{$logId}] {$th->getMessage()} ({$th->getCode()}) on line {$th->getLine()} in {$th->getFile()}");
+            $GLOBALS['log']->fatal("CustomController/save_location_booking(): {$th->getMessage()} ({$th->getCode()}) on line {$th->getLine()} in {$th->getFile()}");
             return $response->withJson([
                 "error" => true,
                 "message" => "An error occurred",
-                "description" => $logId
             ], 500);
         }
     }

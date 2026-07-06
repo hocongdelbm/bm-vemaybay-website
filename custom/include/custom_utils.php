@@ -1347,19 +1347,6 @@ function get_browser_name($user_agent)
     return 'Unkown';
 }
 
-function get_payment_link()
-{
-    $length = 10;
-    $characters = 'qwertyuiopasdfghjklzxcvbnm0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@!';
-    $charactersLength = strlen($characters);
-    $randomString = '';
-    for ($i = 0; $i < $length; $i++) {
-        $randomString .= $characters[rand(0, $charactersLength - 1)];
-    }
-    $randomString = $randomString . substr(time(), 4);
-    return $randomString;
-}
-
 function update_field_booking($id, $field, $value, $datatype = 'string')
 {
     if (is_null($id) || is_null($field) || is_null($value) || empty($id) || empty($field) || empty($value)) return false;
