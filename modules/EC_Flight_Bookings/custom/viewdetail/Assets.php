@@ -24,7 +24,6 @@ trait AssetsTrait
 			<script src="modules/{$this->bean->module_dir}/js/api_zalo.js?v=1.2.2"></script>
 			<script src="modules/{$this->bean->module_dir}/js/api_sms.js?v=1.2.2"></script>
 			<script src="modules/{$this->bean->module_dir}/js/doc_list.js?v=1.2.2"></script>
-			<script src="modules/{$this->bean->module_dir}/js/print_ticket.js?v=1.2.2"></script>
 			<script src="modules/{$this->bean->module_dir}/js/print_ticket_new.js?v=1.2.2"></script>
 		HTML;
 

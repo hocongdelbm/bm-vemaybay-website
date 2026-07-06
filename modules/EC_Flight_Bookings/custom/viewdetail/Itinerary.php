@@ -337,9 +337,6 @@ trait ItineraryTrait
 		/* POPUP LÝ DO THẮNG THUA */
 		$html .= $this->populateWinLoseTemplate();
 
-		/* POPUP PRINT TICKET */
-		$html .= $this->populatePrintLanguage();
-
 		/* POPUP WORKING PROCESS NOTE */
 		$html .= $this->populateWorkingProcessNote();
 
@@ -353,7 +350,8 @@ trait ItineraryTrait
 	}
 
 	// Direction (0: lượt đi ; 1: lượt về)	
-	private function renderEditedLineItineraries($rows){
+	private function renderEditedLineItineraries($rows)
+	{
 		global $timedate;
 
 		$date_format = $timedate->get_date_format();

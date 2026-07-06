@@ -465,34 +465,9 @@ trait ButtonsTrait
 		}
 	}
 
-	private function assignPrintTicketButton()
-	{
-		// Print ticket button (old)
-		$this->ss->assign(
-			'PRINT_TICKET',
-			'<div class="btn-group btnPrintEticket-selection">
-				<button type="button" class="btn btn-secondary btnPrintEticket" data-bs-display="static" aria-expanded="false">In vé</button>
-			</div>'
-		);
-	}
-
-	private function assignSendTicketButton()
-	{
-		// Send ticket button
-		$this->ss->assign(
-			'SEND_TICKET',
-			'<div class="btn-group btnSendEticket-selection">
-				<button type="button" class="btn btn-secondary btnSendEticket" data-bs-display="static" aria-expanded="false">
-					Gửi vé
-				</button>
-			</div>'
-		);
-	}
-
 	private function assignPrintAndSendTicketButton()
 	{
 		// PRINT_TICKET_NEW - Nút in vé mới với popup chọn
-		// Build resolved itinerary list (preferring rescheduled over originals) for the popup
 		$resolvedItineraries = $this->getResolvedItinerariesForPopup();
 		$itinerariesJson = htmlspecialchars(json_encode($resolvedItineraries), ENT_QUOTES, 'UTF-8');
 
@@ -560,6 +535,7 @@ trait ButtonsTrait
 		if (is_admin($current_user) && $current_user->user_name == 'hungnh') {
 			$update_revenue = '<input id="update_revenue" class="btn btn-primary" type="button" value="Cập nhật DS">';
 		}
+
 		$this->ss->assign('UPDATE_REVENUE', $update_revenue);
 	}
 }

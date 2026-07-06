@@ -191,8 +191,7 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
             ),
             array(
-                array(
-                ),
+                array(),
                 array(
                     'name' => 'documents',
                     'label' => 'LBL_DOCUMENTS',
