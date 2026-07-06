@@ -3,33 +3,40 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 trait AssetsTrait
 {
-	private function displayCSS()
+	private function displayCSSTrait()
 	{
 		echo <<<HTML
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css" />
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.4.2" />
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.4.2" />
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=2.4.2" />
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.4.3" />
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.4.3" />
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=2.4.3" />
 		HTML;
 	}
 
-	private function displayJS()
+	private function displayJSTrait()
 	{
 		global $app_list_strings, $current_user;
 
 		// Load các file JS riêng của detail view: xử lý popup, autobook, Zalo/SMS, tài liệu, in vé.
 		$js = <<<HTML
-			<script src="modules/{$this->bean->module_dir}/js/view.detail.js?v=1.2.1"></script>
-			<script src="modules/{$this->bean->module_dir}/js/autobook.js?v=1.2.1"></script>
-			<script src="modules/{$this->bean->module_dir}/js/api_zalo.js?v=1.2.1"></script>
-			<script src="modules/{$this->bean->module_dir}/js/api_sms.js?v=1.2.1"></script>
-			<script src="modules/{$this->bean->module_dir}/js/doc_list.js?v=1.2.1"></script>
-			<script src="modules/{$this->bean->module_dir}/js/print_ticket.js?v=1.2.1"></script>
-			<script src="modules/{$this->bean->module_dir}/js/print_ticket_new.js?v=1.2.1"></script>
+			<script src="modules/{$this->bean->module_dir}/js/view.detail.js?v=1.2.2"></script>
+			<script src="modules/{$this->bean->module_dir}/js/autobook.js?v=1.2.2"></script>
+			<script src="modules/{$this->bean->module_dir}/js/api_zalo.js?v=1.2.2"></script>
+			<script src="modules/{$this->bean->module_dir}/js/api_sms.js?v=1.2.2"></script>
+			<script src="modules/{$this->bean->module_dir}/js/doc_list.js?v=1.2.2"></script>
+			<script src="modules/{$this->bean->module_dir}/js/print_ticket.js?v=1.2.2"></script>
+			<script src="modules/{$this->bean->module_dir}/js/print_ticket_new.js?v=1.2.2"></script>
 		HTML;
+
+		// Map [iata_code => logo_url] để JS lấy logo hãng bay qua EC_Airlines::getLogoUrl() thay vì tự build đường dẫn ảnh tĩnh.
+		$airlineLogoMap = [];
+		foreach (array_keys(EC_Airlines::getAirlineList()) as $airlineCode) {
+			$airlineLogoMap[$airlineCode] = EC_Airlines::getLogoUrl($airlineCode);
+		}
 
 		// Inject biến PHP sang JS để các script phía client dùng đúng trạng thái booking và cấu hình hiện tại.
 		$js .= '<script>
+			var airline_logo_map = ' . json_encode($airlineLogoMap) . ';
 			var booking_status = "' . $this->bean->booking_status . '";
 			var win_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '0')) . '";
 			var lose_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '1')) . '";
