@@ -7,9 +7,9 @@ trait AssetsTrait
 	{
 		echo <<<HTML
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css" />
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.4.3" />
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.4.3" />
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=2.4.3" />
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.4.4" />
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.4.4" />
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=2.4.4" />
 		HTML;
 	}
 
@@ -19,12 +19,12 @@ trait AssetsTrait
 
 		// Load các file JS riêng của detail view: xử lý popup, autobook, Zalo/SMS, tài liệu, in vé.
 		$js = <<<HTML
-			<script src="modules/{$this->bean->module_dir}/js/view.detail.js?v=1.2.2"></script>
-			<script src="modules/{$this->bean->module_dir}/js/autobook.js?v=1.2.2"></script>
-			<script src="modules/{$this->bean->module_dir}/js/api_zalo.js?v=1.2.2"></script>
-			<script src="modules/{$this->bean->module_dir}/js/api_sms.js?v=1.2.2"></script>
-			<script src="modules/{$this->bean->module_dir}/js/doc_list.js?v=1.2.2"></script>
-			<script src="modules/{$this->bean->module_dir}/js/print_ticket_new.js?v=1.2.2"></script>
+			<script src="modules/{$this->bean->module_dir}/js/view.detail.js?v=1.2.3"></script>
+			<script src="modules/{$this->bean->module_dir}/js/autobook.js?v=1.2.3"></script>
+			<script src="modules/{$this->bean->module_dir}/js/api_zalo.js?v=1.2.3"></script>
+			<script src="modules/{$this->bean->module_dir}/js/api_sms.js?v=1.2.3"></script>
+			<script src="modules/{$this->bean->module_dir}/js/doc_list.js?v=1.2.3"></script>
+			<script src="modules/{$this->bean->module_dir}/js/print_ticket_new.js?v=1.2.3"></script>
 		HTML;
 
 		// Map [iata_code => logo_url] để JS lấy logo hãng bay qua EC_Airlines::getLogoUrl() thay vì tự build đường dẫn ảnh tĩnh.
