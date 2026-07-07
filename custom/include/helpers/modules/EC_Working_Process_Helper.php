@@ -1,6 +1,30 @@
 <?php
 class EC_Working_Process_Helper {
 	/**
+	 * KPI columns aggregated per booking in get_kpi_by_bookings.
+	 * Value = weight the raw count is multiplied by in the KPI sums.
+	 */
+	private const BOOKING_KPI_COLUMNS = [
+		'called'               => 1,
+		'completed'            => 1,
+		'paid'                 => 1,
+		'recheck'              => 1,
+		'support'              => 1,
+		'invoice_issued'       => 3,
+		'ticket_delivery'      => 1,
+		'checkin_journey'      => 1,
+		'recall'               => 1,
+		'remind'               => 1,
+		'check_debt'           => 1,
+		'create_repaid'        => 1,
+		'process_repaid'       => 1,
+		'create_payment'       => 1,
+		'create_receipt'       => 1,
+		'create_transfer'      => 1,
+		'invoice_input_issued' => 1,
+	];
+
+	/**
 	 * Sinh câu SQL thống kê KPI: tự dựng điều kiện lọc (ngày, phân quyền)
 	 * rồi trả về câu truy vấn theo loại báo cáo.
 	 *
@@ -211,44 +235,23 @@ class EC_Working_Process_Helper {
 		}, $booking_ids);
 		$in_clause = implode(',', $quoted);
 
+		// One list drives both the per-column SUMs and the total_kpi expression
+		$sum_selects = [];
+		$total_parts = [];
+		foreach (self::BOOKING_KPI_COLUMNS as $col => $weight) {
+			$expr = "IFNULL(w.{$col},0)" . ($weight != 1 ? " * {$weight}" : '');
+			$sum_selects[] = "SUM({$expr}) AS {$col}";
+			$total_parts[] = $weight != 1 ? "({$expr})" : $expr;
+		}
+
 		$sql =
             "SELECT w.parent_id AS booking_id
                 ,w.assigned_user_id
-                ,SUM(IFNULL(w.called,0)) AS called
-                ,SUM(IFNULL(w.completed,0)) AS completed
-                ,SUM(IFNULL(w.paid,0)) AS paid
-                ,SUM(IFNULL(w.recheck,0)) AS recheck
-                ,SUM(IFNULL(w.support,0)) AS support
-                ,SUM(IFNULL(w.invoice_issued,0) * 3) AS invoice_issued
-                ,SUM(IFNULL(w.ticket_delivery,0)) AS ticket_delivery
-                ,SUM(IFNULL(w.checkin_journey,0)) AS checkin_journey
-                ,SUM(IFNULL(w.recall,0)) AS recall
-                ,SUM(IFNULL(w.remind,0)) AS remind
-                ,SUM(IFNULL(w.check_debt,0)) AS check_debt
-                ,SUM(IFNULL(w.create_repaid,0)) AS create_repaid
-                ,SUM(IFNULL(w.process_repaid,0)) AS process_repaid
-                ,SUM(IFNULL(w.create_payment,0)) AS create_payment
-                ,SUM(IFNULL(w.create_receipt,0)) AS create_receipt
-                ,SUM(IFNULL(w.create_transfer,0)) AS create_transfer
-                ,SUM(IFNULL(w.invoice_input_issued,0)) AS invoice_input_issued
+                ," . implode("
+                ,", $sum_selects) . "
                 ,SUM(
-                    IFNULL(w.called,0)
-                    + IFNULL(w.completed,0)
-                    + IFNULL(w.paid,0)
-                    + IFNULL(w.recheck,0)
-                    + IFNULL(w.support,0)
-                    + (IFNULL(w.invoice_issued,0) * 3)
-                    + IFNULL(w.ticket_delivery,0)
-                    + IFNULL(w.checkin_journey,0)
-                    + IFNULL(w.recall,0)
-                    + IFNULL(w.remind,0)
-                    + IFNULL(w.check_debt,0)
-                    + IFNULL(w.create_repaid,0)
-                    + IFNULL(w.process_repaid,0)
-                    + IFNULL(w.create_payment,0)
-                    + IFNULL(w.create_receipt,0)
-                    + IFNULL(w.create_transfer,0)
-                    + IFNULL(w.invoice_input_issued,0)
+                    " . implode("
+                    + ", $total_parts) . "
                 ) AS total_kpi
             FROM ec_working_process w
             WHERE w.deleted = 0

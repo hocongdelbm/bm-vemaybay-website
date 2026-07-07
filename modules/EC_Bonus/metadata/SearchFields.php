@@ -1,5 +1,5 @@
 <?php
-$module_name = 'EC_Booking_Bonus';
+$module_name = 'EC_Bonus';
 $searchFields[$module_name] = array(
     'name' => array('query_type' => 'default'),
     'flight_date' => array('query_type' => 'default'),

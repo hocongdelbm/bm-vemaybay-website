@@ -1,5 +1,5 @@
 <?php
-$module_name = 'EC_Booking_Bonus';
+$module_name = 'EC_Bonus';
 $searchdefs[$module_name] = array(
     'templateMeta' => array(
         'maxColumns' => '3',

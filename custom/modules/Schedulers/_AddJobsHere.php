@@ -24,7 +24,7 @@ $job_strings[] = 'sendAutoCheapPriceMessageZalo'; // Tự động gửi tin về
 $job_strings[] = 'maintainZaloChat'; // Tự động gửi tin tư vấn Zalo để duy trì tương tác
 $job_strings[] = 'resetRewardPoints'; // Reset lại điểm tích lũy của liên hệ qua booking hằng năm
 $job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
-$job_strings[] = 'saveBonusReportJob'; // Cập nhật dữ liệu thưởng booking vào table ec_booking_bonus
+$job_strings[] = 'saveBonusReportJob'; // Cập nhật dữ liệu thưởng booking vào table ec_bonus
 $job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
 $job_strings[] = 'migrateZaloImagesToNextCloud'; // Đồng bộ ảnh từ Zalo CDN sang VN Backup
 $job_strings[] = 'sendPromotionalSummerZBS'; // Gửi tin nhắn tri ân khách hàng du lịch hè ZBS
@@ -137,12 +137,12 @@ function saveRevenueBookingJob()
 }
 
 /**
- * Save the booking bonus report (last 3 days by flight date) into ec_booking_bonus
+ * Save the booking bonus report (last 3 days by flight date) into ec_bonus
  */
 function saveBonusReportJob()
 {
 	try {
-		EC_Booking_Bonus_Helper::save_bonus_report();
+		EC_Bonus_Helper::save_bonus_report();
 	} catch (Throwable $th) {
 		$message = "Save bonus report failed";
 		$message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";

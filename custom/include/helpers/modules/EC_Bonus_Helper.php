@@ -1,95 +1,21 @@
 <?php
-class EC_Flight_Bookings_Helper
+class EC_Bonus_Helper
 {
     /**
-     * Get online payment link
+     * Compute the bonus report and persist it into ec_bonus,
+     * one record per (parent record, user).
      *
-     * @param string|null $booking_id
-     * @param string|null $created_by_id User id create booking
-     * @return string URL
+     * Re-runnable for the same range: existing rows are updated, and rows
+     * whose (booking, user) no longer appears in the fresh result (e.g. the
+     * booking left status 8) are soft-deleted.
+     *
+     * @param string $fromTime Y-m-d H:i:s, Vietnam timezone
+     * @param string $toTime   Y-m-d H:i:s, Vietnam timezone
+     * @param bool   $isSave   true: also persist the calculated rows into ec_bonus (upsert)
+     * @return array user_id => source_id => ['kpi' => int, 'directBonus' => float, 'indirectBonus' => float]
      */
-    public static function get_online_payment_link(?string $booking_id, ?string $created_by_id)
-    {
-        $booking_id = (string) $booking_id;
-        $created_by_id = (string) $created_by_id;
-
-        $domain_name = get_server_name($created_by_id);
-        if (in_array($domain_name, ['vietjet.net', 'timchuyenbay.com', 'timchuyenbay.vn', 'vemaybay5s.com'])) {
-            $payment_link = "https://$domain_name/thanh-toan-online?bkid=$booking_id";
-        } else {
-            $payment_link = "https://timchuyenbay.vn/thanh-toan-online?bkid=$booking_id";
-        }
-
-        return $payment_link;
-    }
-
-    /**
-     * Get bonus report by flight datetime
-     * 
-     * @param string $from_datetime Follow user's timezone and format
-     * @param string $to_datetime Follow user's timezone and format
-     * @return array
-     */
-    public static function get_bonus_report(string $from_datetime, string $to_datetime) {
-        global $db, $current_user, $sugar_config;
-
-        /******  1. HANDLING DATE & TIME FORMAT  ******/
-
-        $timezone   = $current_user->getPreference('timezone') ?: 'Asia/Ho_Chi_Minh';
-        $dateFormat = $current_user->getPreference('datef') ?: ($sugar_config['datef'] ?? 'd-m-Y');
-        $timeFormat = $current_user->getPreference('timef') ?: ($sugar_config['timef'] ?? 'H:i');
-
-        try {
-            $user_tz = new DateTimeZone($timezone);
-        } catch (Exception $e) {
-            $user_tz = new DateTimeZone('Asia/Ho_Chi_Minh');
-        }
-
-        // $utc_tz = new DateTimeZone('UTC');
-        $vn_tz  = new DateTimeZone('Asia/Ho_Chi_Minh');
-
-        // $from_datetime / $to_datetime đã đúng định dạng của user, chỉ cần parse theo múi giờ user
-        // (thử date+time trước, rồi date-only)
-        $parseUserDate = function ($value) use ($dateFormat, $timeFormat, $user_tz) {
-            $value = trim((string) $value);
-            return DateTime::createFromFormat($dateFormat . ' ' . $timeFormat, $value, $user_tz)
-                ?: (DateTime::createFromFormat($dateFormat . '|', $value, $user_tz) ?: new DateTime('now', $user_tz));
-        };
-        $from_dt = $parseUserDate($from_datetime);
-        $to_dt   = $parseUserDate($to_datetime);
-
-        $from_vn_datetime_db = (clone $from_dt)->setTime(0, 0, 0)->setTimezone($vn_tz)->format('Y-m-d H:i:s');
-        $to_vn_datetime_db   = (clone $to_dt)->setTime(23, 59, 59)->setTimezone($vn_tz)->format('Y-m-d H:i:s');
-
-        // // Use for query KPI
-        // $from_date = $from_dt->format($dateFormat);
-        // $to_date   = $to_dt->format($dateFormat);
-
-        // $from_utc_datetime_db = (clone $from_dt)->setTime(0, 0, 0)->setTimezone($utc_tz)->format('Y-m-d H:i:s');
-        // $to_utc_datetime_db   = (clone $to_dt)->setTime(23, 59, 59)->setTimezone($utc_tz)->format('Y-m-d H:i:s');
-
-        /******  2. HANDLING CONDITIONS  ******/
-
-        $sql_role = "";
-        $view_all = true;
-        if(!is_admin($current_user) && $current_user->title != 'QuanLy') {
-            // Chỉ kế toán trưởng hoặc admin hệ thống mới được xem hết, còn lại xem của mình
-            $is_manager = $db->getOne(
-                "SELECT COUNT(id) 
-                FROM acl_roles_users 
-                WHERE user_id = '{$current_user->id}'
-                    AND role_id IN (
-                        '{$GLOBALS['app_list_strings']['roles_users']['QUANLY']}',
-                        '{$GLOBALS['app_list_strings']['roles_users']['KETOAN']}'
-                    )
-                    AND deleted = 0"
-            );
-
-            if(!$is_manager) {
-                $sql_role .= " AND bk.assigned_user_id = '{$current_user->id}' ";
-                $view_all = false;
-            }
-        }
+    public static function save_bonus_report(string $fromTime = '', string $toTime = '', bool $isSave = false): array {
+        global $db, $current_user;
 
         // Main query (Booking)
         $sql =
@@ -147,7 +73,7 @@ class EC_Flight_Bookings_Helper
                         iti2.departure_date DESC
                     LIMIT 1
                 )
-            WHERE iti.departure_date BETWEEN '$from_vn_datetime_db' AND '$to_vn_datetime_db'
+            WHERE iti.departure_date BETWEEN '$fromTime' AND '$toTime'
                 AND bk.date_ticket_issue > '2026-06-30'
                 AND bk.booking_status = '8'
                 AND bkd.deleted = 0
@@ -174,11 +100,8 @@ class EC_Flight_Bookings_Helper
         //         " . str_replace('bk.', 'rv.', $sql_role) . "
         //     GROUP BY rv.id";
 
-        $result = [
-            'total' => [],
-            'parentInfo' => [],
-            'details' => []
-        ];
+        $results = [];
+        $parentInfo = [];
         $validZaloList = [];
 
         $res = $db->query($sql);
@@ -187,9 +110,13 @@ class EC_Flight_Bookings_Helper
             $cost    = $row['cost'];
             $profit  = $revenue - $cost;
 
-            // Total bonus
-            $totalBonus = 0;
             if($row['parent_type'] == 'EC_Flight_Bookings') {
+                $parentInfo[$row['parent_id']] = [
+                    'name'       => $row['parent_name'],
+                    'type'       => $row['parent_type'],
+                    'flightDate' => $row['flight_date'],
+                ];
+
                 // Unpack booking fields combined by CONCAT in the main query
                 list(
                     $bkId,
@@ -201,16 +128,17 @@ class EC_Flight_Bookings_Helper
                     $bkIsReference
                 ) = array_pad(explode('|', $row['booking_data'] ?? ''), 6, '');
 
-                // Check zalo in booking
+                // Check zalo rule
                 $isValidZalo = 0;
-                if(array_search($bkZaloId, $validZaloList) === false) {
+                if(!isset($validZaloList[$bkZaloId]) && !empty($bkZaloId)) {
                     $isValidZalo = $db->getOne("SELECT COUNT(*) FROM ec_zalo_contacts WHERE zalo_id = '$bkZaloId' AND deleted = 0") ?? 0;
-                    $validZaloList[] = $bkZaloId;
+                    if($isValidZalo) $validZaloList[$bkZaloId] = true;
+                    else $validZaloList[$bkZaloId] = false;
                 }
                 else {
-                    $isValidZalo = 1;
+                    $isValidZalo = empty($bkZaloId) ? 0 : $validZaloList[$bkZaloId];
                 }
-            
+
                 // Percent bonus
                 $bonusPercent = 0;
                 $extraBonusPercent = 0;
@@ -226,14 +154,14 @@ class EC_Flight_Bookings_Helper
                     $bonusPercent = 0.3; // 30%
                     $extraBonusPercent = 0.4; // 40%
                 }
-
+                
                 // Bonus threshold
                 $minThresholdValue = 110000;
                 $extraThresholdValue = 120000;
                 if($bkTicketType == '2') { // International
                     $minThresholdValue = $extraThresholdValue = $bkFlightType === '1' ? 300000 : 600000;
                 }
-                
+
                 $avgProfit = $profit / $bkTicketQty;
 
                 $bonusPerTicket = 0;
@@ -246,71 +174,110 @@ class EC_Flight_Bookings_Helper
                 if(!$isValidZalo) $totalBonus /= 2;
                 $totalDirectBonus   = $totalBonus * 0.7; // For user completed booking
                 $totalIndirectBonus = $totalBonus - $totalDirectBonus;
-                
+
                 // Indirect bonus detail
                 $indirectHeirData    = EC_Working_Process_Helper::get_kpi_by_bookings([$bkId]);
                 $totalIndirectKPI    = $indirectHeirData['total_kpi'] ?: 0;
                 if($totalIndirectKPI > 1) $totalIndirectKPI -= 1; // Remove count of completing step
                 $indirectBonusPerKPI = $totalIndirectBonus / $totalIndirectKPI;
 
-                // Parent-level info, shared by every user working on this booking
-                $result['parentInfo'][$row['parent_id']] = [
-                    'flightDate'         => date("$dateFormat $timeFormat", strtotime($row['flight_date'])),
-                    'parentName'         => $row['parent_name'] ?? '',
-                    'parentType'         => $row['parent_type'] ?? '',
-                    'isInter'            => $bkTicketType == '2' ? true : false,
-                    'totalTicketQty'     => $bkTicketQty,
-                    'totalRevenue'       => $revenue,
-                    'totalCost'          => $cost,
-                    'totalProfit'        => $profit,
-
-                    'avgProfit'          => $avgProfit,
-                    'minThresholdValue'  => $minThresholdValue,
-                    'extraThresholdValue'=> $extraThresholdValue,
-                    'bonusPercent'       => $bonusPercent,
-                    'extraBonusPercent'  => $extraBonusPercent,
-                    'bonusPerTicket'     => $bonusPerTicket,
-
-                    'totalDirectBonus'   => $totalDirectBonus,
-                    'totalIndirectBonus' => $totalIndirectBonus,
-                    'totalIndirectKPI'   => $totalIndirectKPI,
-                ];
-
-                $setDirectBonus = false;
                 foreach($indirectHeirData['bookings'][$bkId] as $userId => $arr) {
-                    if(!$view_all && $userId != $current_user->id) continue;
-
                     $countKPI = $arr['total_kpi'] ?? 0;
-                    if(isset($arr['completed']) && $arr['completed'] > 0) $countKPI -= 1;
+                    if(isset($arr['completed']) && $arr['completed'] > 0) $countKPI -= $arr['completed'];
 
-                    if(!isset($result['total'][$userId])) {
-                        $result['total'][$userId] = $indirectBonusPerKPI * $countKPI;
-                        $result['details'][$userId] = [];
-                    }
-                    else {
-                        $result['total'][$userId] += $indirectBonusPerKPI * $countKPI;
-                    }
+                    if(!isset($results[$userId])) $results[$userId] = [];
 
-                    if(!isset($result['details'][$userId][$row['parent_id']])) {
-                        $result['details'][$userId][$row['parent_id']] = [
+                    if(!isset($results[$userId][$row['parent_id']])) {
+                        $results[$userId][$row['parent_id']] = [
                             'kpi' => $countKPI,
                             'indirectBonus' => $indirectBonusPerKPI * $countKPI,
                         ];
                     }
                     else {
-                        $result['details'][$userId][$row['parent_id']]['indirectBonus'] += $indirectBonusPerKPI * $countKPI;
+                        $results[$userId][$row['parent_id']]['indirectBonus'] += $indirectBonusPerKPI * $countKPI;
                     }
 
-                    if(!$setDirectBonus && $arr['completed'] > 0) {
-                        $result['total'][$userId] += $totalDirectBonus;
-                        $result['details'][$userId][$row['parent_id']]['directBonus'] += $totalDirectBonus;
-                        $setDirectBonus = true;
+                    if($arr['completed'] > 0) {
+                        $results[$userId][$row['parent_id']]['directBonus'] = $totalDirectBonus;
                     }
                 }
             }
-            else if($row['parent_type'] == 'EC_Receipt_Voucher') {}
-            else if($row['parent_type'] == 'EC_HoanVe') {}
         }
-        return $result;
+
+        if (!$isSave) {
+            return $results;
+        }
+
+        // Persist: one ec_bonus row per (source record, user), updated in place when it already exists
+        foreach ($results as $user_id => $bookings) {
+            foreach ($bookings as $parent_id => $row) {
+                $info = $parentInfo[$parent_id] ?? [];
+                $source_type = !empty($info['type']) ? $info['type'] : 'EC_Flight_Bookings';
+
+                $bonusTimeUTC = DatetimeHelper::convert_datetime(
+                    (string) ($info['flightDate'] ?? ''),
+                    'Y-m-d H:i:s', 'Y-m-d H:i:s', 'Asia/Ho_Chi_Minh', 'UTC'
+                ) ?: '';
+
+                $direct   = (float) ($row['directBonus'] ?? 0);
+                $indirect = (float) ($row['indirectBonus'] ?? 0);
+                $kpi      = (int) ($row['kpi'] ?? 0);
+
+                $parent_id_q   = $db->quote((string) $parent_id);
+                $user_id_q     = $db->quote((string) $user_id);
+                $source_type_q = $db->quote((string) $source_type);
+
+                $is_exists = (int) $db->getOne(
+                    "SELECT COUNT(*)
+                    FROM ec_bonus
+                    WHERE source_id = '{$parent_id_q}'
+                        AND source_type = '{$source_type_q}'
+                        AND assigned_user_id = '{$user_id_q}'
+                        AND deleted = 0"
+                );
+
+                if ($is_exists) {
+                    $db->query(
+                        "UPDATE ec_bonus
+                        SET bonus_time = '" . $db->quote($bonusTimeUTC) . "'
+                            ,direct_bonus = {$direct}
+                            ,indirect_bonus = {$indirect}
+                            ,kpi = {$kpi}
+                            ,date_modified = NOW()
+                            ,modified_user_id = '1'
+                        WHERE source_id = '{$parent_id_q}'
+                            AND source_type = '{$source_type_q}'
+                            AND assigned_user_id = '{$user_id_q}'
+                            AND deleted = 0"
+                    );
+                }
+                else {
+                    $bean = BeanFactory::newBean('EC_Bonus');
+                    $bean->name             = (string) ($info['name'] ?? '');
+                    $bean->source_id        = $parent_id;
+                    $bean->source_type      = $source_type;
+                    $bean->assigned_user_id = $user_id;
+                    $bean->bonus_time       = $bonusTimeUTC;
+                    $bean->direct_bonus     = $direct;
+                    $bean->indirect_bonus   = $indirect;
+                    $bean->kpi              = $kpi;
+                    $bean->save();
+                }
+            }
+        }
+
+        return $results;
+
+
+
+
+
+
+
+
+    }
+
+    public static function get_source_bonus($source_id, $source_type) {
+
     }
 }

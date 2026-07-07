@@ -1,5 +1,5 @@
 <?php
-$module_name = 'EC_Booking_Bonus';
+$module_name = 'EC_Bonus';
 $listViewDefs[$module_name] = array(
     'NAME' => array(
         'width' => '15%',

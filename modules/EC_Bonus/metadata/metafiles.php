@@ -1,5 +1,5 @@
 <?php
-$module_name = 'EC_Booking_Bonus';
+$module_name = 'EC_Bonus';
 $metafiles[$module_name] = array(
     'detailviewdefs' => 'modules/' . $module_name . '/metadata/detailviewdefs.php',
     'editviewdefs' => 'modules/' . $module_name . '/metadata/editviewdefs.php',
