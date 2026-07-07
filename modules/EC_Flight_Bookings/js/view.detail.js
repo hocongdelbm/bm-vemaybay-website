@@ -33,7 +33,11 @@ $(document).ready(function () {
 
   if (booking_status == "7" || booking_status == "8") {
     insertPanelEditIcon("LBL_AMOUNT_PANEL", "btnEditInvoiceInf", "Sửa thông tin hoá đơn");
-    insertPanelEditIcon("LBL_LINEDETAILS_PANEL", "edit_bkg_btn", "Sửa chi tiết");
+
+    // Chỉ Admin (is_admin thật của SuiteCRM) mới được sửa giá sau khi đã xuất vé/hoàn tất.
+    if (is_current_user_admin) {
+      insertPanelEditIcon("LBL_LINEDETAILS_PANEL", "edit_bkg_btn", "Sửa chi tiết");
+    }
   }
 
   $(document).on("click", "#btnEditInvoiceInf", function (e) {

@@ -294,8 +294,7 @@ class EC_Flight_Bookings extends Basic
 		$postedFee = unformat_number($_POST['luggage_fee'] ?? 0);
 		if ($postedFee > 999) {
 			$this->luggage_fee = $postedFee;
-		}
-		elseif ((int) $this->luggage_fee < 10) {
+		} elseif ((int) $this->luggage_fee < 10) {
 			$this->luggage_fee = 0;
 		}
 	}
@@ -512,7 +511,8 @@ class EC_Flight_Bookings extends Basic
 		];
 	}
 
-	private function _saveItineraryRow(array $data) {
+	private function _saveItineraryRow(array $data)
+	{
 		/** @var EC_Booking_Itineraries **/
 		$iti = BeanFactory::newBean('EC_Booking_Itineraries');
 
@@ -590,7 +590,12 @@ class EC_Flight_Bookings extends Basic
 	 */
 	private function saveLineDetails()
 	{
-		global $app_list_strings;
+		global $app_list_strings, $current_user;
+
+		// Validate sửa chi tiết vé
+		if (isset($_POST['edit_detail']) && in_array((int)$this->booking_status, [7, 8]) && !is_admin($current_user)) {
+			return;
+		}
 
 		$rows = $_POST['bkd_quantity'] ?? [];
 		$total_bought_amount = 0;
@@ -642,7 +647,8 @@ class EC_Flight_Bookings extends Basic
 	 * Save data detail and return total bought price
 	 * @return float total_bought_price của row này
 	 */
-	private function _saveDetailRow(array $data, array $app_list_strings): float {
+	private function _saveDetailRow(array $data, array $app_list_strings): float
+	{
 		/** @var EC_Booking_Details **/
 		$bkd = BeanFactory::newBean('EC_Booking_Details');
 
@@ -1440,8 +1446,9 @@ class EC_Flight_Bookings extends Basic
 	 * @param string $created_by
 	 * @return bool
 	 */
-	public function isUseNewBaggage($date_entered, $created_by) {
-		if(is_null($date_entered) || is_null($created_by) || empty($date_entered) || empty($created_by)) return true;
+	public function isUseNewBaggage($date_entered, $created_by)
+	{
+		if (is_null($date_entered) || is_null($created_by) || empty($date_entered) || empty($created_by)) return true;
 		global $sugar_config, $current_user;
 		$dateFormat = $current_user->getPreference('datef') ?? $sugar_config['datef'] ?? 'd-m-Y';
 		$timeFormat = $current_user->getPreference('timef') ?? $sugar_config['timef'] ?? 'H:i';

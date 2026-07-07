@@ -3363,7 +3363,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'refund_points') {
 	exit();
 }
 
-
 /**
  * Preview send mail
  */

@@ -216,7 +216,8 @@ trait ButtonsTrait
 		}
 	}
 
-	private function assignChangeBookingStatusButton() {
+	private function assignChangeBookingStatusButton()
+	{
 		global $app_list_strings, $current_user;
 
 		// // Change booking status button
@@ -241,7 +242,8 @@ trait ButtonsTrait
 		}
 	}
 
-	private function assignViewedBookingButton() {
+	private function assignViewedBookingButton()
+	{
 		global $current_user;
 
 		// Những nhân viên đã xem booking
@@ -352,26 +354,23 @@ trait ButtonsTrait
 
 	private function assignPostTicketEditButtons()
 	{
-		// Sửa yêu cầu xuất hoá đơn: không còn là nút toolbar + modal, mà sửa trực tiếp (inline)
-		// trong panel "Thông tin hoá đơn" - xem js/view.detail.js (dùng biến JS global booking_status
-		// đã có sẵn trên trang để quyết định hiện icon sửa, không cần cờ riêng).
+		global $current_user;
+
 		if (in_array((int)$this->bean->booking_status, [7, 8])) {
-			// Edit booking detail: nút "Sửa chi tiết" không còn hiện trên toolbar, thay bằng icon
-			// cạnh header panel "CHI TIẾT VÉ" - xem js/view.detail.js. Modal + bảng sửa giữ nguyên
-			// (không đổi logic tính toán/thêm dòng bên trong, chỉ đổi cách mở modal).
-			$bkg_detail = '
-							</form><form id="bkg_detail" method="post" style="display:none; background-color:#fff;">
-								<input type="hidden" name="module" value="EC_Flight_Bookings">
-								<input type="hidden" name="action" value="Save">
-								<input type="hidden" id="bkg_no" name="record" value="' . $this->bean->id . '">
-								<input type="hidden" name="edit_detail">
-								<div class="detail view in-popup">
-									<h4 class="dialog-title">Chi tiết vé</h4>
-									<table id="tbl_line_details" class="table_config table-edit-details__booking table-details__booking" cellpadding="0" cellspacing="0" border="0"></table>
-								</div>
-								<input class="btn btn-primary mt-2 d-block mx-auto save-popup-dialog" type="submit" value="Lưu">
-							</form>';
-			$this->ss->assign('EDIT_BKG_DETAIL', $bkg_detail);
+			if (is_admin($current_user)) {
+				$bkg_detail = '</form><form id="bkg_detail" method="post" style="display:none; background-color:#fff;">
+									<input type="hidden" name="module" value="EC_Flight_Bookings">
+									<input type="hidden" name="action" value="Save">
+									<input type="hidden" id="bkg_no" name="record" value="' . $this->bean->id . '">
+									<input type="hidden" name="edit_detail">
+									<div class="detail view in-popup">
+										<h4 class="dialog-title">Chi tiết vé</h4>
+										<table id="tbl_line_details" class="table_config table-edit-details__booking table-details__booking" cellpadding="0" cellspacing="0" border="0"></table>
+									</div>
+									<input class="btn btn-primary mt-2 d-block mx-auto save-popup-dialog" type="submit" value="Lưu">
+								</form>';
+				$this->ss->assign('EDIT_BKG_DETAIL', $bkg_detail);
+			}
 
 			// Change name - Đổi tên hành khách
 			$change_name = <<<HTML
@@ -502,5 +501,4 @@ trait ButtonsTrait
 			</div>'
 		);
 	}
-
 }
