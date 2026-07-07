@@ -18,18 +18,12 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 	$html = '';
 
 	$sql_search = "";
-	// từ ngày
-	if (isset($_POST['from_date']) && !empty($_POST['from_date'])) {
-		$sql_search .= " AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) >= '" . date('Y-m-d', strtotime($from_date)) . "' ";
-	} else {
-		$sql_search .= " AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) >= '" . date('Y-m-d') . "' ";
-	}
-	// đến ngày
-	if (isset($_POST['to_date']) && !empty($_POST['to_date'])) {
-		$sql_search .= " AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($to_date)) . "' ";
-	} else {
-		$sql_search .= " AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) <= '" . date('Y-m-d') . "' ";
-	}
+	
+	$from_date_vn = (isset($_POST['from_date']) && !empty($_POST['from_date'])) ? $from_date : date('d-m-Y');
+	$to_date_vn   = (isset($_POST['to_date']) && !empty($_POST['to_date'])) ? $to_date : date('d-m-Y');
+	$from_utc = gmdate('Y-m-d H:i:s', strtotime($from_date_vn . ' 00:00:00'));
+	$to_utc   = gmdate('Y-m-d H:i:s', strtotime($to_date_vn . ' 23:59:59'));
+	$sql_search .= " AND w.date_entered >= '{$from_utc}' AND w.date_entered <= '{$to_utc}' ";
 
 	// Filter by employee kpi type
 	if (isset($_POST['kpi_type']) && !empty($_POST['kpi_type']) && in_array($_POST['kpi_type'], array_keys($app_list_strings['employee_kpi_type_list']))) {

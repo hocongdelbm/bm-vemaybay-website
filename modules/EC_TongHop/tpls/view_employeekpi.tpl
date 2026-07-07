@@ -102,21 +102,24 @@
 			});
 			
 			// When dialog open
-			$('#dlgViewDetail').on('dialogopen', function(event, ui){					
+			$('#dlgViewDetail').on('dialogopen', function(event, ui){
 				let load_type 	= $.trim($('#load_type').val());
 				let user_id 	= $.trim($('#user_id').val());
 				let from_date 	= $('#from_date').val();
 				let to_date 	= $('#to_date').val();
 
 				if(load_type != ''){
-					$.ajax({	
+					$('#dlgViewDetailContent').html('<div class="dlg-loading" style="text-align:center;padding:60px 0;"><img src="themes/SuiteP/images/loading.gif" width="32"><div style="margin-top:10px;">Đang tải dữ liệu...</div></div>');
+					$.ajax({
 						cache: false,
 						type: 'post',
 						data: 'load_type=' + load_type + '&from_date='+ from_date +'&to_date=' + to_date + '&user_id=' + user_id,
-						async: false,
 						url: 'index.php?entryPoint=entryPointLoadWorkingProcessDetail',
 						success: function(output){
 							$('#dlgViewDetailContent').html(output);
+						},
+						error: function(){
+							$('#dlgViewDetailContent').html('<div style="text-align:center;padding:60px 0;color:#c00;">Có lỗi khi tải dữ liệu, vui lòng thử lại.</div>');
 						}
 					});
 				}
@@ -130,14 +133,17 @@
 				let from_date 	= $('#from_date').val();
 				let to_date 	= $('#to_date').val();
 
-				$.ajax({	
+				$('#dlgViewDetailContent').html('<div class="dlg-loading" style="text-align:center;padding:60px 0;"><img src="themes/SuiteP/images/loading.gif" width="32"><div style="margin-top:10px;">Đang tải dữ liệu...</div></div>');
+				$.ajax({
 					cache: false,
 					type: 'post',
 					data: 'load_type=' + load_type + '&from_date='+ from_date +'&to_date=' + to_date + '&user_id=' + user_id + '&kpi_type=' + kpi_type,
-					async: false,
 					url: 'index.php?entryPoint=entryPointLoadWorkingProcessDetail',
 					success: function(output){
 						$('#dlgViewDetailContent').html(output);
+					},
+					error: function(){
+						$('#dlgViewDetailContent').html('<div style="text-align:center;padding:60px 0;color:#c00;">Có lỗi khi tải dữ liệu, vui lòng thử lại.</div>');
 					}
 				});
 			});
