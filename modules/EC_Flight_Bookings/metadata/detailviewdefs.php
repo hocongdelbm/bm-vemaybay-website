@@ -24,16 +24,10 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CREATE_RV}',
                 ),
                 array(
-                    'customCode' => '{$MARK_AS_REFERENCE}',
-                ),
-                array(
                     'customCode' => '{$TICKET_RETURN}',
                 ),
                 array(
                     'customCode' => '{$PUBLISHED_TO_WEB}',
-                ),
-                array(
-                    'customCode' => '{$CREATE_INVOICE}',
                 ),
                 // Thay đổi code vé / PNR / nhà cung cấp
                 array(
@@ -51,9 +45,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
                 array(
                     'customCode' => '{$CHANGE_STATUS}',
-                ),
-                array(
-                    'customCode' => '{$UPDATE_REVENUE}',
                 ),
                 array(
                     'customCode' => '{$VIEWED_BOOKING}',

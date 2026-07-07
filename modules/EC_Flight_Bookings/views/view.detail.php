@@ -97,9 +97,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Receipt voucher button
 		$this->assignCreateReceiptVoucherButton();
 
-		// Reference booking button
-		$this->assignMarkAsReferenceButton();
-
 		// Ticket return button
 		$this->assignTicketReturnButton();
 
@@ -111,9 +108,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// Print and send button
 		$this->assignPrintAndSendTicketButton();
-
-		// Revenue update button
-		$this->assignUpdateRevenueButton();
 	}
 
 	/**
@@ -274,9 +268,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// Edited passengers
 		$html .= $this->renderEditedPassengerRows($passengerRows['edited']);
-		$html .= '</tbody>
-			' . $this->populateEditedInfo(2) . '
-			</table>';
+		$html .= '</tbody></table>';
 
 		return $html;
 	}

@@ -329,26 +329,6 @@ trait ButtonsTrait
 		}
 	}
 
-	private function assignMarkAsReferenceButton()
-	{
-		// Mark as preference button
-		$mask_as_refer = '';
-		if (!$this->bean->is_reference) {
-			$mask_as_refer = <<<HTML
-				</form>
-				<form action="index.php" method="post" name="frmMarkAdPreferance" id="frmMarkAdPreferance">
-					<input type="hidden" name="module" value="{$this->bean->object_name}" />
-					<input type="hidden" name="action" value="Save" />
-					<input type="hidden" name="record" value="{$this->bean->id}" />
-					<input type="hidden" name="record_name" value="{$this->bean->name}" />
-					<input type="hidden" name="is_reference" value="1" />
-					<input type="submit" name="btnMarkAsPreference" id="btnMarkAsPreference" class="btn btn-primary" value="BK tham khảo" title="BK tham khảo" onclick="return confirm('Bạn có chắc chắn muốn đánh dấu đây là BK tham khảo?');"/>									
-				</form>
-			HTML;
-		}
-		$this->ss->assign('MARK_AS_REFERENCE', $mask_as_refer);
-	}
-
 	private function assignTicketReturnButton()
 	{
 		if (
@@ -372,24 +352,14 @@ trait ButtonsTrait
 
 	private function assignPostTicketEditButtons()
 	{
-		// Create invoice button
+		// Sửa yêu cầu xuất hoá đơn: không còn là nút toolbar + modal, mà sửa trực tiếp (inline)
+		// trong panel "Thông tin hoá đơn" - xem js/view.detail.js (dùng biến JS global booking_status
+		// đã có sẵn trên trang để quyết định hiện icon sửa, không cần cờ riêng).
 		if (in_array((int)$this->bean->booking_status, [7, 8])) {
-			$create_inv = '
-			<input type="button" id="btnCreateInvoice" class="btn btn-warning" value="Sửa YC xuất HĐ" title="Sửa YC xuất HĐ" />
-			</form>
-			<form id="edit_invoice_frm" method="post" style="display:none; background-color:#fff;" name="edit_invoice_frm">
-				<input type="hidden" name="module" value="EC_Flight_Bookings">
-				<input type="hidden" name="action" value="Save">
-				<input type="hidden" name="booking_id" value="' . $this->bean->id . '">
-				<div class="detail view" id="invoice_inf"></div>
-				<div class="text-center">
-					<input class="btn btn-primary save-popup-dialog" type="submit" value="Lưu" name="save_request_invoice">
-				</div>
-			</form>';
-			$this->ss->assign('CREATE_INVOICE', $create_inv);
-
-			// Edit booking detail
-			$bkg_detail = '<input type="button" class="btn btn-warning" id="edit_bkg_btn" value="Sửa chi tiết">
+			// Edit booking detail: nút "Sửa chi tiết" không còn hiện trên toolbar, thay bằng icon
+			// cạnh header panel "CHI TIẾT VÉ" - xem js/view.detail.js. Modal + bảng sửa giữ nguyên
+			// (không đổi logic tính toán/thêm dòng bên trong, chỉ đổi cách mở modal).
+			$bkg_detail = '
 							</form><form id="bkg_detail" method="post" style="display:none; background-color:#fff;">
 								<input type="hidden" name="module" value="EC_Flight_Bookings">
 								<input type="hidden" name="action" value="Save">
@@ -533,16 +503,4 @@ trait ButtonsTrait
 		);
 	}
 
-	private function assignUpdateRevenueButton()
-	{
-		global $current_user;
-
-		// Cập nhật doanh số của booking trong table ec_revenue
-		$update_revenue = '';
-		if (is_admin($current_user) && $current_user->user_name == 'hungnh') {
-			$update_revenue = '<input id="update_revenue" class="btn btn-primary" type="button" value="Cập nhật DS">';
-		}
-
-		$this->ss->assign('UPDATE_REVENUE', $update_revenue);
-	}
 }

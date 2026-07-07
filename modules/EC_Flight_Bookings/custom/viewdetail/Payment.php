@@ -3,9 +3,6 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /**
  * SMS payment template, QR code, and payment dialog rendering.
- *
- * Used by EC_Flight_BookingsViewDetail. Methods are kept close to the
- * legacy implementation to preserve the old business behavior.
  */
 trait PaymentTrait
 {
@@ -74,7 +71,7 @@ trait PaymentTrait
 		echo $html;
 	}
 
-	function getSMSPaymentTemplate()
+	public function getSMSPaymentTemplate()
 	{
 		// Lấy danh sách tài khoản ngân hàng đang theo dõi để đổ vào mẫu SMS thanh toán.
 		$sql = 'SELECT ba.account_number AS account,
@@ -115,7 +112,6 @@ trait PaymentTrait
 		}
 		return $html;
 	}
-
 
 	public function generateDialogGetQRCode($amount, $phone)
 	{
@@ -164,9 +160,4 @@ trait PaymentTrait
 					</div>
 				</dialog>';
 	}
-
-	/**
-	 * Normalize an internal airline code to its display code, logo code, and image style.
-	 * Returns ['code' => string, 'logo' => string, 'img_style' => string].
-	 */
 }

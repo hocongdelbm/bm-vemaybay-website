@@ -51,10 +51,29 @@ trait BookingFieldsTrait
 		$this->ss->assign('CUSTOM_CUSTOMER_SOURCE', $customer_source);
 	}
 
+	// Đánh dấu người dùng chủ động gắn cho booking - luôn xác nhận trước khi lưu (onclick confirm()),
+	// checkbox tự submit 1 form riêng (kiểu is_telesale/is_ctv có sẵn), không cần nút riêng trên toolbar.
+	private function renderActiveBookmarkCheckbox(string $fieldId, string $confirmMessage, string $hiddenFieldName = '')
+	{
+		$hiddenFieldName = $hiddenFieldName ?: $fieldId;
+		$confirmJs = "if(confirm('" . $confirmMessage . "')){this.form.submit();$('.container-waiting').show();}else{this.checked=false;}";
+
+		return '
+			</form><form name="frmCheck' . $fieldId . '" id="frmCheck' . $fieldId . '" action="index.php" method="post">
+				<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
+				<input type="hidden" name="action" value="Save" />
+				<input type="hidden" name="record" value="' . $this->bean->id . '" />
+				<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+				<input type="hidden" name="' . $hiddenFieldName . '" value="1" />
+				<input type="checkbox" name="' . $fieldId . '" id="check' . $fieldId . '" onclick="' . $confirmJs . '" />
+			</form>';
+	}
+
 	private function assignBookingBookmarkField()
 	{
-		// Đánh dấu
-		$list_bookmark = '<div class="d-flex align-items-start flex-nowrap gap-3">';
+		// Đánh dấu - các cờ người dùng CHỦ ĐỘNG gắn cho booking (luôn xác nhận trước khi lưu)
+		$list_bookmark = '<div class="d-flex align-items-start flex-wrap gap-3">';
+
 		// Telesale
 		if ($this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
 			$call_name = $this->bean->db->getOne("SELECT name FROM calls WHERE id = '{$this->bean->telesale_call_id}' AND deleted = 0") ?? '';
@@ -66,16 +85,9 @@ trait BookingFieldsTrait
 			</div>';
 		} elseif ((int)$this->bean->booking_status === 8) {
 			$list_bookmark .= '<div class="item small">
-				</form><form name="frmCheckIsTelesale" id="frmCheckIsTelesale" action="index.php" method="post">
-					<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
-					<input type="hidden" name="action" value="Save" />
-					<input type="hidden" name="record" value="' . $this->bean->id . '" />
-					<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-					<input type="hidden" name="is_telesale_value" value="1" />
-					<label for="checkIsTelesale">Là BK Telesale</label>
-					<input type="checkbox" name="is_telesale" id="checkIsTelesale" onclick="this.form.submit(); $(\'.container-waiting\').show();" />
-				</form>
-			</div>';
+				<label for="checkIsTelesale">Là BK Telesale</label>'
+				. $this->renderActiveBookmarkCheckbox('IsTelesale', 'Bạn có chắc chắn muốn đánh dấu đây là BK Telesale?', 'is_telesale_value') .
+			'</div>';
 		}
 
 		// CTV
@@ -86,40 +98,23 @@ trait BookingFieldsTrait
 			</div>';
 		} else if ((int)$this->bean->booking_status === 8) {
 			$list_bookmark .= '<div class="item small">
-				</form><form name="frmCheckIsCTV" id="frmCheckIsCTV" action="index.php" method="post">
-					<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
-					<input type="hidden" name="action" value="Save" />
-					<input type="hidden" name="record" value="' . $this->bean->id . '" />
-					<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-					<input type="hidden" name="is_ctv_value" value="1" />
-					<label for="checkIsCTV">Là CTV</label>
-					<input type="checkbox" name="is_ctv" id="checkIsCTV" onclick="this.form.submit(); $(\'.container-waiting\').show();" />
-				</form>
-			</div>';
+				<label for="checkIsCTV">Là CTV</label>'
+				. $this->renderActiveBookmarkCheckbox('IsCTV', 'Bạn có chắc chắn muốn đánh dấu đây là BK của CTV?', 'is_ctv_value') .
+			'</div>';
 		}
 
-		// Đại lý
-		if ($this->bean->is_agent && !empty($this->bean->agent_id)) {
+		// BK tham khảo - trước đây là nút riêng trên toolbar (BK tham khảo), nay gộp vào checkbox này
+		if ($this->bean->is_reference) {
 			$list_bookmark .= '<div class="item small">
-				<label for="is_agent">Là đại lý</label>
-				<input type="checkbox" name="is_agent" id="check_is_agent" checked disabled />
-				<br />
-				<a href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
-					' . $this->bean->agent_name . '
-				</a>
+				<label for="checkIsReference">BK tham khảo</label>
+				<input type="checkbox" id="checkIsReference" checked disabled />
 			</div>';
 		} else {
 			$list_bookmark .= '<div class="item small">
-				<label for="check_is_agent">Là đại lý</label>
-				<input type="checkbox" name="is_agent" id="check_is_agent" disabled />
-			</div>';
+				<label for="checkIsReference">BK tham khảo</label>'
+				. $this->renderActiveBookmarkCheckbox('IsReference', 'Bạn có chắc chắn muốn đánh dấu đây là BK tham khảo?', 'is_reference') .
+			'</div>';
 		}
-
-		// Đã giữ chỗ
-		$list_bookmark .= '<div class="item small">
-			<label for="is_hold">Đã giữ chỗ</label>
-			<input type="checkbox" name="is_hold" id="check_is_hold" ' . ($this->bean->is_hold ? 'checked' : '') . ' disabled />
-		</div>';
 
 		$list_bookmark .= '</div>';
 		$this->ss->assign('CUSTOM_BOOKMARK', $list_bookmark);
@@ -127,17 +122,29 @@ trait BookingFieldsTrait
 
 	private function assignSystemBookmarkField()
 	{
-		// Hệ thống đánh dấu
+		// Hệ thống đánh dấu - các cờ do HỆ THỐNG/quy trình khác tự set (không thao tác trực tiếp ở đây)
 		$checkedIsPrior = $this->bean->is_prior ? 'checked' : '';
 		$checkedIsMailConfirm = $this->bean->is_mail_confirm ? 'checked' : '';
-		$checkedIsReference = $this->bean->is_reference ? 'checked' : '';
-		$this->ss->assign('CUSTOM_BOOKMARK_SYSTEM', <<<HTML
-			<div class="d-flex align-items-center gap-3">
-				<div class="item small"><input type="checkbox" id="is_prior" $checkedIsPrior disabled /> <label>Vé cận</label></div>
-				<div class="item small"><input type="checkbox" id="is_mail_confirm" $checkedIsMailConfirm disabled /> <label>Mail xác nhận</label></div>
-				<div class="item small"><input type="checkbox" id="is_reference" $checkedIsReference disabled /> <label>BK tham khảo</label></div>
-		</div>
-		HTML);
+		$checkedIsHold = $this->bean->is_hold ? 'checked' : '';
+
+		$agentHtml = '<div class="item small">
+			<label for="check_is_agent">Là đại lý</label>
+			<input type="checkbox" name="is_agent" id="check_is_agent" ' . ($this->bean->is_agent ? 'checked' : '') . ' disabled />';
+		if ($this->bean->is_agent && !empty($this->bean->agent_id)) {
+			$agentHtml .= '<br /><a href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">' . $this->bean->agent_name . '</a>';
+		}
+		$agentHtml .= '</div>';
+
+		$this->ss->assign('CUSTOM_BOOKMARK_SYSTEM', '
+			<div class="d-flex align-items-start flex-wrap gap-3">
+				<div class="item small"><input type="checkbox" id="is_prior" ' . $checkedIsPrior . ' disabled /> <label>Vé cận</label></div>
+				<div class="item small"><input type="checkbox" id="is_mail_confirm" ' . $checkedIsMailConfirm . ' disabled /> <label>Mail xác nhận</label></div>
+				' . $agentHtml . '
+				<div class="item small">
+					<label for="check_is_hold">Đã giữ chỗ</label>
+					<input type="checkbox" name="is_hold" id="check_is_hold" ' . $checkedIsHold . ' disabled />
+				</div>
+			</div>');
 	}
 
 	private function assignTicketExportedField()
@@ -711,8 +718,15 @@ trait BookingFieldsTrait
 		$bk_amt = calculateBKAmt($this->bean->id);
 		$total_profit = format_number($bk_amt['total_profit'] ?? 0);
 		if (is_admin($current_user)) {
-			$total_profit .= '<button class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#profitBookingModal">Chi tiết D/số</button>
-							<div class="modal fade" id="profitBookingModal" tabindex="-1" aria-labelledby="profitBookingModalLabel" aria-hidden="true">
+			$total_profit .= '<button class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#profitBookingModal">Chi tiết D/số</button>';
+
+			// Cập nhật doanh số của booking trong table ec_revenue - trước đây là nút riêng trên toolbar,
+			// nay đặt cạnh "Chi tiết D/số" vì cùng nói về doanh số. Giữ nguyên logic + phân quyền cũ.
+			if ($current_user->user_name == 'hungnh') {
+				$total_profit .= '<input id="update_revenue" class="btn btn-primary btn-sm ms-2" type="button" value="Cập nhật DS">';
+			}
+
+			$total_profit .= '<div class="modal fade" id="profitBookingModal" tabindex="-1" aria-labelledby="profitBookingModalLabel" aria-hidden="true">
 								<div class="modal-dialog modal-dialog-centered">
 									<div class="modal-content">
 										<div class="modal-body">

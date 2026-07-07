@@ -5,27 +5,30 @@ trait AssetsTrait
 {
 	private function displayCSSTrait()
 	{
-		echo <<<HTML
-			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css" />
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.4.4" />
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.4.4" />
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=2.4.4" />
-		HTML;
+		$cssVer   = inDeveloperMode() ? time() : '1.2.4';
+
+		$css = '<link type="text/css" rel="stylesheet" href="themes/SuiteP/libs/css/select2.min.css" />' .
+			'<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.detail.css?v=' . $cssVer . '" />' .
+			'<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/api_zalo.css?v=' . $cssVer . '" />' .
+			'<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/autobook.css?v=' . $cssVer . '" />';
+
+		echo $css;
 	}
 
 	private function displayJSTrait()
 	{
 		global $app_list_strings, $current_user;
 
-		// Load các file JS riêng của detail view: xử lý popup, autobook, Zalo/SMS, tài liệu, in vé.
-		$js = <<<HTML
-			<script src="modules/{$this->bean->module_dir}/js/view.detail.js?v=1.2.3"></script>
-			<script src="modules/{$this->bean->module_dir}/js/autobook.js?v=1.2.3"></script>
-			<script src="modules/{$this->bean->module_dir}/js/api_zalo.js?v=1.2.3"></script>
-			<script src="modules/{$this->bean->module_dir}/js/api_sms.js?v=1.2.3"></script>
-			<script src="modules/{$this->bean->module_dir}/js/doc_list.js?v=1.2.3"></script>
-			<script src="modules/{$this->bean->module_dir}/js/print_ticket_new.js?v=1.2.3"></script>
-		HTML;
+		$jsVer   = inDeveloperMode() ? time() : '1.2.4';
+
+		$js = '
+				<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=' . $jsVer . '"></script>
+				<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=' . $jsVer . '"></script>
+				<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=' . $jsVer . '"></script>
+				<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=' . $jsVer . '"></script>
+				<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=' . $jsVer . '"></script>
+				<script src="modules/' . $this->bean->module_dir . '/js/print_ticket_new.js?v=' . $jsVer . '"></script>
+			';
 
 		// Map [iata_code => logo_url] để JS lấy logo hãng bay qua EC_Airlines::getLogoUrl() thay vì tự build đường dẫn ảnh tĩnh.
 		$airlineLogoMap = [];
