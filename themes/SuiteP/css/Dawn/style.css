@@ -10826,6 +10826,14 @@ table.subpanel-table .pagination .action_buttons .button:hover {
   width: 100%;
 }
 
+.panel-default>.panel-heading>button {
+     background: transparent;
+     border: none;
+     outline: none;
+     text-align: left;
+     text-transform: uppercase;
+}
+
 .panel-heading-icon svg {
   fill: var(--white-color);
 }

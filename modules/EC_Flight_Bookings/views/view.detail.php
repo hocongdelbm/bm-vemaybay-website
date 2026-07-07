@@ -97,9 +97,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Receipt voucher button
 		$this->assignCreateReceiptVoucherButton();
 
-		// Reference booking button
-		$this->assignMarkAsReferenceButton();
-
 		// Ticket return button
 		$this->assignTicketReturnButton();
 

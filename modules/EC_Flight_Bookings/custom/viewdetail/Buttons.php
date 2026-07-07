@@ -329,26 +329,6 @@ trait ButtonsTrait
 		}
 	}
 
-	private function assignMarkAsReferenceButton()
-	{
-		// Mark as preference button
-		$mask_as_refer = '';
-		if (!$this->bean->is_reference) {
-			$mask_as_refer = <<<HTML
-				</form>
-				<form action="index.php" method="post" name="frmMarkAdPreferance" id="frmMarkAdPreferance">
-					<input type="hidden" name="module" value="{$this->bean->object_name}" />
-					<input type="hidden" name="action" value="Save" />
-					<input type="hidden" name="record" value="{$this->bean->id}" />
-					<input type="hidden" name="record_name" value="{$this->bean->name}" />
-					<input type="hidden" name="is_reference" value="1" />
-					<input type="submit" name="btnMarkAsPreference" id="btnMarkAsPreference" class="btn btn-primary" value="BK tham khảo" title="BK tham khảo" onclick="return confirm('Bạn có chắc chắn muốn đánh dấu đây là BK tham khảo?');"/>									
-				</form>
-			HTML;
-		}
-		$this->ss->assign('MARK_AS_REFERENCE', $mask_as_refer);
-	}
-
 	private function assignTicketReturnButton()
 	{
 		if (

@@ -24,9 +24,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CREATE_RV}',
                 ),
                 array(
-                    'customCode' => '{$MARK_AS_REFERENCE}',
-                ),
-                array(
                     'customCode' => '{$TICKET_RETURN}',
                 ),
                 array(
