@@ -331,7 +331,6 @@ trait ItineraryTrait
 	{
 		/* CHANGE FLIGHT TIME INFO */
 		$html .= $this->renderEditedLineItineraries($editedRows);
-		$html .= $this->populateEditedInfo(3);
 		$html .= '</table>';
 
 		/* POPUP LÝ DO THẮNG THUA */
@@ -838,20 +837,5 @@ trait ItineraryTrait
 			'arrival' => $row['arrival'] ?? '',
 			'depDate' => !empty($row['departure_date']) ? date($date_format . ' H:i', strtotime($row['departure_date'])) : '',
 		];
-	}
-
-
-	function populateEditedInfo($type)
-	{
-		$html = '';
-		switch ($type) {
-			case 2:
-				$html = '<tfoot><tr class="footer-tr edited_pass_line hide-mobile"><td class="text-start" colspan="13"><b>Thông tin hành khách có thay đổi:</b> <span id="no-change__edit-pass"></span></td></tr></tfoot>';
-				break;
-			case 3:
-				$html = '<tfoot><tr class="footer-tr edited_iti_line hide-mobile"><td class="text-start" colspan="13"><b>Thông tin đổi ngày bay / hành trình:</b><span id="no-change__edit-iti"></span></td></tr></tfoot>';
-				break;
-		}
-		return $html;
 	}
 }

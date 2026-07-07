@@ -274,9 +274,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// Edited passengers
 		$html .= $this->renderEditedPassengerRows($passengerRows['edited']);
-		$html .= '</tbody>
-			' . $this->populateEditedInfo(2) . '
-			</table>';
+		$html .= '</tbody></table>';
 
 		return $html;
 	}

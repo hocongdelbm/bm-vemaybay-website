@@ -1156,10 +1156,10 @@ form.tbl-change-flight-time {
   position: relative;
 }
 
-.invoice-inf-edit-icon {
+.panel-inline-edit-icon {
   position: absolute;
   top: 50%;
-  right: 44px;
+  right: 50px;
   transform: translateY(-50%);
   z-index: 5;
   background: transparent;
@@ -1167,6 +1167,11 @@ form.tbl-change-flight-time {
   cursor: pointer;
   padding: 4px;
   line-height: 1;
+}
+
+.panel-default > .panel-heading > button.panel-inline-edit-icon {
+  width: auto;
+  padding: 5px;
 }
 
 .invoice-inf-actions-row {

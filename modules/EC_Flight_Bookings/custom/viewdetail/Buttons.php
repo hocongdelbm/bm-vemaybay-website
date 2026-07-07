@@ -376,8 +376,10 @@ trait ButtonsTrait
 		// trong panel "Thông tin hoá đơn" - xem js/view.detail.js (dùng biến JS global booking_status
 		// đã có sẵn trên trang để quyết định hiện icon sửa, không cần cờ riêng).
 		if (in_array((int)$this->bean->booking_status, [7, 8])) {
-			// Edit booking detail
-			$bkg_detail = '<input type="button" class="btn btn-warning" id="edit_bkg_btn" value="Sửa chi tiết">
+			// Edit booking detail: nút "Sửa chi tiết" không còn hiện trên toolbar, thay bằng icon
+			// cạnh header panel "CHI TIẾT VÉ" - xem js/view.detail.js. Modal + bảng sửa giữ nguyên
+			// (không đổi logic tính toán/thêm dòng bên trong, chỉ đổi cách mở modal).
+			$bkg_detail = '
 							</form><form id="bkg_detail" method="post" style="display:none; background-color:#fff;">
 								<input type="hidden" name="module" value="EC_Flight_Bookings">
 								<input type="hidden" name="action" value="Save">

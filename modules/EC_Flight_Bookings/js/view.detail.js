@@ -18,21 +18,22 @@ $(document).ready(function () {
   ];
   let invoiceInfEditState = null;
 
-  // Thẻ <a class="panel-heading-collapsed"> chiếm width:100% của .panel-heading (theme rule
-  // ".panel-default > .panel-heading > a { width: 100% }") nên mọi phần tử lồng bên trong nó
-  // đều nằm trong vùng click "thu gọn panel". Icon sửa phải là SIBLING của thẻ <a> đó (nằm ngoài,
-  // định vị bằng absolute) để không bị trùng vùng click, thay vì chèn vào bên trong.
+  function insertPanelEditIcon(panelDataId, buttonId, title) {
+    const $panelBody = $('.panelContainer[data-id="' + panelDataId + '"]');
+    const $panelHeading = $panelBody.prev(".panel-heading");
+    if (!$panelHeading.length) return;
+
+    $panelHeading.append(
+      '<button type="button" id="' + buttonId + '" class="panel-inline-edit-icon" title="' + title + '">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">' +
+        '<path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zm.854.708L1.982 12.02l-.85 2.128 2.127-.849L14.293 2.207zM11.207 3.5 12.5 4.793 13.793 3.5 12.5 2.207z"/>' +
+        "</svg></button>",
+    );
+  }
+
   if (booking_status == "7" || booking_status == "8") {
-    const $invoicePanelBody = $('.panelContainer[data-id="LBL_AMOUNT_PANEL"]');
-    const $panelHeading = $invoicePanelBody.prev(".panel-heading");
-    if ($panelHeading.length) {
-      $panelHeading.append(
-        '<button type="button" id="btnEditInvoiceInf" class="invoice-inf-edit-icon" title="Sửa thông tin hoá đơn">' +
-          '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">' +
-          '<path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zm.854.708L1.982 12.02l-.85 2.128 2.127-.849L14.293 2.207zM11.207 3.5 12.5 4.793 13.793 3.5 12.5 2.207z"/>' +
-          "</svg></button>",
-      );
-    }
+    insertPanelEditIcon("LBL_AMOUNT_PANEL", "btnEditInvoiceInf", "Sửa thông tin hoá đơn");
+    insertPanelEditIcon("LBL_LINEDETAILS_PANEL", "edit_bkg_btn", "Sửa chi tiết");
   }
 
   $(document).on("click", "#btnEditInvoiceInf", function (e) {
@@ -168,7 +169,6 @@ $(document).ready(function () {
         $(".container-waiting").show();
       },
       success: function (response) {
-        $(".container-waiting").hide();
         if (!response || !response.success) {
           showModalNotify(
             0,
@@ -186,12 +186,13 @@ $(document).ready(function () {
         invoiceInfEditState.$actionsRow.remove();
         invoiceInfEditState.$icon.show();
         invoiceInfEditState = null;
-        showModalNotify(1, "Cập nhật thông tin hoá đơn thành công");
       },
       error: function () {
-        $(".container-waiting").hide();
         showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
       },
+      complete: function(){
+        $(".container-waiting").hide();
+      }
     });
   });
 
@@ -343,8 +344,6 @@ $(document).ready(function () {
       }
     }
   });
-
-  renderPreloadedChangeState();
 
   // Sửa thông tin hành trình thay đổi nếu có nhập sai
   $(document).on("click", ".edit_iti_row", function () {
@@ -3385,32 +3384,4 @@ function getAirLineInf() {
   }
 
   return iti_airline;
-}
-
-function renderPreloadedChangeState() {
-  var $itineraryTable = $(
-    "div[data-id='LBL_LINEITINERARIES_PANEL'] table#itinerary_tbl",
-  );
-  if (
-    $itineraryTable.length &&
-    $itineraryTable.find("tbody .edited_iti_line").length === 0
-  ) {
-    $itineraryTable
-      .find("#no-change__edit-iti")
-      .text(" Không có thông tin thay đổi ngày bay.");
-  }
-
-  var $passengerTable = $(
-    "div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax",
-  );
-  if (
-    $passengerTable.length &&
-    $passengerTable.find(
-      "tbody .edited_pass_line, tbody .edited_pass_group, tbody .psg-line[data-times-change]",
-    ).length === 0
-  ) {
-    $passengerTable
-      .find("#no-change__edit-pass")
-      .text("Chưa có hành khách nào thay đổi thông tin.");
-  }
 }
