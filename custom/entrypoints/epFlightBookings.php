@@ -587,6 +587,11 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeCheckinStatus') {
 	}
 
 	$journey_id = $db->quote($journey_id);
+
+	// Lấy tình trạng checkin trước đó để chỉ tính KPI khi thực sự chuyển sang "đã checkin"
+	// (tránh tạo KPI trùng nếu bấm checkin nhiều lần / request bị gửi lại cho cùng 1 journey)
+	$prev_checkin_status = (int) $db->getOne("SELECT checkin_status FROM ec_booking_itineraries WHERE id = '{$journey_id}'");
+
 	$sql = "
         UPDATE ec_booking_itineraries
         SET checkin_status = {$status}
@@ -595,7 +600,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeCheckinStatus') {
 	$result = $db->query($sql);
 
 	if ($result) {
-		if ($status === 2) {
+		if ($status === 2 && $prev_checkin_status !== 2) {
 			// Lưu KPI
 			$description = 'Đã Check in hành trình ' . $journey_name . ' (Checkin)';
 			myCreateWorkingProcess($module_name, $booking_id, $record_name, $description, $current_user->id, 'checkin_journey');

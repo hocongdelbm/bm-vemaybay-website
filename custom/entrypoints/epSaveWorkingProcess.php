@@ -44,7 +44,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 			// Kiểm tra đã tồn tại
 			$sql_exist = "
 				SELECT IF(id IS NOT NULL, 1, 0)
-				FROM ec_working_process 
+				FROM ec_working_process
 				WHERE parent_id = '$record' AND paid > 0 AND deleted = 0
 			";
 			$is_exist = $db->getOne($sql_exist);
@@ -52,6 +52,18 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 				echo 2;
 				exit();
 			}
+		}
+
+		// Kiểm tra đối với trường hợp booking đã xác nhận, chỉ tính 1 lần
+		if ($booking_status == '3' && isWorkingProcessExisting($module, $record, 'confirmed')) {
+			echo 2;
+			exit();
+		}
+
+		// Kiểm tra đối với trường hợp booking đã hoàn tất, chỉ tính 1 lần
+		if ($booking_status == '8' && is_null($support_customer) && isWorkingProcessExisting($module, $record, 'completed')) {
+			echo 2;
+			exit();
 		}
 
 		// Save note in db
