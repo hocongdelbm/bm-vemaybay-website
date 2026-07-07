@@ -372,22 +372,10 @@ trait ButtonsTrait
 
 	private function assignPostTicketEditButtons()
 	{
-		// Create invoice button
+		// Sửa yêu cầu xuất hoá đơn: không còn là nút toolbar + modal, mà sửa trực tiếp (inline)
+		// trong panel "Thông tin hoá đơn" - xem js/view.detail.js (dùng biến JS global booking_status
+		// đã có sẵn trên trang để quyết định hiện icon sửa, không cần cờ riêng).
 		if (in_array((int)$this->bean->booking_status, [7, 8])) {
-			$create_inv = '
-			<input type="button" id="btnCreateInvoice" class="btn btn-warning" value="Sửa YC xuất HĐ" title="Sửa YC xuất HĐ" />
-			</form>
-			<form id="edit_invoice_frm" method="post" style="display:none; background-color:#fff;" name="edit_invoice_frm">
-				<input type="hidden" name="module" value="EC_Flight_Bookings">
-				<input type="hidden" name="action" value="Save">
-				<input type="hidden" name="booking_id" value="' . $this->bean->id . '">
-				<div class="detail view" id="invoice_inf"></div>
-				<div class="text-center">
-					<input class="btn btn-primary save-popup-dialog" type="submit" value="Lưu" name="save_request_invoice">
-				</div>
-			</form>';
-			$this->ss->assign('CREATE_INVOICE', $create_inv);
-
 			// Edit booking detail
 			$bkg_detail = '<input type="button" class="btn btn-warning" id="edit_bkg_btn" value="Sửa chi tiết">
 							</form><form id="bkg_detail" method="post" style="display:none; background-color:#fff;">

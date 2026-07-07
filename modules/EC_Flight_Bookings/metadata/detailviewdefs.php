@@ -32,9 +32,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'customCode' => '{$PUBLISHED_TO_WEB}',
                 ),
-                array(
-                    'customCode' => '{$CREATE_INVOICE}',
-                ),
                 // Thay đổi code vé / PNR / nhà cung cấp
                 array(
                     'customCode' => '{$EDIT_BKG_DETAIL}',
