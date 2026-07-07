@@ -68,9 +68,9 @@ class EC_Receipt_Voucher extends Basic {
 		}
 
 		$is_tele = 0;
-		if (empty($this->name)) {
+		if (empty($this->id)) {
 			$total_row = $this->db->getOne("SELECT COUNT(id) + 1 FROM ec_receipt_voucher");
-			$this->name = 'PT-' . date('ymd') . '-' . $total_row;
+			$this->name = 'PT-' . date('ymd') . '-' . (int)$total_row;
 			$is_tele = 1;
 		}
 
@@ -87,7 +87,7 @@ class EC_Receipt_Voucher extends Basic {
 		// nếu là trạng thái công nợ
 		if ($this->rv_status == 2) {
 			$this->is_debt = 1;
-		} else if ($this->rv_status != 1) {
+		} else {
 			$this->is_debt = 0;
 		}
 
@@ -98,11 +98,11 @@ class EC_Receipt_Voucher extends Basic {
 				myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Đã thu)', $current_user->id, 'paid');
 			}
 
-			if ($this->loai_thu == '4' ) {
+			if ($this->loai_thu == '4' && !isWorkingProcessExisting($this->module_dir, $this->id, 'create_receipt')) {
 				myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (PT: Đổi giờ bay, hành trình, tên khách)', $this->created_by, 'create_receipt');
 			}
 
-			if ($this->loai_thu == '5' ) {
+			if ($this->loai_thu == '5' && !isWorkingProcessExisting($this->module_dir, $this->id, 'create_receipt')) {
 				myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (PT: Thu phí hành lý)', $this->created_by, 'create_receipt');
 			}
 		} else {

@@ -54,14 +54,13 @@ class EC_HoanVe extends Basic
 		if (isset($_POST['booking_id']) && !empty($_POST['booking_id']) && !$this->checkBooking($_POST['booking_id'])) {
 			header('Location: index.php?module=EC_HoanVe&action=Error&error_string=' . urlencode('Booking này chưa xuất vé hoặc chưa hoàn tất'));
 			exit();
-		
 		}
 		$is_tele = 0;
 		if (empty($this->id)) {
 			// HV-230916-0001
 			// $where = ' date_entered = "' . date('Y-m-d') . '" ';
 			// $this->name = 'HV-' . date('ymd') . '-' . myAutoGenerateName('EC_HoanVe', $where, 4);
-			
+
 			$total_row = $this->db->getOne("SELECT COUNT(id) + 1 FROM ec_hoanve");
 			$this->name = 'HV-' . date('ymd') . '-' . $total_row;
 			$is_tele = 1;
@@ -87,34 +86,41 @@ class EC_HoanVe extends Basic
 	function saveListItems()
 	{
 		$row_count = count($_POST['ct_hoten']);
-		for ($i = 0; $i < $row_count; $i++) {
-			$c = new EC_ChiTietHoanVe();
-			$c->id 			= $_POST['ct_detail_id'][$i];
-			$c->name 			= trim(stripslashes($_POST['ct_hoten'][$i]));
-			$c->loaihk 		= $_POST['ct_loaihk'][$i];
-			$c->danhxung 		= $_POST['ct_danhxung'][$i];
-			$c->ngaysinh 		= $_POST['ct_ngaysinh'][$i];
-			$c->chieubay 		= $_POST['ct_chieubay'][$i];
-			$c->airline_code 	= $_POST['ct_airline_code'][$i];
-			$c->noidi 		= trim(stripslashes($_POST['ct_noidi'][$i]));
-			$c->noiden 		= trim(stripslashes($_POST['ct_noiden'][$i]));
-			$c->sove 			= trim(stripslashes($_POST['ct_sove'][$i]));
-			$c->pnr 			= trim(stripslashes($_POST['ct_pnr'][$i]));
-			$c->sotienhang 	= unformat_number($_POST['ct_sotienhang'][$i]);
-			$c->sotienkhach 	= unformat_number($_POST['ct_sotienkhach'][$i]);
-			$c->phidichvu 		= unformat_number($_POST['ct_phidichvu'][$i]);
-			$c->hoanve_id 		= $this->id;
-			$c->nhacc_id 		= $_POST['ct_nhacc_id'][$i];
-			$c->dahoan 		= $_POST['ct_dahoan'][$i];
-			$c->deleted 		= $_POST['ct_deleted'][$i];
+		$this->db->query('START TRANSACTION');
+		try {
+			for ($i = 0; $i < $row_count; $i++) {
+				$c = new EC_ChiTietHoanVe();
+				$c->id 			= $_POST['ct_detail_id'][$i];
+				$c->name 			= trim(stripslashes($_POST['ct_hoten'][$i]));
+				$c->loaihk 		= $_POST['ct_loaihk'][$i];
+				$c->danhxung 		= $_POST['ct_danhxung'][$i];
+				$c->ngaysinh 		= $_POST['ct_ngaysinh'][$i];
+				$c->chieubay 		= $_POST['ct_chieubay'][$i];
+				$c->airline_code 	= $_POST['ct_airline_code'][$i];
+				$c->noidi 		= trim(stripslashes($_POST['ct_noidi'][$i]));
+				$c->noiden 		= trim(stripslashes($_POST['ct_noiden'][$i]));
+				$c->sove 			= trim(stripslashes($_POST['ct_sove'][$i]));
+				$c->pnr 			= trim(stripslashes($_POST['ct_pnr'][$i]));
+				$c->sotienhang 	= unformat_number($_POST['ct_sotienhang'][$i]);
+				$c->sotienkhach 	= unformat_number($_POST['ct_sotienkhach'][$i]);
+				$c->phidichvu 		= unformat_number($_POST['ct_phidichvu'][$i]);
+				$c->hoanve_id 		= $this->id;
+				$c->nhacc_id 		= $_POST['ct_nhacc_id'][$i];
+				$c->dahoan 		= $_POST['ct_dahoan'][$i];
+				$c->deleted 		= $_POST['ct_deleted'][$i];
 
-			if ($c->deleted == 1) {
-				$c->mark_deleted($c->id);
-			} else {
-				if (!empty($c->name)) {
-					$c->save();
+				if ($c->deleted == 1) {
+					$c->mark_deleted($c->id);
+				} else {
+					if (!empty($c->name)) {
+						$c->save();
+					}
 				}
 			}
+			$this->db->query('COMMIT');
+		} catch (Throwable $th) {
+			$this->db->query('ROLLBACK');
+			throw $th;
 		}
 	}
 
@@ -163,6 +169,12 @@ class EC_HoanVe extends Basic
 				AND (a.is_stop_tracking = 0 OR a.is_stop_tracking IS NULL)
 			WHERE c.deleted = 0 AND c.hoanve_id = {$this->table_name}.id
 		) AS nhacc_list";
+
+		$ret['select'] .= ", (
+			SELECT SUM(IFNULL(p.amount, 0))
+			FROM ec_payment_voucher p
+			WHERE p.deleted = 0 AND p.pv_status = 3 AND p.hoanve_id = {$this->table_name}.id
+		) AS total_paid_amount";
 
 		if ($return_array) {
 			return $ret;
