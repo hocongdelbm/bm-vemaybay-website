@@ -384,7 +384,6 @@ class EC_Flight_Bookings extends Basic
 
 		// Save passengers
 		if (isset($_POST['psg_id']) && !is_null($_POST['psg_id'])) {
-			var_dump($this->date_entered);
 			if ($this->isUseNewBaggage($this->date_entered, $this->created_by)) {
 				$this->saveLinePassengers();
 			} else {
