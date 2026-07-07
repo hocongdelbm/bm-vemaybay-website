@@ -69,24 +69,28 @@ class EC_Flight_Bookings_Helper
 
         /******  2. HANDLING CONDITIONS  ******/
 
-        // Chỉ kế toán trưởng hoặc admin hệ thống mới được xem hết, còn lại xem của mình
-        $is_manager = $db->getOne(
-            "SELECT COUNT(id) 
-            FROM acl_roles_users 
-            WHERE user_id = '{$current_user->id}'
-                AND role_id IN (
-                    '{$GLOBALS['app_list_strings']['roles_users']['QUANLY']}',
-                    '{$GLOBALS['app_list_strings']['roles_users']['KETOAN']}'
-                )
-                AND deleted = 0"
-        );
-
         $sql_role = "";
-        if (!$is_manager && !is_admin($current_user)) {
-            $sql_role .= " AND bk.assigned_user_id = '{$current_user->id}' ";
+        $view_all = true;
+        if(!is_admin($current_user) && $current_user->title != 'QuanLy') {
+            // Chỉ kế toán trưởng hoặc admin hệ thống mới được xem hết, còn lại xem của mình
+            $is_manager = $db->getOne(
+                "SELECT COUNT(id) 
+                FROM acl_roles_users 
+                WHERE user_id = '{$current_user->id}'
+                    AND role_id IN (
+                        '{$GLOBALS['app_list_strings']['roles_users']['QUANLY']}',
+                        '{$GLOBALS['app_list_strings']['roles_users']['KETOAN']}'
+                    )
+                    AND deleted = 0"
+            );
+
+            if(!$is_manager) {
+                $sql_role .= " AND bk.assigned_user_id = '{$current_user->id}' ";
+                $view_all = false;
+            }
         }
 
-        // Main query
+        // Main query (Booking)
         $sql =
             "SELECT 
                 bk.id AS parent_id
@@ -144,9 +148,29 @@ class EC_Flight_Bookings_Helper
                 )
             WHERE iti.departure_date BETWEEN '$from_vn_datetime_db' AND '$to_vn_datetime_db'
                 AND bk.booking_status = '8'
-                AND bkd.deleted = 0 
-                $sql_role
+                AND bkd.deleted = 0
             GROUP BY bk.id";
+
+        // // Receipt voucher
+        // $sql .= " UNION " .
+        //     "SELECT 
+        //         rv.id AS parent_id
+        //         , rv.name AS parent_name
+        //         , 'EC_Receipt_Voucher' AS parent_type
+        //         , rv.rv_status AS parent_status
+        //         , rv.assigned_user_id AS parent_assigned_user_id
+        //         , SUM(IFNULL(rv.amount, 0)) AS revenue
+        //         , SUM(IFNULL(rv.bought_amount, 0) + IFNULL(rv.bought_amount2, 0) + IFNULL(rv.bought_amount3, 0)) AS cost
+        //         , '' AS flight_date
+        //         , '' AS booking_data
+        //     FROM ec_receipt_voucher rv
+        //         LEFT JOIN ec_flight_bookings bk ON bk.id = rv.booking_id AND bk.deleted = 0
+        //     WHERE 
+        //         rv.rv_status = '1'
+        //         AND rv.loai_thu = '4'
+        //         AND rv.deleted = 0
+        //         " . str_replace('bk.', 'rv.', $sql_role) . "
+        //     GROUP BY rv.id";
 
         $result = [
             'total' => [],
@@ -252,7 +276,10 @@ class EC_Flight_Bookings_Helper
 
                 $setDirectBonus = false;
                 foreach($indirectHeirData['bookings'][$bkId] as $userId => $arr) {
+                    if(!$view_all && $userId != $current_user->id) continue;
+
                     $countKPI = $arr['total_kpi'] ?? 0;
+                    if(isset($arr['completed']) && $arr['completed'] > 0) $countKPI -= 1;
 
                     if(!isset($result['total'][$userId])) {
                         $result['total'][$userId] = $indirectBonusPerKPI * $countKPI;
@@ -279,12 +306,8 @@ class EC_Flight_Bookings_Helper
                     }
                 }
             }
-            else if($row['parent_type'] == 'EC_Receipt_Voucher') {
-
-            }
-            else if($row['parent_type'] == 'EC_HoanVe') {
-
-            }
+            else if($row['parent_type'] == 'EC_Receipt_Voucher') {}
+            else if($row['parent_type'] == 'EC_HoanVe') {}
         }
         return $result;
     }

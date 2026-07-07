@@ -109,12 +109,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Auto book button
 		$this->assignAutoBookButton();
 
-		// Print ticket button
-		$this->assignPrintTicketButton();
-
-		// Send ticket button
-		$this->assignSendTicketButton();
-
 		// Print and send button
 		$this->assignPrintAndSendTicketButton();
 

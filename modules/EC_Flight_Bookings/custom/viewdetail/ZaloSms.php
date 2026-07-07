@@ -89,21 +89,6 @@ trait ZaloSmsTrait
 	}
 
 	/**
-	 * Get the number of passenger and baggage info to send ZBS
-	 * 
-	 * @param string $booking_id
-	 * @return array [passenger, baggage]
-	 */
-
-	public function getZaloID($phone)
-	{
-		// Lấy Zalo ID theo số điện thoại liên hệ, dùng khi gửi tin nhắn Zalo OA/ZBS.
-		if (is_null($phone) || empty($phone))
-			return '';
-		return $this->bean->db->getOne("SELECT zalo_id FROM contacts WHERE phone_mobile = '$phone' AND deleted = 0 ORDER BY date_entered LIMIT 1") ?? '';
-	}
-
-	/**
 	 * Get history sending ZBS messages
 	 * 
 	 * @param string $phoneNumber
@@ -151,5 +136,4 @@ trait ZaloSmsTrait
 
 		return $result;
 	}
-
 }

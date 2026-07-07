@@ -19,21 +19,11 @@ class Viewbonusreport extends SugarView {
 
 	public function populateContent() {
 		global $current_user, $db;
-
-		// Only admins and chief accountants get the booking bonus modal —
-		// it exposes revenue/cost figures. Everyone else gets a plain label
-		$is_chief_accountant = $db->getOne(
-			"SELECT COUNT(id)
-			FROM acl_roles_users
-			WHERE user_id = '{$current_user->id}'
-				AND role_id = '{$GLOBALS['app_list_strings']['roles_users']['KETOAN']}'
-				AND deleted = 0"
-		);
-		$this->canViewParentBonus = $is_chief_accountant || is_admin($current_user);
+		
+		$this->canViewParentBonus = is_admin($current_user) || $current_user->title == 'QuanLy';
 
 		$current_year = date('Y');
 		$last_year = date("Y", strtotime("- 1 year"));
-
 		$current_date = date('d-m-Y');
 
 		switch (ceil(date('n') / 3)) {

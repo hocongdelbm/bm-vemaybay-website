@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="modules/EC_Flight_Bookings/css/view_bonusreport.css?v=1.0.6">
-<script src="modules/EC_Flight_Bookings/js/view_bonusreport.js?v=1.0.9"></script>
+<script src="modules/EC_Flight_Bookings/js/view_bonusreport.js?v=1.1.0"></script>
 
 <h1 id="report-title" class="title">BÁO CÁO THƯỞNG</h1>
 
@@ -28,7 +28,7 @@
 					<script type="text/javascript">
 						Calendar.setup ({
 							inputField : "from_date",
-							daFormat : "%d-%m-%Y",
+							daFormat : cal_date_format,
 							button : "from_date_trigger",
 							singleClick : true,
 							dateStr : "",
@@ -64,7 +64,7 @@
 						<script type="text/javascript">
 							Calendar.setup ({
 								inputField : "to_date",
-								daFormat : "%d-%m-%Y",
+								daFormat : cal_date_format,
 								button : "to_date_trigger",
 								singleClick : true,
 								dateStr : "",

@@ -68,7 +68,7 @@
              debug: true
          };
      </script>
-     <script src="https://chat.timchuyenbay.net/client/admin_widget.js?v=1.0.2"></script>
+     <script src="https://chat.timchuyenbay.net/client/admin_widget.js?v=1.1.0"></script>
 {/literal}
 {/if}
 </body>

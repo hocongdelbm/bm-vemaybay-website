@@ -7,11 +7,172 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * Used by EC_Flight_BookingsViewEdit. Methods are kept close to the
  * legacy implementation to preserve the old business behavior.
  */
-trait ECFlightBookingEditPassengerTrait
-{
+trait ECFlightBookingEditPassengerTrait {
+	public function populateLinePassengers() {
+		global $app_list_strings, $timedate;
 
-	function populateLinePassengersOld()
-	{
+		// Luồng hành lý mới: PHP chỉ xuất khung bảng + JSON, JS render row và option hành lý.
+
+		// Định dạng ngày tháng
+		$date_format = $timedate->get_date_format();
+
+		// Điều kiện SQL để lấy nhà cung cấp
+		$sql_supplier = " AND account_type = 'Supplier' AND is_stop_tracking = 0 ";
+
+		/**
+		 * BƯỚC 1: LẤY DỮ LIỆU TỪ DATABASE
+		 */
+		$sql = "SELECT p.id,
+			p.type,
+			p.salutation,
+			p.name,
+			p.birthday,
+			p.eticket_outbound,
+			p.eticket_inbound,
+			p.eluggage_outbound,
+			p.eluggage_inbound,
+			p.pnr_outbound,
+			p.pnr_inbound,
+			p.supplier_id,
+			p.supplier_inbound_id,
+			p.luggage_price,
+			p.luggage_price_inbound,
+			p.luggage_purchase_no_vat,
+			p.vat_luggage_purchase,
+			p.luggage_purchase,
+			p.luggage_purchase_text,
+			p.luggage_purchase_inbound_no_vat,
+			p.vat_luggage_purchase_inbound,
+			p.luggage_purchase_inbound,
+			p.luggage_purchase_text_inbound,
+			p.luggage_index_outbound,
+			p.luggage_index_inbound,
+			p.hand_baggage_outbound,
+			p.hand_baggage_inbound,
+			p.cic,
+			p.passport_number
+		FROM ec_booking_passengers p
+		WHERE p.booking_id = '{$this->bean->id}'
+			AND p.booking_id IS NOT NULL
+			AND p.booking_id != ''
+			AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
+			AND p.deleted = 0
+		ORDER BY p.type, p.date_entered";
+
+		$res = $this->bean->db->query($sql);
+		$row_count = $this->bean->db->countRows($res);
+		$row_count = !empty($row_count) ? $row_count : 0;
+
+		/**
+		 * BƯỚC 2: CHUYỂN ĐỔI DỮ LIỆU THÀNH MẢNG (CHỈ DỮ LIỆU, KHÔNG HTML)
+		 */
+		$passengers_data = [];
+		while ($row = $this->bean->db->fetchByAssoc($res)) {
+			$passenger_id = isset($_POST['isDuplicate']) && (string) $_POST['isDuplicate'] === 'true' ? '' : $row['id'];
+
+			$birthday = '';
+			if (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00') {
+				$birthday = date($date_format, strtotime($row['birthday']));
+			}
+
+			$id_number_value = trim($row['passport_number'] ?? '');
+			if (empty($id_number_value)) {
+				$id_number_value = trim($row['cic'] ?? '');
+			}
+
+			$passengers_data[] = [
+				'id' => $passenger_id,
+				'db_id' => $row['id'],
+				'type' => (int) $row['type'],
+				'salutation' => (int) $row['salutation'],
+				'name' => $row['name'],
+				'birthday' => $birthday,
+				'id_number' => $id_number_value,
+				'pnr_outbound' => $row['pnr_outbound'],
+				'pnr_inbound' => $row['pnr_inbound'],
+				'eticket_outbound' => $row['eticket_outbound'],
+				'eticket_inbound' => $row['eticket_inbound'],
+				'eluggage_outbound' => $row['eluggage_outbound'],
+				'eluggage_inbound' => $row['eluggage_inbound'],
+				'luggage_price' => (float) $row['luggage_price'],
+				'luggage_price_inbound' => (float) $row['luggage_price_inbound'],
+				'luggage_purchase' => (float) $row['luggage_purchase'],
+				'luggage_purchase_text' => $row['luggage_purchase_text'],
+				'luggage_purchase_inbound' => (float) $row['luggage_purchase_inbound'],
+				'luggage_purchase_text_inbound' => $row['luggage_purchase_text_inbound'],
+				'luggage_index_outbound' => $row['luggage_index_outbound'],
+				'luggage_index_inbound' => $row['luggage_index_inbound'],
+				'hand_baggage_outbound' => $row['hand_baggage_outbound'],
+				'hand_baggage_inbound' => $row['hand_baggage_inbound'],
+				'supplier_id' => $row['supplier_id'],
+				'supplier_inbound_id' => $row['supplier_inbound_id'],
+			];
+		}
+
+		/**
+		 * BƯỚC 3: TẠO HTML KHUNG BẢNG (không render row ở PHP)
+		 * - Header
+		 * - <tbody id="psg_tbody"></tbody> rỗng để JS render
+		 * - Footer với các input hidden cần thiết
+		 */
+		$baggage_options_outbound = $this->bean->getBaggageOptionsData($this->bean->airline);
+		$baggage_options_inbound = $this->bean->getBaggageOptionsData($this->bean->airline_inbound);
+
+		$supplier_list_html = myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', '', 'id', $sql_supplier);
+
+		$html = '<table id="tbl_line_passengers" class="table-vertical__mobile table-edit__booking table-config table-details__booking" cellpadding="0" cellspacing="0" border="0">';
+		$html .= '<thead>';
+		$html .= '<tr id="psg_first_row">';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">Loại HK</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:8%;">Danh xưng</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:20%;">Họ tên</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:10%;">Ngày sinh</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:12%;">CCCD/Passport</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">PNR lượt đi</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">PNR lượt về</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:11%;">Số vé lượt đi</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:11%;">Số vé lượt về</th>';
+		$html .= '<th scope="col">&nbsp;</th>';
+		$html .= '</tr>';
+		$html .= '</thead>';
+		$html .= '<tbody id="psg_tbody"></tbody>';
+		$html .= '<tr id="psg_last_row" class="footer-tr">';
+		$html .= '<td colspan="13" class="text-start">';
+		$html .= '<input type="button" class="btn btn-primary" id="btnPassengerAddRow" value="Thêm dòng" title="Thêm dòng" />';
+		$html .= ' Số dòng = <label id="lbl_psg_row_count">' . $row_count . '</label>';
+		$html .= '<input type="hidden" name="psg_row_count" id="psg_row_count" value="' . $row_count . '" />';
+		$html .= '<input type="hidden" id="booking_status" value="' . $this->bean->booking_status . '" >';
+		$html .= '<input type="hidden" id="baggage_options_outbound" value=\'' . htmlspecialchars(json_encode($baggage_options_outbound), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<input type="hidden" id="baggage_options_inbound" value=\'' . htmlspecialchars(json_encode($baggage_options_inbound), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<input type="hidden" id="psg_passengers_data_json" value=\'' . htmlspecialchars(json_encode($passengers_data), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<input type="hidden" id="supplier_list_json" value=\'' . htmlspecialchars(json_encode($supplier_list_html), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<input type="hidden" id="passenger_type_list_json" value=\'' . htmlspecialchars(json_encode(get_select_options_with_id($app_list_strings['passenger_type_list'], 0)), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<input type="hidden" id="passenger_salutation_list_json" value=\'' . htmlspecialchars(json_encode(get_select_options_with_id($app_list_strings['passenger_salutation_list'], 0)), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '</td>';
+		$html .= '</tr>';
+		$html .= '</table>';
+
+		/**
+		 * BƯỚC 4: GỬI DỮ LIỆU VỀ TEMPLATE
+		 */
+		// Gửi HTML khung bảng (row sẽ được render bằng JS)
+		$this->ss->assign('LINE_PASSENGERS', $html);
+
+		// Gửi dữ liệu JSON cho JavaScript xử lý
+		$this->ss->assign('PASSENGERS_DATA_JSON', json_encode($passengers_data));
+
+		// Gửi các danh sách lookup dạng JSON
+		$this->ss->assign('PASSENGER_TYPE_LIST', get_select_options_with_id($app_list_strings['passenger_type_list'], 0));
+		$this->ss->assign('PASSENGER_SALUTATION_LIST', get_select_options_with_id($app_list_strings['passenger_salutation_list'], 0));
+		$this->ss->assign('SUPPLIER_LIST', $supplier_list_html);
+	}
+
+	/**
+	 * Old function
+	 * 
+	 * @deprecated
+	 */
+	public function populateLinePassengersOld() {
 		global $app_list_strings, $timedate, $current_user;
 
 		// Luồng hành lý cũ: PHP render đầy đủ từng dòng hành khách và hành lý.
@@ -264,165 +425,5 @@ trait ECFlightBookingEditPassengerTrait
 		</tr>';
 		$html .= '</table>';
 		$this->ss->assign('LINE_PASSENGERS', $html);
-	}
-
-	public function populateLinePassengers()
-	{
-		global $app_list_strings, $timedate;
-
-		// Luồng hành lý mới: PHP chỉ xuất khung bảng + JSON, JS render row và option hành lý.
-
-		// Định dạng ngày tháng
-		$date_format = $timedate->get_date_format();
-
-		// Điều kiện SQL để lấy nhà cung cấp
-		$sql_supplier = " AND account_type = 'Supplier' AND is_stop_tracking = 0 ";
-
-		/**
-		 * BƯỚC 1: LẤY DỮ LIỆU TỪ DATABASE
-		 */
-		$sql = "SELECT p.id,
-			p.type,
-			p.salutation,
-			p.name,
-			p.birthday,
-			p.eticket_outbound,
-			p.eticket_inbound,
-			p.eluggage_outbound,
-			p.eluggage_inbound,
-			p.pnr_outbound,
-			p.pnr_inbound,
-			p.supplier_id,
-			p.supplier_inbound_id,
-			p.luggage_price,
-			p.luggage_price_inbound,
-			p.luggage_purchase_no_vat,
-			p.vat_luggage_purchase,
-			p.luggage_purchase,
-			p.luggage_purchase_text,
-			p.luggage_purchase_inbound_no_vat,
-			p.vat_luggage_purchase_inbound,
-			p.luggage_purchase_inbound,
-			p.luggage_purchase_text_inbound,
-			p.luggage_index_outbound,
-			p.luggage_index_inbound,
-			p.hand_baggage_outbound,
-			p.hand_baggage_inbound,
-			p.cic,
-			p.passport_number
-		FROM ec_booking_passengers p
-		WHERE p.booking_id = '{$this->bean->id}'
-			AND p.booking_id IS NOT NULL
-			AND p.booking_id != ''
-			AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
-			AND p.deleted = 0
-		ORDER BY p.type, p.date_entered";
-
-		$res = $this->bean->db->query($sql);
-		$row_count = $this->bean->db->countRows($res);
-		$row_count = !empty($row_count) ? $row_count : 0;
-
-		/**
-		 * BƯỚC 2: CHUYỂN ĐỔI DỮ LIỆU THÀNH MẢNG (CHỈ DỮ LIỆU, KHÔNG HTML)
-		 */
-		$passengers_data = [];
-		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			$passenger_id = isset($_POST['isDuplicate']) && (string) $_POST['isDuplicate'] === 'true' ? '' : $row['id'];
-
-			$birthday = '';
-			if (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00') {
-				$birthday = date($date_format, strtotime($row['birthday']));
-			}
-
-			$id_number_value = trim($row['passport_number'] ?? '');
-			if (empty($id_number_value)) {
-				$id_number_value = trim($row['cic'] ?? '');
-			}
-
-			$passengers_data[] = [
-				'id' => $passenger_id,
-				'db_id' => $row['id'],
-				'type' => (int) $row['type'],
-				'salutation' => (int) $row['salutation'],
-				'name' => $row['name'],
-				'birthday' => $birthday,
-				'id_number' => $id_number_value,
-				'pnr_outbound' => $row['pnr_outbound'],
-				'pnr_inbound' => $row['pnr_inbound'],
-				'eticket_outbound' => $row['eticket_outbound'],
-				'eticket_inbound' => $row['eticket_inbound'],
-				'eluggage_outbound' => $row['eluggage_outbound'],
-				'eluggage_inbound' => $row['eluggage_inbound'],
-				'luggage_price' => (float) $row['luggage_price'],
-				'luggage_price_inbound' => (float) $row['luggage_price_inbound'],
-				'luggage_purchase' => (float) $row['luggage_purchase'],
-				'luggage_purchase_text' => $row['luggage_purchase_text'],
-				'luggage_purchase_inbound' => (float) $row['luggage_purchase_inbound'],
-				'luggage_purchase_text_inbound' => $row['luggage_purchase_text_inbound'],
-				'luggage_index_outbound' => $row['luggage_index_outbound'],
-				'luggage_index_inbound' => $row['luggage_index_inbound'],
-				'hand_baggage_outbound' => $row['hand_baggage_outbound'],
-				'hand_baggage_inbound' => $row['hand_baggage_inbound'],
-				'supplier_id' => $row['supplier_id'],
-				'supplier_inbound_id' => $row['supplier_inbound_id'],
-			];
-		}
-
-		/**
-		 * BƯỚC 3: TẠO HTML KHUNG BẢNG (không render row ở PHP)
-		 * - Header
-		 * - <tbody id="psg_tbody"></tbody> rỗng để JS render
-		 * - Footer với các input hidden cần thiết
-		 */
-		$baggage_options_outbound = $this->bean->getBaggageOptionsData($this->bean->airline);
-		$baggage_options_inbound = $this->bean->getBaggageOptionsData($this->bean->airline_inbound);
-
-		$supplier_list_html = myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', '', 'id', $sql_supplier);
-
-		$html = '<table id="tbl_line_passengers" class="table-vertical__mobile table-edit__booking table-config table-details__booking" cellpadding="0" cellspacing="0" border="0">';
-		$html .= '<thead>';
-		$html .= '<tr id="psg_first_row">';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">Loại HK</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:8%;">Danh xưng</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:20%;">Họ tên</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:10%;">Ngày sinh</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:12%;">CCCD/Passport</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">PNR lượt đi</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">PNR lượt về</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:11%;">Số vé lượt đi</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:11%;">Số vé lượt về</th>';
-		$html .= '<th scope="col">&nbsp;</th>';
-		$html .= '</tr>';
-		$html .= '</thead>';
-		$html .= '<tbody id="psg_tbody"></tbody>';
-		$html .= '<tr id="psg_last_row" class="footer-tr">';
-		$html .= '<td colspan="13" class="text-start">';
-		$html .= '<input type="button" class="btn btn-primary" id="btnPassengerAddRow" value="Thêm dòng" title="Thêm dòng" />';
-		$html .= ' Số dòng = <label id="lbl_psg_row_count">' . $row_count . '</label>';
-		$html .= '<input type="hidden" name="psg_row_count" id="psg_row_count" value="' . $row_count . '" />';
-		$html .= '<input type="hidden" id="booking_status" value="' . $this->bean->booking_status . '" >';
-		$html .= '<input type="hidden" id="baggage_options_outbound" value=\'' . htmlspecialchars(json_encode($baggage_options_outbound), ENT_QUOTES, 'UTF-8') . '\' />';
-		$html .= '<input type="hidden" id="baggage_options_inbound" value=\'' . htmlspecialchars(json_encode($baggage_options_inbound), ENT_QUOTES, 'UTF-8') . '\' />';
-		$html .= '<input type="hidden" id="psg_passengers_data_json" value=\'' . htmlspecialchars(json_encode($passengers_data), ENT_QUOTES, 'UTF-8') . '\' />';
-		$html .= '<input type="hidden" id="supplier_list_json" value=\'' . htmlspecialchars(json_encode($supplier_list_html), ENT_QUOTES, 'UTF-8') . '\' />';
-		$html .= '<input type="hidden" id="passenger_type_list_json" value=\'' . htmlspecialchars(json_encode(get_select_options_with_id($app_list_strings['passenger_type_list'], 0)), ENT_QUOTES, 'UTF-8') . '\' />';
-		$html .= '<input type="hidden" id="passenger_salutation_list_json" value=\'' . htmlspecialchars(json_encode(get_select_options_with_id($app_list_strings['passenger_salutation_list'], 0)), ENT_QUOTES, 'UTF-8') . '\' />';
-		$html .= '</td>';
-		$html .= '</tr>';
-		$html .= '</table>';
-
-		/**
-		 * BƯỚC 4: GỬI DỮ LIỆU VỀ TEMPLATE
-		 */
-		// Gửi HTML khung bảng (row sẽ được render bằng JS)
-		$this->ss->assign('LINE_PASSENGERS', $html);
-
-		// Gửi dữ liệu JSON cho JavaScript xử lý
-		$this->ss->assign('PASSENGERS_DATA_JSON', json_encode($passengers_data));
-
-		// Gửi các danh sách lookup dạng JSON
-		$this->ss->assign('PASSENGER_TYPE_LIST', get_select_options_with_id($app_list_strings['passenger_type_list'], 0));
-		$this->ss->assign('PASSENGER_SALUTATION_LIST', get_select_options_with_id($app_list_strings['passenger_salutation_list'], 0));
-		$this->ss->assign('SUPPLIER_LIST', $supplier_list_html);
 	}
 }

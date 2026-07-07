@@ -109,32 +109,6 @@ trait TemplatesTrait
 	}
 
 
-	function populatePrintLanguage()
-	{
-		// Popup chọn ngôn ngữ và hành khách trước khi in/gửi vé theo luồng legacy.
-		$html = '<div id="dlgSelectLanguage" style="display:none;" title="Ngôn ngữ">
-			<div class="d-flex flex-column align-items-center gap-3">
-				<div class="option-group d-flex gap-4">
-					<div class="form-group">
-						<label for="vn" class="form-check-label">Tiếng Việt</label>
-						<input class="form-check-input" type="radio" name="ngonngu" id="vn" value="vn" style="vertical-align:middle; margin-top: 0;" checked /> 
-					</div>
-					<div class="form-group">
-						<label for="en" class="form-check-label">Tiếng Anh</label>
-						<input class="form-check-input" type="radio" name="ngonngu" id="en" value="en" style="vertical-align:middle; margin-top: 0;" /> 
-					</div>
-					
-				</div>
-				<div class="option-passenger"></div>
-				<div class="form-group">
-					<input type="hidden" id="what_form" value="" />
-					<input type="button" class="btn btn-primary" id="btnSelectLanguage" value="Tiếp tục" title="Tiếp tục" />
-				</div>
-			</div>
-		</div>';
-		return $html;
-	}
-
 
 	private function getWinLoseReasonRadio($select, $reason_type)
 	{

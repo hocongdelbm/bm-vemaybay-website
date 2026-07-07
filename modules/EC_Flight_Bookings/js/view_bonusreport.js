@@ -208,7 +208,7 @@ $(document).ready(function() {
 			'<b>=</b> 30%' + op('x') + formatBonusNumber(total)
 		);
 		$('#parent-bonus-total-note').html(
-			'<b>=</b> ' + formatBonusNumber(direct) + op('+') + formatBonusNumber(indirect)
+			'<b>=</b> ' + formatBonusNumber(perTicket) + op('x') + formatBonusNumber(qty)
 		);
 		$('#parent-bonus-indirect-perkpi-note').html(
 			indirectKpi > 0
