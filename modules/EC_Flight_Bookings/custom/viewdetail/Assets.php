@@ -5,7 +5,7 @@ trait AssetsTrait
 {
 	private function displayCSSTrait()
 	{
-		$cssVer   = inDeveloperMode() ? time() : '1.2.4';
+		$cssVer   = inDeveloperMode() ? time() : '1.2.6';
 
 		$css = '<link type="text/css" rel="stylesheet" href="themes/SuiteP/libs/css/select2.min.css" />' .
 			'<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.detail.css?v=' . $cssVer . '" />' .
@@ -19,7 +19,7 @@ trait AssetsTrait
 	{
 		global $app_list_strings, $current_user;
 
-		$jsVer   = inDeveloperMode() ? time() : '1.2.5';
+		$jsVer   = inDeveloperMode() ? time() : '1.2.6';
 
 		$js = '
 				<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=' . $jsVer . '"></script>
@@ -73,6 +73,21 @@ trait AssetsTrait
 				}
 			}
 		</script>';
+
+		// Flash message 1 lần sau khi Save (vd: đánh dấu BK Telesale thất bại) - đọc & xoá khỏi session
+		if (!empty($_SESSION['ec_flight_flash']) && is_array($_SESSION['ec_flight_flash'])) {
+			$flash = $_SESSION['ec_flight_flash'];
+			unset($_SESSION['ec_flight_flash']);
+			$flashType = (int) ($flash['type'] ?? 2);
+			$flashMsg = json_encode((string) ($flash['msg'] ?? ''), JSON_UNESCAPED_UNICODE);
+			$js .= '<script>
+				$(function () {
+					if (typeof showModalNotify === "function") {
+						showModalNotify(' . $flashType . ', ' . $flashMsg . ');
+					}
+				});
+			</script>';
+		}
 
 		echo $js;
 	}

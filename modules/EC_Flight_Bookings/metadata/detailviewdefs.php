@@ -382,6 +382,24 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CUS_IV_PAYMENT_METHOD}',
                 ),
             ),
+
+            array(
+                array(),
+                array(
+                    'name' => 'iv_name_banks',
+                    'label' => 'LBL_IV_NAME_BANKS',
+                    'customCode' => '{$CUS_IV_NAME_BANKS}',
+                ),
+            ),
+
+            array(
+                array(),
+                array(
+                    'name' => 'iv_bank_account',
+                    'label' => 'LBL_IV_BANK_ACCOUNT',
+                    'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
+                ),
+            ),
         ),
     )
 );

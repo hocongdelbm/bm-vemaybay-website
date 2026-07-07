@@ -9,7 +9,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getBookingStatus') {
 				after_value_string, 
 				DATE_ADD(date_created, INTERVAL 7 HOUR) AS date_modified 
 			FROM ec_flight_bookings_audit 
-			WHERE parent_id = "' . $_POST['booking_id'] . '" AND field_name = "booking_status" 
+			WHERE parent_id = "' . $db->quote($_POST['booking_id']) . '" AND field_name = "booking_status" 
 			ORDER BY date_created DESC';
 
 	$res_ct = $db->query($sql);
@@ -49,132 +49,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'editDescription') {
 	$booking->retrieve($_POST['id']);
 	$booking->description = $_POST['description'];
 	$booking->save2();
-}
-
-// lấy các dòng điểm về tác phong / ý thức / hiệu quả của nhân viên
-if (isset($_POST['for']) && $_POST['for'] == 'populateDetailMark') {
-	$sql_type = ' AND curr.parent_type = "' . $_POST['type'] . '"';
-	$sql_sum = 'IFNULL(curr.' . $_POST['type'] . ', 0)';
-
-	if ($_POST['type'] == 'effected') {
-		$sql_type = ' AND (curr.parent_type = "' . $_POST['type'] . '" OR curr.ticket_delivery = 1)';
-		$sql_sum .= ' + IFNULL(curr.ticket_delivery, 0)';
-	}
-
-	$sql_mark = '
-			SELECT SUM(' . $sql_sum . ') AS type_value	
-			FROM ec_working_process curr 
-			WHERE curr.deleted = 0  
-			AND curr.assigned_user_id = "' . $_POST['employee'] . '"
-			AND DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = "' . date('Y-m-d', strtotime($_POST['date_search'])) . '"
-			' . $sql_type . '
-			LIMIT 1
-		';
-
-	// $res_mark = $db->getOne($sql_mark);
-	$res_mark_query = $db->query($sql_mark);
-	$res_mark = $db->fetchByAssoc($res_mark_query);
-
-	if ($res_mark['type_value'] == '') {
-		$curr = 0;
-	} else
-		$curr = $res_mark['type_value'];
-
-	$html = '';
-	$html .= '
-		<tr>
-			<td align="center" id="curr_mark">' . $curr . '</td>
-			<td><input type="text" class="box-input text-center allow-number-only2" id="mark" onblur="calculateLeftMark()"></td>
-			<td id="left_mark" align="center"></td>
-			<td><textarea rows="1" class="box-textarea" id="user_remark"></textarea></td>
-		</tr>';
-	$html .= '<tr class="footer-tr">
-				<td colspan="5" align="center" class="showall">
-					<div class="d-flex align-items-center justify-content-end gap-2">
-						<span class="showhidehis btn btn-secondary">Xem lịch sử</span>
-						<input id="done_btn" type="button" value="OK" class="btn btn-primary">
-					</div>
-					<input type="hidden" id="mark_type" value="' . $_POST['type'] . '">
-					<input type="hidden" id="assigned_user" value="' . $_POST['employee'] . '">
-					<input type="hidden" id="line" value="' . $_POST['line'] . '">
-				</td>
-			</tr>';
-	echo $html;
-	exit;
-}
-
-// chấm điểm tác phong, ý thức, hiệu quả
-if (isset($_POST['for']) && $_POST['for'] == 'saveMark') {
-	if ($_POST['mark'] != '') {
-		$sql = 'UPDATE ec_working_process SET deleted = 1 
-					WHERE deleted = 0 AND parent_type = "' . $_POST['type'] . '" 
-					AND DATE(date_entered) = "' . date('Y-m-d', strtotime($_POST['mark_date'])) . '"
-					AND assigned_user_id = "' . $_POST['assigned_user'] . '"';
-
-		$db->query($sql);
-		$wp = new EC_Working_Process;
-		$type = $_POST['type']; //manner, effected, awareness, minus
-
-		$wp->name = $_POST['type'];
-		$wp->assigned_user_id = $_POST['assigned_user'];
-		$wp->parent_type = $_POST['type']; //manner, 
-		$wp->$type = $_POST['mark']; //7, 8, 9, 10đ
-		$wp->description = $_POST['remark'];
-
-		$wpid = $wp->save();
-
-		// thay đổi ngày h tạo
-		$sql_upt = 'UPDATE ec_working_process SET date_entered = "' . date('Y-m-d', strtotime($_POST['mark_date'])) . '" WHERE id = "' . $wpid . '"';
-		$db->query($sql_upt);
-		$result = 'ok';
-	} else {
-		$result = 'rejected';
-	}
-
-	echo $result;
-	exit;
-}
-
-// tìm lịch sử chấm điểm 
-if (isset($_POST['for']) && $_POST['for'] == 'findingHistory') {
-
-	$sql_type = ' AND wp.parent_type = "' . $_POST['type'] . '"';
-
-	if ($_POST['type'] == 'effected') {
-		$sql_type = ' AND (wp.parent_type = "' . $_POST['type'] . '" OR wp.ticket_delivery = 1)';
-	}
-
-	$sql = 'SELECT wp.created_by
-					, DATE_FORMAT(DATE_ADD(wp.date_modified, INTERVAL 7 HOUR), "%d-%m-%Y") AS date_mark
-					, CONCAT_WS(" ", u.last_name, u.first_name) AS mark_person
-					, IF(wp.parent_type = "EC_Flight_Bookings", wp.ticket_delivery, wp.' . $_POST['type'] . ') AS mark
-					, IF(wp.parent_type = "EC_Flight_Bookings", CONCAT("Giao vé booking ", wp.name), wp.description) AS description
-				FROM ec_working_process wp
-				LEFT JOIN users u ON u.id = wp.created_by AND u.deleted = 0
-				WHERE DATE(DATE_ADD(wp.date_entered, INTERVAL 7 HOUR)) = "' . date('Y-m-d', strtotime($_POST['date'])) . '"
-				AND wp.assigned_user_id = "' . $_POST['assigned_user'] . '"
-				' . $sql_type . '
-				ORDER BY wp.date_modified';
-
-	// echo $sql; exit;
-
-	$res = $db->query($sql);
-	$html = '<table width="100%" class="table-findingHistory mt-3" cellpadding="0" cellspacing="0"><thead><th width="5%">STT</th><th width="20%">Ngày chấm</th><th width="15%">Số điểm</th><th width="40%">Lý do</th><th width="20%">Người chấm</th></thead><tbody>';
-	$i = 0;
-
-	while ($row = $db->fetchByAssoc($res)) {
-		$html .= '<tr>
-				<td align="center">' . ++$i . '</td>
-				<td align="center">' . $row['date_mark'] . '</td>
-				<td align="center">' . $row['mark'] . '</td>
-				<td align="center">' . $row['description'] . '</td>
-				<td align="center">' . $row['mark_person'] . '</td>
-			</tr>';
-	}
-	$html .= '</tbody></table>';
-
-	echo $html;
-	exit;
 }
 
 // Edit iti line info
@@ -260,7 +134,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 
 	// lấy thông tin hành trình cũ -> để lấy hạng vé
 	if ($_POST['type'] == 'edit') {
-		$sql_con_t = ' AND (add_type = 0 OR assigned_user_id = "' . $_POST['pass_id'] . '")';
+		$sql_con_t = ' AND (add_type = 0 OR assigned_user_id = "' . $db->quote($_POST['pass_id']) . '")';
 	} else {
 		$sql_con_t = ' AND add_type = 0';
 	}
@@ -312,15 +186,15 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 
 	if (empty($_POST['pass_id'])) {
 		$sql_con = ' 
-				AND booking_id = "' . $_POST['booking'] . '" 
+				AND booking_id = "' . $db->quote($_POST['booking']) . '" 
 				AND id NOT IN (
 					SELECT parent_detail_id
 					FROM ec_booking_passengers 
 					WHERE deleted = 0 AND add_type = 2
-					AND booking_id = "' . $_POST['booking'] . '" 
+					AND booking_id = "' . $db->quote($_POST['booking']) . '" 
 				)';
 	} else if ($_POST['type'] == 'edit') {
-		$sql_con = ' AND id = "' . $_POST['pass_id'] . '"';
+		$sql_con = ' AND id = "' . $db->quote($_POST['pass_id']) . '"';
 	} else {
 		$passenger_arr = explode(',', $_POST['pass_id']);
 		$sql_con = ' AND id IN ("' . implode('","', $passenger_arr) . '")';
@@ -523,7 +397,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeFlightTime') {
 	exit;
 }
 
-// lấy thông tin yêu cầu xuất hoá đơn (cho inline edit trong panel "Thông tin hoá đơn")
+// lấy thông tin yêu cầu xuất hoá đơn
 if (isset($_POST['for']) && $_POST['for'] == 'getInvoiceInfJson') {
 	$booking = new EC_Flight_Bookings;
 	$booking->retrieve($_POST['booking_id']);
@@ -541,7 +415,10 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInvoiceInfJson') {
 			'iv_identity_number' => $inv_inf['iv_identity_number'] ?? '',
 			'company_address' => $booking->company_address,
 			'iv_payment_method' => $inv_inf['iv_payment_method'] ?? '',
+			'iv_name_banks' => $inv_inf['iv_name_banks'] ?? '',
+			'iv_bank_account' => $inv_inf['iv_bank_account'] ?? '',
 		],
+		'banks' => EC_Flight_Bookings::getInvoiceBankList(),
 	], JSON_UNESCAPED_UNICODE);
 	exit;
 }
@@ -569,8 +446,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveInvoiceInfInline') {
 		'iv_email' => $_POST['iv_email'] ?? '',
 		'iv_identity_number' => $_POST['iv_identity_number'] ?? '',
 		'iv_payment_method' => $_POST['iv_payment_method'] ?? '',
-		'iv_bank_account' => $existing['iv_bank_account'] ?? '',
-		'iv_name_banks' => $existing['iv_name_banks'] ?? '',
+		'iv_bank_account' => $_POST['iv_bank_account'] ?? '',
+		'iv_name_banks' => $_POST['iv_name_banks'] ?? '',
 	];
 	$json = json_encode($invoice_inf, JSON_UNESCAPED_UNICODE);
 	$booking->db->query("UPDATE ec_flight_bookings SET shipping_address = '" . $booking->db->quote($json) . "' WHERE id = '" . $booking->db->quote($booking->id) . "' AND deleted = 0");
@@ -801,6 +678,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveItineraryNotes') {
 	exit();
 }
 
+
 function populateLineDetails($booking_id)
 {
 	global $app_list_strings, $db;
@@ -845,7 +723,6 @@ function populateLineDetails($booking_id)
 					<th style="width:8%;" class="text-center fw-semibold">Chiết khấu</th>
 					<th style="width:8%;" class="text-center fw-semibold">Phí xuất vé</th>
 					<th style="width:10%;" class="text-center fw-semibold">NCC</th>
-					<th style="width:1%;" class="text-center fw-semibold">&nbsp;</th>
 				  </tr></thead>';
 
 	$i = 0;
@@ -854,11 +731,14 @@ function populateLineDetails($booking_id)
 	$subtotal_amount_loop = 0;
 
 	while ($row = $db->fetchByAssoc($res)) {
-
 		$detail_id = $row['detail_id'];
 		$html .= '<tr id="bk_edit_line_' . $i . '" class="bkd_line fw-semibold">';
 
-		$html .= '<td><select name="bkd_direction[]" id="bk_edit_direction' . $i . '" >' . get_select_options_with_id($app_list_strings['bk_direction_list'], (int) $row['direction']) . '</select></td>';
+		$html .= '<td>
+					<select name="bkd_direction[]" id="bk_edit_direction' . $i . '" >' . get_select_options_with_id($app_list_strings['bk_direction_list'], (int) $row['direction']) . '</select>
+					<input type="hidden" value="0" name="bkd_deleted[]" id="bk_edit_deleted' . $i . '" />
+					<input type="hidden" name="bkd_detail_id[]" id="bk_edit_detail_id' . $i . '" value="' . $detail_id . '" />
+				</td>';
 		$html .= '<td><select class="text-start" name="bkd_passenger_type[]" id="bk_edit_passenger_type' . $i . '">' . get_select_options_with_id($app_list_strings['passenger_type_list'], (int) $row['passenger_type']) . '</select></td>';
 		$html .= '<td><input class="allow-number-only text-center" onblur="calculateLineEditDetails(' . $i . ')" type="text" name="bkd_quantity[]" id="bk_edit_quantity' . $i . '" value="' . format_number($row['quantity']) . '" maxlength="3" /></td>';
 		$html .= '<td><input class="allow-number-only text-center" onblur="calculateLineEditDetails(' . $i . ')" onkeyup="calculateLineEditDetails(' . $i . ', 0, 1)" type="text" name="bkd_unit_price[]" id="bk_edit_unit_price' . $i . '" value="' . format_number($row['unit_price']) . '" maxlength="25" /></td>';
@@ -871,14 +751,10 @@ function populateLineDetails($booking_id)
 		$html .= '<td><input class="allow-number-only text-center" onblur="calculateLineEditDetails(' . $i . ');" type="text" name="bkd_supplier_discount[]" id="bk_edit_supplier_discount' . $i . '" value="' . format_number($row['supplier_discount']) . '" maxlength="25" /></td>';
 		$html .= '<td><input class="allow-number-only text-center" onblur="calculateLineEditDetails(' . $i . ');" id="bk_edit_supplier_ticketing_fee' . $i . '" type="text" name="bkd_supplier_ticketing_fee[]" value="' . (isset($row['fee_bought']) ? format_number($row['fee_bought']) : 0) . '" maxlength="25"></td>';
 		$html .= '<td><select id="bk_edit_supplier_id' . $i . '" name="bkd_supplier_id[]"><option value=""></option>' . myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', $row['supplier_id'], 'id', $supplier_cus_sql) . '</select></td>';
-		$html .= '<td class="align-middle text-center">
-					<input type="hidden" value="0" name="bkd_deleted[]" id="bk_edit_deleted' . $i . '" />
-					<input type="hidden" name="bkd_detail_id[]" id="bk_edit_detail_id' . $i . '" value="' . $detail_id . '" />
-				</td>';
 
 		// Thêm dòng phí admin chưa VAT
 		$html .= '<tr id="bk_edit_admin_line_' . $i . '">';
-		$html .= '<td colspan="14">
+		$html .= '<td colspan="13">
 					<div class="addmin-fee-wrap d-flex gap-3 align-items-center">
 						<div class="d-flex gap-1 align-items-center admin-fee-not-vat">
 							<span class="text-label">Phí admin chưa VAT:</span>
@@ -907,25 +783,25 @@ function populateLineDetails($booking_id)
 
 	// Tổng
 	$html .= '<tr id="bkd_last_row" class="footer-tr">
-			<td colspan="2" style="margin-top: 3px;">
-				<input type="hidden" name="bkd_row_count" id="bkd_row_count" value="' . $row_count . '" />
-				<input type="hidden" name="supplier_list" id="supplier_list" value="' . $supplier_list . '" />
-				<div class="d-flex align-items-center">
-					<p>Số dòng = <span id="lbl_bkd_row_count">' . $row_count . '</span></p>
-				</div>
-			</td>
-			<td><input type="text" readonly="readonly" name="total_qty" id="total_qty" value="' . format_number($total_qty) . '" /></td>
-			<td colspan="5"></td>
-			<td class="text-center">
-				<input type="text" class="text-danger" readonly="readonly" name="subtotal_amount" id="subtotal_amount" value="' . format_number($subtotal_amount) . '" />
-			</td>
-			<td class="text-center">
-				<input type="text" class="text-danger" readonly="readonly" name="total_bought_amount" id="total_bought_amount" value="' . format_number($total_bought_amount) . '" />
-			</td>
-			<td colspan="4">
-				<input type="hidden" name="total_amount" id="bk_edit_total_amount" size="30" maxlength="26" title="" tabindex="0"  value="0" class="allow-number-only">
-			</td>
-		</tr>';
+				<td colspan="2" style="margin-top: 3px;">
+					<input type="hidden" name="bkd_row_count" id="bkd_row_count" value="' . $row_count . '" />
+					<input type="hidden" name="supplier_list" id="supplier_list" value="' . $supplier_list . '" />
+					<div class="d-flex align-items-center">
+						<p>Số dòng = <span id="lbl_bkd_row_count">' . $row_count . '</span></p>
+					</div>
+				</td>
+				<td><input type="text" readonly="readonly" name="total_qty" id="total_qty" value="' . format_number($total_qty) . '" /></td>
+				<td colspan="5"></td>
+				<td class="text-center">
+					<input type="text" class="text-danger" readonly="readonly" name="subtotal_amount" id="subtotal_amount" value="' . format_number($subtotal_amount) . '" />
+				</td>
+				<td class="text-center">
+					<input type="text" class="text-danger" readonly="readonly" name="total_bought_amount" id="total_bought_amount" value="' . format_number($total_bought_amount) . '" />
+				</td>
+				<td colspan="3">
+					<input type="hidden" name="total_amount" id="bk_edit_total_amount" size="30" maxlength="26" title="" tabindex="0"  value="0" class="allow-number-only">
+				</td>
+			</tr>';
 
 	$html1 = '<script>calculateTotal();</script>';
 
@@ -1345,7 +1221,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPriorBooking') {
 			WHERE bk.deleted = 0
 			AND bk.is_prior = 1
 			AND DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN "' . date('Y-m-d', strtotime($_POST['fdate'])) . '" AND "' . date('Y-m-d', strtotime($_POST['tdate'])) . '"
-			AND bk.created_by = "' . $_POST['user'] . '"
+			AND bk.created_by = "' . $db->quote($_POST['user']) . '"
 			GROUP BY bk.id
 			ORDER BY FIELD(bk.booking_status, 8, 7, 3, 2, 6, 1, 4), bk.date_entered DESC
 		';
@@ -1485,7 +1361,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'get3TicketBooking') {
 			LEFT JOIN ec_revenue rv ON rv.booking_id = bk.id AND rv.deleted = 0
 			LEFT JOIN ec_booking_details d ON d.booking_id = bk.id AND d.deleted = 0
 			LEFT JOIN users u ON u.id = bk.assigned_user_id AND u.title = "Bot" AND u.deleted = 0
-			WHERE bk.created_by = "' . $_POST['user'] . '"
+			WHERE bk.created_by = "' . $db->quote($_POST['user']) . '"
 			AND bk.deleted = 0
 			AND DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN "' . date('Y-m-d', strtotime($_POST['fdate'])) . '" AND "' . date('Y-m-d', strtotime($_POST['tdate'])) . '"
 			AND bk.is_prior = 0
@@ -1643,7 +1519,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'get4To8TicketBooking') {
 			LEFT JOIN users u ON u.id = bk.assigned_user_id
 			WHERE bk.deleted = 0 
 			AND DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN "' . date('Y-m-d', strtotime($_POST['fdate'])) . '" AND "' . date('Y-m-d', strtotime($_POST['tdate'])) . '"
-			AND bk.created_by = "' . $_POST['user'] . '"
+			AND bk.created_by = "' . $db->quote($_POST['user']) . '"
 			AND bk.is_prior = 0
 			GROUP BY bk.id
 			HAVING total_ticket >= 4 AND total_ticket <= 8
@@ -1794,7 +1670,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 			WHERE bk.deleted = 0 
 			AND bk.ticket_type = 2
 			AND DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN "' . date('Y-m-d', strtotime($_POST['fdate'])) . '" AND "' . date('Y-m-d', strtotime($_POST['tdate'])) . '"
-			AND bk.created_by = "' . $_POST['user'] . '"
+			AND bk.created_by = "' . $db->quote($_POST['user']) . '"
 			GROUP BY bk_id
 			ORDER BY FIELD(booking_status, 8, 7, 3, 2, 6, 1, 4)
 		';
@@ -1944,7 +1820,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 
 	$where_user = '';
 	if (isset($_POST['user'])) {
-		$where_user = 'AND u.id = "' . $_POST['user'] . '"';
+		$where_user = 'AND u.id = "' . $db->quote($_POST['user']) . '"';
 	}
 
 	$where_call_bk = '';
@@ -2084,7 +1960,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getBookerBooking') {
 			LEFT JOIN ec_flight_bookings_audit a ON bk.id = a.parent_id
 			WHERE bk.deleted = 0
 			AND DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN "' . date('Y-m-d', strtotime($_POST['fdate'])) . '" AND "' . date('Y-m-d', strtotime($_POST['tdate'])) . '"
-			AND bk.created_by = "' . $_POST['user'] . '"
+			AND bk.created_by = "' . $db->quote($_POST['user']) . '"
 			AND (
 				(a.field_name = "contact_name" AND a.before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi"))
 				OR bk.contact_name IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi")
@@ -2225,7 +2101,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getKhachHangBooking') {
 		LEFT JOIN ec_revenue rv ON rv.booking_id = bk.id AND rv.deleted = 0
 		WHERE bk.deleted = 0
 		AND DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN "' . date('Y-m-d', strtotime($_POST['fdate'])) . '" AND "' . date('Y-m-d', strtotime($_POST['tdate'])) . '"
-		AND bk.created_by = "' . $_POST['user'] . '"
+		AND bk.created_by = "' . $db->quote($_POST['user']) . '"
 		AND bk.contact_name NOT IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao")
 		AND bk.contact_name IS NOT NULL 
 		AND bk.contact_name != ""
@@ -2370,7 +2246,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getThamKhaoBooking') {
 		LEFT JOIN ec_revenue rv ON rv.booking_id = bk.id AND rv.deleted = 0
 		WHERE bk.deleted = 0
 		AND DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN "' . date('Y-m-d', strtotime($_POST['fdate'])) . '" AND "' . date('Y-m-d', strtotime($_POST['tdate'])) . '"
-		AND bk.created_by = "' . $_POST['user'] . '"
+		AND bk.created_by = "' . $db->quote($_POST['user']) . '"
 		AND IFNULL(bk.is_reference, 0) = 1
 		ORDER BY FIELD(booking_status, 8, 7, 3, 2, 6, 1, 4), bk.date_entered DESC
 	';

@@ -1388,6 +1388,43 @@ class EC_Flight_Bookings extends Basic
 		return (string) $code;
 	}
 
+	// Danh sách ngân hàng cho ô "Ngân hàng" của thông tin hoá đơn
+	public static function getInvoiceBankList()
+	{
+		return [
+			'' => 'Chọn ngân hàng',
+			'VPBank' => '(VPBank) NH TMCP Việt Nam Thịnh Vượng',
+			'BIDV' => '(BIDV) NH TMCP Đầu tư và Phát triển Việt Nam',
+			'VietinBank' => '(VietinBank) NH TMCP Công thương Việt Nam',
+			'Vietcombank' => '(Vietcombank) NH TMCP Ngoại Thương Việt Nam',
+			'MB' => '(MB) NH TMCP Quân Đội',
+			'Techcombank' => '(Techcombank) NH TMCP Kỹ Thương',
+			'Agribank' => '(Agribank) NH PT Nông thôn Việt Nam',
+			'ACB' => '(ACB) NH TMCP Á Châu',
+			'SHB' => '(SHB) NH TMCP Sài Gòn – Hà Nội',
+			'VIB' => '(VIB) NH TMCP Quốc Tế',
+			'HDBank' => '(HDBank) NH TMCP Phát triển TPHCM',
+			'SeABank' => '(SeABank) NH TMCP Đông Nam Á',
+			'VBSP' => '(VBSP) NH Chính sách xã hội Việt Nam',
+			'Sacombank' => '(Sacombank) NH TMCP Sài Gòn Thương Tín',
+			'LienVietPostBank' => '(LienVietPostBank) NH TMCP Bưu điện Liên Việt',
+			'MSB' => '(MSB) NH TMCP Hàng Hải',
+			'SCB' => '(SCB) NH TMCP Sài Gòn',
+			'VDB' => '(VDB) NH Phát triển Việt Nam',
+			'OCB' => '(OCB) NH TMCP Phương Đông',
+			'Eximbank' => '(Eximbank) NH TMCP Xuất Nhập Khẩu',
+			'TPBank' => '(TPBank) NH TMCP Tiên Phong',
+			'PVcomBank' => '(PVcomBank)  NH TMCP Đại Chúng Việt Nam',
+			'BacABank' => '(BacABank) NH TMCP Bắc Á',
+			'Woori' => '(Woori) NH TNHH MTV Woori Việt Nam',
+			'HSBC' => '(HSBC) NH TNHH MTV HSBC Việt Nam',
+			'VietABank' => '(Vietbank) NH TMCP Việt Nam Thương Tín',
+			'NamABank' => '(Nam A Bank) NH TMCP Nam Á',
+			'IVB' => '(IVB) NH TNHH Indovina',
+			'Kienlongbank' => '(Kienlongbank) NH TMCP Kiên Long',
+		];
+	}
+
 	// Lưu thông tin hoá đơn
 	public function saveInvoiceInf($post_fields, $booking_id)
 	{

@@ -15,6 +15,8 @@ $(document).ready(function () {
       type: "select",
       options: ["", "Tiền mặt", "Chuyển khoản", "Tiền mặt hoặc Chuyển khoản"],
     },
+    { name: "iv_name_banks", type: "select" }, // options nạp động từ banks server trả về
+    { name: "iv_bank_account", type: "text" },
   ];
   let invoiceInfEditState = null;
 
@@ -24,7 +26,11 @@ $(document).ready(function () {
     if (!$panelHeading.length) return;
 
     $panelHeading.append(
-      '<button type="button" id="' + buttonId + '" class="panel-inline-edit-icon" title="' + title + '">' +
+      '<button type="button" id="' +
+        buttonId +
+        '" class="panel-inline-edit-icon" title="' +
+        title +
+        '">' +
         '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">' +
         '<path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zm.854.708L1.982 12.02l-.85 2.128 2.127-.849L14.293 2.207zM11.207 3.5 12.5 4.793 13.793 3.5 12.5 2.207z"/>' +
         "</svg></button>",
@@ -32,11 +38,19 @@ $(document).ready(function () {
   }
 
   if (booking_status == "7" || booking_status == "8") {
-    insertPanelEditIcon("LBL_AMOUNT_PANEL", "btnEditInvoiceInf", "Sửa thông tin hoá đơn");
+    insertPanelEditIcon(
+      "LBL_AMOUNT_PANEL",
+      "btnEditInvoiceInf",
+      "Sửa thông tin hoá đơn",
+    );
 
     // Chỉ Admin (is_admin thật của SuiteCRM) mới được sửa giá sau khi đã xuất vé/hoàn tất.
     if (is_current_user_admin) {
-      insertPanelEditIcon("LBL_LINEDETAILS_PANEL", "edit_bkg_btn", "Sửa chi tiết");
+      insertPanelEditIcon(
+        "LBL_LINEDETAILS_PANEL",
+        "edit_bkg_btn",
+        "Sửa chi tiết",
+      );
     }
   }
 
@@ -63,7 +77,7 @@ $(document).ready(function () {
           $icon.show();
           return;
         }
-        enterInvoiceInfEditMode(response.data, $icon);
+        enterInvoiceInfEditMode(response.data, response.banks || {}, $icon);
       },
       error: function () {
         $(".container-waiting").hide();
@@ -83,7 +97,7 @@ $(document).ready(function () {
     invoiceInfEditState = null;
   }
 
-  function enterInvoiceInfEditMode(data, $icon) {
+  function enterInvoiceInfEditMode(data, banks, $icon) {
     const fields = INVOICE_INF_FIELDS.map(function (field) {
       const $container = $(
         '.detail-view-row-item[data-field="' +
@@ -100,13 +114,20 @@ $(document).ready(function () {
         );
       } else if (field.type === "select") {
         $input = $('<select class="box-select"></select>');
-        field.options.forEach(function (opt) {
-          $input.append(
-            $("<option></option>")
-              .val(opt)
-              .text(opt || "---"),
-          );
-        });
+        if (field.name === "iv_name_banks") {
+          // Danh sách ngân hàng nạp động từ server (banks: {code: label})
+          Object.keys(banks || {}).forEach(function (code) {
+            $input.append($("<option></option>").val(code).text(banks[code]));
+          });
+        } else {
+          field.options.forEach(function (opt) {
+            $input.append(
+              $("<option></option>")
+                .val(opt)
+                .text(opt || "---"),
+            );
+          });
+        }
         $input.val(value);
       } else {
         $input = $('<input type="text" class="box-input" />').val(value);
@@ -130,9 +151,7 @@ $(document).ready(function () {
         '<button type="button" class="btn btn-primary btn-sm" id="btnSaveInvoiceInf">Lưu</button>' +
         "</div>",
     );
-    $('.detail-view-row-item[data-field="iv_payment_method"]').after(
-      $actionsRow,
-    );
+    $('.detail-view-row-item[data-field="iv_bank_account"]').after($actionsRow);
 
     invoiceInfEditState = {
       fields: fields,
@@ -182,21 +201,27 @@ $(document).ready(function () {
         }
 
         invoiceInfEditState.fields.forEach(function (f) {
+          const $activeInput = f.$container.find(".invoice-inf-input");
+          const displayText =
+            $activeInput.is("select") && $activeInput.val()
+              ? $activeInput.find("option:selected").text()
+              : payload[f.name] || "";
           const $span = $('<span class="sugar_field"></span>')
             .attr("id", f.name)
-            .text(payload[f.name] || "");
+            .text(displayText);
           f.$container.empty().append($span);
         });
         invoiceInfEditState.$actionsRow.remove();
         invoiceInfEditState.$icon.show();
         invoiceInfEditState = null;
+        showModalNotify(1, "Đã lưu thông tin hoá đơn");
       },
       error: function () {
         showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
       },
-      complete: function(){
+      complete: function () {
         $(".container-waiting").hide();
-      }
+      },
     });
   });
 
@@ -244,7 +269,6 @@ $(document).ready(function () {
           booking_id: booking_id,
           for: "showHistoryBookingContact",
         },
-        async: false,
         url: "index.php?entryPoint=entryPointFlightBookings",
         beforeSend: function () {
           $(".container-waiting").show();
@@ -282,7 +306,6 @@ $(document).ready(function () {
         type: "post",
         data:
           "call_phone=" + call_phone + "&call_id_booking=" + call_id_booking,
-        async: false,
         url: "index.php?entryPoint=entryPointCheckCallsHistory",
         success: function (output) {
           $("#dialog-view-history-calls").html(output);
@@ -585,11 +608,14 @@ $(document).ready(function () {
                 bsModal.hide();
                 doChangeStatus();
               } else {
-                alert("Lỗi khi lưu ghi chú: " + (resp.message || ""));
+                showModalNotify(
+                  0,
+                  "Lỗi khi lưu ghi chú: " + (resp.message || ""),
+                );
               }
             },
             error: function () {
-              alert("Lỗi khi lưu ghi chú!");
+              showModalNotify(0, "Lỗi khi lưu ghi chú!");
             },
           });
         });
@@ -1796,7 +1822,11 @@ $(document).ready(function () {
       return;
     }
 
-    alert(message);
+    // Fallback cuối: dùng showModalNotify (0=lỗi, 1=thành công, 2=cảnh báo) thay cho alert() thô
+    if (typeof showModalNotify === "function") {
+      var modalType = { error: 0, success: 1, warning: 2 }[type];
+      showModalNotify(modalType === undefined ? 0 : modalType, message);
+    }
   }
 
   const BOOKING_VOUCHER_ENDPOINT = "index.php?entryPoint=entryPointVoucher";
