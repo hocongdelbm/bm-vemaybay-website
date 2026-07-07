@@ -503,16 +503,4 @@ trait ButtonsTrait
 		);
 	}
 
-	private function assignUpdateRevenueButton()
-	{
-		global $current_user;
-
-		// Cập nhật doanh số của booking trong table ec_revenue
-		$update_revenue = '';
-		if (is_admin($current_user) && $current_user->user_name == 'hungnh') {
-			$update_revenue = '<input id="update_revenue" class="btn btn-primary" type="button" value="Cập nhật DS">';
-		}
-
-		$this->ss->assign('UPDATE_REVENUE', $update_revenue);
-	}
 }

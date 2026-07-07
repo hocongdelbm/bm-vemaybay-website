@@ -47,9 +47,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CHANGE_STATUS}',
                 ),
                 array(
-                    'customCode' => '{$UPDATE_REVENUE}',
-                ),
-                array(
                     'customCode' => '{$VIEWED_BOOKING}',
                 ),
                 array(

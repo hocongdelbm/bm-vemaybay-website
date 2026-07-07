@@ -718,8 +718,15 @@ trait BookingFieldsTrait
 		$bk_amt = calculateBKAmt($this->bean->id);
 		$total_profit = format_number($bk_amt['total_profit'] ?? 0);
 		if (is_admin($current_user)) {
-			$total_profit .= '<button class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#profitBookingModal">Chi tiết D/số</button>
-							<div class="modal fade" id="profitBookingModal" tabindex="-1" aria-labelledby="profitBookingModalLabel" aria-hidden="true">
+			$total_profit .= '<button class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#profitBookingModal">Chi tiết D/số</button>';
+
+			// Cập nhật doanh số của booking trong table ec_revenue - trước đây là nút riêng trên toolbar,
+			// nay đặt cạnh "Chi tiết D/số" vì cùng nói về doanh số. Giữ nguyên logic + phân quyền cũ.
+			if ($current_user->user_name == 'hungnh') {
+				$total_profit .= '<input id="update_revenue" class="btn btn-primary btn-sm ms-2" type="button" value="Cập nhật DS">';
+			}
+
+			$total_profit .= '<div class="modal fade" id="profitBookingModal" tabindex="-1" aria-labelledby="profitBookingModalLabel" aria-hidden="true">
 								<div class="modal-dialog modal-dialog-centered">
 									<div class="modal-content">
 										<div class="modal-body">

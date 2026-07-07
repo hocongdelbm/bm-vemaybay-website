@@ -108,9 +108,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// Print and send button
 		$this->assignPrintAndSendTicketButton();
-
-		// Revenue update button
-		$this->assignUpdateRevenueButton();
 	}
 
 	/**
