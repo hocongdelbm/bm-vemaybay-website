@@ -591,8 +591,8 @@ class EC_Flight_Bookings extends Basic
 	{
 		global $app_list_strings, $current_user;
 
-		// Validate sửa chi tiết vé
-		if (isset($_POST['edit_detail']) && in_array((int)$this->booking_status, [7, 8]) && !is_admin($current_user)) {
+		// Validate sửa chi tiết vé - Admin, Quản lý, Kế toán mới được sửa sau khi đã xuất vé/hoàn tất.
+		if (isset($_POST['edit_detail']) && in_array((int)$this->booking_status, [7, 8]) && !isManagerUser($current_user->id)) {
 			return;
 		}
 

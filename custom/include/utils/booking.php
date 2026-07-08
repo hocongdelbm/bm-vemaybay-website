@@ -1491,20 +1491,10 @@ function getZaloDialogData($booking_id)
 
 /**
  * HTML breakdown "Chi tiết doanh số booking" cho modal admin (view detail).
- * Tách khỏi assignProfitField() để load qua AJAX lúc mở modal thay vì build sẵn
- * mỗi lần tải trang — xem for=getBookingProfitDetail trong custom/entrypoints/epFlightBookings.php.
  */
-function renderBookingProfitBreakdownHtml(array $bk_amt, string $booking_name, bool $showDebug = false)
+function renderBookingProfitBreakdownHtml(array $bk_amt, string $booking_name)
 {
     $html = '<h3 class="sub-title text-center">Chi tiết doanh số booking <span>' . $booking_name . '</span></h3>';
-
-    if ($showDebug) {
-        $html .= '<div class="row">
-					<div class="col-12">
-						<pre>' . json_encode($bk_amt, JSON_PRETTY_PRINT) . '</pre>
-					</div>
-				</div>';
-    }
 
     $html .= '<div class="row">
 					<div class="col-6">

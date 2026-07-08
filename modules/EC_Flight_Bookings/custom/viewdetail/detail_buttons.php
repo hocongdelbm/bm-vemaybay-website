@@ -352,7 +352,7 @@ trait DetailButtonsTrait
 		global $current_user;
 
 		if (in_array((int)$this->bean->booking_status, [7, 8])) {
-			if (is_admin($current_user)) {
+			if (isManagerUser($current_user->id)) {
 				$bkg_detail = '</form><form id="bkg_detail" method="post" style="display:none; background-color:#fff;">
 									<input type="hidden" name="module" value="EC_Flight_Bookings">
 									<input type="hidden" name="action" value="Save">
@@ -368,31 +368,27 @@ trait DetailButtonsTrait
 			}
 
 			// Change name - Đổi tên hành khách
-			$change_name = <<<HTML
-				<input id="change_name_btn" type="button" value="Hành khách / Hành lý / Code vé">
-				</form>
-				<form id="change_name" method="post" style="display:none;background-color:#fff;">
-					<input type="hidden" name="record" id="bkg_no_name" value="{$this->bean->id}" />
-					<input type="hidden" name="module" value="EC_Flight_Bookings" />
-					<input type="hidden" name="action" value="Save" />
-					<div id="line_passengers_name_area" class="detail view"></div>
-					<input type="submit" value="Lưu" class="btn btn-primary mt-2" />
-				</form>
-			HTML;
-			$this->ss->assign('CHANGE_PASSENGER_NAME', $change_name);
+			$change_name ='<input id="change_name_btn" type="button" value="Hành khách / Hành lý / Code vé">
+						</form>
+						<form id="change_name" method="post" style="display:none;background-color:#fff;">
+							<input type="hidden" name="record" id="bkg_no_name" value="' . $this->bean->id . '" />
+							<input type="hidden" name="module" value="EC_Flight_Bookings" />
+							<input type="hidden" name="action" value="Save" />
+							<div id="line_passengers_name_area" class="detail view"></div>
+							<input type="submit" value="Lưu" class="btn btn-primary mt-2" />
+						</form>';
+					$this->ss->assign('CHANGE_PASSENGER_NAME', $change_name);
 
 			// Đổi thông tin ngày bay / hành trình / tên hành khách / hành lý
-			$change_flight_time = <<<HTML
-				<input id="change_flight_time" class="btn btn-warning" type="button" value="Đổi thông tin">
-				</form>
-				<form id="tbl_change_flight_time" name="tbl_change_flight_time" method="post" class="tbl-change-flight-time">
-					<input type="hidden" name="module" value="EC_Flight_Bookings" />
-					<input type="hidden" name="action" value="Save" />
-					<input type="hidden" name="booking_id" value="{$this->bean->id}" />
-					<div id="line_itineraries_area" class="detail view in-popup"></div>
-					<input type="submit" name="save_change_flight" value="Lưu" class="btn btn-primary mt-3 d-block mx-auto" />
-				</form>
-			HTML;
+			$change_flight_time = '<input id="change_flight_time" class="btn btn-warning" type="button" value="Đổi thông tin">
+								</form>
+								<form id="tbl_change_flight_time" name="tbl_change_flight_time" method="post" class="tbl-change-flight-time">
+									<input type="hidden" name="module" value="EC_Flight_Bookings" />
+									<input type="hidden" name="action" value="Save" />
+									<input type="hidden" name="booking_id" value="' . $this->bean->id . '" />
+									<div id="line_itineraries_area" class="detail view in-popup"></div>
+									<input type="submit" name="save_change_flight" value="Lưu" class="btn btn-primary mt-3 d-block mx-auto" />
+								</form>';
 			$this->ss->assign('CHANGE_FLIGHT_TIME', $change_flight_time);
 		}
 	}

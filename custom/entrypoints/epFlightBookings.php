@@ -135,8 +135,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getZaloDialogData') {
 	exit;
 }
 
-// Chi tiết doanh số booking (modal admin ở detail view) - load lazy khi mở modal
-// thay vì build sẵn breakdown ~15 dòng trên mọi lượt tải trang.
+// Chi tiết doanh số booking 
 if (isset($_POST['for']) && $_POST['for'] == 'getBookingProfitDetail') {
 	header('Content-Type: application/json; charset=utf-8');
 
@@ -154,7 +153,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getBookingProfitDetail') {
 	}
 
 	$bk_amt = calculateBKAmt($booking->id);
-	$html = renderBookingProfitBreakdownHtml($bk_amt, $booking->name, $current_user->user_name == 'hungnh');
+	$html = renderBookingProfitBreakdownHtml($bk_amt, $booking->name);
 
 	echo json_encode(['success' => true, 'html' => $html], JSON_UNESCAPED_UNICODE);
 	exit;

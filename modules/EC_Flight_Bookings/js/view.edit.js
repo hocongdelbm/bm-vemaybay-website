@@ -470,170 +470,7 @@ $(document).ready(function () {
 	});
 
 	// Autocomplete Location Booking (Field city)
-	$(function () {
-		var location = [
-			{ label: "Hồ Chí Minh", value: "Hồ Chí Minh" },
-			{ label: "Ho Chi Minh", value: "Hồ Chí Minh" },
-			{ label: "TP Hồ Chí Minh", value: "Hồ Chí Minh" },
-
-			{ label: "Phú Quốc", value: "Phú Quốc" },
-			{ label: "Phu Quoc", value: "Phú Quốc" },
-			{ label: "Cần Thơ", value: "Cần Thơ" },
-			{ label: "Can Tho", value: "Cần Thơ" },
-			{ label: "Côn Đảo", value: "Côn Đảo" },
-			{ label: "Con Dao", value: "Côn Đảo" },
-			{ label: "Rạch Giá", value: "Rạch Giá" },
-			{ label: "Rach Gia", value: "Rạch Giá" },
-			{ label: "Cà Mau", value: "Cà Mau" },
-			{ label: "Ca Mau", value: "Cà Mau" },
-
-			{ label: "Đà Nẵng", value: "Đà Nẵng" },
-			{ label: "Da Nang", value: "Đà Nẵng" },
-			{ label: "Huế", value: "Huế" },
-			{ label: "Hue", value: "Huế" },
-			{ label: "Thừa Thiên - Huế", value: "Huế" },
-			{ label: "Thua Thien - Hue", value: "Huế" },
-
-			{ label: "Thanh Hóa", value: "Thanh Hóa" },
-			{ label: "Thanh Hoa", value: "Thanh Hóa" },
-			{ label: "Đồng Hới", value: "Đồng Hới" },
-			{ label: "Dong Hoi", value: "Đồng Hới" },
-			{ label: "Quy Nhơn", value: "Quy Nhơn" },
-			{ label: "Quy Nhon", value: "Quy Nhơn" },
-			{ label: "Tuy Hòa", value: "Tuy Hòa" },
-			{ label: "Tuy Hoa", value: "Tuy Hòa" },
-			{ label: "Ban Mê Thuột", value: "Ban Mê Thuột" },
-			{ label: "Ban Me Thuot", value: "Ban Mê Thuột" },
-			{ label: "Đà Lạt", value: "Đà Lạt" },
-			{ label: "Da Lat", value: "Đà Lạt" },
-			{ label: "Vinh", value: "Vinh" },
-			{ label: "Chu Lai", value: "Chu Lai" },
-			{ label: "Nha Trang", value: "Nha Trang" },
-			{ label: "Pleiku", value: "Pleiku" },
-
-			{ label: "Hà Nội", value: "Hà Nội" },
-			{ label: "Ha Noi", value: "Hà Nội" },
-			{ label: "Hải Phòng", value: "Hải Phòng" },
-			{ label: "Hai Phong", value: "Hải Phòng" },
-			{ label: "Vân Đồn", value: "Vân Đồn" },
-			{ label: "Van Don", value: "Vân Đồn" },
-			{ label: "Điện Biên", value: "Điện Biên" },
-			{ label: "Dien Bien", value: "Điện Biên" },
-
-			// More
-			{ label: "Bà Rịa Vũng Tàu", value: "Bà Rịa Vũng Tàu" },
-			{ label: "Ba Ria Vung Tau", value: "Bà Rịa Vũng Tàu" },
-			{ label: "Bình Dương", value: "Bình Dương" },
-			{ label: "Binh Duong", value: "Bình Dương" },
-			{ label: "Bình Phước", value: "Bình Phước" },
-			{ label: "Binh Phuoc", value: "Bình Phước" },
-			{ label: "Đồng Nai", value: "Đồng Nai" },
-			{ label: "Dong Nai", value: "Đồng Nai" },
-			{ label: "Tây Ninh", value: "Tây Ninh" },
-			{ label: "Tay Ninh", value: "Tây Ninh" },
-			{ label: "An Giang", value: "An Giang" },
-			{ label: "Bạc Liêu", value: "Bạc Liêu" },
-			{ label: "Bac Lieu", value: "Bạc Liêu" },
-			{ label: "Bến Tre", value: "Bến Tre" },
-			{ label: "Ben Tre", value: "Bến Tre" },
-			{ label: "Cà Mau", value: "Cà Mau" },
-			{ label: "Ca Mau", value: "Cà Mau" },
-			{ label: "Đồng Tháp", value: "Đồng Tháp" },
-			{ label: "Dong Thap", value: "Đồng Tháp" },
-			{ label: "Hậu Giang", value: "Hậu Giang" },
-			{ label: "Hau Giang", value: "Hậu Giang" },
-			{ label: "Kiên Giang", value: "Kiên Giang" },
-			{ label: "Kien Giang", value: "Kiên Giang" },
-			{ label: "Long An", value: "Long An" },
-			{ label: "Sóc Trăng", value: "Sóc Trăng" },
-			{ label: "Soc Trang", value: "Sóc Trăng" },
-			{ label: "Tiền Giang", value: "Tiền Giang" },
-			{ label: "Tien Giang", value: "Tiền Giang" },
-			{ label: "Trà Vinh", value: "Trà Vinh" },
-			{ label: "Tra Vinh", value: "Trà Vinh" },
-			{ label: "Vĩnh Long", value: "Vĩnh Long" },
-			{ label: "Vinh Long", value: "Vĩnh Long" },
-
-			{ label: "Nghệ An", value: "Nghệ An" },
-			{ label: "Nghe An", value: "Nghệ An" },
-			{ label: "Hà Tĩnh", value: "Hà Tĩnh" },
-			{ label: "Ha Tinh", value: "Hà Tĩnh" },
-			{ label: "Quảng Bình", value: "Quảng Bình" },
-			{ label: "Quang Binh", value: "Quảng Bình" },
-			{ label: "Quảng Trị", value: "Quảng Trị" },
-			{ label: "Quang Tri", value: "Quảng Trị" },
-			{ label: "Quảng Nam", value: "Quảng Nam" },
-			{ label: "Quang Nam", value: "Quảng Nam" },
-			{ label: "Quảng Ngãi", value: "Quảng Ngãi" },
-			{ label: "Quang Ngãi", value: "Quảng Ngãi" },
-			{ label: "Bình Định", value: "Bình Định" },
-			{ label: "Binh Dinh", value: "Bình Định" },
-			{ label: "Phú Yên", value: "Phú Yên" },
-			{ label: "Phu Yen", value: "Phú Yên" },
-			{ label: "Khánh Hòa", value: "Khánh Hòa" },
-			{ label: "Khanh Hoa", value: "Khánh Hòa" },
-			{ label: "Ninh Thuận", value: "Ninh Thuận" },
-			{ label: "Ninh Thuan", value: "Ninh Thuận" },
-			{ label: "Bình Thuận", value: "Bình Thuận" },
-			{ label: "Binh Thuan", value: "Bình Thuận" },
-			{ label: "Kon Tum", value: "Kon Tum" },
-			{ label: "Gia Lai", value: "Gia Lai" },
-			{ label: "Đắk Lắk", value: "Đắk Lắk" },
-			{ label: "Đak Lak", value: "Đắk Lắk" },
-			{ label: "Lâm Đồng", value: "Lâm Đồng" },
-			{ label: "Lam Đong", value: "Lâm Đồng" },
-
-			{ label: "Hòa Bình", value: "Hòa Bình" },
-			{ label: "Hoa Binh", value: "Hòa Bình" },
-			{ label: "Sơn La", value: "Sơn La" },
-			{ label: "Son La", value: "Sơn La" },
-			{ label: "Lai Châu", value: "Lai Châu" },
-			{ label: "Lai Chau", value: "Lai Châu" },
-			{ label: "Lào Cai", value: "Lào Cai" },
-			{ label: "Lao Cai", value: "Lào Cai" },
-			{ label: "Yên Bái", value: "Yên Bái" },
-			{ label: "Yen Bai", value: "Yên Bái" },
-			{ label: "Phú Thọ", value: "Phú Thọ" },
-			{ label: "Phu Tho", value: "Phú Thọ" },
-			{ label: "Hà Giang", value: "Hà Giang" },
-			{ label: "Ha Giang", value: "Hà Giang" },
-			{ label: "Tuyên Quang", value: "Tuyên Quang" },
-			{ label: "Tuyen Quang", value: "Tuyên Quang" },
-			{ label: "Cao Bằng", value: "Cao Bằng" },
-			{ label: "Cao Bang", value: "Cao Bằng" },
-			{ label: "Bắc Kạn", value: "Bắc Kạn" },
-			{ label: "Bac Kan", value: "Bắc Kạn" },
-			{ label: "Thái Nguyên", value: "Thái Nguyên" },
-			{ label: "Thai Nguyen", value: "Thái Nguyên" },
-			{ label: "Lạng Sơn", value: "Lạng Sơn" },
-			{ label: "Lang Son", value: "Lạng Sơn" },
-			{ label: "Bắc Giang", value: "Bắc Giang" },
-			{ label: "Bac Giang", value: "Bắc Giang" },
-			{ label: "Quảng Ninh", value: "Quảng Ninh" },
-			{ label: "Quang Ninh", value: "Quảng Ninh" },
-			{ label: "Bắc Ninh", value: "Bắc Ninh" },
-			{ label: "Bac Ninh", value: "Bắc Ninh" },
-			{ label: "Hà Nam", value: "Hà Nam" },
-			{ label: "Ha Nam", value: "Hà Nam" },
-			{ label: "Hải Dương", value: "Hải Dương" },
-			{ label: "Hai Duong", value: "Hải Dương" },
-			{ label: "Hưng Yên", value: "Hưng Yên" },
-			{ label: "Hung Yen", value: "Hưng Yên" },
-			{ label: "Nam Định", value: "Nam Định" },
-			{ label: "Nam Dinh", value: "Nam Định" },
-			{ label: "Thái Bình", value: "Thái Bình" },
-			{ label: "Thai Binh", value: "Thái Bình" },
-			{ label: "Vĩnh Phúc", value: "Vĩnh Phúc" },
-			{ label: "Vinh Phuc", value: "Vĩnh Phúc" },
-			{ label: "Ninh Bình", value: "Ninh Bình" },
-			{ label: "Ninh Binh", value: "Ninh Bình" },
-		];
-		$("#location_booking").autocomplete({
-			source: location,
-			autofocus: true,
-			minLength: 1
-		});
-	});
+	initLocationBookingAutocomplete();
 
 	// Enable popover in available baggage
 	var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
@@ -641,6 +478,36 @@ $(document).ready(function () {
 		return new bootstrap.Popover(popoverTriggerEl)
 	});
 });
+
+// Bỏ dấu tiếng Việt để so khớp autocomplete không phân biệt có dấu/không dấu
+function removeVietnameseAccents(str) {
+	return (str || '')
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/đ/g, 'd')
+		.replace(/Đ/g, 'D');
+}
+
+function initLocationBookingAutocomplete() {
+	const $input = $('#location_booking');
+	let cities = [];
+	try {
+		cities = JSON.parse($input.attr('data-cities') || '[]');
+	} catch (e) {
+		cities = [];
+	}
+
+	$input.autocomplete({
+		source: function (request, response) {
+			var term = removeVietnameseAccents(request.term).toLowerCase();
+			response(cities.filter(function (city) {
+				return removeVietnameseAccents(city).toLowerCase().indexOf(term) !== -1;
+			}));
+		},
+		autofocus: true,
+		minLength: 1
+	});
+}
 
 function insertItineraryLine(ln) {
 	var direction_list = $('#direction_list').val();

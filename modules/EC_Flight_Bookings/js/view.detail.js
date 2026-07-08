@@ -44,8 +44,8 @@ $(document).ready(function () {
       "Sửa thông tin hoá đơn",
     );
 
-    // Chỉ Admin (is_admin thật của SuiteCRM) mới được sửa giá sau khi đã xuất vé/hoàn tất.
-    if (is_current_user_admin) {
+    // Chỉ Admin, Quản lý, Kế toán mới được sửa giá sau khi đã xuất vé/hoàn tất.
+    if (can_edit_completed_line_details) {
       insertPanelEditIcon(
         "LBL_LINEDETAILS_PANEL",
         "edit_bkg_btn",
@@ -1195,7 +1195,6 @@ $(document).ready(function () {
   $("#btnCloseWorkingProcess").click(function () {
     $("#dlgWorkingProcessNote").dialog("close");
   });
-  // End open working process popup
 
   // Begin edit booking detail
   $("#edit_bkg_btn").on("click", function () {

@@ -3,22 +3,16 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /**
  * Basic booking fields and invoice fields for edit view.
- *
- * Used by EC_Flight_BookingsViewEdit. Methods are kept close to the
- * legacy implementation to preserve the old business behavior.
  */
 trait ECFlightBookingEditBasicFieldsTrait
 {
 
-	function populateBasicFields()
+	public function populateBasicFields()
 	{
 		global $app_list_strings, $timedate, $current_user;
 
 		// Chuẩn bị date format để render các field ngày như ngày xuất vé.
 		$date_format = $timedate->get_date_format();
-
-		// Thông tin hoá đơn
-		$this->populateInvoiceFields();
 
 		// Tên booking
 		if ($this->bean->name != "") {
@@ -155,52 +149,5 @@ trait ECFlightBookingEditBasicFieldsTrait
 			';
 			$this->ss->assign('CUS_ASSIGNED_USER_NAME', $assigned_user);
 		}
-
-		// Nơi đặt vé của Booking
-		$location_booking = '<div class="ui-widget">
-			<input placeholder="Hồ Chí Minh, Hà Nội,..." type="text" class="location_booking" name="city" id="location_booking" value="' . $this->bean->city . '">
-		</div>';
-		$this->ss->assign('LOCATION_BOOKING', $location_booking);
-	}
-
-	public function populateInvoiceFields()
-	{
-		// Render các field thông tin hóa đơn từ JSON shipping_address để submit cùng form edit booking.
-		$iv_payment_method = [
-			'' => '',
-			'Tiền mặt' => 'Tiền mặt',
-			'Chuyển khoản' => 'Chuyển khoản',
-			'Tiền mặt hoặc Chuyển khoản' => 'Tiền mặt hoặc Chuyển khoản',
-		];
-
-		$invoice_arr = json_decode(str_replace("&quot;", "\"", $this->bean->shipping_address), 1);
-		$invoice_arr = is_array($invoice_arr) ? $invoice_arr : [];
-
-		$this->ss->assign(
-			'CUS_IV_ACCOUNT_NAME',
-			'<input type="text" id="iv_account_name" name="iv_account_name" size="30" value="' . $invoice_arr['iv_account_name'] . '" />'
-		);
-		$this->ss->assign(
-			'CUS_IV_EMAIL',
-			'<input type="text" id="iv_email" name="iv_email" size="30" value="' . $invoice_arr['iv_email'] . '" />'
-		);
-		$this->ss->assign(
-			'CUS_IV_IDENTITY_NUMBER',
-			'<input type="text" id="iv_identity_number" name="iv_identity_number" size="12" value="' . $invoice_arr['iv_identity_number'] . '" />'
-		);
-		$this->ss->assign(
-			'CUS_IV_PAYMENT_METHOD',
-			'<select name="iv_payment_method" class="w-100">'
-			. get_select_options_with_id($iv_payment_method, $invoice_arr['iv_payment_method'] ?? '')
-			. '</select>'
-		);
-		$this->ss->assign(
-			'CUS_IV_BANK_ACCOUNT',
-			'<input type="text" name="iv_bank_account" size="30" value="' . $invoice_arr['iv_bank_account'] . '" />'
-		);
-		$this->ss->assign(
-			'CUS_IV_NAME_BANK',
-			'<input type="text" name="iv_name_banks" size="30" value="' . $invoice_arr['iv_name_banks'] . '" />'
-		);
 	}
 }

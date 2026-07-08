@@ -1,12 +1,6 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-/**
- * Booking field, ticket detail, and invoice rendering.
- *
- * Used by EC_Flight_BookingsViewDetail. Methods are kept close to the
- * legacy implementation to preserve the old business behavior.
- */
 trait DetailFieldsTrait
 {
 	private function assignInvoiceInfoField()
@@ -734,12 +728,10 @@ trait DetailFieldsTrait
 	{
 		global $current_user;
 
-		// $bk_amt = calculateBKAmt($this->bean->id);
-		// $total_profit = format_number($bk_amt['total_profit'] ?? 0);
 		$total_profit = '';
 
 		if (is_admin($current_user)) {
-			$total_profit .= '<button class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#profitBookingModal">Chi tiết D/số</button>';
+			$total_profit .= '<button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#profitBookingModal">Chi tiết D/số</button>';
 			if ($current_user->user_name == 'hungnh') {
 				$total_profit .= '<input id="update_revenue" class="btn btn-primary btn-sm ms-2" type="button" value="Cập nhật DS">';
 			}
