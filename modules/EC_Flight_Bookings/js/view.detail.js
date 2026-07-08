@@ -401,15 +401,13 @@ $(document).ready(function () {
     });
   });
 
-  // Booking ở trạng thái "hoàn tất", "xuất vé" không đc edit và delete ngoại trừ kế toán trưởng và admin
-  const chief_accountant_arr = ["Administrator", "Admin", "QuanLy"];
   if (
-    (booking_status == "7" || booking_status == "8") &&
-    chief_accountant_arr.indexOf(current_user_title) == -1
+    (booking_status == "7" || booking_status == "8") && is_current_user_admin
   ) {
     $('form[name="DetailView"] input:button[name="Edit"]').remove();
     $('form[name="DetailView"] input:submit[name="Delete"]').remove();
   }
+  
   if (booking_status == "4") {
     $('form[name="DetailView"] input:button[name="Edit"]').remove();
   }

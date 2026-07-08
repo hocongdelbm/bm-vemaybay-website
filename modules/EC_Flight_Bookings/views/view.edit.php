@@ -4,13 +4,8 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('custom/entrypoints/entryAuthClass/entryFareSystemClass.php');
 
 require_once 'modules/EC_Flight_Bookings/custom/viewedit/Assets.php';
-require_once 'modules/EC_Flight_Bookings/custom/viewedit/BasicFields.php';
-
 require_once 'modules/EC_Flight_Bookings/custom/viewedit/edit_fields.php';
-
-require_once 'modules/EC_Flight_Bookings/custom/viewedit/Itinerary.php';
-require_once 'modules/EC_Flight_Bookings/custom/viewedit/LineDetails.php';
-require_once 'modules/EC_Flight_Bookings/custom/viewedit/Passenger.php';
+require_once 'modules/EC_Flight_Bookings/custom/viewedit/edit_panels.php';
 
 class EC_Flight_BookingsViewEdit extends ViewEdit
 {
@@ -20,14 +15,10 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 	private $_outbound_ticket_class = '';
 	private $_inbound_ticket_class = '';
 	private $_journey = '';
-	private $icon_x = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>';
 
-	use ECFlightBookingEditAssetsTrait;
+	use EditAssetsTrait;
 	use EditFieldsTrait;
-	use ECFlightBookingEditBasicFieldsTrait;
-	use ECFlightBookingEditItineraryTrait;
-	use ECFlightBookingEditLineDetailsTrait;
-	use ECFlightBookingEditPassengerTrait;
+	use EditPanelsTrait;
 
 	public function __construct()
 	{
@@ -53,12 +44,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		$this->displayJS();
 		$this->displayCSS();
 
-		if ($isCompletedManagerEdit && !is_admin($current_user)) {
-			$this->displayJS_Edit();
-		}
-
 		$this->populateCustomFields();
-
 		$this->populateCustomPanels();
 
 		parent::display();
@@ -66,7 +52,26 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 
 	public function populateCustomFields()
 	{
-		$this->populateBasicFields();
+		// Tên booking
+		$this->assignNameBookingField();
+
+		// Là đại lý
+		$this->assignIsAgentField();
+
+		// Check đã xuất vé
+		$this->assignTicketExportedField();
+
+		// Danh xưng liên hệ
+		$this->assignContactNameField();
+
+		// Airline outbound - inbound
+		$this->assignAirlineField();
+
+		// Ngày xuất vé lượt đi - về
+		$this->assignDateTicketIssueField();
+
+		// Giao cho
+		$this->assignAssignToUserField();
 
 		// Thông tin hóa đơn
 		$this->assignInvoiceField();

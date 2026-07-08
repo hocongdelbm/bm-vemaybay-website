@@ -1,8 +1,5 @@
 $(document).ready(function () {
-
-    // if receipted
-    const chief_accountant_arr = ['Administrator', 'QuanLy'];
-    if (rv_status == '1' && chief_accountant_arr.indexOf(current_user_title) == -1) {
+    if (rv_status == '1' && is_current_user_admin) {
         $('form[name="DetailView"] input:button[name="Edit"]').remove();
         $('form[name="DetailView"] input:submit[name="Delete"]').remove();
     }

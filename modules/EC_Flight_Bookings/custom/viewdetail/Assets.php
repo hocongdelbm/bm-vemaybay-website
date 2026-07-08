@@ -5,7 +5,7 @@ trait AssetsTrait
 {
 	private function displayCSSTrait()
 	{
-		$cssVer   = inDeveloperMode() ? time() : '1.3.0';
+		$cssVer   = inDeveloperMode() ? time() : '1.3.1';
 
 		$css = '<link type="text/css" rel="stylesheet" href="themes/SuiteP/libs/css/select2.min.css" />' .
 			'<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/view.detail.css?v=' . $cssVer . '" />' .
@@ -19,7 +19,7 @@ trait AssetsTrait
 	{
 		global $app_list_strings, $current_user;
 
-		$jsVer   = inDeveloperMode() ? time() : '1.3.0';
+		$jsVer   = inDeveloperMode() ? time() : '1.3.1';
 
 		$js = '
 				<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=' . $jsVer . '"></script>
@@ -50,7 +50,6 @@ trait AssetsTrait
 			let vta_ticket_class = ["Dregow (D)", "Cregow (C)", "Bregow (B)", "Aregow (A)", "Eregow (E)", "Kregow (K)", "Hregow (H)", "Mregow (M)", "Nfleow (N)", "Lregow (L)", "Vfleow (V)", "Yfleow (Y)"];
 			
 			const all_ticket_class = [].concat(bba_ticket_class, vja_ticket_class, vna_ticket_class, vta_ticket_class);
-			const current_user_title = "' . trim($current_user->title) . '";
 			const is_current_user_admin = ' . (is_admin($current_user) ? 'true' : 'false') . ';
 			const can_edit_completed_line_details = ' . (isManagerUser($current_user->id) ? 'true' : 'false') . ';
 			const is_invoice_export = "' . $this->bean->is_invoice_export . '";

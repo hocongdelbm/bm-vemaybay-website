@@ -1,41 +1,29 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-trait ECFlightBookingEditAssetsTrait {
-	function displayCSS() {
-		echo <<<HTML
-			<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.edit.css?v=1.9.3" />
-		HTML;
+trait EditAssetsTrait
+{
+	public function displayCSS()
+	{
+		$cssVer = inDeveloperMode() ? time() : '1.3.1';
+
+		$css = '<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/view.edit.css?v=' . $cssVer . '" />';
+
+		echo $css;
 	}
 
-	function displayJS()
-	{
-		global $current_user;
-		$js = '';
-
-		// Inject biến user và bảng giá hành lý Vietjet cho JS tính toán ban đầu.
-		$js .= '<script>
-			var assigned_user_id="' . $current_user->id . '";
-			$(document).ready(function() {
-				calculateTotal();
-			});
-		</script>';
-
-		// Load JS chính của edit view: render row, tính tổng, xử lý hành lý/hành trình.
-		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.9.3"></script>';
-		echo $js;
-	}
-
-	function displayJS_Edit()
+	public function displayJS()
 	{
 		$js = '';
-		$js .= '<script>
-			$(document).ready(function() {
-				$("#detailpanel_1").hide();
-				$("#detailpanel_2").hide();
-			});
-		</script>';
+		$jsVer   = inDeveloperMode() ? time() : '1.3.1';
 
+		$js .= '<script>
+					$(document).ready(function() {
+						calculateTotal();
+					});
+				</script>';
+
+		$js .= '<script src="modules/' . $this->bean->module_dir . '/js/view.edit.js?v=' . $jsVer . '"></script>';
 		echo $js;
 	}
 }

@@ -100,15 +100,7 @@ $(document).ready(function () {
 	}
 
 	// Init calendar for date ticket issue
-	Calendar.setup({
-		inputField: 'date_ticket_issue',
-		daFormat: cal_date_format,
-		button: 'date_ticket_issue_trigger',
-		singleClick: true,
-		dateStr: '',
-		step: 1,
-		weekNumbers: false
-	});
+	setupDateCalendar('date_ticket_issue', 'date_ticket_issue_trigger');
 
 	// When check is ticket exported
 	$('#chk_is_ticket_exported').change(function () {
@@ -124,46 +116,12 @@ $(document).ready(function () {
 
 	// Set calendar for itineraries
 	$('input:text[name="iti_departure_date[]"]').each(function (index, element) {
-		Calendar.setup({
-			inputField: 'iti_departure_date' + index,
-			daFormat: cal_date_format,
-			button: 'iti_departure_date_trigger' + index,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-		Calendar.setup({
-			inputField: 'iti_arrival_date' + index,
-			daFormat: cal_date_format,
-			button: 'iti_arrival_date_trigger' + index,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-		Calendar.setup({
-			inputField: 'iti_time_limit_date' + index,
-			daFormat: cal_date_format,
-			button: 'iti_time_limit_date_trigger' + index,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
+		setupItineraryCalendars(index);
 	});
 
 	// Set calendar for passengers
 	$('input:text[name="psg_birthday[]"]').each(function (index, element) {
-		Calendar.setup({
-			inputField: 'psg_birthday' + index,
-			daFormat: cal_date_format,
-			button: 'psg_birthday_trigger' + index,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
+		setupPassengerCalendar(index);
 	});
 
 	// Mã số thuế
@@ -304,33 +262,7 @@ $(document).ready(function () {
 		$('#iti_airline_code' + ln).focus();
 
 		// SETUP DATETIME
-		Calendar.setup({
-			inputField: 'iti_departure_date' + ln,
-			daFormat: cal_date_format,
-			button: 'iti_departure_date_trigger' + ln,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-		Calendar.setup({
-			inputField: 'iti_arrival_date' + ln,
-			daFormat: cal_date_format,
-			button: 'iti_arrival_date_trigger' + ln,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-		Calendar.setup({
-			inputField: 'iti_time_limit_date' + ln,
-			daFormat: cal_date_format,
-			button: 'iti_time_limit_date_trigger' + ln,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
+		setupItineraryCalendars(ln);
 
 		ln++;
 		$('#iti_row_count').val(ln);
@@ -359,15 +291,7 @@ $(document).ready(function () {
 		$('.allow-number-only').number(true, 0, dec_sep, num_grp_sep);
 		$('#psg_traveller_type' + ln).focus();
 
-		Calendar.setup({
-			inputField: 'psg_birthday' + ln,
-			daFormat: cal_date_format,
-			button: 'psg_birthday_trigger' + ln,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
+		setupPassengerCalendar(ln);
 
 		// Initialize Select2 for the new row
 		initOptBagSelect2(ln);
@@ -507,6 +431,28 @@ function initLocationBookingAutocomplete() {
 		autofocus: true,
 		minLength: 1
 	});
+}
+
+function setupDateCalendar(inputField, button) {
+	Calendar.setup({
+		inputField: inputField,
+		daFormat: cal_date_format,
+		button: button,
+		singleClick: true,
+		dateStr: '',
+		step: 1,
+		weekNumbers: false
+	});
+}
+
+function setupItineraryCalendars(ln) {
+	setupDateCalendar('iti_departure_date' + ln, 'iti_departure_date_trigger' + ln);
+	setupDateCalendar('iti_arrival_date' + ln, 'iti_arrival_date_trigger' + ln);
+	setupDateCalendar('iti_time_limit_date' + ln, 'iti_time_limit_date_trigger' + ln);
+}
+
+function setupPassengerCalendar(ln) {
+	setupDateCalendar('psg_birthday' + ln, 'psg_birthday_trigger' + ln);
 }
 
 function insertItineraryLine(ln) {
@@ -1044,12 +990,7 @@ function calculateLuggagePrice() {
 			luggage_fee += parseInt(luggage_ob_price) + parseInt(luggage_ib_price);
 		}
 	});
-	// var luggage_price = unformatNumber($('#psg_luggage_price' + ln).val());
-	// var luggage_fee = unformatNumber($('#luggage_fee').val());
-	// if (luggage_price_outbound < 1000) {
-	// 	var luggage_price_idx = JSON.parse($('#vja_index_luggage_price_list' + ln).val());
-	// }
-	// luggage_fee += luggage_price;
+
 	$('#luggage_fee').val(formatNumber(luggage_fee));
 	calculateTotal();
 }
@@ -1503,15 +1444,7 @@ function renderInitialPassengers() {
         $('.allow-number-only').number(true, 0, dec_sep, num_grp_sep);
 
         // Calendar
-        Calendar.setup({
-            inputField: `psg_birthday${i}`,
-            daFormat: cal_date_format,
-            button: `psg_birthday_trigger${i}`,
-            singleClick: true,
-            dateStr: '',
-            step: 1,
-            weekNumbers: false
-        });
+        setupPassengerCalendar(i);
 
         // ── Populate baggage text + Select2 ──────────────────────────
 
@@ -1613,33 +1546,7 @@ function renderInitialItineraries() {
 		}
 
 		// Set up calendars
-		Calendar.setup({
-			inputField: 'iti_departure_date' + i,
-			daFormat: cal_date_format,
-			button: 'iti_departure_date_trigger' + i,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-		Calendar.setup({
-			inputField: 'iti_arrival_date' + i,
-			daFormat: cal_date_format,
-			button: 'iti_arrival_date_trigger' + i,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-		Calendar.setup({
-			inputField: 'iti_time_limit_date' + i,
-			daFormat: cal_date_format,
-			button: 'iti_time_limit_date_trigger' + i,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
+		setupItineraryCalendars(i);
 	}
 
 	// Re-apply number formatting to the new inputs
@@ -1727,214 +1634,3 @@ function renderInitialDetails() {
 	// Re-apply number formatting
 	$('.allow-number-only').number(true, 0, dec_sep, num_grp_sep);
 }
-
-// function updateBaggagePriceFromSelectOld(rowIndex, direction) {
-// 	var selectId = direction === 'outbound'
-// 		? 'psg_luggage_purchase_text' + rowIndex
-// 		: 'psg_luggage_purchase_text_inbound' + rowIndex;
-
-// 	var sellingPriceInputId = direction === 'outbound'
-// 		? 'psg_luggage_price' + rowIndex
-// 		: 'psg_luggage_price_inbound' + rowIndex;
-
-// 	var selectedOption = $('#' + selectId + ' option:selected');
-// 	var cost = selectedOption.data('cost') || 0;
-
-// 	$('#' + sellingPriceInputId).val(formatNumber(cost));
-// 	updateTotalBaggageFee();
-// }
-
-// function markPassengerRowDeleted(ln) {
-// 	$('#psg_line_' + ln).hide();
-// 	$('#psg_line_desc_' + ln).hide();
-// 	$('#psg_line_lug_' + ln).hide();
-// 	$('#psg_deleted' + ln).val(1);
-// 	var luggage_fee = unformatNumber($('#luggage_fee').val());
-// 	var luggage_price_outbound = unformatNumber($('#psg_luggage_price' + ln).val());
-// 	var luggage_price_inbound = unformatNumber($('#psg_luggage_price_inbound' + ln).val());
-// 	luggage_fee -= (luggage_price_outbound + luggage_price_inbound);
-// 	$('#luggage_fee').val(luggage_fee);
-// 	$('#lbl_psg_row_count').text(parseInt($('#lbl_psg_row_count').text()) - 1);
-// 	calculateLuggagePrice();
-// }
-
-// function insertPassengerLineOld(ln) {
-// 	let supplier_list = $('#supplier_list').val();
-// 	let passenger_type_list = $('#passenger_type_list').val();
-// 	let passenger_salutation_list = $('#passenger_salutation_list').val();
-// 	let aircode_out = $('#airline').val().toLowerCase();
-// 	let aircode_in = $('#airline_inbound').val().toLowerCase();
-
-// 	switch (aircode_out) {
-// 		case 'vj': aircode_out = 'vja'; break;
-// 		case 'vn': aircode_out = 'vna'; break;
-// 		case 'bl': aircode_out = 'vnp'; break;
-// 		case 'qh': aircode_out = 'bba'; break;
-// 		case 'vu': aircode_out = 'vta'; break;
-// 	}
-// 	switch (aircode_in) {
-// 		case 'vj': aircode_in = 'vja'; break;
-// 		case 'vn': aircode_in = 'vna'; break;
-// 		case 'bl': aircode_in = 'vnp'; break;
-// 		case 'qh': aircode_in = 'bba'; break;
-// 		case 'vu': aircode_in = 'vta'; break;
-// 	}
-
-// 	let psg_luggage_price_out = $('#' + aircode_out + '_luggage_price_list').val();
-// 	let psg_luggage_price_in = $('#' + aircode_in + '_luggage_price_list').val();
-
-// 	if ($.trim(psg_luggage_price_out) == '')
-// 		psg_luggage_price_out = '<option value="0">-- Không --</option>';
-// 	if ($.trim(psg_luggage_price_in) == '')
-// 		psg_luggage_price_in = '<option value="0">-- Không --</option>';
-
-
-// 	let html = '';
-// 	/**********  Line 1  **********/
-// 	html += `<tr id="psg_line_${ln}" class="psg_line">`;
-
-// 	// Loại khách hàng
-// 	html += `<td data-label="Loại HK">
-// 		<select name="psg_traveller_type[]" id="psg_traveller_type${ln}" class="w-100">
-// 			${passenger_type_list}
-// 		</select>
-// 	</td>`;
-
-// 	// Danh xưng
-// 	html += `<td data-label="Danh xưng">
-// 		<select name="psg_salutation[]" id="psg_salutation${ln}" class="w-100">
-// 			${passenger_salutation_list}
-// 		</select>
-// 	</td>`;
-
-// 	// Họ tên
-// 	html += `<td data-label="Họ tên">
-// 		<input type="text" name="psg_full_name[]" id="psg_full_name${ln}" value="" class="text-start" maxlength="128" />
-// 		<label class="mt-1 fw-bold">CCCD:</label>
-// 		<input type="text" name="psg_cic[]" id="psg_cic${ln}" value="" class="text-start" maxlength="16" />
-// 	</td>`;
-
-// 	// Ngày sinh
-// 	html += `<td data-label="Ngày sinh">
-// 		<div class="d-flex align-items-center gap-1">
-// 			<input type="text" class="w-80" name="psg_birthday[]" id="psg_birthday${ln}" value="" maxlength="10" />
-// 			<img class="cursor-pointer" border="0" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="psg_birthday_trigger${ln}" align="absmiddle" />
-// 		</div>
-// 		<label class="mt-1 fw-bold">Passport:</label>
-// 		<input type="text" name="psg_passport_number[]" id="psg_passport_number${ln}" value="" class="text-start" maxlength="10" />
-// 	</td>`;
-
-// 	// Số vé lượt đi
-// 	html += `<td data-label="Số vé lượt đi"><input type="text" name="psg_eticket_outbound[]" id="psg_eticket_outbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
-// 	// Số vé lượt về
-// 	html += `<td data-label="Số vé lượt về"><input type="text" name="psg_eticket_inbound[]" id="psg_eticket_inbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
-// 	// Số vé HL lượt đi
-// 	html += `<td data-label="Số vé HL lượt đi"><input type="text" name="psg_eluggage_outbound[]" id="psg_eluggage_outbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
-// 	// Số vé HL lượt về
-// 	html += `<td data-label="Số vé HL lượt về"><input type="text" name="psg_eluggage_inbound[]" id="psg_eluggage_inbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
-// 	// PNR lượt đi
-// 	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_outbound[]" id="psg_pnr_outbound${ln}" value="" class="text-center" maxlength="30" /></td>`;
-// 	// PNR lượt về
-// 	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_inbound[]" id="psg_pnr_inbound${ln}" value="" class="text-center" maxlength="30" /></td>`;
-
-// 	// Hành lý lượt đi
-// 	html += `<td data-label="HL lượt đi">
-// 		<select name="psg_luggage_price[]" id="psg_luggage_price${ln}" class="box-select text-start w-100" onchange="calculateLuggagePrice()">
-// 			${psg_luggage_price_out}
-// 		</select>
-// 	</td>`;
-
-// 	// Hành lý lượt về
-// 	html += `<td data-label="HL lượt về">
-// 		<select name="psg_luggage_price_inbound[]" id="psg_luggage_price_inbound${ln}" class="box-select text-start w-100" onchange="calculateLuggagePrice()">
-// 			${psg_luggage_price_in}
-// 		</select>
-// 	</td>`;
-
-// 	// Nút xóa
-// 	html += `<td data-label="Xóa dòng" class="align-middle text-center">
-// 		<button type="button" title="Xóa" class="button-remove-in-edit" onclick="markPassengerRowDeleted(${ln})" >
-// 			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
-// 		</button>
-// 		<input type="hidden" name="psg_deleted[]" id="psg_deleted${ln}" value="0" />
-// 		<input type="hidden" name="psg_id[]" id="psg_id${ln}" value="" />
-// 	</td>`;
-
-// 	html += '</tr>';
-
-
-// 	/**********  Line 2 (Hành lý đi nếu có)  **********/
-// 	html += `<tr id="psg_line_desc_psg_line_desc_${ln}">
-// 		<td data-label="Thông tin HL đi" class="row_psg_price" colspan="13">
-// 			<div class="psg_price-wrap d-flex gap-2 align-items-center">
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">Giá mua HL lượt đi (VAT): </span>
-// 					<input type="text" name="psg_luggage_purchase[]" id="psg_luggage_purchase${ln}" class="psg_luggage_purchase_input allow-number-only"
-// 						value="0"
-// 						maxlength="25"
-// 						onkeyup="calculateLugPurchasePrice(${ln}, 0);"
-// 						onpaste="calculateLugPurchasePrice(${ln}, 0);"
-// 					/>
-// 				</div>
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">NCC HL lượt đi: </span>
-// 					<select name="psg_luggage_supplier[]" id="psg_luggage_supplier${ln}" class="psg_luggage_purchase_select">
-// 						<option value=""></option>
-// 						${supplier_list}
-// 					</select>
-// 				</div>
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">Giá mua HL lượt đi: </span>
-// 					<input type="text" name="psg_detail_lug_pur_no_vat[]" id="psg_detail_lug_pur_no_vat${ln}" class="psg_luggage_purchase_input allow-number-only"
-// 						onkeyup="calculateLugPurchasePrice(${ln}, 0);"
-// 					/>
-// 				</div>
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">VAT giá mua HL lượt đi: </span>
-// 					<input type="text" name="psg_detail_lug_pur_vat[]" id="psg_detail_lug_pur_vat${ln}"  class="psg_luggage_purchase_input allow-number-only"
-// 						onkeyup="calculateLugPurchasePrice(${ln}, 0);"
-// 					/>
-// 				</div>
-// 			</div>
-// 		</td>
-// 	</tr>`;
-
-
-// 	/**********  Line 3 (Hành lý về nếu có)  **********/
-// 	html += `<tr id="psg_line_lug_${ln}">
-// 		<td data-label="Thông tin HL về" class="row_psg_price" colspan="13">
-// 			<div class="psg_price-wrap d-flex gap-2 align-items-center">
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">Giá mua HL lượt về (VAT): </span>
-// 					<input type="text" name="psg_luggage_purchase_inbound[]" id="psg_luggage_purchase_inbound${ln}" class="psg_luggage_purchase_input allow-number-only"
-// 						value="0"
-// 						maxlength="25"
-// 						onkeyup="calculateLugPurchasePrice(${ln}, 1);"
-// 						onpaste="calculateLugPurchasePrice(${ln}, 1);"
-// 					/>
-// 				</div>
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">NCC HL lượt về: </span>
-// 					<select name="psg_luggage_supplier_inbound[]" id="psg_luggage_supplier_inbound${ln}" class="psg_luggage_purchase_select">
-// 						<option value=""></option>
-// 						${supplier_list}
-// 					</select>
-// 				</div>
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">Giá mua HL lượt về: </span>
-// 					<input type="text" name="psg_detail_lug_pur_ib_no_vat[]" id="psg_detail_lug_pur_ib_no_vat${ln}" class="psg_luggage_purchase_input allow-number-only"
-// 						onkeyup="calculateLugPurchasePrice(${ln}, 1);"
-// 					/>
-// 				</div>
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">VAT giá mua HL lượt về: </span>
-// 					<input type="text" name="psg_detail_lug_pur_ib_vat[]" id="psg_detail_lug_pur_ib_vat${ln}" class="psg_luggage_purchase_input allow-number-only"
-// 						onkeyup="calculateLugPurchasePrice(${ln}, 1);"
-// 					/>
-// 				</div>
-// 			</div>
-// 		</td>
-// 	</tr>`;
-
-// 	return html;
-// }
