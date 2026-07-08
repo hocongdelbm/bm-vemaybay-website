@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    if (rv_status == '1' && is_current_user_admin) {
+    if (rv_status == '1' && !is_current_user_admin) {
         $('form[name="DetailView"] input:button[name="Edit"]').remove();
         $('form[name="DetailView"] input:submit[name="Delete"]').remove();
     }

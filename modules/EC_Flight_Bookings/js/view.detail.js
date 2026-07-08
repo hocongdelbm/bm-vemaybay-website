@@ -402,7 +402,7 @@ $(document).ready(function () {
   });
 
   if (
-    (booking_status == "7" || booking_status == "8") && is_current_user_admin
+    (booking_status == "7" || booking_status == "8") && !is_current_user_admin
   ) {
     $('form[name="DetailView"] input:button[name="Edit"]').remove();
     $('form[name="DetailView"] input:submit[name="Delete"]').remove();

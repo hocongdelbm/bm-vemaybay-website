@@ -5,7 +5,7 @@ trait EditAssetsTrait
 {
 	public function displayCSS()
 	{
-		$cssVer = inDeveloperMode() ? time() : '1.3.1';
+		$cssVer = inDeveloperMode() ? time() : '1.3.3';
 
 		$css = '<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/view.edit.css?v=' . $cssVer . '" />';
 
@@ -15,7 +15,7 @@ trait EditAssetsTrait
 	public function displayJS()
 	{
 		$js = '';
-		$jsVer   = inDeveloperMode() ? time() : '1.3.1';
+		$jsVer   = inDeveloperMode() ? time() : '1.3.3';
 
 		$js .= '<script>
 					$(document).ready(function() {
