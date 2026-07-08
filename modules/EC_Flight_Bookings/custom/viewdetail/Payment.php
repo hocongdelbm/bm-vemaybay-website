@@ -71,14 +71,20 @@ trait PaymentTrait
 		echo $html;
 	}
 
-	public function getSMSPaymentTemplate()
+	/**
+	 * Danh sách tài khoản ngân hàng đang theo dõi (dùng chung cho mẫu SMS và QR code)
+	 * để tránh chạy trùng 2 query hệt nhau trên cùng 1 lần tải trang.
+	 */
+	private function getFollowedBankAccounts()
 	{
-		// Lấy danh sách tài khoản ngân hàng đang theo dõi để đổ vào mẫu SMS thanh toán.
+		static $cache = null;
+		if ($cache !== null) return $cache;
+
 		$sql = 'SELECT ba.account_number AS account,
 				ba.account_holder AS owner,
 				b.short_name AS short_name,
-				ba.name 
-			FROM ec_bank_account ba 
+				ba.name
+			FROM ec_bank_account ba
 				INNER JOIN ec_banks b ON b.id = ba.bank_id AND is_sms = 1
 			WHERE ba.deleted = 0 AND ba.unfollow = 0
 			ORDER BY IF(ba.sort IS NULL OR ba.sort = "", 100, ba.sort)';
@@ -93,6 +99,15 @@ trait PaymentTrait
 				'name' => $row['name']
 			];
 		}
+
+		$cache = $banks;
+		return $cache;
+	}
+
+	public function getSMSPaymentTemplate()
+	{
+		// Lấy danh sách tài khoản ngân hàng đang theo dõi để đổ vào mẫu SMS thanh toán.
+		$banks = $this->getFollowedBankAccounts();
 
 		$html = '';  // Ngan hang.{0,90}. So tien.{0,40} Noi dung.{0,80}
 		foreach ($banks as $bank) {
@@ -119,18 +134,8 @@ trait PaymentTrait
 		$addInfo = "Thanh toan $phone"; // max 25 ký tự theo spec VietQR Quick Link
 		$defaultAmount = (int)$amount;
 
-		$sql = 'SELECT ba.account_number AS account,
-				ba.account_holder AS owner,
-				b.short_name AS short_name,
-				ba.name
-			FROM ec_bank_account ba
-				INNER JOIN ec_banks b ON b.id = ba.bank_id AND is_sms = 1
-			WHERE ba.deleted = 0 AND ba.unfollow = 0
-			ORDER BY IF(ba.sort IS NULL OR ba.sort = "", 100, ba.sort)';
-
 		$options = '';
-		$res = $this->bean->db->query($sql);
-		while ($row = $this->bean->db->fetchByAssoc($res)) {
+		foreach ($this->getFollowedBankAccounts() as $row) {
 			$bankID     = str_replace(' ', '', $row['short_name']);
 			$accountNo  = $row['account'];
 			$accountName = strtoupper(myRemoveUnicodeChars($row['owner'])); // VietQR yêu cầu uppercase, không dấu

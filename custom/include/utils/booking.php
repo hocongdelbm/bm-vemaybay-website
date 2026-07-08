@@ -399,7 +399,7 @@ function calculateBKTotalAmtBatch(array $booking_ids)
                     SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0))
                     )
                 FROM ec_booking_passengers p
-                WHERE p.booking_id = b.id AND p.deleted = 0 AND p.add_type IS NULL
+                WHERE p.booking_id = b.id AND p.deleted = 0 AND (p.add_type IS NULL OR p.add_type = '')
             ), 0)
             -
             IFNULL((
@@ -521,7 +521,7 @@ function calculateBKAmtBatch(array $booking_ids)
                 + IFNULL((SELECT IF(b.flight_type = '0',
                         SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0) + IF(p.luggage_price_inbound > 0, IFNULL(p.luggage_purchase_inbound, 0), 0)),
                         SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0)))
-                    FROM ec_booking_passengers p WHERE p.booking_id = b.id AND p.deleted = 0 AND p.add_type IS NULL), 0)
+                    FROM ec_booking_passengers p WHERE p.booking_id = b.id AND p.deleted = 0 AND (p.add_type IS NULL OR p.add_type = '')), 0)
                 + IFNULL((SELECT SUM(IFNULL(hv.tongtienkhach, 0)) FROM ec_hoanve hv WHERE hv.tinhtrang='1' AND hv.deleted = 0 AND hv.booking_id = b.id), 0)
                 + IFNULL((SELECT SUM(IFNULL(pt.bought_amount,0) + IFNULL(pt.bought_amount2,0) + IFNULL(pt.bought_amount3,0)) FROM ec_receipt_voucher pt WHERE pt.booking_id = b.id AND pt.rv_status IN (1, 2) AND pt.loai_thu IN ('4','5') AND pt.deleted = 0), 0)
                 + IFNULL((SELECT SUM(IFNULL(pc2.up * 1000, 0)) FROM ec_contact_points_log pc2 WHERE pc2.parent_type = 'EC_Contact_Points_Log' AND pc2.parent_id IN (SELECT pc_inner.id FROM ec_contact_points_log pc_inner WHERE pc_inner.parent_type = 'EC_Flight_Bookings' AND pc_inner.parent_id = b.id AND pc_inner.deleted = 0) AND pc2.deleted = 0), 0)
@@ -556,6 +556,7 @@ function calculateBKAmt($booking_id, $only_profit = false)
     $sql = "SELECT
             b.id AS booking_id,
             b.name AS booking,
+            -- Tổng giá bán
             (
                 IFNULL(b.total_amount, 0) 
                 + 
@@ -631,6 +632,7 @@ function calculateBKAmt($booking_id, $only_profit = false)
                 FROM ec_hoanve hv 
                 WHERE hv.tinhtrang='1' AND hv.deleted = 0 AND hv.booking_id = b.id
             ), 0) AS total_purchase_pass_refunded,  
+            -- Tổng giá mua
             (
                 IFNULL((
                     SELECT SUM(IFNULL(d.total_bought_price, 0)) 
@@ -646,7 +648,7 @@ function calculateBKAmt($booking_id, $only_profit = false)
                         SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0))
                         ) 
                     FROM ec_booking_passengers p 
-                    WHERE p.booking_id = b.id AND p.deleted = 0 AND p.add_type IS NULL
+                    WHERE p.booking_id = b.id AND p.deleted = 0 AND (p.add_type IS NULL OR p.add_type = '')
                 ), 0)
                 + 
                 IFNULL((
@@ -679,21 +681,11 @@ function calculateBKAmt($booking_id, $only_profit = false)
                 ), 0)
             ) AS total_purchase,
             IFNULL((
-                SELECT SUM(IFNULL(d.total_bought_price, 0)) 
-                FROM ec_booking_details d 
+                SELECT SUM(IFNULL(d.total_bought_price, 0))
+                FROM ec_booking_details d
                 WHERE d.booking_id = b.id AND d.deleted = 0
-            ), 0) AS total_purchase_booking,
-            IFNULL((
-                SELECT
-                IF(
-                    b.flight_type = '0',
-                    SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0) + IF(p.luggage_price_inbound > 0, IFNULL(p.luggage_purchase_inbound, 0), 0)),
-                    SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0))
-                    ) 
-                FROM ec_booking_passengers p 
-                WHERE p.booking_id = b.id AND p.deleted = 0 AND p.add_type IS NULL
-            ), 0) as total_purchase_luggage
-            FROM ec_flight_bookings b 
+            ), 0) AS total_purchase_booking
+            FROM ec_flight_bookings b
             WHERE b.id = '" . $booking_id . "' 
             AND booking_status IN ('8', '7', '3') 
             AND b.deleted = 0";
@@ -715,7 +707,6 @@ function calculateBKAmt($booking_id, $only_profit = false)
             'total_purchase_booking'        => $row['total_purchase_booking'],
             'total_purchase_pass_refunded'  => $row['total_purchase_pass_refunded'],
             'total_purchase_points_refunded'  => $row['total_purchase_points_refunded'],
-            'total_purchase_luggage'        => $row['total_purchase_luggage'],
             'total_purchase_receipt'        => $row['total_purchase_receipt'],
             'total_purchase'                => $row['total_purchase'],
             'total_profit'                  => $row['total_amount'] - $row['total_purchase'],
@@ -906,7 +897,7 @@ function calculateBKTotalAmtOfEmployee($user_id, $from_date, $to_date)
                         FROM ec_booking_passengers p 
                         WHERE p.booking_id = b.id 
                             AND p.deleted = 0 
-                            AND p.add_type IS NULL
+                            AND (p.add_type IS NULL OR p.add_type = '')
                     ), 0)
                     - IFNULL((
                         SELECT SUM(IFNULL(hv.tongtienkhach, 0))
@@ -1003,7 +994,6 @@ function saveRevenueBooking($booking_id)
                 total_amount_receipt = {$ds_arr['total_amount_receipt']},
                 total_amount = {$ds_arr['total_amount']},
                 total_purchase_booking = {$ds_arr['total_purchase_booking']},
-                total_purchase_luggage = {$ds_arr['total_purchase_luggage']},
                 total_purchase_pass_refunded = {$ds_arr['total_purchase_pass_refunded']},
                 total_purchase_points_refunded = {$ds_arr['total_purchase_points_refunded']},
                 total_purchase_receipt = {$ds_arr['total_purchase_receipt']},
@@ -1036,7 +1026,6 @@ function saveRevenueBooking($booking_id)
                 total_amount_receipt,
                 total_amount,
                 total_purchase_booking,
-                total_purchase_luggage,
                 total_purchase_pass_refunded,
                 total_purchase_points_refunded,
                 total_purchase_receipt,
@@ -1062,7 +1051,6 @@ function saveRevenueBooking($booking_id)
                 {$ds_arr['total_amount_receipt']},
                 {$ds_arr['total_amount']},
                 {$ds_arr['total_purchase_booking']},
-                {$ds_arr['total_purchase_luggage']},
                 {$ds_arr['total_purchase_pass_refunded']},
                 {$ds_arr['total_purchase_points_refunded']},
                 {$ds_arr['total_purchase_receipt']},
@@ -1453,4 +1441,161 @@ function updateIsPriorForBooking($booking_id)
             WHERE bk.id = '{$booking_id}';
     ";
     $db->query($sql);
+}
+
+require_once 'modules/EC_Flight_Bookings/custom/viewdetail/ZaloSms.php';
+require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Passenger.php';
+
+/**
+ * Helper rỗng chỉ để gom ZaloSmsTrait + PassengerTrait, dùng cho getZaloDialogData()
+ * bên ngoài context của EC_Flight_BookingsViewDetail (vd: gọi từ entry point AJAX).
+ */
+class ZaloDialogDataHelper
+{
+    use ZaloSmsTrait;
+    use PassengerTrait;
+    public $bean;
+}
+
+/**
+ * Dữ liệu cho dialog "Gửi Zalo" ở detail view: hành trình, hành khách/hành lý, lịch sử ZBS.
+ * Tách hàm riêng để load qua AJAX khi user mở dialog, thay vì tính sẵn (3 query) trên MỌI
+ * lượt xem trang chi tiết booking dù phần lớn không bao giờ mở dialog này.
+ */
+function getZaloDialogData($booking_id)
+{
+    $empty = [
+        'journeys' => [],
+        'passenger' => '',
+        'baggage' => '',
+        'zbs_history' => ['journey' => 0, 'payment' => 0, 'code' => 0, 'callsale' => 0, 'remind' => 0, 'delay' => 0],
+    ];
+
+    if (empty($booking_id)) return $empty;
+
+    $booking = BeanFactory::getBean('EC_Flight_Bookings', $booking_id);
+    if (empty($booking->id)) return $empty;
+
+    $helper = new ZaloDialogDataHelper();
+    $helper->bean = $booking;
+
+    $passAndBag = $helper->getPassengerAndBaggage($booking->id);
+
+    return [
+        'journeys' => $helper->getJourneysByBooking($booking->id),
+        'passenger' => $passAndBag['passenger'],
+        'baggage' => $passAndBag['baggage'],
+        'zbs_history' => $helper->getHistoryZBS($booking->phone, $booking->id),
+    ];
+}
+
+/**
+ * HTML breakdown "Chi tiết doanh số booking" cho modal admin (view detail).
+ * Tách khỏi assignProfitField() để load qua AJAX lúc mở modal thay vì build sẵn
+ * mỗi lần tải trang — xem for=getBookingProfitDetail trong custom/entrypoints/epFlightBookings.php.
+ */
+function renderBookingProfitBreakdownHtml(array $bk_amt, string $booking_name, bool $showDebug = false)
+{
+    $html = '<h3 class="sub-title text-center">Chi tiết doanh số booking <span>' . $booking_name . '</span></h3>';
+
+    if ($showDebug) {
+        $html .= '<div class="row">
+					<div class="col-12">
+						<pre>' . json_encode($bk_amt, JSON_PRETTY_PRINT) . '</pre>
+					</div>
+				</div>';
+    }
+
+    $html .= '<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold">Tổng tiền BK:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_booking'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="Giá bán Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế">Tổng tiền phiếu thu:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_receipt'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="Tiền giảm giá sử dụng điểm tích lũy">Tiền sử dụng điểm:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_points'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="Khoản tiền hãng hoàn lại khi hoàn vé">Tiền hãng hoàn:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_brand_refunded'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold">Tổng tiền bán:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end text-danger">' . format_number($bk_amt['total_amount'] ?? 0) . '</p>
+					</div>
+				</div>
+				<hr>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold">Tổng tiền mua BK:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_booking'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="Số tiền phải hoàn trả cho khách hàng">Tiền hoàn khách:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_pass_refunded'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="Khách sử dụng điểm tích lũy để giảm giá cho BK. Sau đó đổi ý không dùng nữa!">Tiền sử dụng điểm hoàn lại:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_points_refunded'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="Giá mua Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế">Tổng tiền mua phiếu thu:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_receipt'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="">Tổng tiền mua:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end text-danger">' . format_number($bk_amt['total_purchase'] ?? 0) . '</p>
+					</div>
+				</div>
+				<hr>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-bold" title="">Tổng doanh số:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-bold text-end text-danger">' . format_number($bk_amt['total_profit'] ?? 0) . '</p>
+					</div>
+				</div>';
+
+    return $html;
 }

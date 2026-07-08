@@ -3,13 +3,10 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /**
  * Custom action buttons for EC_Flight_Bookings detail view.
- *
- * Used by EC_Flight_BookingsViewDetail. Methods are kept close to the
- * legacy implementation to preserve the old business behavior.
  */
-trait ButtonsTrait
+trait DetailButtonsTrait
 {
-	private function renderCancelledBookingButton()
+	private function assignCancelledBookingButton()
 	{
 		global $app_list_strings;
 
@@ -220,13 +217,6 @@ trait ButtonsTrait
 	{
 		global $app_list_strings, $current_user;
 
-		// // Change booking status button
-		// $now = date("Y-m-d H:i:s");
-		// $time_current = date("H:i:s", strtotime('+7 hours', strtotime($now)));
-
-		/**
-		 * Trong khung giờ 21h - 6h sáng thì được thấy nút "chuyển trạng thái booking"
-		 */
 		if (isManagerUser($current_user->id) && !in_array($this->bean->booking_status, [7, 8]) || is_admin($current_user)) {
 			$change_status = '</form>
 				<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus" class="d-flex align-items-center gap-2">
@@ -299,20 +289,25 @@ trait ButtonsTrait
 	private function assignCreateReceiptVoucherButton()
 	{
 		// Create receipt voucher button
-		$this->_is_had_rv = myCheckValueExist('EC_Receipt_Voucher', array('booking_id'), array($this->bean->id), '');
+		$module_rv = 'EC_Receipt_Voucher';
+		$this->_is_had_rv = (int)myCheckValueExist($module_rv, array('booking_id'), array($this->bean->id), '');
+
 		if (
-			$this->bean->booking_status == 2
-			&& !$this->_is_had_rv
-			&& ACLController::checkAccess('EC_Receipt_Voucher', 'edit', true)
+			(
+				$this->bean->booking_status == 2
+				&& !$this->_is_had_rv
+				&& ACLController::checkAccess($module_rv, 'edit', true)
+			)
 			||
-			$this->bean->is_agent == 1
-			&&
-			!$this->_is_had_rv  /* && $this->bean->is_agent != 1 */
+			(
+				$this->bean->is_agent == 1
+				&& !$this->_is_had_rv
+			)
 		) {
 			$receipt_type = ($this->bean->payment_type == 3 || $this->bean->payment_type == 4) ? 'credit_transfer' : 'cash';
 			$create_rv = '</form>
 			<form action="index.php" method="post" name="frmCreateRV" id="frmCreateRV">
-			  <input type="hidden" name="module" value="EC_Receipt_Voucher" />
+			  <input type="hidden" name="module" value="'.$module_rv.'" />
 			  <input type="hidden" name="action" value="EditView" />
 			  <input type="hidden" name="amount" value="' . format_number($this->bean->total_amount) . '" />
 			  <input type="hidden" name="amount_converted" value="' . format_number($this->bean->total_amount) . '" />
@@ -406,7 +401,7 @@ trait ButtonsTrait
 	{
 		global $current_user;
 
-		if (!$this->isTelesaleRole($current_user->id) && in_array($this->bean->booking_status, [1, 2, 3, 6])) {
+		if (!isTelesaleUser($current_user->id) && in_array((int)$this->bean->booking_status, [1, 2, 3, 6])) {
 			$agencyOptions = '
 				<li>
 					<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookDatacomClass">
