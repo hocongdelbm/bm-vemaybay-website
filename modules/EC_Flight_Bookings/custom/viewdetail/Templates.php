@@ -3,15 +3,11 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /**
  * Modal and popup template helpers.
- *
- * Used by EC_Flight_BookingsViewDetail. Methods are kept close to the
- * legacy implementation to preserve the old business behavior.
  */
 trait TemplatesTrait
 {
 	private function createModal()
 	{
-		// Modal confirm dùng chung cho các action cần xác nhận nhanh trên detail view.
 		echo '<div class="modal fade" id="modal-confirm">
 			<div class="modal-dialog">
 				<div class="modal-content">
@@ -135,18 +131,4 @@ trait TemplatesTrait
 
 		return $html;
 	}
-
-	/**
-	 * Get voucher applied
-	 * 
-	 * @param string $booking_id
-	 * @return array
-	 */
-
-	/**
-	 * Get journeys by booking id (Using for ZBS)
-	 * 
-	 * @param string $bookingId
-	 * @return array
-	 */
 }

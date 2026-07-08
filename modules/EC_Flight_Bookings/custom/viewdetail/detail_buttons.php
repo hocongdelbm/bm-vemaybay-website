@@ -3,13 +3,10 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /**
  * Custom action buttons for EC_Flight_Bookings detail view.
- *
- * Used by EC_Flight_BookingsViewDetail. Methods are kept close to the
- * legacy implementation to preserve the old business behavior.
  */
-trait ButtonsTrait
+trait DetailButtonsTrait
 {
-	private function renderCancelledBookingButton()
+	private function assignCancelledBookingButton()
 	{
 		global $app_list_strings;
 
@@ -220,13 +217,6 @@ trait ButtonsTrait
 	{
 		global $app_list_strings, $current_user;
 
-		// // Change booking status button
-		// $now = date("Y-m-d H:i:s");
-		// $time_current = date("H:i:s", strtotime('+7 hours', strtotime($now)));
-
-		/**
-		 * Trong khung giờ 21h - 6h sáng thì được thấy nút "chuyển trạng thái booking"
-		 */
 		if (isManagerUser($current_user->id) && !in_array($this->bean->booking_status, [7, 8]) || is_admin($current_user)) {
 			$change_status = '</form>
 				<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus" class="d-flex align-items-center gap-2">
@@ -406,7 +396,7 @@ trait ButtonsTrait
 	{
 		global $current_user;
 
-		if (!$this->isTelesaleRole($current_user->id) && in_array($this->bean->booking_status, [1, 2, 3, 6])) {
+		if (!isTelesaleUser($current_user->id) && in_array((int)$this->bean->booking_status, [1, 2, 3, 6])) {
 			$agencyOptions = '
 				<li>
 					<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookDatacomClass">

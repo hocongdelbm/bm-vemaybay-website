@@ -246,11 +246,14 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 			';
 
 			// Lựa chọn HL lượt về
+			$options_inbound = $booking->generateBaggageOptions($booking->airline_inbound, $ticket_class_ib, $row['luggage_purchase_text_inbound'], $row['luggage_purchase_inbound']);
+			// pr($options_inbound);
+
 			$baggage_inbound = '
 				<td width="20%" class="text-label text-nowrap">Thêm HL lượt về:</td>
 				<td class="pass_luggage_ln pass_luggage_right">
 					<select class="pass_luggage pass_luggage_ib box-select box-select2-non-search" name="pass_luggage_ib[]" ln="' . $i . '" style="width:100%">
-						' . $booking->generateBaggageOptions($booking->airline_inbound, $ticket_class_ib, $row['luggage_purchase_text_inbound'], $row['luggage_purchase_inbound']) . '
+						' . $options_inbound . '
 					</select>
 				</td>
 			';
@@ -307,15 +310,18 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		</tr>';
 
 		// Lựa chọn HL lượt đi
+		$options_ob = $booking->generateBaggageOptions($booking->airline, $ticket_class_ob, $row['luggage_purchase_text'], $row['luggage_purchase']);
+		pr($options_ob);
+
 		$html .= '<tr class="line_pass' . $row['id'] . '">
-			<td width="20%" class="text-label text-nowrap">Thêm HL lượt đi:</td>
-			<td class="pass_luggage_ln pass_luggage_left">
-				<select class="pass_luggage pass_luggage_ob box-select box-select2-non-search" name="pass_luggage_ob[]" ln="' . $i . '" style="width:100%">
-					' . $booking->generateBaggageOptions($booking->airline, $ticket_class_ob, $row['luggage_purchase_text'], $row['luggage_purchase']) . '
-				</select>
-			</td>
-			' . $baggage_inbound . '
-		</tr>';
+					<td width="20%" class="text-label text-nowrap">Thêm HL lượt đi:</td>
+					<td class="pass_luggage_ln pass_luggage_left">
+						<select class="pass_luggage pass_luggage_ob box-select box-select2-non-search" name="pass_luggage_ob[]" ln="' . $i . '" style="width:100%">
+							' . $options_ob . '
+						</select>
+					</td>
+					' . $baggage_inbound . '
+				</tr>';
 
 		// Giá bán HL lượt đi
 		$html .= '<tr class="line_pass' . $row['id'] . '">

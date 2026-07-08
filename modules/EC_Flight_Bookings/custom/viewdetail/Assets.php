@@ -8,9 +8,9 @@ trait AssetsTrait
 		$cssVer   = inDeveloperMode() ? time() : '1.2.6';
 
 		$css = '<link type="text/css" rel="stylesheet" href="themes/SuiteP/libs/css/select2.min.css" />' .
-			'<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.detail.css?v=' . $cssVer . '" />' .
-			'<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/api_zalo.css?v=' . $cssVer . '" />' .
-			'<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/autobook.css?v=' . $cssVer . '" />';
+			'<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/view.detail.css?v=' . $cssVer . '" />' .
+			'<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/api_zalo.css?v=' . $cssVer . '" />' .
+			'<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/autobook.css?v=' . $cssVer . '" />';
 
 		echo $css;
 	}

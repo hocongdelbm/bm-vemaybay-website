@@ -399,7 +399,7 @@ function calculateBKTotalAmtBatch(array $booking_ids)
                     SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0))
                     )
                 FROM ec_booking_passengers p
-                WHERE p.booking_id = b.id AND p.deleted = 0 AND p.add_type IS NULL
+                WHERE p.booking_id = b.id AND p.deleted = 0 AND (p.add_type IS NULL OR p.add_type = '')
             ), 0)
             -
             IFNULL((
@@ -521,7 +521,7 @@ function calculateBKAmtBatch(array $booking_ids)
                 + IFNULL((SELECT IF(b.flight_type = '0',
                         SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0) + IF(p.luggage_price_inbound > 0, IFNULL(p.luggage_purchase_inbound, 0), 0)),
                         SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0)))
-                    FROM ec_booking_passengers p WHERE p.booking_id = b.id AND p.deleted = 0 AND p.add_type IS NULL), 0)
+                    FROM ec_booking_passengers p WHERE p.booking_id = b.id AND p.deleted = 0 AND (p.add_type IS NULL OR p.add_type = '')), 0)
                 + IFNULL((SELECT SUM(IFNULL(hv.tongtienkhach, 0)) FROM ec_hoanve hv WHERE hv.tinhtrang='1' AND hv.deleted = 0 AND hv.booking_id = b.id), 0)
                 + IFNULL((SELECT SUM(IFNULL(pt.bought_amount,0) + IFNULL(pt.bought_amount2,0) + IFNULL(pt.bought_amount3,0)) FROM ec_receipt_voucher pt WHERE pt.booking_id = b.id AND pt.rv_status IN (1, 2) AND pt.loai_thu IN ('4','5') AND pt.deleted = 0), 0)
                 + IFNULL((SELECT SUM(IFNULL(pc2.up * 1000, 0)) FROM ec_contact_points_log pc2 WHERE pc2.parent_type = 'EC_Contact_Points_Log' AND pc2.parent_id IN (SELECT pc_inner.id FROM ec_contact_points_log pc_inner WHERE pc_inner.parent_type = 'EC_Flight_Bookings' AND pc_inner.parent_id = b.id AND pc_inner.deleted = 0) AND pc2.deleted = 0), 0)
@@ -556,6 +556,7 @@ function calculateBKAmt($booking_id, $only_profit = false)
     $sql = "SELECT
             b.id AS booking_id,
             b.name AS booking,
+            -- Tổng giá bán
             (
                 IFNULL(b.total_amount, 0) 
                 + 
@@ -631,6 +632,7 @@ function calculateBKAmt($booking_id, $only_profit = false)
                 FROM ec_hoanve hv 
                 WHERE hv.tinhtrang='1' AND hv.deleted = 0 AND hv.booking_id = b.id
             ), 0) AS total_purchase_pass_refunded,  
+            -- Tổng giá mua
             (
                 IFNULL((
                     SELECT SUM(IFNULL(d.total_bought_price, 0)) 
@@ -646,7 +648,7 @@ function calculateBKAmt($booking_id, $only_profit = false)
                         SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0))
                         ) 
                     FROM ec_booking_passengers p 
-                    WHERE p.booking_id = b.id AND p.deleted = 0 AND p.add_type IS NULL
+                    WHERE p.booking_id = b.id AND p.deleted = 0 AND (p.add_type IS NULL OR p.add_type = '')
                 ), 0)
                 + 
                 IFNULL((
@@ -679,21 +681,11 @@ function calculateBKAmt($booking_id, $only_profit = false)
                 ), 0)
             ) AS total_purchase,
             IFNULL((
-                SELECT SUM(IFNULL(d.total_bought_price, 0)) 
-                FROM ec_booking_details d 
+                SELECT SUM(IFNULL(d.total_bought_price, 0))
+                FROM ec_booking_details d
                 WHERE d.booking_id = b.id AND d.deleted = 0
-            ), 0) AS total_purchase_booking,
-            IFNULL((
-                SELECT
-                IF(
-                    b.flight_type = '0',
-                    SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0) + IF(p.luggage_price_inbound > 0, IFNULL(p.luggage_purchase_inbound, 0), 0)),
-                    SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0))
-                    ) 
-                FROM ec_booking_passengers p 
-                WHERE p.booking_id = b.id AND p.deleted = 0 AND p.add_type IS NULL
-            ), 0) as total_purchase_luggage
-            FROM ec_flight_bookings b 
+            ), 0) AS total_purchase_booking
+            FROM ec_flight_bookings b
             WHERE b.id = '" . $booking_id . "' 
             AND booking_status IN ('8', '7', '3') 
             AND b.deleted = 0";
@@ -715,7 +707,6 @@ function calculateBKAmt($booking_id, $only_profit = false)
             'total_purchase_booking'        => $row['total_purchase_booking'],
             'total_purchase_pass_refunded'  => $row['total_purchase_pass_refunded'],
             'total_purchase_points_refunded'  => $row['total_purchase_points_refunded'],
-            'total_purchase_luggage'        => $row['total_purchase_luggage'],
             'total_purchase_receipt'        => $row['total_purchase_receipt'],
             'total_purchase'                => $row['total_purchase'],
             'total_profit'                  => $row['total_amount'] - $row['total_purchase'],
@@ -906,7 +897,7 @@ function calculateBKTotalAmtOfEmployee($user_id, $from_date, $to_date)
                         FROM ec_booking_passengers p 
                         WHERE p.booking_id = b.id 
                             AND p.deleted = 0 
-                            AND p.add_type IS NULL
+                            AND (p.add_type IS NULL OR p.add_type = '')
                     ), 0)
                     - IFNULL((
                         SELECT SUM(IFNULL(hv.tongtienkhach, 0))
@@ -1003,7 +994,6 @@ function saveRevenueBooking($booking_id)
                 total_amount_receipt = {$ds_arr['total_amount_receipt']},
                 total_amount = {$ds_arr['total_amount']},
                 total_purchase_booking = {$ds_arr['total_purchase_booking']},
-                total_purchase_luggage = {$ds_arr['total_purchase_luggage']},
                 total_purchase_pass_refunded = {$ds_arr['total_purchase_pass_refunded']},
                 total_purchase_points_refunded = {$ds_arr['total_purchase_points_refunded']},
                 total_purchase_receipt = {$ds_arr['total_purchase_receipt']},
@@ -1036,7 +1026,6 @@ function saveRevenueBooking($booking_id)
                 total_amount_receipt,
                 total_amount,
                 total_purchase_booking,
-                total_purchase_luggage,
                 total_purchase_pass_refunded,
                 total_purchase_points_refunded,
                 total_purchase_receipt,
@@ -1062,7 +1051,6 @@ function saveRevenueBooking($booking_id)
                 {$ds_arr['total_amount_receipt']},
                 {$ds_arr['total_amount']},
                 {$ds_arr['total_purchase_booking']},
-                {$ds_arr['total_purchase_luggage']},
                 {$ds_arr['total_purchase_pass_refunded']},
                 {$ds_arr['total_purchase_points_refunded']},
                 {$ds_arr['total_purchase_receipt']},

@@ -4,32 +4,35 @@ require_once('modules/EC_Messages/SMS.php');
 require_once 'custom/include/helpers/api/Onepay.php';
 
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Assets.php';
-require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Buttons.php';
-require_once 'modules/EC_Flight_Bookings/custom/viewdetail/BookingFields.php';
+
+require_once 'modules/EC_Flight_Bookings/custom/viewdetail/detail_buttons.php';
+require_once 'modules/EC_Flight_Bookings/custom/viewdetail/detail_fields.php';
+
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Itinerary.php';
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Passenger.php';
-require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Voucher.php';
+require_once 'modules/EC_Flight_Bookings/custom/viewdetail/detail_panels.php';
+
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Notes.php';
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Payment.php';
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/ZaloSms.php';
 require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Templates.php';
-require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Permissions.php';
 
 class EC_Flight_BookingsViewDetail extends ViewDetail
 {
 	use AssetsTrait;
-	use ButtonsTrait;
-	use BookingFieldsTrait;
+
+	use DetailButtonsTrait;
+	use DetailFieldsTrait;
+
 	use ItineraryTrait;
 	use PassengerTrait;
-	use VoucherTrait;
+	use DetailPanelsTrait;
+
 	use NotesTrait;
 	use PaymentTrait;
 	use ZaloSmsTrait;
 	use TemplatesTrait;
-	use PermissionsTrait;
 
-	public $bean;
 	private $_outbound_airline = '';
 	private $_inbound_airline = '';
 	private $_outbound_ticket_class = '';
@@ -47,19 +50,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$this->populateCustomButtons($deparment_info);
 		$this->populateCustomFields();
+		$this->populateCustomPanels($deparment_info);
+
 		$this->populateLineNotesMessage();
-		$this->populateLineDetails();
 		$this->populateSMSTemplate();
-
-		// Itineraries
-		$html = $this->populateLineItineraries($deparment_info);
-		$this->ss->assign('LINE_ITINERARIES', $html);
-
-		// Passengers
-		$this->ss->assign('LINE_PASSENGERS', $this->populateLinePassengers());
-
-		// Related vouchers
-		$this->ss->assign('LINE_RELATE_VOUCHER', $this->populateLineRelateVoucher());
 
 		$this->createModal();
 
@@ -77,7 +71,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$use_mail_confirm = is_admin($current_user) ? 1 : $deparment_info['use_mail_confirm'];
 
 		// Cancel button
-		$this->renderCancelledBookingButton();
+		$this->assignCancelledBookingButton();
 
 		// Status and call buttons
 		$this->assignStatusAndCallsButtons();
@@ -174,6 +168,24 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	}
 
 	/**
+	 * Booking custom panels.
+	 */
+	public function populateCustomPanels($deparment_info)
+	{
+		// Itineraries
+		$this->ss->assign('LINE_ITINERARIES', $this->populateLineItineraries($deparment_info));
+
+		// Ticket detail
+		$this->ss->assign('LINE_DETAILS', $this->populateLineDetails());
+
+		// Passengers
+		$this->ss->assign('LINE_PASSENGERS', $this->populateLinePassengers());
+
+		// Related vouchers
+		$this->ss->assign('LINE_RELATE_VOUCHER', $this->populateLineRelateVoucher());
+	}
+
+	/**
 	 * Notes panel.
 	 */
 	public function populateLineNotesMessage()
@@ -192,115 +204,5 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// Smarty assignment
 		$this->ss->assign('BUTTON_LINE_NOTES', $html);
-	}
-
-	/**
-	 * Ticket detail table.
-	 */
-	public function populateLineDetails()
-	{
-		$html = $this->renderLineDetailsTableHeader();
-		$i = 0;
-		$totals = $this->newLineDetailsTotals();
-
-		$res = $this->queryLineDetailRows();
-		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			$html .= $this->renderLineDetailRow($row, $i);
-			$this->addLineDetailTotals($totals, $row);
-			$i++;
-		}
-
-		$html .= $this->renderLineDetailsFooter($totals);
-		$html .= '</table>';
-		$html .= $this->renderSupplierOptionHiddenInput();
-		$this->ss->assign('LINE_DETAILS', $html);
-	}
-
-	/**
-	 * Itinerary table.
-	 */
-	public function populateLineItineraries($deparment_info)
-	{
-		global $app_list_strings, $timedate, $current_user;
-
-		// Date format
-		$date_format = $timedate->get_date_format();
-
-		// Airport list
-		$airport_list = $app_list_strings['domestic_airport_list'] + $app_list_strings['africa_airport_list'] + $app_list_strings['americas_airport_list'] + $app_list_strings['australia_airport_list'] + $app_list_strings['europe_airport_list'] + $app_list_strings['northeast_asia_airport_list'] + $app_list_strings['southeast_asia_airport_list'];
-
-		// E-ticket mail permission
-		$use_mail_eticket = is_admin($current_user) ? 1 : $deparment_info['use_mail_eticket'];
-
-		// Itinerary rows
-		$itineraryRows = $this->getItineraryRowsForDetail();
-
-		// Itinerary header
-		$html = $this->renderLineItineraryTableHeader();
-
-		// Applied passengers
-		list($departure_applied_pass, $arrival_applied_pass) = $this->getAppliedPassengerItinerariesByDirection();
-
-		$html .= $this->renderOriginalItineraryRows($itineraryRows['original'], $date_format, $airport_list, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass);
-
-		// Itinerary templates
-		return $this->appendLineItineraryTemplates($html, $itineraryRows['edited']);
-	}
-
-	/**
-	 * Passenger table.
-	 */
-	public function populateLinePassengers()
-	{
-		global $app_list_strings, $timedate;
-
-		// Date format
-		$date_format = $timedate->get_date_format();
-
-		// Passenger rows
-		$passengerRows = $this->getPassengerRowsForDetail();
-
-		// Passenger header
-		$html = $this->renderPassengerTableHeader();
-
-		// Original passengers
-		$html .= $this->renderOriginalPassengerRows($passengerRows['original'], $date_format, $app_list_strings);
-
-		// Edited passengers
-		$html .= $this->renderEditedPassengerRows($passengerRows['edited']);
-		$html .= '</tbody></table>';
-
-		return $html;
-	}
-
-	/**
-	 * Related voucher table.
-	 */
-	public function populateLineRelateVoucher()
-	{
-		global $db;
-
-		// Voucher header
-		$html = $this->renderRelatedVoucherTableHeader();
-
-		// Voucher rows
-		$res = $this->queryRelatedVoucherRows($db);
-		$count = $db->countRows($res);
-
-		if ($count > 0) {
-			$i = 1;
-			while ($row = $db->fetchByAssoc($res)) {
-				// Voucher row
-				$html .= $this->renderRelatedVoucherRow($row, $i);
-				$i++;
-			}
-		} else {
-			// Empty voucher row
-			$html .= $this->renderEmptyRelatedVoucherRow();
-		}
-
-		$html .= '</table>';
-
-		return $html;
 	}
 }
