@@ -1,14 +1,11 @@
-<link rel="stylesheet" type="text/css" href="modules/EC_Bonus/css/calculate_bonus.css?v=1.0" />
+<link rel="stylesheet" type="text/css" href="modules/EC_Bonus/css/calculate_bonus.css?v=1.2" />
 
-<h1 class="title mb-0">
-  Tính thưởng
-  <span class="text-secondary fw-normal fs-7 fst-italic p-0 m-0" style="float:right; text-transform:none;">Only use for admin or IT debug</span>
-</h1>
+<h1 class="title mb-0">{if $VIEW_ALL}Báo cáo thưởng{else}Thưởng của tôi{/if}</h1>
 
 <div class="box-section mt-2">
-  <form action="index.php" method="get" name="frmCalculateBonus" id="frmCalculateBonus">
+  <form action="index.php" method="get" name="frmBonusReport" id="frmBonusReport">
     <input type="hidden" name="module" value="EC_Bonus" />
-    <input type="hidden" name="action" value="calculate_bonus" />
+    <input type="hidden" name="action" value="bonus_report" />
     <div class="d-flex align-items-center gap-4">
       <div class="from-to-date--wrap d-inline-flex gap-2 align-items-center">
         <div class="d-flex gap-2 align-items-center date_trigger--wrap fdate_trigger--wrap">
@@ -50,18 +47,18 @@
       </div>
 
       <div class="d-flex gap-2 align-items-center">
-        <input type="checkbox" class="form-check-input" id="save_records" name="save_records" value="1" {$SAVE_CHECKED} />
-        <label class="sublabel" for="save_records" style="margin-bottom:0; cursor:pointer;">Lưu kết quả</label>
+        <span class="sublabel">Nguồn: </span>
+        <input class="box-input" type="text" size="24" tabindex="105" value="{$SOURCE_NAME_VALUE}" id="source_name" name="source_name" autocomplete="off" placeholder="Mã booking, mã phiếu thu,..." />
       </div>
 
-      <input class="btn btn-primary" type="submit" name="btnRun" title="Tính thưởng" />
+      <input class="btn btn-primary" type="submit" name="btnRun" value="Xem" title="Xem" />
     </div>
   </form>
 
   <script type="text/javascript" src="modules/EC_Bonus/js/calculate_bonus.js?v=1.0"></script>
 
   {if isset($ERROR)}
-    <div class="alert alert-danger mt-3">Tính thưởng thất bại: {$ERROR}</div>
+    <div class="alert alert-danger mt-3">Không thể xem báo cáo: {$ERROR}</div>
   {elseif isset($BONUS_REPORT)}
     {if $BONUS_REPORT.grand.users == 0}
       <div class="alert alert-info mt-3">Chưa có dữ liệu thưởng trong khoảng thời gian đã chọn.</div>
@@ -70,7 +67,7 @@
         <table class="table table-bordered bonus-table" style="width:100%">
           <thead>
             <tr>
-              <th>Nhân viên</th>
+              {if $VIEW_ALL}<th>Nhân viên</th>{/if}
               <th>Nguồn</th>
               <th>Thời gian bay</th>
               <th style="text-align:right">KPI</th>
@@ -83,7 +80,7 @@
             {foreach from=$BONUS_REPORT.users item=user}
               {foreach from=$user.bookings item=bk name=ubk}
                 <tr>
-                  {if $smarty.foreach.ubk.first}
+                  {if $VIEW_ALL && $smarty.foreach.ubk.first}
                     <td rowspan="{$user.bookings|@count}"><strong>{$user.name}</strong></td>
                   {/if}
                   <td>
@@ -96,21 +93,27 @@
                   <td style="text-align:right">{$bk.total}</td>
                 </tr>
               {/foreach}
-              <tr class="row-subtotal">
-                <td><strong>Tổng của {$user.name}</strong></td>
-                <td><strong>{$user.bookings|@count} nguồn</strong></td>
-                <td></td>
-                <td style="text-align:right"><strong>{$user.kpi}</strong></td>
-                <td style="text-align:right"><strong>{$user.direct}</strong></td>
-                <td style="text-align:right"><strong>{$user.indirect}</strong></td>
-                <td style="text-align:right"><strong>{$user.total}</strong></td>
-              </tr>
+              {if $VIEW_ALL && $SOURCE_NAME_VALUE eq ''}
+                <tr class="row-subtotal">
+                  <td><strong>Tổng của {$user.name}</strong></td>
+                  <td><strong>{$user.bookings|@count} nguồn</strong></td>
+                  <td></td>
+                  <td style="text-align:right"><strong>{$user.kpi}</strong></td>
+                  <td style="text-align:right"><strong>{$user.direct}</strong></td>
+                  <td style="text-align:right"><strong>{$user.indirect}</strong></td>
+                  <td style="text-align:right"><strong>{$user.total}</strong></td>
+                </tr>
+              {/if}
             {/foreach}
           </tbody>
           <tfoot>
             <tr class="row-grand">
-              <td><strong>TỔNG CỘNG ({$BONUS_REPORT.grand.users} nhân viên)</strong></td>
-              <td><strong>{$BONUS_REPORT.grand.bookings} nguồn</strong></td>
+              {if $VIEW_ALL}
+                <td><strong>TỔNG CỘNG ({$BONUS_REPORT.grand.users} nhân viên)</strong></td>
+                <td><strong>{$BONUS_REPORT.grand.bookings} nguồn</strong></td>
+              {else}
+                <td><strong>TỔNG CỘNG ({$BONUS_REPORT.grand.bookings} nguồn)</strong></td>
+              {/if}
               <td></td>
               <td style="text-align:right"><strong>{$BONUS_REPORT.grand.kpi}</strong></td>
               <td style="text-align:right"><strong>{$BONUS_REPORT.grand.direct}</strong></td>

@@ -32,8 +32,9 @@ class Viewcalculate_bonus extends SugarView
             $to_day   = DatetimeHelper::convert_datetime($to_input, 'd-m-Y', 'Y-m-d');
 
             if ($from_day === null || $to_day === null) {
-                $smarty->assign('ERROR', 'Ngày không hợp lệ, vui lòng chọn theo định dạng dd-mm-yyyy');
-            } else {
+                $smarty->assign('ERROR', 'Định dạng ngày không hợp lệ');
+            }
+            else {
                 try {
                     $result = EC_Bonus_Helper::save_bonus_report("$from_day 00:00:00", "$to_day 23:59:59", $is_save);
                     $smarty->assign('BONUS_REPORT', self::buildBonusReport($result));
@@ -47,32 +48,27 @@ class Viewcalculate_bonus extends SugarView
     }
 
     /**
-     * Shape the helper result (user_id => booking_id => bonus row) for the template:
-     * resolved names, per-user subtotals and a grand total, VND-formatted amounts.
+     * Shape the helper result (['users' => user_id => source_id => bonus row])
+     * for the template: resolved names, per-user subtotals and a grand total,
+     * VND-formatted amounts. Source name/type/time come from the row itself.
      */
     private static function buildBonusReport(array $result): array
     {
-        $booking_ids = [];
-        foreach ($result as $bookings) {
-            foreach (array_keys($bookings) as $bid) $booking_ids[$bid] = true;
-        }
+        $user_rows = $result['users'] ?? [];
 
         $user_names = self::fetchNamesById(
             "SELECT id, TRIM(CONCAT(IFNULL(last_name,''), ' ', IFNULL(first_name,''))) AS name FROM users WHERE deleted = 0",
-            array_keys($result)
-        );
-        $booking_names = self::fetchNamesById(
-            "SELECT id, name FROM ec_flight_bookings WHERE deleted = 0",
-            array_keys($booking_ids)
+            array_keys($user_rows)
         );
 
-        $fmt = function ($v) { return number_format((float) $v, 0, ',', '.'); };
+        list($grp_sep, $dec_sep) = EC_Bonus_Helper::get_number_seps();
+        $fmt = function ($v) use ($grp_sep, $dec_sep) { return number_format((float) $v, 0, $dec_sep, $grp_sep); };
         $esc = function ($v) { return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); };
 
         $users = [];
         $grand = ['bookings' => 0, 'kpi' => 0, 'direct' => 0.0, 'indirect' => 0.0, 'total' => 0.0];
 
-        foreach ($result as $user_id => $bookings) {
+        foreach ($user_rows as $user_id => $bookings) {
             $u = [
                 'name'     => $esc($user_names[$user_id] ?? $user_id),
                 'bookings' => [],
@@ -87,13 +83,21 @@ class Viewcalculate_bonus extends SugarView
                 $indirect = (float) ($row['indirectBonus'] ?? 0);
                 $kpi      = (int) ($row['kpi'] ?? 0);
 
+                $bonus_time = DatetimeHelper::convert_datetime(
+                    (string) ($row['bonusTime'] ?? ''),
+                    'Y-m-d H:i:s', 'd-m-Y H:i'
+                ) ?: '';
+
                 $u['bookings'][] = [
-                    'id'       => $esc($booking_id),
-                    'name'     => $esc($booking_names[$booking_id] ?? $booking_id),
-                    'kpi'      => $kpi,
-                    'direct'   => $fmt($direct),
-                    'indirect' => $fmt($indirect),
-                    'total'    => $fmt($direct + $indirect),
+                    'id'        => $esc($booking_id),
+                    'module'    => $esc($row['srcType'] ?? 'EC_Flight_Bookings'),
+                    'name'      => $esc(($row['srcName'] ?? '') !== '' ? $row['srcName'] : $booking_id),
+                    'time'      => $esc($bonus_time),
+                    'kpi'       => $kpi,
+                    'direct'    => $fmt($direct),
+                    'indirect'  => $fmt($indirect),
+                    'total'     => $fmt($direct + $indirect),
+                    'raw_total' => $direct + $indirect,
                 ];
 
                 $u['kpi']      += $kpi;
@@ -108,9 +112,20 @@ class Viewcalculate_bonus extends SugarView
             $grand['indirect'] += $u['indirect'];
             $grand['total']    += $u['total'];
 
+            // Sources of a user: highest total bonus first
+            usort($u['bookings'], function ($a, $b) {
+                return $b['raw_total'] <=> $a['raw_total'];
+            });
+
+            $u['raw_total'] = $u['total'];
             foreach (['direct', 'indirect', 'total'] as $k) $u[$k] = $fmt($u[$k]);
             $users[] = $u;
         }
+
+        // Users: highest total bonus first
+        usort($users, function ($a, $b) {
+            return $b['raw_total'] <=> $a['raw_total'];
+        });
 
         $grand['users'] = count($users);
         foreach (['direct', 'indirect', 'total'] as $k) $grand[$k] = $fmt($grand[$k]);

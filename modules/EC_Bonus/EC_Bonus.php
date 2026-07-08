@@ -26,9 +26,9 @@ class EC_Bonus extends Basic
     public $assigned_user_link;
     public $SecurityGroups;
 
-    public $parent_id;
-    public $parent_type;
-    public $parent_name;
+    public $source_id;
+    public $source_type;
+    public $source_name;
     public $bonus_time;
     public $kpi;
     public $direct_bonus;

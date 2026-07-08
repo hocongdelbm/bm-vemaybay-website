@@ -10,12 +10,7 @@ $viewdefs[$module_name] = array(
             ),
         ),
         'panels' => array(
-            'default' => array(
-                array('source_name', 'assigned_user_name'),
-                array('bonus_time', 'kpi'),
-                array('direct_bonus', 'indirect_bonus'),
-                array('description'),
-            ),
+            'default' => array(),
         ),
     ),
 );
