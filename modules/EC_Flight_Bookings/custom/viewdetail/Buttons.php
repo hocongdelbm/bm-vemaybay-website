@@ -216,7 +216,8 @@ trait ButtonsTrait
 		}
 	}
 
-	private function assignChangeBookingStatusButton() {
+	private function assignChangeBookingStatusButton()
+	{
 		global $app_list_strings, $current_user;
 
 		// // Change booking status button
@@ -241,7 +242,8 @@ trait ButtonsTrait
 		}
 	}
 
-	private function assignViewedBookingButton() {
+	private function assignViewedBookingButton()
+	{
 		global $current_user;
 
 		// Những nhân viên đã xem booking
@@ -329,26 +331,6 @@ trait ButtonsTrait
 		}
 	}
 
-	private function assignMarkAsReferenceButton()
-	{
-		// Mark as preference button
-		$mask_as_refer = '';
-		if (!$this->bean->is_reference) {
-			$mask_as_refer = <<<HTML
-				</form>
-				<form action="index.php" method="post" name="frmMarkAdPreferance" id="frmMarkAdPreferance">
-					<input type="hidden" name="module" value="{$this->bean->object_name}" />
-					<input type="hidden" name="action" value="Save" />
-					<input type="hidden" name="record" value="{$this->bean->id}" />
-					<input type="hidden" name="record_name" value="{$this->bean->name}" />
-					<input type="hidden" name="is_reference" value="1" />
-					<input type="submit" name="btnMarkAsPreference" id="btnMarkAsPreference" class="btn btn-primary" value="BK tham khảo" title="BK tham khảo" onclick="return confirm('Bạn có chắc chắn muốn đánh dấu đây là BK tham khảo?');"/>									
-				</form>
-			HTML;
-		}
-		$this->ss->assign('MARK_AS_REFERENCE', $mask_as_refer);
-	}
-
 	private function assignTicketReturnButton()
 	{
 		if (
@@ -372,36 +354,23 @@ trait ButtonsTrait
 
 	private function assignPostTicketEditButtons()
 	{
-		// Create invoice button
-		if (in_array((int)$this->bean->booking_status, [7, 8])) {
-			$create_inv = '
-			<input type="button" id="btnCreateInvoice" class="btn btn-warning" value="Sửa YC xuất HĐ" title="Sửa YC xuất HĐ" />
-			</form>
-			<form id="edit_invoice_frm" method="post" style="display:none; background-color:#fff;" name="edit_invoice_frm">
-				<input type="hidden" name="module" value="EC_Flight_Bookings">
-				<input type="hidden" name="action" value="Save">
-				<input type="hidden" name="booking_id" value="' . $this->bean->id . '">
-				<div class="detail view" id="invoice_inf"></div>
-				<div class="text-center">
-					<input class="btn btn-primary save-popup-dialog" type="submit" value="Lưu" name="save_request_invoice">
-				</div>
-			</form>';
-			$this->ss->assign('CREATE_INVOICE', $create_inv);
+		global $current_user;
 
-			// Edit booking detail
-			$bkg_detail = '<input type="button" class="btn btn-warning" id="edit_bkg_btn" value="Sửa chi tiết">
-							</form><form id="bkg_detail" method="post" style="display:none; background-color:#fff;">
-								<input type="hidden" name="module" value="EC_Flight_Bookings">
-								<input type="hidden" name="action" value="Save">
-								<input type="hidden" id="bkg_no" name="record" value="' . $this->bean->id . '">
-								<input type="hidden" name="edit_detail">
-								<div class="detail view in-popup">
-									<h4 class="dialog-title">Chi tiết vé</h4>
-									<table id="tbl_line_details" class="table_config table-edit-details__booking table-details__booking" cellpadding="0" cellspacing="0" border="0"></table>
-								</div>
-								<input class="btn btn-primary mt-2 d-block mx-auto save-popup-dialog" type="submit" value="Lưu">
-							</form>';
-			$this->ss->assign('EDIT_BKG_DETAIL', $bkg_detail);
+		if (in_array((int)$this->bean->booking_status, [7, 8])) {
+			if (is_admin($current_user)) {
+				$bkg_detail = '</form><form id="bkg_detail" method="post" style="display:none; background-color:#fff;">
+									<input type="hidden" name="module" value="EC_Flight_Bookings">
+									<input type="hidden" name="action" value="Save">
+									<input type="hidden" id="bkg_no" name="record" value="' . $this->bean->id . '">
+									<input type="hidden" name="edit_detail">
+									<div class="detail view in-popup">
+										<h4 class="dialog-title">Chi tiết vé</h4>
+										<table id="tbl_line_details" class="table_config table-edit-details__booking table-details__booking" cellpadding="0" cellspacing="0" border="0"></table>
+									</div>
+									<input class="btn btn-primary mt-2 d-block mx-auto save-popup-dialog" type="submit" value="Lưu">
+								</form>';
+				$this->ss->assign('EDIT_BKG_DETAIL', $bkg_detail);
+			}
 
 			// Change name - Đổi tên hành khách
 			$change_name = <<<HTML
@@ -531,18 +500,5 @@ trait ButtonsTrait
 				</div>
 			</div>'
 		);
-	}
-
-	private function assignUpdateRevenueButton()
-	{
-		global $current_user;
-
-		// Cập nhật doanh số của booking trong table ec_revenue
-		$update_revenue = '';
-		if (is_admin($current_user) && $current_user->user_name == 'hungnh') {
-			$update_revenue = '<input id="update_revenue" class="btn btn-primary" type="button" value="Cập nhật DS">';
-		}
-
-		$this->ss->assign('UPDATE_REVENUE', $update_revenue);
 	}
 }

@@ -291,13 +291,12 @@ class EC_Flight_Bookings extends Basic
 
 	private function _normalizeLuggageFee()
 	{
-		$postedFee = unformat_number($_POST['luggage_fee'] ?? 0);
-		if ($postedFee > 999) {
-			$this->luggage_fee = $postedFee;
+		if (!array_key_exists('luggage_fee', $_POST)) {
+			return;
 		}
-		elseif ((int) $this->luggage_fee < 10) {
-			$this->luggage_fee = 0;
-		}
+
+		$postedFee = unformat_number($_POST['luggage_fee']);
+		$this->luggage_fee = $postedFee < 1000 ? 0 : $postedFee;
 	}
 
 	private function _resolveAssignedUser()
@@ -385,7 +384,6 @@ class EC_Flight_Bookings extends Basic
 
 		// Save passengers
 		if (isset($_POST['psg_id']) && !is_null($_POST['psg_id'])) {
-			var_dump($this->date_entered);
 			if ($this->isUseNewBaggage($this->date_entered, $this->created_by)) {
 				$this->saveLinePassengers();
 			} else {
@@ -512,7 +510,8 @@ class EC_Flight_Bookings extends Basic
 		];
 	}
 
-	private function _saveItineraryRow(array $data) {
+	private function _saveItineraryRow(array $data)
+	{
 		/** @var EC_Booking_Itineraries **/
 		$iti = BeanFactory::newBean('EC_Booking_Itineraries');
 
@@ -590,7 +589,12 @@ class EC_Flight_Bookings extends Basic
 	 */
 	private function saveLineDetails()
 	{
-		global $app_list_strings;
+		global $app_list_strings, $current_user;
+
+		// Validate sửa chi tiết vé
+		if (isset($_POST['edit_detail']) && in_array((int)$this->booking_status, [7, 8]) && !is_admin($current_user)) {
+			return;
+		}
 
 		$rows = $_POST['bkd_quantity'] ?? [];
 		$total_bought_amount = 0;
@@ -642,7 +646,8 @@ class EC_Flight_Bookings extends Basic
 	 * Save data detail and return total bought price
 	 * @return float total_bought_price của row này
 	 */
-	private function _saveDetailRow(array $data, array $app_list_strings): float {
+	private function _saveDetailRow(array $data, array $app_list_strings): float
+	{
 		/** @var EC_Booking_Details **/
 		$bkd = BeanFactory::newBean('EC_Booking_Details');
 
@@ -1383,6 +1388,43 @@ class EC_Flight_Bookings extends Basic
 		return (string) $code;
 	}
 
+	// Danh sách ngân hàng cho ô "Ngân hàng" của thông tin hoá đơn
+	public static function getInvoiceBankList()
+	{
+		return [
+			'' => 'Chọn ngân hàng',
+			'VPBank' => '(VPBank) NH TMCP Việt Nam Thịnh Vượng',
+			'BIDV' => '(BIDV) NH TMCP Đầu tư và Phát triển Việt Nam',
+			'VietinBank' => '(VietinBank) NH TMCP Công thương Việt Nam',
+			'Vietcombank' => '(Vietcombank) NH TMCP Ngoại Thương Việt Nam',
+			'MB' => '(MB) NH TMCP Quân Đội',
+			'Techcombank' => '(Techcombank) NH TMCP Kỹ Thương',
+			'Agribank' => '(Agribank) NH PT Nông thôn Việt Nam',
+			'ACB' => '(ACB) NH TMCP Á Châu',
+			'SHB' => '(SHB) NH TMCP Sài Gòn – Hà Nội',
+			'VIB' => '(VIB) NH TMCP Quốc Tế',
+			'HDBank' => '(HDBank) NH TMCP Phát triển TPHCM',
+			'SeABank' => '(SeABank) NH TMCP Đông Nam Á',
+			'VBSP' => '(VBSP) NH Chính sách xã hội Việt Nam',
+			'Sacombank' => '(Sacombank) NH TMCP Sài Gòn Thương Tín',
+			'LienVietPostBank' => '(LienVietPostBank) NH TMCP Bưu điện Liên Việt',
+			'MSB' => '(MSB) NH TMCP Hàng Hải',
+			'SCB' => '(SCB) NH TMCP Sài Gòn',
+			'VDB' => '(VDB) NH Phát triển Việt Nam',
+			'OCB' => '(OCB) NH TMCP Phương Đông',
+			'Eximbank' => '(Eximbank) NH TMCP Xuất Nhập Khẩu',
+			'TPBank' => '(TPBank) NH TMCP Tiên Phong',
+			'PVcomBank' => '(PVcomBank)  NH TMCP Đại Chúng Việt Nam',
+			'BacABank' => '(BacABank) NH TMCP Bắc Á',
+			'Woori' => '(Woori) NH TNHH MTV Woori Việt Nam',
+			'HSBC' => '(HSBC) NH TNHH MTV HSBC Việt Nam',
+			'VietABank' => '(Vietbank) NH TMCP Việt Nam Thương Tín',
+			'NamABank' => '(Nam A Bank) NH TMCP Nam Á',
+			'IVB' => '(IVB) NH TNHH Indovina',
+			'Kienlongbank' => '(Kienlongbank) NH TMCP Kiên Long',
+		];
+	}
+
 	// Lưu thông tin hoá đơn
 	public function saveInvoiceInf($post_fields, $booking_id)
 	{
@@ -1440,8 +1482,9 @@ class EC_Flight_Bookings extends Basic
 	 * @param string $created_by
 	 * @return bool
 	 */
-	public function isUseNewBaggage($date_entered, $created_by) {
-		if(is_null($date_entered) || is_null($created_by) || empty($date_entered) || empty($created_by)) return true;
+	public function isUseNewBaggage($date_entered, $created_by)
+	{
+		if (is_null($date_entered) || is_null($created_by) || empty($date_entered) || empty($created_by)) return true;
 		global $sugar_config, $current_user;
 		$dateFormat = $current_user->getPreference('datef') ?? $sugar_config['datef'] ?? 'd-m-Y';
 		$timeFormat = $current_user->getPreference('timef') ?? $sugar_config['timef'] ?? 'H:i';

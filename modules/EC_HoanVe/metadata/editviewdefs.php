@@ -32,7 +32,7 @@ $viewdefs[$module_name]['EditView'] = array(
     ),
 
     'panels' => array(
-        'default' => array(
+        'LBL_HOANVE_INFO' => array(
             array(
                 array(
                     'name' => 'booking',

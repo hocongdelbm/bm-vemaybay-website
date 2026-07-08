@@ -195,19 +195,32 @@ class EC_Flight_BookingsLogicHook
 		/**
 		 * Map cuộc gọi và booking cho case booker đặt giùm khách hàng
 		 */
-		if (empty($focus->telesale_call_id) && isset($_POST['is_telesale_value']) && !empty($focus->phone) && !in_array(strtoupper(trim($focus->contact_name)), $focus->contact_name_ignore)) {
-			/** @var Call **/
-			$call = BeanFactory::newBean("Calls");
-			$call_id = $call->getTelesaleCalls($focus->phone, $focus->fetched_row['date_entered']);
-			if (!empty($call_id)) {
-				$focus->db->query(
-					"UPDATE ec_flight_bookings
-					SET telesale_call_id = '" . $focus->db->quote($call_id) . "'
-						, is_telesale = 1
-						, date_modified = NOW()
-						, modified_user_id = '" . $focus->db->quote($current_user->id) . "' 
-					WHERE id = '" . $focus->db->quote($focus->id) . "'"
-				);
+		if (isset($_POST['is_telesale_value']) && empty($focus->telesale_call_id)) {
+			if (!empty($focus->phone) && !in_array(strtoupper(trim($focus->contact_name)), $focus->contact_name_ignore)) {
+				/** @var Call **/
+				$call = BeanFactory::newBean("Calls");
+				$call_id = $call->getTelesaleCalls($focus->phone, $focus->fetched_row['date_entered']);
+				if (!empty($call_id)) {
+					$focus->db->query(
+						"UPDATE ec_flight_bookings
+						SET telesale_call_id = '" . $focus->db->quote($call_id) . "'
+							, is_telesale = 1
+							, date_modified = NOW()
+							, modified_user_id = '" . $focus->db->quote($current_user->id) . "'
+						WHERE id = '" . $focus->db->quote($focus->id) . "'"
+					);
+				} else {
+					// Không tìm thấy cuộc gọi telesale khớp -> báo cho user thay vì im lặng (xem Assets.php đọc flash)
+					$_SESSION['ec_flight_flash'] = [
+						'type' => 2,
+						'msg'  => 'Chưa đánh dấu được "BK Telesale": không tìm thấy cuộc gọi telesale khớp (đúng SĐT, loại cuộc gọi telesale/recall, trong vòng 90 ngày trước ngày tạo booking).',
+					];
+				}
+			} else {
+				$_SESSION['ec_flight_flash'] = [
+					'type' => 2,
+					'msg'  => 'Chưa đánh dấu được "BK Telesale": booking thiếu số điện thoại hoặc tên khách nằm trong danh sách loại trừ.',
+				];
 			}
 		}
 
@@ -215,7 +228,7 @@ class EC_Flight_BookingsLogicHook
 		if (isset($_POST['is_ctv_value'])) {
 			$focus->db->query(
 				"UPDATE ec_flight_bookings
-				SET is_ctv = " . $_POST['is_ctv_value'] . "
+				SET is_ctv = " . (int) $_POST['is_ctv_value'] . "
 					, date_modified = NOW()
 					, modified_user_id = '" . $focus->db->quote($current_user->id) . "'
 				WHERE id = '" . $focus->db->quote($focus->id) . "'"

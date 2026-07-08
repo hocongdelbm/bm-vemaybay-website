@@ -395,7 +395,6 @@ Always prefer editing files under `custom/` rather than modifying core `modules/
 - `.github/workflows/dev-ci.yml` — Runs on push to `main` and PRs: validates composer, installs deps, runs PHP syntax check on `custom/` and `modules/`
 - `.github/workflows/prod-ci.yml` — Production deployment: triggers after successful dev-ci on `main`, SSH to server → `git pull origin main`
 - PHP 7.4 is required (both local and CI)
-- **Branching**: Active branches include feature branches (`hungnh_*`, `dahyvan-tkve`), `dev`, and `main`
 
 ## Configuration
 
