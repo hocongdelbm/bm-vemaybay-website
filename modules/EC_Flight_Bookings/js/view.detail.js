@@ -1463,18 +1463,9 @@ $(document).ready(function () {
 
   // Change booking status
   $(document).on("change", "select#booking_status", function () {
-    let status = $(this).find(":selected").val();
-
-    $("#modal-confirm .modal-title").html("Xác nhận đổi tình trạng");
-    $("#modal-confirm #confirm-modal").attr("type", "change-status");
-    $("#modal-confirm #confirm-modal").attr("data", status);
-
-    let myModal = new bootstrap.Modal(document.getElementById("modal-confirm"));
-    myModal.show();
-  });
-
-  $(document).on("click", "#confirm-modal", function () {
-    $("#frmChangeStatus").submit();
+    if (confirm("Xác nhận đổi tình trạng?")) {
+      $("#frmChangeStatus").submit();
+    }
   });
 
   // QR code dialog
@@ -2844,6 +2835,33 @@ $(document).ready(function () {
 
     return value;
   }
+});
+
+// Chi tiết doanh số booking (modal) - load qua AJAX khi mở, thay vì build sẵn mỗi lần tải trang
+// (xem for=getBookingProfitDetail trong custom/entrypoints/epFlightBookings.php)
+$(document).on("show.bs.modal", "#profitBookingModal", function () {
+  var $modal = $(this);
+  var bookingId = $modal.data("booking-id");
+  var $body = $modal.find("#profitBookingModalBody");
+
+  $.ajax({
+    url: "index.php?entryPoint=entryPointFlightBookings",
+    type: "POST",
+    data: { for: "getBookingProfitDetail", booking_id: bookingId },
+    dataType: "json",
+    success: function (res) {
+      $body.html(
+        res && res.success
+          ? res.html
+          : '<p class="text-danger text-center">Không tải được chi tiết doanh số.</p>',
+      );
+    },
+    error: function () {
+      $body.html(
+        '<p class="text-danger text-center">Không tải được chi tiết doanh số.</p>',
+      );
+    },
+  });
 });
 
 // Count row for textarea

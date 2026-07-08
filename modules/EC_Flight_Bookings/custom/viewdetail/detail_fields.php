@@ -250,9 +250,9 @@ trait DetailFieldsTrait
 
 	private function assignContactPhoneField()
 	{
-		$journeys_info = $this->getJourneysByBooking($this->bean->id);
-		$pass_and_bag  = $this->getPassengerAndBaggage($this->bean->id);
-		$zbs_history   = $this->getHistoryZBS($this->bean->phone, $this->bean->id);
+		// Hành trình/hành khách/hành lý/lịch sử ZBS chỉ cần khi mở dialog "Gửi Zalo" —
+		// load qua AJAX (for=getZaloDialogData) lúc mở dialog thay vì tính sẵn ở đây
+		// (3 query chạy trên mọi lượt xem trang dù phần lớn không bao giờ mở dialog).
 		$contact_phone = '<div class="wrap-phone d-flex align-items-center justify-content-between">
 			<a href="tel:' . $this->bean->phone . '">' . $this->bean->phone . '</a>
 			<div class="d-flex align-items-center gap-2">
@@ -275,9 +275,9 @@ trait DetailFieldsTrait
 					<h6 class="title-zalo-oa-name mb-2">Travelpass tìm chuyến bay</h6>
 					<form method="dialog">
 						<input type="hidden" name="zalo_flight_type" id="zalo_flight_type" value="' . $this->bean->flight_type . '" />
-						<input type="hidden" name="zalo_journeys" id="zalo_journeys" value="' . base64_encode(rawurlencode(json_encode($journeys_info, JSON_UNESCAPED_UNICODE))) . '" />
-						<input type="hidden" name="zalo_passenger" id="zalo_passenger" value="' . $pass_and_bag['passenger'] . '" />
-						<input type="hidden" name="zalo_baggage" id="zalo_baggage" value="' . $pass_and_bag['baggage'] . '" />
+						<input type="hidden" name="zalo_journeys" id="zalo_journeys" value="' . base64_encode(rawurlencode(json_encode([], JSON_UNESCAPED_UNICODE))) . '" />
+						<input type="hidden" name="zalo_passenger" id="zalo_passenger" value="" />
+						<input type="hidden" name="zalo_baggage" id="zalo_baggage" value="" />
 						<input type="hidden" name="zalo_booking_id" id="zalo_booking_id" value="' . $this->bean->id . '" />
 						<input type="hidden" name="zalo_booking_name" id="zalo_booking_name" value="' . $this->bean->name . '" />
 						<input type="hidden" name="zalo_contact" id="zalo_contact" value="' . $this->bean->contact_name . '" />
@@ -287,31 +287,31 @@ trait DetailFieldsTrait
 								<div>
 									<input type="radio" class="form-check-input" id="type_journey" name="zalo_type" value="journey">
 									<label for="type_journey" class="form-check-label">Tin nhắn hành trình
-										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['journey'] . ' tin">(' . $zbs_history['journey'] . ')</span>
+										<span class="me-2 text-danger zbs-count" data-zbs-type="journey" title="Đã gửi 0 tin">(0)</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_payment" name="zalo_type" value="payment">
 									<label for="type_payment" class="form-check-label">Tin nhắn thanh toán
-										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['payment'] . ' tin">(' . $zbs_history['payment'] . ')</span>
+										<span class="me-2 text-danger zbs-count" data-zbs-type="payment" title="Đã gửi 0 tin">(0)</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_code" name="zalo_type" value="code">
 									<label for="type_code" class="form-check-label">Tin nhắn code vé
-										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['code'] . ' tin">(' . $zbs_history['code'] . ')</span>
+										<span class="me-2 text-danger zbs-count" data-zbs-type="code" title="Đã gửi 0 tin">(0)</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_remind-flight" name="zalo_type" value="remind-flight">
 									<label for="type_remind-flight" class="form-check-label">Nhắc nhở giờ bay
-										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['remind'] . ' tin">(' . $zbs_history['remind'] . ')</span>
+										<span class="me-2 text-danger zbs-count" data-zbs-type="remind" title="Đã gửi 0 tin">(0)</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_delay" name="zalo_type" value="delay">
 									<label for="type_delay" class="form-check-label">Thông báo delay
-										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['delay'] . ' tin">(' . $zbs_history['delay'] . ')</span>
+										<span class="me-2 text-danger zbs-count" data-zbs-type="delay" title="Đã gửi 0 tin">(0)</span>
 									</label>
 								</div>
 							</div>	
@@ -734,110 +734,21 @@ trait DetailFieldsTrait
 	{
 		global $current_user;
 
-		// Doanh số
-		$bk_amt = calculateBKAmt($this->bean->id);
-		$total_profit = format_number($bk_amt['total_profit'] ?? 0);
+		// $bk_amt = calculateBKAmt($this->bean->id);
+		// $total_profit = format_number($bk_amt['total_profit'] ?? 0);
+		$total_profit = '';
+
 		if (is_admin($current_user)) {
 			$total_profit .= '<button class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#profitBookingModal">Chi tiết D/số</button>';
 			if ($current_user->user_name == 'hungnh') {
 				$total_profit .= '<input id="update_revenue" class="btn btn-primary btn-sm ms-2" type="button" value="Cập nhật DS">';
 			}
 
-			$total_profit .= '<div class="modal fade" id="profitBookingModal" tabindex="-1" aria-labelledby="profitBookingModalLabel" aria-hidden="true">
+			$total_profit .= '<div class="modal fade" id="profitBookingModal" tabindex="-1" aria-labelledby="profitBookingModalLabel" aria-hidden="true" data-booking-id="' . $this->bean->id . '">
 								<div class="modal-dialog modal-dialog-centered">
 									<div class="modal-content">
-										<div class="modal-body">
-											<h3 class="sub-title text-center">Chi tiết doanh số booking <span>' . $this->bean->name . '</span></h3>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold">Tổng tiền BK:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_booking'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="Giá bán Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế">Tổng tiền phiếu thu:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_receipt'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="Tiền giảm giá sử dụng điểm tích lũy">Tiền sử dụng điểm:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_points'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="Khoản tiền hãng hoàn lại khi hoàn vé">Tiền hãng hoàn:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_brand_refunded'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold">Tổng tiền bán:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end text-danger">' . format_number($bk_amt['total_amount'] ?? 0) . '</p>
-												</div>
-											</div>
-											<hr>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold">Tổng tiền mua BK:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_booking'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="Số tiền phải hoàn trả cho khách hàng">Tiền hoàn khách:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_pass_refunded'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="Khách sử dụng điểm tích lũy để giảm giá cho BK. Sau đó đổi ý không dùng nữa!">Tiền sử dụng điểm hoàn lại:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_points_refunded'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="Giá mua Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế">Tổng tiền mua phiếu thu:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_receipt'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="">Tổng tiền mua:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end text-danger">' . format_number($bk_amt['total_purchase'] ?? 0) . '</p>
-												</div>
-											</div>
-											<hr>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-bold" title="">Tổng doanh số:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-bold text-end text-danger">' . format_number($bk_amt['total_profit'] ?? 0) . '</p>
-												</div>
-											</div>
+										<div class="modal-body" id="profitBookingModalBody">
+											<div class="text-center py-3"><i>Đang tải...</i></div>
 										</div>
 									</div>
 								</div>

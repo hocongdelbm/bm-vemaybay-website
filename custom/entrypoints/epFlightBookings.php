@@ -127,6 +127,39 @@ if (isset($_POST['for']) && $_POST['for'] == 'getItiLine') {
 	exit;
 }
 
+// Dữ liệu cho dialog "Gửi Zalo" ở detail view (hành trình, hành khách/hành lý, lịch sử ZBS)
+// - load lazy khi mở dialog thay vì tính sẵn trên mọi lượt xem trang.
+if (isset($_POST['for']) && $_POST['for'] == 'getZaloDialogData') {
+	header('Content-Type: application/json; charset=utf-8');
+	echo json_encode(getZaloDialogData($_POST['booking_id'] ?? ''), JSON_UNESCAPED_UNICODE);
+	exit;
+}
+
+// Chi tiết doanh số booking (modal admin ở detail view) - load lazy khi mở modal
+// thay vì build sẵn breakdown ~15 dòng trên mọi lượt tải trang.
+if (isset($_POST['for']) && $_POST['for'] == 'getBookingProfitDetail') {
+	header('Content-Type: application/json; charset=utf-8');
+
+	if (!is_admin($current_user)) {
+		echo json_encode(['success' => false, 'message' => 'Không có quyền']);
+		exit;
+	}
+
+	$booking = new EC_Flight_Bookings();
+	$booking->retrieve($_POST['booking_id'] ?? '');
+
+	if (empty($booking->id)) {
+		echo json_encode(['success' => false, 'message' => 'Không tìm thấy booking']);
+		exit;
+	}
+
+	$bk_amt = calculateBKAmt($booking->id);
+	$html = renderBookingProfitBreakdownHtml($bk_amt, $booking->name, $current_user->user_name == 'hungnh');
+
+	echo json_encode(['success' => true, 'html' => $html], JSON_UNESCAPED_UNICODE);
+	exit;
+}
+
 // Insert passenger line info
 if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 	$booking = new EC_Flight_Bookings;

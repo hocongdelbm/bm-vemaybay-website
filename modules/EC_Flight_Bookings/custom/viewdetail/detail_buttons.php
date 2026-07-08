@@ -289,20 +289,25 @@ trait DetailButtonsTrait
 	private function assignCreateReceiptVoucherButton()
 	{
 		// Create receipt voucher button
-		$this->_is_had_rv = myCheckValueExist('EC_Receipt_Voucher', array('booking_id'), array($this->bean->id), '');
+		$module_rv = 'EC_Receipt_Voucher';
+		$this->_is_had_rv = (int)myCheckValueExist($module_rv, array('booking_id'), array($this->bean->id), '');
+
 		if (
-			$this->bean->booking_status == 2
-			&& !$this->_is_had_rv
-			&& ACLController::checkAccess('EC_Receipt_Voucher', 'edit', true)
+			(
+				$this->bean->booking_status == 2
+				&& !$this->_is_had_rv
+				&& ACLController::checkAccess($module_rv, 'edit', true)
+			)
 			||
-			$this->bean->is_agent == 1
-			&&
-			!$this->_is_had_rv  /* && $this->bean->is_agent != 1 */
+			(
+				$this->bean->is_agent == 1
+				&& !$this->_is_had_rv
+			)
 		) {
 			$receipt_type = ($this->bean->payment_type == 3 || $this->bean->payment_type == 4) ? 'credit_transfer' : 'cash';
 			$create_rv = '</form>
 			<form action="index.php" method="post" name="frmCreateRV" id="frmCreateRV">
-			  <input type="hidden" name="module" value="EC_Receipt_Voucher" />
+			  <input type="hidden" name="module" value="'.$module_rv.'" />
 			  <input type="hidden" name="action" value="EditView" />
 			  <input type="hidden" name="amount" value="' . format_number($this->bean->total_amount) . '" />
 			  <input type="hidden" name="amount_converted" value="' . format_number($this->bean->total_amount) . '" />

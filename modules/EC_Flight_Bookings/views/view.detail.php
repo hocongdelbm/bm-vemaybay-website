@@ -55,8 +55,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->populateLineNotesMessage();
 		$this->populateSMSTemplate();
 
-		$this->createModal();
-
 		parent::display();
 
 		$this->displayJSTrait();

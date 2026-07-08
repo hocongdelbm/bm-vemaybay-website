@@ -4,6 +4,28 @@ $(document).ready(function () {
     $("#send-zalo").click(function () {
         showDialog("dialog-send-zalo");
         $("#dialog-send-zalo").draggable();
+
+        // Hành trình/hành khách/hành lý/lịch sử ZBS load lazy qua AJAX khi mở dialog
+        // (server không tính sẵn nữa - xem getZaloDialogData trong custom/include/utils/booking.php)
+        var bookingId = $('input[name="zalo_booking_id"]').val();
+        $.ajax({
+            url: "index.php?entryPoint=entryPointFlightBookings",
+            type: "POST",
+            data: { for: "getZaloDialogData", booking_id: bookingId },
+            dataType: "json",
+            success: function (data) {
+                $("input#zalo_journeys").val(btoa(encodeURIComponent(JSON.stringify(data.journeys || []))));
+                $('input[name="zalo_passenger"]').val(data.passenger || '');
+                $('input[name="zalo_baggage"]').val(data.baggage || '');
+
+                var zbsHistory = data.zbs_history || {};
+                $(".zbs-count").each(function () {
+                    var type = $(this).data("zbs-type");
+                    var count = zbsHistory[type] || 0;
+                    $(this).text("(" + count + ")").attr("title", "Đã gửi " + count + " tin");
+                });
+            }
+        });
         return;
     });
 

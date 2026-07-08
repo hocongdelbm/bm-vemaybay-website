@@ -1442,3 +1442,160 @@ function updateIsPriorForBooking($booking_id)
     ";
     $db->query($sql);
 }
+
+require_once 'modules/EC_Flight_Bookings/custom/viewdetail/ZaloSms.php';
+require_once 'modules/EC_Flight_Bookings/custom/viewdetail/Passenger.php';
+
+/**
+ * Helper rỗng chỉ để gom ZaloSmsTrait + PassengerTrait, dùng cho getZaloDialogData()
+ * bên ngoài context của EC_Flight_BookingsViewDetail (vd: gọi từ entry point AJAX).
+ */
+class ZaloDialogDataHelper
+{
+    use ZaloSmsTrait;
+    use PassengerTrait;
+    public $bean;
+}
+
+/**
+ * Dữ liệu cho dialog "Gửi Zalo" ở detail view: hành trình, hành khách/hành lý, lịch sử ZBS.
+ * Tách hàm riêng để load qua AJAX khi user mở dialog, thay vì tính sẵn (3 query) trên MỌI
+ * lượt xem trang chi tiết booking dù phần lớn không bao giờ mở dialog này.
+ */
+function getZaloDialogData($booking_id)
+{
+    $empty = [
+        'journeys' => [],
+        'passenger' => '',
+        'baggage' => '',
+        'zbs_history' => ['journey' => 0, 'payment' => 0, 'code' => 0, 'callsale' => 0, 'remind' => 0, 'delay' => 0],
+    ];
+
+    if (empty($booking_id)) return $empty;
+
+    $booking = BeanFactory::getBean('EC_Flight_Bookings', $booking_id);
+    if (empty($booking->id)) return $empty;
+
+    $helper = new ZaloDialogDataHelper();
+    $helper->bean = $booking;
+
+    $passAndBag = $helper->getPassengerAndBaggage($booking->id);
+
+    return [
+        'journeys' => $helper->getJourneysByBooking($booking->id),
+        'passenger' => $passAndBag['passenger'],
+        'baggage' => $passAndBag['baggage'],
+        'zbs_history' => $helper->getHistoryZBS($booking->phone, $booking->id),
+    ];
+}
+
+/**
+ * HTML breakdown "Chi tiết doanh số booking" cho modal admin (view detail).
+ * Tách khỏi assignProfitField() để load qua AJAX lúc mở modal thay vì build sẵn
+ * mỗi lần tải trang — xem for=getBookingProfitDetail trong custom/entrypoints/epFlightBookings.php.
+ */
+function renderBookingProfitBreakdownHtml(array $bk_amt, string $booking_name, bool $showDebug = false)
+{
+    $html = '<h3 class="sub-title text-center">Chi tiết doanh số booking <span>' . $booking_name . '</span></h3>';
+
+    if ($showDebug) {
+        $html .= '<div class="row">
+					<div class="col-12">
+						<pre>' . json_encode($bk_amt, JSON_PRETTY_PRINT) . '</pre>
+					</div>
+				</div>';
+    }
+
+    $html .= '<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold">Tổng tiền BK:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_booking'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="Giá bán Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế">Tổng tiền phiếu thu:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_receipt'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="Tiền giảm giá sử dụng điểm tích lũy">Tiền sử dụng điểm:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_points'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="Khoản tiền hãng hoàn lại khi hoàn vé">Tiền hãng hoàn:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_brand_refunded'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold">Tổng tiền bán:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end text-danger">' . format_number($bk_amt['total_amount'] ?? 0) . '</p>
+					</div>
+				</div>
+				<hr>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold">Tổng tiền mua BK:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_booking'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="Số tiền phải hoàn trả cho khách hàng">Tiền hoàn khách:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_pass_refunded'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="Khách sử dụng điểm tích lũy để giảm giá cho BK. Sau đó đổi ý không dùng nữa!">Tiền sử dụng điểm hoàn lại:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_points_refunded'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="Giá mua Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế">Tổng tiền mua phiếu thu:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_receipt'] ?? 0) . '</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-semibold" title="">Tổng tiền mua:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-semibold text-end text-danger">' . format_number($bk_amt['total_purchase'] ?? 0) . '</p>
+					</div>
+				</div>
+				<hr>
+				<div class="row">
+					<div class="col-6">
+						<span class="form-label fw-bold" title="">Tổng doanh số:</span>
+					</div>
+					<div class="col-6">
+						<p class="form-label fw-bold text-end text-danger">' . format_number($bk_amt['total_profit'] ?? 0) . '</p>
+					</div>
+				</div>';
+
+    return $html;
+}
