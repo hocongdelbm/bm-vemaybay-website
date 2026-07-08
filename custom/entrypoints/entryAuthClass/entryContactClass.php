@@ -161,7 +161,7 @@ class entryContactClass extends entryClass
             $this->touchPhone($normalized);
             $this->cache->set($this->cacheKey($normalized), $this->wrapCacheValue($dto), self::CACHE_TTL_HIT);
 
-            return $dto + ['id' => $con->id];
+            return $dto;
         } catch (Throwable $th) {
             return ['error' => "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}"];
         } finally {
@@ -239,7 +239,7 @@ class entryContactClass extends entryClass
                 $this->cache->set($this->cacheKey($newNormalized), $this->wrapCacheValue($dto), self::CACHE_TTL_HIT);
             }
 
-            return $dto + ['id' => $bean->id];
+            return $dto;
         } catch (Throwable $th) {
             return ['error' => "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}"];
         } finally {
@@ -404,6 +404,7 @@ class entryContactClass extends entryClass
     private function toDto($bean): array
     {
         return [
+            'id'           => $bean->id,
             'name'         => trim(($bean->last_name ?? '') . ' ' . ($bean->first_name ?? '')),
             'email'        => $bean->email1 ?? '',
             'contact_type' => $bean->contact_type ?? '',
