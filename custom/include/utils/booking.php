@@ -570,11 +570,11 @@ function calculateBKAmt($booking_id, $only_profit = false)
                     FROM ec_hoanve hv 
                     WHERE hv.tinhtrang='1' AND hv.deleted = 0 AND hv.booking_id = b.id
                 ), 0)
-                + 
+                +
                 IFNULL((
                     SELECT SUM(IFNULL(pt.amount, 0))
-                    FROM ec_receipt_voucher pt 
-                    WHERE pt.booking_id = b.id 
+                    FROM ec_receipt_voucher pt
+                    WHERE pt.booking_id = b.id
                     AND pt.rv_status IN (1, 2)
                     AND pt.loai_thu IN ('4','5')
                     AND pt.deleted = 0
@@ -881,16 +881,16 @@ function calculateBKTotalAmtOfEmployee($user_id, $from_date, $to_date)
                     ), 0)
                     + IFNULL((
                         SELECT SUM(IFNULL(pt.amount, 0))
-                        FROM ec_receipt_voucher pt 
-                        WHERE pt.booking_id = b.id 
+                        FROM ec_receipt_voucher pt
+                        WHERE pt.booking_id = b.id
                             AND pt.rv_status IN (1, 2)
                             AND pt.loai_thu IN ('4','5')
                             AND pt.deleted = 0
                     ), 0)
                     - IFNULL((
-                        SELECT SUM(IFNULL(d.total_bought_price, 0)) 
-                        FROM ec_booking_details d 
-                        WHERE d.booking_id = b.id 
+                        SELECT SUM(IFNULL(d.total_bought_price, 0))
+                        FROM ec_booking_details d
+                        WHERE d.booking_id = b.id
                             AND d.deleted = 0
                     ), 0)
                     - IFNULL((
@@ -1220,7 +1220,7 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
             ),0)) AS total_bought_price
             , bk.flight_type
             , bk.ticket_type
-            , bk.description AS booking_description
+            , bk.description AS description
             , bk.booking_status AS parent_status
             , bk.assigned_user_id AS user_id
             , IFNULL((
@@ -1276,7 +1276,7 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
                 ) AS total_bought_price
                 ,'' AS flight_type
                 ,'' AS ticket_type
-                ,'' AS booking_description
+                ,'' AS description
                 ,p.rv_status AS parent_status
                 , p.assigned_user_id AS user_id
                 ,SUM(IF(p.rv_status IN (1, 2), p.amount, 0)) AS receipt_amount
@@ -1314,7 +1314,7 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
                 , SUM(hv_t.total_bought_price) AS total_bought_price
                 , hv_t.flight_type
                 , hv_t.ticket_type
-                , hv_t.booking_description
+                , hv_t.description
                 , hv_t.parent_status
                 , hv_t.user_id
                 , hv_t.receipt_amount
@@ -1342,7 +1342,7 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
                     , - IF(SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienhang,0)), 0)  AS total_bought_price
                     ,'' AS flight_type
                     ,'' AS ticket_type
-                    ,'' AS booking_description
+                    ,'' AS description
                     , p.tinhtrang AS parent_status
                     , bk.assigned_user_id AS user_id
                     , 0 AS receipt_amount
@@ -1371,7 +1371,7 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
                     , - SUM(IFNULL(p.tongtienhang,0))  AS total_bought_price
                     , '' AS flight_type
                     , '' AS ticket_type
-                    , '' AS booking_description
+                    , '' AS description
                     , p.tinhtrang AS parent_status
                     , bk.assigned_user_id AS user_id
                     , 0 AS receipt_amount

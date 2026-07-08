@@ -181,6 +181,7 @@ class EC_Input_Invoices extends Basic {
                     VALUES (uuid(), "'.$booking_id.'", "'.date('Y-m-d H:i:s', strtotime(date_format($date_created, "Y-m-d"))). '", "'.$current_user->id.'", "is_invoice_input_export", "boolean", 0, 1)');
     
                 // Cập nhật kpi
+                myRemoveWorkingProcess('EC_Flight_Bookings', $booking_id, 'invoice_input_issued');
                 myCreateWorkingProcess('EC_Flight_Bookings', $booking_id, $booking_name, 'Import từ hoá đơn của hãng (Manual)', $current_user->id, 'invoice_input_issued');
     
                 $note = new Note;
