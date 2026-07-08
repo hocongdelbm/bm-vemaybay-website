@@ -3,32 +3,10 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /**
  * Modal and popup template helpers.
- *
- * Used by EC_Flight_BookingsViewDetail. Methods are kept close to the
- * legacy implementation to preserve the old business behavior.
  */
 trait TemplatesTrait
 {
-	private function createModal()
-	{
-		// Modal confirm dùng chung cho các action cần xác nhận nhanh trên detail view.
-		echo '<div class="modal fade" id="modal-confirm">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h4 class="modal-title"></h4>
-					</div>
-					<div class="modal-footer border-0">
-						<button type="button" class="btn btn-confirm" id="confirm-modal" type="" data="" data-bs-dismiss="modal">Xác nhận</button>
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-					</div>
-				</div>
-			</div>
-		</div>';
-		return;
-	}
-
-	function populateCheckinNoteModal()
+	private function populateCheckinNoteModal()
 	{
 		// Modal nhập ghi chú khi chuyển hành trình sang trạng thái "Cần checkin".
 		$html = '
@@ -52,7 +30,7 @@ trait TemplatesTrait
 		return $html;
 	}
 
-	function populateRemindTemplate()
+	private function populateRemindTemplate()
 	{
 		// Popup xác nhận nội dung nhắc lịch bay trước khi lưu trạng thái đã nhắc khách.
 		$html = '
@@ -77,8 +55,7 @@ trait TemplatesTrait
 		return $html;
 	}
 
-
-	function populateWinLoseTemplate()
+	private function populateWinLoseTemplate()
 	{
 		// Popup chọn lý do thắng/thua khi hủy booking hoặc hoàn tất booking theo nghiệp vụ cũ.
 		$html = '
@@ -108,8 +85,6 @@ trait TemplatesTrait
 		return $html;
 	}
 
-
-
 	private function getWinLoseReasonRadio($select, $reason_type)
 	{
 		// Query danh sách lý do thắng/thua theo loại lý do để đổ vào popup xác nhận.
@@ -135,18 +110,4 @@ trait TemplatesTrait
 
 		return $html;
 	}
-
-	/**
-	 * Get voucher applied
-	 * 
-	 * @param string $booking_id
-	 * @return array
-	 */
-
-	/**
-	 * Get journeys by booking id (Using for ZBS)
-	 * 
-	 * @param string $bookingId
-	 * @return array
-	 */
 }

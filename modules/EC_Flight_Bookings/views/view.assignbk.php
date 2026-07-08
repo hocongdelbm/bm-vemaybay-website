@@ -23,13 +23,22 @@ class Viewassignbk extends SugarView
 		global $app_list_strings, $current_user;
 
 		$sql = '
-			SELECT * 
-			FROM ec_online_report
-			WHERE deleted = 0 
-			AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-			ORDER BY FIELD(status, 1, 2, 0), last_online
+			SELECT eor.*, u.title AS user_title
+			FROM ec_online_report eor
+			LEFT JOIN users u ON u.id = eor.assigned_user_id AND u.deleted = 0
+			WHERE eor.deleted = 0
+			AND DATE_FORMAT(DATE_ADD(eor.date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
+			ORDER BY FIELD(eor.status, 1, 2, 0), eor.last_online
 		';
-		// date_modified
+
+		$arr_group_badge = array(
+			'Booker'   => '<span class="badge bg-primary">Booker</span>',
+			'KeToan'   => '<span class="badge bg-warning text-dark">Kế toán</span>',
+			'Laptop'   => '<span class="badge bg-danger">Laptop</span>',
+			'Admin'    => '<span class="badge bg-dark">Admin</span>',
+			'QuanLy'  => '<span class="badge bg-secondary">Manager</span>',
+			'Telesale' => '<span class="badge bg-info">Telesale</span>',
+		);
 
 		// SQL CALL INBOUND
 		$sql_inbound = 'SELECT u.id as user_id, count(*) as quantity_inbound
@@ -56,7 +65,7 @@ class Viewassignbk extends SugarView
 							<th width="15%">Họ tên</th>
 							<th width="10%">SIP</th>
 							<th width="10%">Tình trạng</th>
-							<th class="hide-mobile" width="10%">Nhóm</th>
+							<th class="hide-mobile" width="10%">Chức vụ</th>
 							<th class="hide-mobile" width="15%">Check-in</th>
 							<th class="hide-mobile text-nowrap" width="10%">Nhận cuộc gọi</th>';
 
@@ -97,7 +106,7 @@ class Viewassignbk extends SugarView
 						<td class="text-start col_name employees"><a href="index.php?module=Employees&return_module=Employees&action=DetailView&record=' . $row['assigned_user_id'] . '" target="_bank">' . $row['name'] . '</a></td>
 						<td class="text-center fw-semibold col_sip sip_number">' . $arr_agent[$row['assigned_user_id']]['user'] . '</td>
 						<td class="text-center status ' . $status_class . '">' . $app_list_strings['online_stt_list'][$row['status']] . '</td>
-						<td class="hide-mobile text-center group_sip">' . getNameGroupCalls($arr_agent[$row['assigned_user_id']]['user']) . '</td>
+						<td class="hide-mobile text-center group_sip">' . ($arr_group_badge[$row['user_title']] ?? $row['user_title']) . '</td>
 						<td class="hide-mobile text-center start_online">' . $start_online . '</td>
 						<td class="hide-mobile text-center fw-semibold call_inbound">' . ($arr_inbound[$row['assigned_user_id']] ?? '') . '</td>';
 

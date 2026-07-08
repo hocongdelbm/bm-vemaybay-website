@@ -131,7 +131,7 @@ trait ZaloSmsTrait
 			elseif (stripos($row['sub_type'], 'remind') !== false)
 				$result['remind'] += $row['count'];
 			elseif (stripos($row['sub_type'], 'delay') !== false)
-				$result['delay'] += $row['delay'];
+				$result['delay'] += $row['count'];
 		}
 
 		return $result;

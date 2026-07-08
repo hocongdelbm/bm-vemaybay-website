@@ -5,12 +5,12 @@ trait AssetsTrait
 {
 	private function displayCSSTrait()
 	{
-		$cssVer   = inDeveloperMode() ? time() : '1.2.6';
+		$cssVer   = inDeveloperMode() ? time() : '1.2.8';
 
 		$css = '<link type="text/css" rel="stylesheet" href="themes/SuiteP/libs/css/select2.min.css" />' .
-			'<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.detail.css?v=' . $cssVer . '" />' .
-			'<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/api_zalo.css?v=' . $cssVer . '" />' .
-			'<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/autobook.css?v=' . $cssVer . '" />';
+			'<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/view.detail.css?v=' . $cssVer . '" />' .
+			'<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/api_zalo.css?v=' . $cssVer . '" />' .
+			'<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/autobook.css?v=' . $cssVer . '" />';
 
 		echo $css;
 	}
@@ -19,7 +19,7 @@ trait AssetsTrait
 	{
 		global $app_list_strings, $current_user;
 
-		$jsVer   = inDeveloperMode() ? time() : '1.2.6';
+		$jsVer   = inDeveloperMode() ? time() : '1.2.8';
 
 		$js = '
 				<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=' . $jsVer . '"></script>
@@ -57,9 +57,6 @@ trait AssetsTrait
 		</script>';
 
 		// Phải tạo phiếu thu trước rồi mới nhấn đã thanh toán.
-		$this->_is_had_rv = myCheckValueExist('EC_Receipt_Voucher', array('booking_id'), array($this->bean->id), '');
-		if (empty($this->_is_had_rv))
-			$this->_is_had_rv = 0;
 		$js .= '<script>
 			function checkIsCreatedRV() {
 				if(' . $this->_is_had_rv . ' != 1 && ' . $this->bean->is_agent . ' != 1) {

@@ -127,6 +127,39 @@ if (isset($_POST['for']) && $_POST['for'] == 'getItiLine') {
 	exit;
 }
 
+// Dữ liệu cho dialog "Gửi Zalo" ở detail view (hành trình, hành khách/hành lý, lịch sử ZBS)
+// - load lazy khi mở dialog thay vì tính sẵn trên mọi lượt xem trang.
+if (isset($_POST['for']) && $_POST['for'] == 'getZaloDialogData') {
+	header('Content-Type: application/json; charset=utf-8');
+	echo json_encode(getZaloDialogData($_POST['booking_id'] ?? ''), JSON_UNESCAPED_UNICODE);
+	exit;
+}
+
+// Chi tiết doanh số booking (modal admin ở detail view) - load lazy khi mở modal
+// thay vì build sẵn breakdown ~15 dòng trên mọi lượt tải trang.
+if (isset($_POST['for']) && $_POST['for'] == 'getBookingProfitDetail') {
+	header('Content-Type: application/json; charset=utf-8');
+
+	if (!is_admin($current_user)) {
+		echo json_encode(['success' => false, 'message' => 'Không có quyền']);
+		exit;
+	}
+
+	$booking = new EC_Flight_Bookings();
+	$booking->retrieve($_POST['booking_id'] ?? '');
+
+	if (empty($booking->id)) {
+		echo json_encode(['success' => false, 'message' => 'Không tìm thấy booking']);
+		exit;
+	}
+
+	$bk_amt = calculateBKAmt($booking->id);
+	$html = renderBookingProfitBreakdownHtml($bk_amt, $booking->name, $current_user->user_name == 'hungnh');
+
+	echo json_encode(['success' => true, 'html' => $html], JSON_UNESCAPED_UNICODE);
+	exit;
+}
+
 // Insert passenger line info
 if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 	$booking = new EC_Flight_Bookings;
@@ -246,11 +279,14 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 			';
 
 			// Lựa chọn HL lượt về
+			$options_inbound = $booking->generateBaggageOptions($booking->airline_inbound, $ticket_class_ib, $row['luggage_purchase_text_inbound'], $row['luggage_purchase_inbound']);
+			// pr($options_inbound);
+
 			$baggage_inbound = '
 				<td width="20%" class="text-label text-nowrap">Thêm HL lượt về:</td>
 				<td class="pass_luggage_ln pass_luggage_right">
 					<select class="pass_luggage pass_luggage_ib box-select box-select2-non-search" name="pass_luggage_ib[]" ln="' . $i . '" style="width:100%">
-						' . $booking->generateBaggageOptions($booking->airline_inbound, $ticket_class_ib, $row['luggage_purchase_text_inbound'], $row['luggage_purchase_inbound']) . '
+						' . $options_inbound . '
 					</select>
 				</td>
 			';
@@ -307,15 +343,18 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		</tr>';
 
 		// Lựa chọn HL lượt đi
+		$options_ob = $booking->generateBaggageOptions($booking->airline, $ticket_class_ob, $row['luggage_purchase_text'], $row['luggage_purchase']);
+		pr($options_ob);
+
 		$html .= '<tr class="line_pass' . $row['id'] . '">
-			<td width="20%" class="text-label text-nowrap">Thêm HL lượt đi:</td>
-			<td class="pass_luggage_ln pass_luggage_left">
-				<select class="pass_luggage pass_luggage_ob box-select box-select2-non-search" name="pass_luggage_ob[]" ln="' . $i . '" style="width:100%">
-					' . $booking->generateBaggageOptions($booking->airline, $ticket_class_ob, $row['luggage_purchase_text'], $row['luggage_purchase']) . '
-				</select>
-			</td>
-			' . $baggage_inbound . '
-		</tr>';
+					<td width="20%" class="text-label text-nowrap">Thêm HL lượt đi:</td>
+					<td class="pass_luggage_ln pass_luggage_left">
+						<select class="pass_luggage pass_luggage_ob box-select box-select2-non-search" name="pass_luggage_ob[]" ln="' . $i . '" style="width:100%">
+							' . $options_ob . '
+						</select>
+					</td>
+					' . $baggage_inbound . '
+				</tr>';
 
 		// Giá bán HL lượt đi
 		$html .= '<tr class="line_pass' . $row['id'] . '">

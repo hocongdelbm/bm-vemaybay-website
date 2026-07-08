@@ -1146,33 +1146,6 @@ function custom_get_sip_number($key = '')
     return '';
 }
 
-function getNameGroupCalls($sip = "")
-{
-    $name = array();
-
-    $arr_group = array(
-        '<span class="badge bg-primary">Booker</span>' => array('101', '102', '103', '104', '106', '107', '109', '201', '789'),
-        '<span class="badge bg-warning text-dark">Kế toán</span>' => array('120', '121', '122', '123', '124', '125'),
-        '<span class="badge bg-danger">Laptop</span>' => array('201', '202', '203'),
-        '<span class="badge bg-dark">IT</span>' => array('010', '012', '130'),
-        '<span class="badge bg-info">Telesale</span>' => array('108', '105'),
-    );
-
-    foreach ($arr_group as $name_group => $arr_sip) {
-        if (in_array(trim($sip), $arr_sip)) {
-            $name[] = $name_group;
-        }
-    }
-
-    if (count($name) == 0) {
-        return "";
-    } elseif (count($name) == 1) {
-        return $name[0];
-    } else {
-        return implode('&ensp;', $name);
-    }
-}
-
 // Format phone number
 function formatPhoneNumber($phoneNumber)
 {
