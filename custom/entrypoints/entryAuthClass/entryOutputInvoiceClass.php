@@ -151,7 +151,10 @@ class entryOutputInvoiceClass extends entryClass
                                     $booking = $row['booking'] ?? '';
                                     $booking_status = $row['booking_status'] ?? '';
 
-                                    if (!empty($booking_id) && !empty($booking)) {
+                                    if (
+                                        !empty($booking_id) && !empty($booking)
+                                        && !isWorkingProcessExisting('EC_Flight_Bookings', $booking_id, 'invoice_issued')
+                                    ) {
                                         $work = new EC_Working_Process();
                                         $work->id               = '';
                                         $work->name             = $booking;

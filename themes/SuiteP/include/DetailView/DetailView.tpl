@@ -230,7 +230,6 @@
                                     <div class="col-xs-12 col-sm-12 col-md-12 d-flex justify-content-between">
                                         <span class="panel-heading-text w-100">{sugar_translate label='{{$label}}' module='{{$module}}'}</span>
                                         <span class="panel-heading-icon">
-                                            <!-- <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"></path></svg> -->
                                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-dash-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8Z"/></svg>
                                         </span>
                                     </div>
@@ -258,10 +257,9 @@
                         <div class="panel-heading {{$panelHeadingCollapse}}">
                
                             <a class="row g-0 panel-heading-collapsed {{$collapsed}}"  href="#{{$panelId}}" role="button" data-bs-toggle="collapse" aria-expanded="false">
-                                <div class="col-xs-12 col-sm-12 col-md-12 d-flex justify-content-between">
+                                <div class="col-xs-12 col-sm-12 col-md-12 d-flex justify-content-between gap-2">
                                     <span class="panel-heading-text w-100">{sugar_translate label='{{$label}}' module='{{$module}}'}</span>
                                     <span class="panel-heading-icon">
-                                        <!-- <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"></path></svg> -->
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-dash-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8Z"/></svg>
                                     </span>
                                 </div>

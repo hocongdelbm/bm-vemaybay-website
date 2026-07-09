@@ -2,7 +2,6 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class EC_Receipt_VoucherViewDetail extends ViewDetail {
-	/** @var EC_Receipt_Voucher **/
 	public $bean;
 
 	function display()
@@ -22,7 +21,7 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 			var loai_thu = "' . $this->bean->loai_thu . '";
 			var amount = ' . (float)$this->bean->amount . ';
 			var total_sell = ' . ((float)$this->bean->sell_amount + (float)$this->bean->sell_amount2 + (float)$this->bean->sell_amount3) . ';
-			const current_user_title = "' . trim($current_user->title) . '";
+			const is_current_user_admin = ' . (is_admin($current_user) ? 'true' : 'false') . ';
 		</script>';
 
 		echo $js;

@@ -50,6 +50,7 @@ function notifyCheckinJourney()
 				i.flight_number,
 				i.base_price,
 				i.ticket_class,
+				i.description,
 				b.date_ticket_issue
 			FROM ec_booking_itineraries i
 			JOIN ec_flight_bookings b ON i.booking_id = b.id AND b.deleted = 0
@@ -78,10 +79,11 @@ function notifyCheckinJourney()
 					$departure_date_hour = date('H:i', strtotime($row['departure_date']));
 					$contact_name = $row['contact_name'];
 					$contact_phone = $row['phone'];
+					$description = trim($row['description'] ?? '');
 
 					$link = $sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&action=DetailView&record=$booking_id";
 					$text = "<b>Checkin Booking : $booking_name</b>, $departure - $arrival ngày $departure_date lúc $departure_date_hour.";
-					$text .= "\nLiên hệ: $contact_name - $contact_phone";
+					$text .= "\nLiên hệ: $contact_name - $contact_phone - $description";
 
 					$messageData = [
 						'text' => $text,

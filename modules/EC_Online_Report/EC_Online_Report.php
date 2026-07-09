@@ -61,6 +61,14 @@ class EC_Online_Report extends Basic
 		$time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
 		$ksnb_user_id = 'e3bbb3e5-6660-0bf7-8976-54869c4ee609';
 
+		// Nhân viên Telesale không xử lý booking -> loại khỏi danh sách được auto-assign
+		$sql_exclude_telesale = '
+			AND assigned_user_id NOT IN (
+				SELECT user_id FROM acl_roles_users
+				WHERE role_id = "34beb2a2-5ee7-f001-2496-68ca264d1d3f" AND deleted = 0
+			)
+		';
+
 		// Lấy người online đầu hàng
 		$sql_assign = '
 			SELECT id, assigned_user_id
@@ -68,6 +76,7 @@ class EC_Online_Report extends Basic
 			WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
 				AND status = 1
 				AND deleted = 0
+				' . $sql_exclude_telesale . '
 			ORDER BY last_online
 			LIMIT 1
 		';
@@ -99,6 +108,7 @@ class EC_Online_Report extends Basic
 				WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
 					AND status = 2
 					AND deleted = 0
+					' . $sql_exclude_telesale . '
 				ORDER BY last_online
 				LIMIT 1
 			';

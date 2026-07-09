@@ -100,15 +100,7 @@ $(document).ready(function () {
 	}
 
 	// Init calendar for date ticket issue
-	Calendar.setup({
-		inputField: 'date_ticket_issue',
-		daFormat: cal_date_format,
-		button: 'date_ticket_issue_trigger',
-		singleClick: true,
-		dateStr: '',
-		step: 1,
-		weekNumbers: false
-	});
+	setupDateCalendar('date_ticket_issue', 'date_ticket_issue_trigger');
 
 	// When check is ticket exported
 	$('#chk_is_ticket_exported').change(function () {
@@ -124,46 +116,12 @@ $(document).ready(function () {
 
 	// Set calendar for itineraries
 	$('input:text[name="iti_departure_date[]"]').each(function (index, element) {
-		Calendar.setup({
-			inputField: 'iti_departure_date' + index,
-			daFormat: cal_date_format,
-			button: 'iti_departure_date_trigger' + index,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-		Calendar.setup({
-			inputField: 'iti_arrival_date' + index,
-			daFormat: cal_date_format,
-			button: 'iti_arrival_date_trigger' + index,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-		Calendar.setup({
-			inputField: 'iti_time_limit_date' + index,
-			daFormat: cal_date_format,
-			button: 'iti_time_limit_date_trigger' + index,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
+		setupItineraryCalendars(index);
 	});
 
 	// Set calendar for passengers
 	$('input:text[name="psg_birthday[]"]').each(function (index, element) {
-		Calendar.setup({
-			inputField: 'psg_birthday' + index,
-			daFormat: cal_date_format,
-			button: 'psg_birthday_trigger' + index,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
+		setupPassengerCalendar(index);
 	});
 
 	// Mã số thuế
@@ -304,33 +262,7 @@ $(document).ready(function () {
 		$('#iti_airline_code' + ln).focus();
 
 		// SETUP DATETIME
-		Calendar.setup({
-			inputField: 'iti_departure_date' + ln,
-			daFormat: cal_date_format,
-			button: 'iti_departure_date_trigger' + ln,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-		Calendar.setup({
-			inputField: 'iti_arrival_date' + ln,
-			daFormat: cal_date_format,
-			button: 'iti_arrival_date_trigger' + ln,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-		Calendar.setup({
-			inputField: 'iti_time_limit_date' + ln,
-			daFormat: cal_date_format,
-			button: 'iti_time_limit_date_trigger' + ln,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
+		setupItineraryCalendars(ln);
 
 		ln++;
 		$('#iti_row_count').val(ln);
@@ -359,15 +291,7 @@ $(document).ready(function () {
 		$('.allow-number-only').number(true, 0, dec_sep, num_grp_sep);
 		$('#psg_traveller_type' + ln).focus();
 
-		Calendar.setup({
-			inputField: 'psg_birthday' + ln,
-			daFormat: cal_date_format,
-			button: 'psg_birthday_trigger' + ln,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
+		setupPassengerCalendar(ln);
 
 		// Initialize Select2 for the new row
 		initOptBagSelect2(ln);
@@ -470,170 +394,7 @@ $(document).ready(function () {
 	});
 
 	// Autocomplete Location Booking (Field city)
-	$(function () {
-		var location = [
-			{ label: "Hồ Chí Minh", value: "Hồ Chí Minh" },
-			{ label: "Ho Chi Minh", value: "Hồ Chí Minh" },
-			{ label: "TP Hồ Chí Minh", value: "Hồ Chí Minh" },
-
-			{ label: "Phú Quốc", value: "Phú Quốc" },
-			{ label: "Phu Quoc", value: "Phú Quốc" },
-			{ label: "Cần Thơ", value: "Cần Thơ" },
-			{ label: "Can Tho", value: "Cần Thơ" },
-			{ label: "Côn Đảo", value: "Côn Đảo" },
-			{ label: "Con Dao", value: "Côn Đảo" },
-			{ label: "Rạch Giá", value: "Rạch Giá" },
-			{ label: "Rach Gia", value: "Rạch Giá" },
-			{ label: "Cà Mau", value: "Cà Mau" },
-			{ label: "Ca Mau", value: "Cà Mau" },
-
-			{ label: "Đà Nẵng", value: "Đà Nẵng" },
-			{ label: "Da Nang", value: "Đà Nẵng" },
-			{ label: "Huế", value: "Huế" },
-			{ label: "Hue", value: "Huế" },
-			{ label: "Thừa Thiên - Huế", value: "Huế" },
-			{ label: "Thua Thien - Hue", value: "Huế" },
-
-			{ label: "Thanh Hóa", value: "Thanh Hóa" },
-			{ label: "Thanh Hoa", value: "Thanh Hóa" },
-			{ label: "Đồng Hới", value: "Đồng Hới" },
-			{ label: "Dong Hoi", value: "Đồng Hới" },
-			{ label: "Quy Nhơn", value: "Quy Nhơn" },
-			{ label: "Quy Nhon", value: "Quy Nhơn" },
-			{ label: "Tuy Hòa", value: "Tuy Hòa" },
-			{ label: "Tuy Hoa", value: "Tuy Hòa" },
-			{ label: "Ban Mê Thuột", value: "Ban Mê Thuột" },
-			{ label: "Ban Me Thuot", value: "Ban Mê Thuột" },
-			{ label: "Đà Lạt", value: "Đà Lạt" },
-			{ label: "Da Lat", value: "Đà Lạt" },
-			{ label: "Vinh", value: "Vinh" },
-			{ label: "Chu Lai", value: "Chu Lai" },
-			{ label: "Nha Trang", value: "Nha Trang" },
-			{ label: "Pleiku", value: "Pleiku" },
-
-			{ label: "Hà Nội", value: "Hà Nội" },
-			{ label: "Ha Noi", value: "Hà Nội" },
-			{ label: "Hải Phòng", value: "Hải Phòng" },
-			{ label: "Hai Phong", value: "Hải Phòng" },
-			{ label: "Vân Đồn", value: "Vân Đồn" },
-			{ label: "Van Don", value: "Vân Đồn" },
-			{ label: "Điện Biên", value: "Điện Biên" },
-			{ label: "Dien Bien", value: "Điện Biên" },
-
-			// More
-			{ label: "Bà Rịa Vũng Tàu", value: "Bà Rịa Vũng Tàu" },
-			{ label: "Ba Ria Vung Tau", value: "Bà Rịa Vũng Tàu" },
-			{ label: "Bình Dương", value: "Bình Dương" },
-			{ label: "Binh Duong", value: "Bình Dương" },
-			{ label: "Bình Phước", value: "Bình Phước" },
-			{ label: "Binh Phuoc", value: "Bình Phước" },
-			{ label: "Đồng Nai", value: "Đồng Nai" },
-			{ label: "Dong Nai", value: "Đồng Nai" },
-			{ label: "Tây Ninh", value: "Tây Ninh" },
-			{ label: "Tay Ninh", value: "Tây Ninh" },
-			{ label: "An Giang", value: "An Giang" },
-			{ label: "Bạc Liêu", value: "Bạc Liêu" },
-			{ label: "Bac Lieu", value: "Bạc Liêu" },
-			{ label: "Bến Tre", value: "Bến Tre" },
-			{ label: "Ben Tre", value: "Bến Tre" },
-			{ label: "Cà Mau", value: "Cà Mau" },
-			{ label: "Ca Mau", value: "Cà Mau" },
-			{ label: "Đồng Tháp", value: "Đồng Tháp" },
-			{ label: "Dong Thap", value: "Đồng Tháp" },
-			{ label: "Hậu Giang", value: "Hậu Giang" },
-			{ label: "Hau Giang", value: "Hậu Giang" },
-			{ label: "Kiên Giang", value: "Kiên Giang" },
-			{ label: "Kien Giang", value: "Kiên Giang" },
-			{ label: "Long An", value: "Long An" },
-			{ label: "Sóc Trăng", value: "Sóc Trăng" },
-			{ label: "Soc Trang", value: "Sóc Trăng" },
-			{ label: "Tiền Giang", value: "Tiền Giang" },
-			{ label: "Tien Giang", value: "Tiền Giang" },
-			{ label: "Trà Vinh", value: "Trà Vinh" },
-			{ label: "Tra Vinh", value: "Trà Vinh" },
-			{ label: "Vĩnh Long", value: "Vĩnh Long" },
-			{ label: "Vinh Long", value: "Vĩnh Long" },
-
-			{ label: "Nghệ An", value: "Nghệ An" },
-			{ label: "Nghe An", value: "Nghệ An" },
-			{ label: "Hà Tĩnh", value: "Hà Tĩnh" },
-			{ label: "Ha Tinh", value: "Hà Tĩnh" },
-			{ label: "Quảng Bình", value: "Quảng Bình" },
-			{ label: "Quang Binh", value: "Quảng Bình" },
-			{ label: "Quảng Trị", value: "Quảng Trị" },
-			{ label: "Quang Tri", value: "Quảng Trị" },
-			{ label: "Quảng Nam", value: "Quảng Nam" },
-			{ label: "Quang Nam", value: "Quảng Nam" },
-			{ label: "Quảng Ngãi", value: "Quảng Ngãi" },
-			{ label: "Quang Ngãi", value: "Quảng Ngãi" },
-			{ label: "Bình Định", value: "Bình Định" },
-			{ label: "Binh Dinh", value: "Bình Định" },
-			{ label: "Phú Yên", value: "Phú Yên" },
-			{ label: "Phu Yen", value: "Phú Yên" },
-			{ label: "Khánh Hòa", value: "Khánh Hòa" },
-			{ label: "Khanh Hoa", value: "Khánh Hòa" },
-			{ label: "Ninh Thuận", value: "Ninh Thuận" },
-			{ label: "Ninh Thuan", value: "Ninh Thuận" },
-			{ label: "Bình Thuận", value: "Bình Thuận" },
-			{ label: "Binh Thuan", value: "Bình Thuận" },
-			{ label: "Kon Tum", value: "Kon Tum" },
-			{ label: "Gia Lai", value: "Gia Lai" },
-			{ label: "Đắk Lắk", value: "Đắk Lắk" },
-			{ label: "Đak Lak", value: "Đắk Lắk" },
-			{ label: "Lâm Đồng", value: "Lâm Đồng" },
-			{ label: "Lam Đong", value: "Lâm Đồng" },
-
-			{ label: "Hòa Bình", value: "Hòa Bình" },
-			{ label: "Hoa Binh", value: "Hòa Bình" },
-			{ label: "Sơn La", value: "Sơn La" },
-			{ label: "Son La", value: "Sơn La" },
-			{ label: "Lai Châu", value: "Lai Châu" },
-			{ label: "Lai Chau", value: "Lai Châu" },
-			{ label: "Lào Cai", value: "Lào Cai" },
-			{ label: "Lao Cai", value: "Lào Cai" },
-			{ label: "Yên Bái", value: "Yên Bái" },
-			{ label: "Yen Bai", value: "Yên Bái" },
-			{ label: "Phú Thọ", value: "Phú Thọ" },
-			{ label: "Phu Tho", value: "Phú Thọ" },
-			{ label: "Hà Giang", value: "Hà Giang" },
-			{ label: "Ha Giang", value: "Hà Giang" },
-			{ label: "Tuyên Quang", value: "Tuyên Quang" },
-			{ label: "Tuyen Quang", value: "Tuyên Quang" },
-			{ label: "Cao Bằng", value: "Cao Bằng" },
-			{ label: "Cao Bang", value: "Cao Bằng" },
-			{ label: "Bắc Kạn", value: "Bắc Kạn" },
-			{ label: "Bac Kan", value: "Bắc Kạn" },
-			{ label: "Thái Nguyên", value: "Thái Nguyên" },
-			{ label: "Thai Nguyen", value: "Thái Nguyên" },
-			{ label: "Lạng Sơn", value: "Lạng Sơn" },
-			{ label: "Lang Son", value: "Lạng Sơn" },
-			{ label: "Bắc Giang", value: "Bắc Giang" },
-			{ label: "Bac Giang", value: "Bắc Giang" },
-			{ label: "Quảng Ninh", value: "Quảng Ninh" },
-			{ label: "Quang Ninh", value: "Quảng Ninh" },
-			{ label: "Bắc Ninh", value: "Bắc Ninh" },
-			{ label: "Bac Ninh", value: "Bắc Ninh" },
-			{ label: "Hà Nam", value: "Hà Nam" },
-			{ label: "Ha Nam", value: "Hà Nam" },
-			{ label: "Hải Dương", value: "Hải Dương" },
-			{ label: "Hai Duong", value: "Hải Dương" },
-			{ label: "Hưng Yên", value: "Hưng Yên" },
-			{ label: "Hung Yen", value: "Hưng Yên" },
-			{ label: "Nam Định", value: "Nam Định" },
-			{ label: "Nam Dinh", value: "Nam Định" },
-			{ label: "Thái Bình", value: "Thái Bình" },
-			{ label: "Thai Binh", value: "Thái Bình" },
-			{ label: "Vĩnh Phúc", value: "Vĩnh Phúc" },
-			{ label: "Vinh Phuc", value: "Vĩnh Phúc" },
-			{ label: "Ninh Bình", value: "Ninh Bình" },
-			{ label: "Ninh Binh", value: "Ninh Bình" },
-		];
-		$("#location_booking").autocomplete({
-			source: location,
-			autofocus: true,
-			minLength: 1
-		});
-	});
+	initLocationBookingAutocomplete();
 
 	// Enable popover in available baggage
 	var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
@@ -642,8 +403,118 @@ $(document).ready(function () {
 	});
 });
 
+// Bỏ dấu tiếng Việt để so khớp autocomplete không phân biệt có dấu/không dấu
+function removeVietnameseAccents(str) {
+	return (str || '')
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/đ/g, 'd')
+		.replace(/Đ/g, 'D');
+}
+
+function initLocationBookingAutocomplete() {
+	const $input = $('#location_booking');
+	let cities = [];
+	try {
+		cities = JSON.parse($input.attr('data-cities') || '[]');
+	} catch (e) {
+		cities = [];
+	}
+
+	$input.autocomplete({
+		source: function (request, response) {
+			var term = removeVietnameseAccents(request.term).toLowerCase();
+			response(cities.filter(function (city) {
+				return removeVietnameseAccents(city).toLowerCase().indexOf(term) !== -1;
+			}));
+		},
+		autofocus: true,
+		minLength: 1
+	});
+}
+
+function setupDateCalendar(inputField, button) {
+	Calendar.setup({
+		inputField: inputField,
+		daFormat: cal_date_format,
+		button: button,
+		singleClick: true,
+		dateStr: '',
+		step: 1,
+		weekNumbers: false
+	});
+}
+
+function setupItineraryCalendars(ln) {
+	setupDateCalendar('iti_departure_date' + ln, 'iti_departure_date_trigger' + ln);
+	setupDateCalendar('iti_arrival_date' + ln, 'iti_arrival_date_trigger' + ln);
+	setupDateCalendar('iti_time_limit_date' + ln, 'iti_time_limit_date_trigger' + ln);
+}
+
+function setupPassengerCalendar(ln) {
+	setupDateCalendar('psg_birthday' + ln, 'psg_birthday_trigger' + ln);
+}
+
+/**
+ * Cache các lookup list & baggage options dùng chung cho mọi dòng.
+ *
+ * Các hidden field này do PHP render 1 lần/trang và không hề thay đổi trong
+ * suốt phiên chỉnh sửa, nên chỉ cần đọc/parse/build đúng 1 lần rồi tái sử dụng
+ * cho cả lúc render dữ liệu ban đầu (N dòng) lẫn khi bấm "Thêm dòng".
+ */
+var _editRowListsCache = null;
+function getEditRowLists() {
+	if (_editRowListsCache) return _editRowListsCache;
+
+	var baggageOptionsOutbound = [];
+	var baggageOptionsInbound = [];
+	try {
+		var outboundJson = $('#baggage_options_outbound').val();
+		var inboundJson = $('#baggage_options_inbound').val();
+		if (outboundJson) baggageOptionsOutbound = JSON.parse(outboundJson);
+		if (inboundJson) baggageOptionsInbound = JSON.parse(inboundJson);
+	} catch (e) {
+		console.error('Error parsing baggage options:', e);
+	}
+
+	_editRowListsCache = {
+		direction_list: $('#direction_list').val(),
+		passenger_type_list: $('#passenger_type_list').val(),
+		passenger_salutation_list: $('#passenger_salutation_list').val(),
+		supplier_list: $('#supplier_list').val(),
+		baggage_options_html_outbound: buildBaggageOptionsHtml(baggageOptionsOutbound),
+		baggage_options_html_inbound: buildBaggageOptionsHtml(baggageOptionsInbound)
+	};
+	return _editRowListsCache;
+}
+
+// Dựng sẵn HTML <option> cho dropdown "Hành lý mua thêm" (giống nhau ở mọi dòng).
+function buildBaggageOptionsHtml(baggageOptions) {
+	var html = '<option value="">-- Chọn hành lý --</option>';
+	if (baggageOptions && Array.isArray(baggageOptions)) {
+		baggageOptions.forEach(function (baggage) {
+			var description = baggage.description || '';
+			var cost = baggage.cost || 0;  // giá mua VAT
+			var value = baggage.value || 0;  // giá bán VAT
+
+			if (description) {
+				// Bỏ tiền tố "Thêm " và phần trong ngoặc ở cuối để lấy text hiển thị
+				var displayText = description
+					.replace(/^Thêm\s+/i, '')
+					.replace(/\s*\([^)]*\)\s*$/, '')
+					.trim();
+
+				html += `<option value="${escapeHtml(displayText)}" data-cost="${cost}" data-value="${value}">
+					${escapeHtml(displayText)}
+				</option>`;
+			}
+		});
+	}
+	return html;
+}
+
 function insertItineraryLine(ln) {
-	var direction_list = $('#direction_list').val();
+	var direction_list = getEditRowLists().direction_list;
 	var html = '';
 
 	html += `<tr id="iti_line_${ln}">
@@ -714,9 +585,10 @@ function insertItineraryLine(ln) {
 }
 
 function insertDetailLine(ln) {
-	var direction_list = $('#direction_list').val();
-	var passenger_type_list = $('#passenger_type_list').val();
-	var supplier_list = $('#supplier_list').val();
+	var lists = getEditRowLists();
+	var direction_list = lists.direction_list;
+	var passenger_type_list = lists.passenger_type_list;
+	var supplier_list = lists.supplier_list;
 	var html = '';
 
 	html += `<tr id="bkd_line_${ln}" class="bkd_line fw-semibold">
@@ -772,27 +644,10 @@ function calculateRelateAdminFee(ln, is_vat = 0) {
 }
 
 function insertPassengerLine(ln) {
-	let supplier_list = $('#supplier_list').val();
-	let passenger_type_list = $('#passenger_type_list').val();
-	let passenger_salutation_list = $('#passenger_salutation_list').val();
-
-	// Get baggage options from hidden fields
-	let baggageOptionsOutbound = [];
-	let baggageOptionsInbound = [];
-
-	try {
-		let outboundJson = $('#baggage_options_outbound').val();
-		let inboundJson = $('#baggage_options_inbound').val();
-
-		if (outboundJson) {
-			baggageOptionsOutbound = JSON.parse(outboundJson);
-		}
-		if (inboundJson) {
-			baggageOptionsInbound = JSON.parse(inboundJson);
-		}
-	} catch (e) {
-		console.error('Error parsing baggage options:', e);
-	}
+	const lists = getEditRowLists();
+	let supplier_list = lists.supplier_list;
+	let passenger_type_list = lists.passenger_type_list;
+	let passenger_salutation_list = lists.passenger_salutation_list;
 
 	let html = '';
 	/**********  Info line   **********/
@@ -861,8 +716,10 @@ function insertPassengerLine(ln) {
 		const suffix = roundName === "outbound" ? "" : "_inbound";
 		const direction = roundName === "outbound" ? 0 : 1;
 
-		// Select appropriate baggage options
-		const baggageOptions = roundName === "outbound" ? baggageOptionsOutbound : baggageOptionsInbound;
+		// HTML <option> hành lý đã dựng sẵn 1 lần trong cache (giống nhau mọi dòng)
+		const baggageOptionsHtml = roundName === "outbound"
+			? lists.baggage_options_html_outbound
+			: lists.baggage_options_html_inbound;
 
 		// Input names
 		const inputNameBagtext = `psg_luggage_purchase_text${suffix}`;
@@ -875,29 +732,6 @@ function insertPassengerLine(ln) {
 		const inputNameHandBagIndex = `psg_hand_baggage_${roundName}`;
 		// Labels
 		const suffixtext = roundName === "outbound" ? "lượt đi" : "lượt về";
-
-		// Build baggage options HTML
-		let baggageOptionsHtml = '<option value="">-- Chọn hành lý --</option>';
-		if (baggageOptions && Array.isArray(baggageOptions)) {
-			baggageOptions.forEach(function (baggage) {
-				let description = baggage.description || '';
-				let cost = baggage.cost || 0;  // giá mua VAT
-				let value = baggage.value || 0;  // giá bán VAT
-
-				if (description) {
-					// Bỏ tiền tố "Thêm " và phần trong ngoặc ở cuối để lấy text hiển thị
-					let displayText = description
-						.replace(/^Thêm\s+/i, '')
-						.replace(/\s*\([^)]*\)\s*$/, '')
-						.trim();
-					let saveValue = displayText; // Giá trị lưu vào DB
-
-					baggageOptionsHtml += `<option value="${escapeHtml(saveValue)}" data-cost="${cost}" data-value="${value}">
-						${escapeHtml(displayText)}
-					</option>`;
-				}
-			});
-		}
 
 		let classShowHide = flight_type == '1' && roundName == 'inbound' ? 'd-none' : '';
 		html += `<tr id="psg_baggage_line_${roundName}_${ln}" class="psg_baggage_line_${roundName} ${classShowHide}">
@@ -1029,19 +863,22 @@ function markDetailRowDeleted(ln) {
 function markPassengerRowDeleted(ln) {
 	$(`#psg_deleted${ln}`).val(1);
 	$(`#psg_line_${ln}`).hide();
+	$(`#psg_line_desc_${ln}`).hide();            // dòng chi tiết hành lý luồng cũ
 	$(`#psg_baggage_line_outbound_${ln}`).hide();
 	$(`#psg_baggage_line_inbound_${ln}`).hide();
-
-	var luggage_fee = unformatNumber($('#luggage_fee').val());
-	var luggage_price_outbound = unformatNumber($(`#psg_luggage_purchase${ln}`).val());
-	var luggage_price_inbound = unformatNumber($(`#psg_luggage_purchase_inbound${ln}`).val());
-	luggage_fee -= (luggage_price_outbound + luggage_price_inbound);
-	$('#luggage_fee').val(luggage_fee);
 
 	$('#lbl_psg_row_count').text(parseInt($('#lbl_psg_row_count').text()) - 1);
 
 	updateRowCount();
-	calculateLuggagePrice();
+
+	// Tính lại tổng phí hành lý theo đúng luồng đang hiển thị:
+	// - Luồng cũ: giá bán HL là <select name="psg_luggage_price[]"> (giá trị là index) -> calculateLuggagePrice()
+	// - Luồng mới: giá bán HL là <input> (giá trị là số tiền)                        -> updateTotalBaggageFee()
+	if ($("select[name='psg_luggage_price[]']").length > 0) {
+		calculateLuggagePrice();
+	} else {
+		updateTotalBaggageFee();
+	}
 }
 
 // Check ncc
@@ -1086,7 +923,7 @@ function calculateLineTotal(ln, is_cal_admin = 0, is_cal_tax = 0) {
 			vat_admin = 0;
 		}
 
-		if ((airline_inf[0] != 'VNA' && airline_inf[0] != 'VNP' && $("#bkd_direction" + ln).val() == 0) || (airline_inf[1] != 'VNA' && airline_inf[1] != 'VNP' && $("#bkd_direction" + ln).val() == 1) && is_cal_admin) {
+		if (is_cal_admin && ((airline_inf[0] != 'VNA' && airline_inf[0] != 'VNP' && $("#bkd_direction" + ln).val() == 0) || (airline_inf[1] != 'VNA' && airline_inf[1] != 'VNP' && $("#bkd_direction" + ln).val() == 1))) {
 			vat_admin = Math.round(admin_fee / 1.08 * 0.08);
 		}
 	}
@@ -1177,12 +1014,7 @@ function calculateLuggagePrice() {
 			luggage_fee += parseInt(luggage_ob_price) + parseInt(luggage_ib_price);
 		}
 	});
-	// var luggage_price = unformatNumber($('#psg_luggage_price' + ln).val());
-	// var luggage_fee = unformatNumber($('#luggage_fee').val());
-	// if (luggage_price_outbound < 1000) {
-	// 	var luggage_price_idx = JSON.parse($('#vja_index_luggage_price_list' + ln).val());
-	// }
-	// luggage_fee += luggage_price;
+
 	$('#luggage_fee').val(formatNumber(luggage_fee));
 	calculateTotal();
 }
@@ -1636,15 +1468,7 @@ function renderInitialPassengers() {
         $('.allow-number-only').number(true, 0, dec_sep, num_grp_sep);
 
         // Calendar
-        Calendar.setup({
-            inputField: `psg_birthday${i}`,
-            daFormat: cal_date_format,
-            button: `psg_birthday_trigger${i}`,
-            singleClick: true,
-            dateStr: '',
-            step: 1,
-            weekNumbers: false
-        });
+        setupPassengerCalendar(i);
 
         // ── Populate baggage text + Select2 ──────────────────────────
 
@@ -1746,33 +1570,7 @@ function renderInitialItineraries() {
 		}
 
 		// Set up calendars
-		Calendar.setup({
-			inputField: 'iti_departure_date' + i,
-			daFormat: cal_date_format,
-			button: 'iti_departure_date_trigger' + i,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-		Calendar.setup({
-			inputField: 'iti_arrival_date' + i,
-			daFormat: cal_date_format,
-			button: 'iti_arrival_date_trigger' + i,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
-		Calendar.setup({
-			inputField: 'iti_time_limit_date' + i,
-			daFormat: cal_date_format,
-			button: 'iti_time_limit_date_trigger' + i,
-			singleClick: true,
-			dateStr: '',
-			step: 1,
-			weekNumbers: false
-		});
+		setupItineraryCalendars(i);
 	}
 
 	// Re-apply number formatting to the new inputs
@@ -1860,214 +1658,3 @@ function renderInitialDetails() {
 	// Re-apply number formatting
 	$('.allow-number-only').number(true, 0, dec_sep, num_grp_sep);
 }
-
-// function updateBaggagePriceFromSelectOld(rowIndex, direction) {
-// 	var selectId = direction === 'outbound'
-// 		? 'psg_luggage_purchase_text' + rowIndex
-// 		: 'psg_luggage_purchase_text_inbound' + rowIndex;
-
-// 	var sellingPriceInputId = direction === 'outbound'
-// 		? 'psg_luggage_price' + rowIndex
-// 		: 'psg_luggage_price_inbound' + rowIndex;
-
-// 	var selectedOption = $('#' + selectId + ' option:selected');
-// 	var cost = selectedOption.data('cost') || 0;
-
-// 	$('#' + sellingPriceInputId).val(formatNumber(cost));
-// 	updateTotalBaggageFee();
-// }
-
-// function markPassengerRowDeleted(ln) {
-// 	$('#psg_line_' + ln).hide();
-// 	$('#psg_line_desc_' + ln).hide();
-// 	$('#psg_line_lug_' + ln).hide();
-// 	$('#psg_deleted' + ln).val(1);
-// 	var luggage_fee = unformatNumber($('#luggage_fee').val());
-// 	var luggage_price_outbound = unformatNumber($('#psg_luggage_price' + ln).val());
-// 	var luggage_price_inbound = unformatNumber($('#psg_luggage_price_inbound' + ln).val());
-// 	luggage_fee -= (luggage_price_outbound + luggage_price_inbound);
-// 	$('#luggage_fee').val(luggage_fee);
-// 	$('#lbl_psg_row_count').text(parseInt($('#lbl_psg_row_count').text()) - 1);
-// 	calculateLuggagePrice();
-// }
-
-// function insertPassengerLineOld(ln) {
-// 	let supplier_list = $('#supplier_list').val();
-// 	let passenger_type_list = $('#passenger_type_list').val();
-// 	let passenger_salutation_list = $('#passenger_salutation_list').val();
-// 	let aircode_out = $('#airline').val().toLowerCase();
-// 	let aircode_in = $('#airline_inbound').val().toLowerCase();
-
-// 	switch (aircode_out) {
-// 		case 'vj': aircode_out = 'vja'; break;
-// 		case 'vn': aircode_out = 'vna'; break;
-// 		case 'bl': aircode_out = 'vnp'; break;
-// 		case 'qh': aircode_out = 'bba'; break;
-// 		case 'vu': aircode_out = 'vta'; break;
-// 	}
-// 	switch (aircode_in) {
-// 		case 'vj': aircode_in = 'vja'; break;
-// 		case 'vn': aircode_in = 'vna'; break;
-// 		case 'bl': aircode_in = 'vnp'; break;
-// 		case 'qh': aircode_in = 'bba'; break;
-// 		case 'vu': aircode_in = 'vta'; break;
-// 	}
-
-// 	let psg_luggage_price_out = $('#' + aircode_out + '_luggage_price_list').val();
-// 	let psg_luggage_price_in = $('#' + aircode_in + '_luggage_price_list').val();
-
-// 	if ($.trim(psg_luggage_price_out) == '')
-// 		psg_luggage_price_out = '<option value="0">-- Không --</option>';
-// 	if ($.trim(psg_luggage_price_in) == '')
-// 		psg_luggage_price_in = '<option value="0">-- Không --</option>';
-
-
-// 	let html = '';
-// 	/**********  Line 1  **********/
-// 	html += `<tr id="psg_line_${ln}" class="psg_line">`;
-
-// 	// Loại khách hàng
-// 	html += `<td data-label="Loại HK">
-// 		<select name="psg_traveller_type[]" id="psg_traveller_type${ln}" class="w-100">
-// 			${passenger_type_list}
-// 		</select>
-// 	</td>`;
-
-// 	// Danh xưng
-// 	html += `<td data-label="Danh xưng">
-// 		<select name="psg_salutation[]" id="psg_salutation${ln}" class="w-100">
-// 			${passenger_salutation_list}
-// 		</select>
-// 	</td>`;
-
-// 	// Họ tên
-// 	html += `<td data-label="Họ tên">
-// 		<input type="text" name="psg_full_name[]" id="psg_full_name${ln}" value="" class="text-start" maxlength="128" />
-// 		<label class="mt-1 fw-bold">CCCD:</label>
-// 		<input type="text" name="psg_cic[]" id="psg_cic${ln}" value="" class="text-start" maxlength="16" />
-// 	</td>`;
-
-// 	// Ngày sinh
-// 	html += `<td data-label="Ngày sinh">
-// 		<div class="d-flex align-items-center gap-1">
-// 			<input type="text" class="w-80" name="psg_birthday[]" id="psg_birthday${ln}" value="" maxlength="10" />
-// 			<img class="cursor-pointer" border="0" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="psg_birthday_trigger${ln}" align="absmiddle" />
-// 		</div>
-// 		<label class="mt-1 fw-bold">Passport:</label>
-// 		<input type="text" name="psg_passport_number[]" id="psg_passport_number${ln}" value="" class="text-start" maxlength="10" />
-// 	</td>`;
-
-// 	// Số vé lượt đi
-// 	html += `<td data-label="Số vé lượt đi"><input type="text" name="psg_eticket_outbound[]" id="psg_eticket_outbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
-// 	// Số vé lượt về
-// 	html += `<td data-label="Số vé lượt về"><input type="text" name="psg_eticket_inbound[]" id="psg_eticket_inbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
-// 	// Số vé HL lượt đi
-// 	html += `<td data-label="Số vé HL lượt đi"><input type="text" name="psg_eluggage_outbound[]" id="psg_eluggage_outbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
-// 	// Số vé HL lượt về
-// 	html += `<td data-label="Số vé HL lượt về"><input type="text" name="psg_eluggage_inbound[]" id="psg_eluggage_inbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
-// 	// PNR lượt đi
-// 	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_outbound[]" id="psg_pnr_outbound${ln}" value="" class="text-center" maxlength="30" /></td>`;
-// 	// PNR lượt về
-// 	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_inbound[]" id="psg_pnr_inbound${ln}" value="" class="text-center" maxlength="30" /></td>`;
-
-// 	// Hành lý lượt đi
-// 	html += `<td data-label="HL lượt đi">
-// 		<select name="psg_luggage_price[]" id="psg_luggage_price${ln}" class="box-select text-start w-100" onchange="calculateLuggagePrice()">
-// 			${psg_luggage_price_out}
-// 		</select>
-// 	</td>`;
-
-// 	// Hành lý lượt về
-// 	html += `<td data-label="HL lượt về">
-// 		<select name="psg_luggage_price_inbound[]" id="psg_luggage_price_inbound${ln}" class="box-select text-start w-100" onchange="calculateLuggagePrice()">
-// 			${psg_luggage_price_in}
-// 		</select>
-// 	</td>`;
-
-// 	// Nút xóa
-// 	html += `<td data-label="Xóa dòng" class="align-middle text-center">
-// 		<button type="button" title="Xóa" class="button-remove-in-edit" onclick="markPassengerRowDeleted(${ln})" >
-// 			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
-// 		</button>
-// 		<input type="hidden" name="psg_deleted[]" id="psg_deleted${ln}" value="0" />
-// 		<input type="hidden" name="psg_id[]" id="psg_id${ln}" value="" />
-// 	</td>`;
-
-// 	html += '</tr>';
-
-
-// 	/**********  Line 2 (Hành lý đi nếu có)  **********/
-// 	html += `<tr id="psg_line_desc_psg_line_desc_${ln}">
-// 		<td data-label="Thông tin HL đi" class="row_psg_price" colspan="13">
-// 			<div class="psg_price-wrap d-flex gap-2 align-items-center">
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">Giá mua HL lượt đi (VAT): </span>
-// 					<input type="text" name="psg_luggage_purchase[]" id="psg_luggage_purchase${ln}" class="psg_luggage_purchase_input allow-number-only"
-// 						value="0"
-// 						maxlength="25"
-// 						onkeyup="calculateLugPurchasePrice(${ln}, 0);"
-// 						onpaste="calculateLugPurchasePrice(${ln}, 0);"
-// 					/>
-// 				</div>
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">NCC HL lượt đi: </span>
-// 					<select name="psg_luggage_supplier[]" id="psg_luggage_supplier${ln}" class="psg_luggage_purchase_select">
-// 						<option value=""></option>
-// 						${supplier_list}
-// 					</select>
-// 				</div>
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">Giá mua HL lượt đi: </span>
-// 					<input type="text" name="psg_detail_lug_pur_no_vat[]" id="psg_detail_lug_pur_no_vat${ln}" class="psg_luggage_purchase_input allow-number-only"
-// 						onkeyup="calculateLugPurchasePrice(${ln}, 0);"
-// 					/>
-// 				</div>
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">VAT giá mua HL lượt đi: </span>
-// 					<input type="text" name="psg_detail_lug_pur_vat[]" id="psg_detail_lug_pur_vat${ln}"  class="psg_luggage_purchase_input allow-number-only"
-// 						onkeyup="calculateLugPurchasePrice(${ln}, 0);"
-// 					/>
-// 				</div>
-// 			</div>
-// 		</td>
-// 	</tr>`;
-
-
-// 	/**********  Line 3 (Hành lý về nếu có)  **********/
-// 	html += `<tr id="psg_line_lug_${ln}">
-// 		<td data-label="Thông tin HL về" class="row_psg_price" colspan="13">
-// 			<div class="psg_price-wrap d-flex gap-2 align-items-center">
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">Giá mua HL lượt về (VAT): </span>
-// 					<input type="text" name="psg_luggage_purchase_inbound[]" id="psg_luggage_purchase_inbound${ln}" class="psg_luggage_purchase_input allow-number-only"
-// 						value="0"
-// 						maxlength="25"
-// 						onkeyup="calculateLugPurchasePrice(${ln}, 1);"
-// 						onpaste="calculateLugPurchasePrice(${ln}, 1);"
-// 					/>
-// 				</div>
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">NCC HL lượt về: </span>
-// 					<select name="psg_luggage_supplier_inbound[]" id="psg_luggage_supplier_inbound${ln}" class="psg_luggage_purchase_select">
-// 						<option value=""></option>
-// 						${supplier_list}
-// 					</select>
-// 				</div>
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">Giá mua HL lượt về: </span>
-// 					<input type="text" name="psg_detail_lug_pur_ib_no_vat[]" id="psg_detail_lug_pur_ib_no_vat${ln}" class="psg_luggage_purchase_input allow-number-only"
-// 						onkeyup="calculateLugPurchasePrice(${ln}, 1);"
-// 					/>
-// 				</div>
-// 				<div class="col_psg_price flex-fill">
-// 					<span class="text-label">VAT giá mua HL lượt về: </span>
-// 					<input type="text" name="psg_detail_lug_pur_ib_vat[]" id="psg_detail_lug_pur_ib_vat${ln}" class="psg_luggage_purchase_input allow-number-only"
-// 						onkeyup="calculateLugPurchasePrice(${ln}, 1);"
-// 					/>
-// 				</div>
-// 			</div>
-// 		</td>
-// 	</tr>`;
-
-// 	return html;
-// }

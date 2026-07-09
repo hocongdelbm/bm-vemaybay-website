@@ -18,6 +18,7 @@ class Viewprinteticketnew extends SugarView
 	public $allItineraries;
 	public $isPrintTicketMode = true;
 	private $bookingBean = null;
+	private $passengerParentMap = null;
 
 	function display()
 	{
@@ -1078,6 +1079,33 @@ class Viewprinteticketnew extends SugarView
 	}
 
 	/**
+	 * Map [passenger_id => parent_detail_id] cho toàn bộ booking, lấy 1 lần duy nhất
+	 * và cache lại — dùng để resolve chuỗi đổi tên trong memory thay vì query từng bước
+	 * (populateContent() gọi resolvePassengerIdChain() cho MỖI hành khách, nên query-per-step
+	 * cũ có thể tốn tới 10 query/khách).
+	 */
+	private function getPassengerParentMap()
+	{
+		if ($this->passengerParentMap !== null) return $this->passengerParentMap;
+
+		global $db;
+		$bookingId = $db->quote($this->bookingId);
+		$sql = "SELECT id, parent_detail_id
+			FROM ec_booking_passengers
+			WHERE booking_id = '$bookingId'
+				AND deleted = 0";
+
+		$map = [];
+		$res = $db->query($sql);
+		while ($row = $db->fetchByAssoc($res)) {
+			$map[$row['id']] = $row['parent_detail_id'];
+		}
+
+		$this->passengerParentMap = $map;
+		return $map;
+	}
+
+	/**
 	 * Walk the parent_detail_id chain upward to collect all ancestor IDs
 	 * for a passenger. This is needed because assigned_user_id in itinerary
 	 * change records may reference any version in the rename chain,
@@ -1085,27 +1113,17 @@ class Viewprinteticketnew extends SugarView
 	 */
 	function resolvePassengerIdChain($passengerId)
 	{
-		global $db;
+		$parentMap = $this->getPassengerParentMap();
 		$ids       = [];
 		$currentId = preg_replace('/[^a-zA-Z0-9\-]/', '', $passengerId);
-		$bookingId = $db->quote($this->bookingId);
 		$maxDepth  = 10; // chống vòng lặp vô hạn
 
 		for ($i = 0; $i < $maxDepth; $i++) {
 			if (empty($currentId) || in_array($currentId, $ids)) break;
 			$ids[] = $currentId;
 
-			$sql = "SELECT parent_detail_id
-                FROM ec_booking_passengers
-                WHERE id = '$currentId'
-                  AND booking_id = '$bookingId'
-                  AND deleted = 0
-                LIMIT 1";
-			$res = $db->query($sql);
-			$row = $db->fetchByAssoc($res);
-
-			if (!$row || empty($row['parent_detail_id'])) break;
-			$currentId = preg_replace('/[^a-zA-Z0-9\-]/', '', $row['parent_detail_id']);
+			if (empty($parentMap[$currentId])) break;
+			$currentId = preg_replace('/[^a-zA-Z0-9\-]/', '', $parentMap[$currentId]);
 		}
 
 		return $ids;
