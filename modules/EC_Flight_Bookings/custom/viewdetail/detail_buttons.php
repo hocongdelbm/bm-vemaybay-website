@@ -180,8 +180,12 @@ trait DetailButtonsTrait
 		$this->ss->assign('CALLS_BUTTON', $calls_button);
 	}
 
-	private function assignSendMailConfirmButton($use_mail_confirm)
+	private function assignSendMailConfirmButton()
 	{
+		global $current_user;
+		$deparment_info = myGetDepartmentInfo($current_user->department_id);
+		$use_mail_confirm = is_admin($current_user) ? 1 : $deparment_info['use_mail_confirm'];
+
 		// Send mail confirm button
 		if (!in_array((int)$this->bean->booking_status, [4, 7, 8]) && $use_mail_confirm) {
 			$send_mail = '
@@ -428,11 +432,13 @@ trait DetailButtonsTrait
 
 		// Per-passenger itinerary changes detection
 		$hasPerPaxChanges = $this->hasPerPassengerItineraryChanges();
+
 		$perPaxDataAttr = '';
 		if ($hasPerPaxChanges) {
 			$perPaxItineraries = $this->getPerPassengerItinerariesForPopup();
 			$perPaxDataAttr = ' data-per-pax-itineraries="' . htmlspecialchars(json_encode($perPaxItineraries), ENT_QUOTES, 'UTF-8') . '"';
 		}
+		
 		$this->ss->assign(
 			'PRINT_TICKET_NEW',
 			'<div class="btn-group btnPrintEticketNew-selection">

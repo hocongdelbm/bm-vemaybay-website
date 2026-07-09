@@ -42,15 +42,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 	public function display()
 	{
-		global $current_user;
-		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 		$this->editing_rights = ACLController::checkAccess($this->bean->object_name, 'edit', true);
 
 		$this->displayCSSTrait();
 
-		$this->populateCustomButtons($deparment_info);
+		$this->populateCustomButtons();
 		$this->populateCustomFields();
-		$this->populateCustomPanels($deparment_info);
+		$this->populateCustomPanels();
 
 		$this->populateLineNotesMessage();
 		$this->populateSMSTemplate();
@@ -63,11 +61,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	/**
 	 * Detail action buttons.
 	 */
-	public function populateCustomButtons($deparment_info)
+	public function populateCustomButtons()
 	{
-		global $current_user;
-		$use_mail_confirm = is_admin($current_user) ? 1 : $deparment_info['use_mail_confirm'];
-
 		// Cancel button
 		$this->assignCancelledBookingButton();
 
@@ -75,7 +70,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->assignStatusAndCallsButtons();
 
 		// Mail confirm button
-		$this->assignSendMailConfirmButton($use_mail_confirm);
+		$this->assignSendMailConfirmButton();
 
 		// Status dropdown
 		$this->assignChangeBookingStatusButton();
@@ -168,10 +163,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	/**
 	 * Booking custom panels.
 	 */
-	public function populateCustomPanels($deparment_info)
+	public function populateCustomPanels()
 	{
 		// Itineraries
-		$this->ss->assign('LINE_ITINERARIES', $this->populateLineItineraries($deparment_info));
+		$this->ss->assign('LINE_ITINERARIES', $this->populateLineItineraries());
 
 		// Ticket detail
 		$this->ss->assign('LINE_DETAILS', $this->populateLineDetails());
