@@ -1,6 +1,6 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) {
-    die('Not A Valid Entry Point');
+	die('Not A Valid Entry Point');
 }
 
 /**
@@ -8,24 +8,13 @@ if (!defined('sugarEntry') || !sugarEntry) {
  */
 trait DetailPanelsTrait
 {
-    /**
-     * Hành trình (itinerary table): dùng các helper trong ItineraryTrait.
-     */
-    public function populateLineItineraries($deparment_info)
-    {
-        global $timedate, $current_user;
-
-        // Date format
-        $date_format = $timedate->get_date_format();
-
-        // E-ticket mail permission
-        $use_mail_eticket = is_admin($current_user) ? 1 : $deparment_info['use_mail_eticket'];
-
-        // Itinerary rows
-        $itineraryRows = $this->getItineraryRowsForDetail();
-
-        // Iti header
-        $html = '<table id="itinerary_tbl" border="0" cellpadding="0" cellspacing="0" class="table-config table-itinerary table-details__booking"> 
+	/**
+	 * Hành trình (itinerary table): dùng các helper trong ItineraryTrait.
+	 */
+	public function populateLineItineraries()
+	{
+		// Iti header
+		$html = '<table id="itinerary_tbl" border="0" cellpadding="0" cellspacing="0" class="table-config table-itinerary table-details__booking"> 
 					<thead>
 						<tr>
 							<th scope="col" width="3%"></th> 
@@ -44,50 +33,62 @@ trait DetailPanelsTrait
 						</tr>
 					</thead>';
 
-        // Applied passengers
-        list($departure_applied_pass, $arrival_applied_pass) = $this->getAppliedPassengerItinerariesByDirection();
+		$itineraryRows = $this->getItineraryRowsForDetail();
 
-        $html .= $this->renderOriginalItineraryRows($itineraryRows['original'], $date_format, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass);
+		$html .= $this->renderOriginalItineraryRows($itineraryRows['original']);
+		$html .= $this->renderEditedLineItineraries($itineraryRows['edited']);
+		$html .= '</table>';
 
-        // Itinerary templates
-        return $this->appendLineItineraryTemplates($html, $itineraryRows['edited']);
-    }
+		/* POPUP LÝ DO THẮNG THUA */
+		$html .= $this->populateWinLoseTemplate();
 
-    /**
-     * Hành khách (passenger table): dùng các helper trong PassengerTrait.
-     */
-    public function populateLinePassengers()
-    {
-        global $app_list_strings, $timedate;
+		/* POPUP WORKING PROCESS NOTE */
+		$html .= $this->populateWorkingProcessNote();
 
-        // Date format
-        $date_format = $timedate->get_date_format();
+		/* POPUP REMIND */
+		$html .= $this->populateRemindTemplate();
 
-        // Passenger rows
-        $passengerRows = $this->getPassengerRowsForDetail();
+		/* POPUP CHECKIN NOTE */
+		$html .= $this->populateCheckinNoteModal();
 
-        // Passenger header
-        $html = $this->renderPassengerTableHeader();
+		return $html;
+	}
 
-        // Original passengers
-        $html .= $this->renderOriginalPassengerRows($passengerRows['original'], $date_format, $app_list_strings);
+	/**
+	 * Hành khách (passenger table): dùng các helper trong PassengerTrait.
+	 */
+	public function populateLinePassengers()
+	{
+		global $app_list_strings, $timedate;
 
-        // Edited passengers
-        $html .= $this->renderEditedPassengerRows($passengerRows['edited']);
-        $html .= '</tbody></table>';
+		// Date format
+		$date_format = $timedate->get_date_format();
 
-        return $html;
-    }
+		// Passenger rows
+		$passengerRows = $this->getPassengerRowsForDetail();
 
-    /**
-     * Chi tiết vé (ticket detail table): dòng giá vé theo hành khách + chiều bay.
-     */
-    public function populateLineDetails()
-    {
-        global $locale, $app_list_strings;
-        $sep = my_get_number_separators();
+		// Passenger header
+		$html = $this->renderPassengerTableHeader();
 
-        $html = '<table id="line_details_tbl" border="0" cellpadding="0" cellspacing="0" class="table-config table-line-details table-details__booking">
+		// Original passengers
+		$html .= $this->renderOriginalPassengerRows($passengerRows['original'], $date_format, $app_list_strings);
+
+		// Edited passengers
+		$html .= $this->renderEditedPassengerRows($passengerRows['edited']);
+		$html .= '</tbody></table>';
+
+		return $html;
+	}
+
+	/**
+	 * Chi tiết vé (ticket detail table): dòng giá vé theo hành khách + chiều bay.
+	 */
+	public function populateLineDetails()
+	{
+		global $locale, $app_list_strings;
+		$sep = my_get_number_separators();
+
+		$html = '<table id="line_details_tbl" border="0" cellpadding="0" cellspacing="0" class="table-config table-line-details table-details__booking">
 					<thead>
 						<tr>
 							<th scope="col" width="3%"></th>
@@ -108,19 +109,19 @@ trait DetailPanelsTrait
 						</tr>
 					</thead>';
 
-        $i = 0;
-        $totals = [
-            'qty' => 0,
-            'supplier_discount' => 0,
-            'basic_amount' => 0,
-            'vat_amount' => 0,
-            'airport_amount' => 0,
-            'admin_amount' => 0,
-            'service_amount' => 0,
-            'issue_fee' => 0,
-        ];
+		$i = 0;
+		$totals = [
+			'qty' => 0,
+			'supplier_discount' => 0,
+			'basic_amount' => 0,
+			'vat_amount' => 0,
+			'airport_amount' => 0,
+			'admin_amount' => 0,
+			'service_amount' => 0,
+			'issue_fee' => 0,
+		];
 
-        $sql = "SELECT d.id,
+		$sql = "SELECT d.id,
 					d.passenger_type,
 					d.quantity,
 					d.unit_price,
@@ -143,12 +144,12 @@ trait DetailPanelsTrait
 				WHERE d.booking_id = '{$this->bean->id}' AND d.deleted = 0
 				ORDER BY d.direction, d.passenger_type, d.date_entered ";
 
-        $res = $this->bean->db->query($sql);
+		$res = $this->bean->db->query($sql);
 
-        while ($row = $this->bean->db->fetchByAssoc($res)) {
-            $admin_fee_inf = '';
-            if ($row['admin_fee_no_vat'] > 0) {
-                $admin_fee_inf = '<div class="admin_fee_no_vat--wrap d-flex align-items-center justify-content-between">
+		while ($row = $this->bean->db->fetchByAssoc($res)) {
+			$admin_fee_inf = '';
+			if ($row['admin_fee_no_vat'] > 0) {
+				$admin_fee_inf = '<div class="admin_fee_no_vat--wrap d-flex align-items-center justify-content-between">
 								<span class="text-start">TVAT:</span>
 								<span class="text-end">' . format_number($row['admin_fee_no_vat']) . '</span>
 							</div>
@@ -156,10 +157,10 @@ trait DetailPanelsTrait
 								<span class="text-start">VAT:</span>
 								<span class="text-end">' . format_number($row['vat_admin']) . '</span>
 							</div>';
-            }
+			}
 
-            $even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
-            $html .= '<tr class="' . $even_or_odd . '">
+			$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
+			$html .= '<tr class="' . $even_or_odd . '">
 						<td data-label="Autobook" class="text-center"><input type="checkbox" name="check-detail" class="check-journey" data-id="' . $row['id'] . '" title="Autobook" /></td>
 						<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
 						<td data-label="Chiều" class="text-center">' . $app_list_strings['bk_direction_list'][(int) $row['direction']] . '</td>
@@ -183,19 +184,19 @@ trait DetailPanelsTrait
 						</td>
 					</tr>';
 
-            $totals['qty'] += $row['quantity'];
-            $totals['supplier_discount'] += $row['supplier_discount'];
-            $totals['basic_amount'] += $row['unit_price'];
-            $totals['vat_amount'] += $row['tax_and_fee'];
-            $totals['airport_amount'] += $row['airport_fee'];
-            $totals['admin_amount'] += $row['admin_fee'];
-            $totals['service_amount'] += $row['service_fee'];
-            $totals['issue_fee'] += $row['fee_bought'];
+			$totals['qty'] += $row['quantity'];
+			$totals['supplier_discount'] += $row['supplier_discount'];
+			$totals['basic_amount'] += $row['unit_price'];
+			$totals['vat_amount'] += $row['tax_and_fee'];
+			$totals['airport_amount'] += $row['airport_fee'];
+			$totals['admin_amount'] += $row['admin_fee'];
+			$totals['service_amount'] += $row['service_fee'];
+			$totals['issue_fee'] += $row['fee_bought'];
 
-            $i++;
-        }
+			$i++;
+		}
 
-        $html .= '<tr class="footer-tr">
+		$html .= '<tr class="footer-tr">
 					<td class="hide-mobile show-landscape" colspan="4">Tổng:
 						<input type="hidden" id="grp_seperator" name="grp_seperator" value="' . $sep[0] . '" />
 						<input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />
@@ -216,19 +217,19 @@ trait DetailPanelsTrait
 				</tr>
 			</table>';
 
-        return $html;
-    }
+		return $html;
+	}
 
-    /**
-     * Chứng từ liên quan: phiếu thu + phiếu hoàn của booking.
-     */
-    public function populateLineRelateVoucher()
-    {
-        global $db;
+	/**
+	 * Chứng từ liên quan: phiếu thu + phiếu hoàn của booking.
+	 */
+	public function populateLineRelateVoucher()
+	{
+		global $db;
 
-        $booking_id = $db->quote($this->bean->id);
+		$booking_id = $db->quote($this->bean->id);
 
-        $sql = "(
+		$sql = "(
 					SELECT
 						id,
 						name,
@@ -261,14 +262,14 @@ trait DetailPanelsTrait
 					)
 					ORDER BY ngaychungtu DESC";
 
-        $res = $db->query($sql);
+		$res = $db->query($sql);
 
-        $parentTypeLabels = [
-            'EC_HoanVe' => 'Phiếu hoàn',
-            'EC_Receipt_Voucher' => 'Phiếu thu',
-        ];
+		$parentTypeLabels = [
+			'EC_HoanVe' => 'Phiếu hoàn',
+			'EC_Receipt_Voucher' => 'Phiếu thu',
+		];
 
-        $html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">
+		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">
                     <thead>
                         <tr>
                             <th scope="col" width="5%">STT</th>
@@ -281,10 +282,10 @@ trait DetailPanelsTrait
                         </tr>
                     </thead>';
 
-        $i = 0;
-        while ($row = $db->fetchByAssoc($res)) {
-            $i++;
-            $html .= '<tr>
+		$i = 0;
+		while ($row = $db->fetchByAssoc($res)) {
+			$i++;
+			$html .= '<tr>
 						<td data-label="STT" class="text-center">' . $i . '</td>
 						<td data-label="Ngày chứng từ" class="text-center">
                             ' . date('d-m-Y', strtotime($row['ngaychungtu'])) . '
@@ -301,16 +302,16 @@ trait DetailPanelsTrait
 						<td data-label="Số tiền" class="text-center">' . format_number($row['amount']) . '</td>
 						<td data-label="Ghi chú" class="text-start text-wrap">' . $row['description'] . '</td>
 					</tr>';
-        }
+		}
 
-        if ($i === 0) {
-            $html .= '<tr>
+		if ($i === 0) {
+			$html .= '<tr>
 						<td colspan="8" class="text-start fw-semibold">Không có chứng từ liên quan.</td>
 					</tr>';
-        }
+		}
 
-        $html .= '</table>';
+		$html .= '</table>';
 
-        return $html;
-    }
+		return $html;
+	}
 }
