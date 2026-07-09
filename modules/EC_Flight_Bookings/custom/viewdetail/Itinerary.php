@@ -314,11 +314,11 @@ trait ItineraryTrait
 			if ($order_iti != $row['sabre_logs']) {
 				$order_iti = $row['sabre_logs'];
 				$applied_pass[$order_iti] = $this->getEditedItineraryAppliedPassengerText($row, $pass_qty);
-				$html .= $this->renderEditedItineraryGroupHeader($row, $applied_pass, $user_list);
+				$html .= $this->renderEditedItineraryGroupHeader($row, $applied_pass[$order_iti], $user_list);
 				$i = 0;
 			}
 
-			$html .= $this->renderEditedItineraryRow($row, $i, $date_format, $applied_pass, $print_iti);
+			$html .= $this->renderEditedItineraryRow($row, $i, $date_format, $applied_pass[$row['sabre_logs']], $print_iti);
 
 			if (!empty($row['description'])) {
 				$html .= '<tr><td colspan="15" class="fw-semibold fst-italic">' . $row['description'] . '</td></tr>';
