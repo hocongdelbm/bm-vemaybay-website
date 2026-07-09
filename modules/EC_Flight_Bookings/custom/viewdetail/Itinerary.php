@@ -8,24 +8,43 @@ trait ItineraryTrait
 {
 	private function getItineraryRowsForDetail()
 	{
-		$rows = $this->fetchItineraryRowsForDetail();
+		$sql = "SELECT iti.id,
+					iti.name,
+					iti.description,
+					iti.airline_code,
+					iti.flight_number,
+					iti.ticket_class,
+					iti.departure,
+					iti.arrival,
+					iti.departure_date,
+					iti.arrival_date,
+					iti.base_price,
+					iti.direction,
+					iti.time_limit,
+					iti.is_layover,
+					iti.date_entered,
+					iti.transit_order,
+					iti.is_remind,
+					iti.checkin_status,
+					iti.add_type,
+					iti.sabre_logs,
+					iti.modified_user_id,
+					bk.ticket_type,
+					bk.phone AS bk_phone,
+					bk.name AS bk_name,
+					bk.booking_status AS booking_status
+				FROM ec_booking_itineraries iti
+					LEFT JOIN ec_flight_bookings bk ON bk.id = iti.booking_id AND bk.deleted = 0
+				WHERE iti.booking_id = '{$this->bean->id}' 
+					AND iti.deleted = 0 
+				ORDER BY iti.sabre_logs, iti.direction, iti.transit_order";
+
+		$rows = $this->fetchRows($sql);
 
 		return [
 			'original' => $this->sortOriginalItineraryRows($this->filterOriginalItineraryRows($rows)),
 			'edited' => $this->sortEditedItineraryRows($this->groupEditedItineraryRows($this->filterEditedItineraryRows($rows))),
 		];
-	}
-
-	private function fetchItineraryRowsForDetail()
-	{
-		$res = $this->queryItineraryRowsForDetail();
-		$rows = [];
-
-		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			$rows[] = $row;
-		}
-
-		return $rows;
 	}
 
 	private function filterOriginalItineraryRows($rows)
@@ -108,74 +127,65 @@ trait ItineraryTrait
 		return array_values($grouped);
 	}
 
-	private function getAppliedPassengerItinerariesByDirection()
+	/**
+	 * Ds hành khách còn áp dụng hành trình đặt ban đầu theo direction.
+	 * Lazy + cache theo direction/booking: chỉ chạy SQL khi dòng nào đó thực sự cần
+	 * (tránh chạy trước cả 2 direction mỗi lần populate, dù có thể không dòng nào dùng tới),
+	 * và không chạy lại nếu nhiều dòng cùng direction đều cần (tránh N+1 trong vòng lặp render).
+	 */
+	private function getAppliedPassForDirection($direction)
 	{
-		// Lấy ds những hành khách còn áp dụng hành trình đặt ban đầu
-		$departure_applied_pass = $this->getAppliedPassengerIti($this->bean->id, 0);
-		$arrival_applied_pass = '';
-		if ($this->bean->flight_type == '0') {
-			$arrival_applied_pass = $this->getAppliedPassengerIti($this->bean->id, 1);
+		static $cache = [];
+
+		$direction = (int)$direction;
+		if ($direction === 1 && $this->bean->flight_type != '0') {
+			return '';
 		}
 
-		return [$departure_applied_pass, $arrival_applied_pass];
+		$cacheKey = $this->bean->id . ':' . $direction;
+		if (!array_key_exists($cacheKey, $cache)) {
+			$cache[$cacheKey] = $this->getAppliedPassengerIti($this->bean->id, $direction);
+		}
+
+		return $cache[$cacheKey];
 	}
 
-	private function queryItineraryRowsForDetail()
+	/**
+	 * Quyền gửi mail e-ticket theo phòng ban của current_user.
+	 */
+	private function getUseMailEticket()
 	{
-		$sql = "SELECT iti.id,
-					iti.name,
-					iti.description,
-					iti.airline_code,
-					iti.flight_number,
-					iti.ticket_class,
-					iti.departure,
-					iti.arrival,
-					iti.departure_date,
-					iti.arrival_date,
-					iti.base_price,
-					iti.direction,
-					iti.time_limit,
-					iti.is_layover,
-					iti.date_entered,
-					iti.transit_order,
-					iti.is_remind,
-					iti.checkin_status,
-					iti.add_type,
-					iti.sabre_logs,
-					iti.modified_user_id,
-					bk.ticket_type,
-					bk.phone AS bk_phone,
-					bk.name AS bk_name,
-					bk.booking_status AS booking_status
-				FROM ec_booking_itineraries iti
-					LEFT JOIN ec_flight_bookings bk ON bk.id = iti.booking_id
-				WHERE iti.booking_id = '{$this->bean->id}' 
-					AND iti.deleted = 0 
-				ORDER BY iti.sabre_logs, iti.direction, iti.transit_order";
+		static $cache = null;
 
-		$res = $this->bean->db->query($sql);
+		if ($cache === null) {
+			global $current_user;
+			$deparment_info = myGetDepartmentInfo($current_user->department_id);
+			$cache = is_admin($current_user) ? 1 : $deparment_info['use_mail_eticket'];
+		}
 
-		return $res;
+		return $cache;
 	}
 
-	private function renderOriginalItineraryRows($rows, $date_format, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass)
+	private function renderOriginalItineraryRows($rows)
 	{
 		$html = '';
 		$check_dep = $check_ret = false;
 
 		foreach ($rows as $i => $row) {
 			// Render hành trình gốc
-			$html .= $this->renderOriginalItineraryRow($row, $i, $date_format, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass, $check_dep, $check_ret);
+			$html .= $this->renderOriginalItineraryRow($row, $i, $check_dep, $check_ret);
 		}
 
 		return $html;
 	}
 
-	private function renderOriginalItineraryRow($row, $i, $date_format, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass, &$check_dep, &$check_ret)
+	private function renderOriginalItineraryRow($row, $i, &$check_dep, &$check_ret)
 	{
-		global $app_list_strings;
+		global $app_list_strings, $timedate;
 		$html = '';
 		$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
+		$date_format = $timedate->get_date_format();
+		$use_mail_eticket = $this->getUseMailEticket();
 
 		$airline_code = EC_Airlines::normalizeIataCode($row['airline_code']);
 
@@ -242,7 +252,7 @@ trait ItineraryTrait
 					journey="' . $journey_name . '"
 					date="' . explode(' ', $sms_depdate)[0] . '"
 					time="' . explode(' ', $sms_depdate)[1] . '"
-					applied_pass="' . ($row['direction'] == 0 ? $departure_applied_pass : $arrival_applied_pass) . '"
+					applied_pass="' . $this->getAppliedPassForDirection($row['direction']) . '"
 				/>';
 
 			// TT Checkin status
@@ -285,27 +295,6 @@ trait ItineraryTrait
 		return $html;
 	}
 
-	private function appendLineItineraryTemplates($html, $editedRows = null)
-	{
-		/* CHANGE FLIGHT TIME INFO */
-		$html .= $this->renderEditedLineItineraries($editedRows);
-		$html .= '</table>';
-
-		/* POPUP LÝ DO THẮNG THUA */
-		$html .= $this->populateWinLoseTemplate();
-
-		/* POPUP WORKING PROCESS NOTE */
-		$html .= $this->populateWorkingProcessNote();
-
-		/* POPUP REMIND */
-		$html .= $this->populateRemindTemplate();
-
-		/* POPUP CHECKIN NOTE */
-		$html .= $this->populateCheckinNoteModal();
-
-		return $html;
-	}
-
 	// Direction (0: lượt đi ; 1: lượt về)	
 	private function renderEditedLineItineraries($rows)
 	{
@@ -317,7 +306,6 @@ trait ItineraryTrait
 		$pass_qty = $this->countOriginalBookingPassengers();
 		$html = '';
 		$i = 0;
-		$j = ($this->bean->flight_type == 0) ? 3 : 2;
 		$order_iti = 0;
 		$print_iti = 0;
 		$applied_pass = [];
@@ -330,13 +318,12 @@ trait ItineraryTrait
 				$i = 0;
 			}
 
-			$html .= $this->renderEditedItineraryRow($row, $i, $j, $date_format, $applied_pass, $print_iti);
+			$html .= $this->renderEditedItineraryRow($row, $i, $date_format, $applied_pass, $print_iti);
 
 			if (!empty($row['description'])) {
 				$html .= '<tr><td colspan="15" class="fw-semibold fst-italic">' . $row['description'] . '</td></tr>';
 			}
 
-			$j++;
 			$i++;
 		}
 
@@ -371,12 +358,20 @@ trait ItineraryTrait
 		</tr>';
 	}
 
-	private function renderEditedItineraryRow($row, $i, $j, $date_format, $applied_pass, &$print_iti)
+	private function renderEditedItineraryRow($row, $i, $date_format, $applied_pass, &$print_iti)
 	{
 		global $app_list_strings;
 
-		$img_src = $this->renderEditedItineraryAirlineLogo($row);
-		$action_html = $this->renderEditedItineraryActionCell($row, $j, $applied_pass, $print_iti);
+		// Image Logo
+		$airline_code = EC_Airlines::normalizeIataCode($row['airline_code']);
+		$logoUrl = $row['is_layover'] ? null : EC_Airlines::getLogoUrl($airline_code);
+		$img_src = $logoUrl ? '<img class="h-auto" style="width:40px;object-fit:contain;" src="' . $logoUrl . '" alt="' . $airline_code . '" border="0" />' : '';
+
+		if ($row['ticket_type'] == '2') {
+			$img_src .= '<br />(<b>' . $row['airline_code'] . '</b>)';
+		}
+
+		$action_html = $this->renderEditedItineraryActionCell($row, $applied_pass, $print_iti);
 
 		return '<tr class="edited_iti_line">
 				<td class="hide-mobile text-center" style="vertical-align: middle;">
@@ -398,22 +393,10 @@ trait ItineraryTrait
 			</tr>';
 	}
 
-	private function renderEditedItineraryAirlineLogo($row)
-	{
-		$airline_code = EC_Airlines::normalizeIataCode($row['airline_code']);
-		$logoUrl = $row['is_layover'] ? null : EC_Airlines::getLogoUrl($airline_code);
-		$img_src = $logoUrl ? '<img class="h-auto" style="width:40px;object-fit:contain;" src="' . $logoUrl . '" alt="' . $airline_code . '" border="0" />' : '';
-
-		if ($row['ticket_type'] == '2') {
-			$img_src .= '<br />(<b>' . $row['airline_code'] . '</b>)';
-		}
-
-		return $img_src;
-	}
-
-	private function renderEditedItineraryActionCell($row, $j, $applied_pass, &$print_iti)
+	private function renderEditedItineraryActionCell($row, $applied_pass, &$print_iti)
 	{
 		global $app_list_strings;
+
 		$remind_btn = '';
 		$checkin_status = '';
 		if ($print_iti != $row['sabre_logs']) {
@@ -440,12 +423,12 @@ trait ItineraryTrait
 		$journey = ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']] ?? '')) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']] ?? ''));
 
 		return '<td colspan="2" class="text-center">
-				<div class="d-flex align-items-center gap-2 justify-content-center">
-					<input type="button" name="btnSendSMS" value="SMS" title="Send SMS" class="btn btn-primary-2 fw-semibold flex-fill" direction="' . $row['direction'] . '" flightno="' . $row['flight_number'] . '" journey="' . $journey . '" date="' . explode(' ', $sms_depdate)[0] . '" time="' . explode(' ', $sms_depdate)[1] . '" applied_pass="' . $applied_pass . '" style="max-width:30%" />
-					' . $remind_btn . '
-					' . $checkin_status . '
-				</div>
-			</td>';
+					<div class="d-flex align-items-center gap-2 justify-content-center">
+						<input type="button" name="btnSendSMS" value="SMS" title="Send SMS" class="btn btn-primary-2 fw-semibold flex-fill" direction="' . $row['direction'] . '" flightno="' . $row['flight_number'] . '" journey="' . $journey . '" date="' . explode(' ', $sms_depdate)[0] . '" time="' . explode(' ', $sms_depdate)[1] . '" applied_pass="' . $applied_pass . '" style="max-width:30%" />
+						' . $remind_btn . '
+						' . $checkin_status . '
+					</div>
+				</td>';
 	}
 
 
@@ -559,10 +542,9 @@ trait ItineraryTrait
 	 * that matches an actual passenger ID (i.e. changes target specific passengers).
 	 */
 
-	function hasPerPassengerItineraryChanges()
+	public function hasPerPassengerItineraryChanges()
 	{
 		$bookingId = $this->bean->id;
-		// Count distinct assigned_user_id values linked to actual passengers
 		$sql = "SELECT COUNT(DISTINCT i.assigned_user_id) AS cnt
 			FROM ec_booking_itineraries i
 			INNER JOIN ec_booking_passengers p ON p.id = i.assigned_user_id AND p.booking_id = i.booking_id AND p.deleted = 0
@@ -578,7 +560,7 @@ trait ItineraryTrait
 	 * For each direction: use add_type=3 for that passenger if exists, else fallback to add_type=0.
 	 */
 
-	function getPerPassengerItinerariesForPopup()
+	public function getPerPassengerItinerariesForPopup()
 	{
 		global $app_list_strings, $timedate;
 		$date_format = $timedate->get_date_format();
@@ -762,7 +744,6 @@ trait ItineraryTrait
 	/**
 	 * Format a single itinerary row for popup JSON (shared by multiple popup methods).
 	 */
-
 	function formatItineraryForPopup($row, $date_format)
 	{
 		global $app_list_strings;

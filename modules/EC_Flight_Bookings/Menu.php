@@ -2,7 +2,6 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 global $mod_strings, $current_user;
-// $deparment_info = myGetDepartmentInfo($current_user->department_id);
 
 $listRights = ACLController::checkAccess('EC_Flight_Bookings', 'list', true);
 $viewRights = ACLController::checkAccess('EC_Flight_Bookings', 'view', true);
