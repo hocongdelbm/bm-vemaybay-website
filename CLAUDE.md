@@ -374,6 +374,19 @@ Always prefer editing files under `custom/` rather than modifying core `modules/
 2. Define `function functionName()` in the same file
 3. Register in SuiteCRM Admin → Schedulers
 
+### View Trait Pattern (EC_Flight_Bookings)
+
+`EC_Flight_Bookings`'s detail/edit views are split into PHP traits under `modules/EC_Flight_Bookings/custom/viewdetail/` and `modules/EC_Flight_Bookings/custom/viewedit/`, `require_once`'d and `use`'d into `views/view.detail.php` / `views/view.edit.php`. Each trait owns one concern instead of one monolithic view class:
+
+- **viewdetail/**: `Assets` (CSS/JS), `detail_buttons` (action buttons), `detail_fields` (Smarty field assignment), `detail_panels` (subpanel population), `Itinerary`, `Passenger`, `Notes`, `Payment` (SMS/QR payment templates), `ZaloSms`, `Templates`
+- **viewedit/**: `Assets` (CSS/JS), `edit_fields` (Smarty field assignment via `assign*Field()` methods), `edit_panels` (line item panels: itineraries, details, passengers)
+
+Conventions:
+- Trait files declare `trait <Name>Trait` and only `public function` methods (no properties/constructor) — the view class supplies `$this->bean`, `$this->ss`, and any private state.
+- Field-assignment methods follow `assign<Thing>Field()`, called from `populateCustomFields()` in the view class.
+- Panel-population methods follow `populate<Thing>()`, called from `populateCustomPanels()`.
+- When adding a new field/panel/button group to the booking detail or edit screen, add a method to the matching existing trait (or a new trait file if it's a distinct concern) rather than growing `view.detail.php`/`view.edit.php` directly.
+
 ---
 
 ## UI Architecture
