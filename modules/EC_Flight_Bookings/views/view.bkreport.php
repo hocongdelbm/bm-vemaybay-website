@@ -11,7 +11,7 @@ class Viewbkreport extends SugarView
      {
           global $current_user;
 
-          if (is_admin($current_user) || isManagerUser($current_user->id)) {
+          if (is_admin($current_user) || isManagerUser()) {
                $smartyCont = new Sugar_Smarty();
                $this->populateContent($smartyCont);
                $smartyCont->display('modules/EC_Flight_Bookings/tpls/view_bkreport.tpl');

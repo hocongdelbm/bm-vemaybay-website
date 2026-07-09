@@ -226,7 +226,7 @@ trait ButtonsTrait
 		/**
 		 * Trong khung giờ 21h - 6h sáng thì được thấy nút "chuyển trạng thái booking"
 		 */
-		if (isManagerUser($current_user->id) && !in_array($this->bean->booking_status, [7, 8]) || is_admin($current_user)) {
+		if (isManagerUser() && !in_array($this->bean->booking_status, [7, 8]) || is_admin($current_user)) {
 			$change_status = '</form>
 				<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus" class="d-flex align-items-center gap-2">
 					<input type="hidden" name="module" value="EC_Flight_Bookings" />

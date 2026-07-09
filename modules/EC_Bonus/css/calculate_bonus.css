@@ -1,3 +1,14 @@
+/* Uniform control size across the bonus report search form */
+#frmBonusReport .form-select,
+#frmBonusReport .box-input,
+#frmBonusReport .btn {
+  box-sizing: border-box;
+  height: 36px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 14px;
+}
+
 .bonus-table-wrap {
   max-height: 70vh;
   overflow: auto;

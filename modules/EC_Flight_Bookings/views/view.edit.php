@@ -67,7 +67,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			}
 
 			parent::display();
-		} else if (in_array($this->bean->booking_status, $status__com_arr) && (isManagerUser($current_user->id))) {
+		} else if (in_array($this->bean->booking_status, $status__com_arr) && (isManagerUser())) {
 			// Booking đã xuất vé/hoàn tất: quản lý được vào edit với một số panel bị khóa theo JS.
 			$this->displayJS();
 			$this->displayCSS();

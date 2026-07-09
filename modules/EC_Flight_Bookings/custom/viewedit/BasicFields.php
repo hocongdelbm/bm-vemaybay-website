@@ -140,7 +140,7 @@ trait ECFlightBookingEditBasicFieldsTrait
 		}
 
 		// Giao cho chỉ có những user được phép mới thấy
-		if (isManagerUser($current_user->id)) {
+		if (isManagerUser()) {
 			$user = new User;
 			$user->retrieve($this->bean->assigned_user_id);
 			$assigned_user = '

@@ -123,7 +123,6 @@ class EC_Bonus_Helper {
                         $bean->direct_bonus     = $direct;
                         $bean->indirect_bonus   = $indirect;
                         $bean->kpi              = $kpi;
-                        $bean->description      = 'Hệ thống tự động tính thưởng';
                         $bean->save();
                     }
                     else {
@@ -147,23 +146,9 @@ class EC_Bonus_Helper {
             return $results;
         }
         catch(Throwable $th) {
-            $GLOBALS['log']->error("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+            $GLOBALS['log']->error(__METHOD__ . ": {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             return [];
         }
-    }
-
-    /**
-     * Current user's number separators: [group, decimal]
-     * (same source as SuiteCRM's num_grp_sep/dec_sep JS vars)
-     *
-     * @return array [string $group_sep, string $decimal_sep]
-     */
-    public static function get_number_seps(): array {
-        global $current_user, $sugar_config;
-
-        $grp = $current_user->getPreference('num_grp_sep') ?: ($sugar_config['default_number_grouping_seperator'] ?? ',');
-        $dec = $current_user->getPreference('dec_sep') ?: ($sugar_config['default_decimal_seperator'] ?? '.');
-        return [$grp, $dec];
     }
 
     /**
@@ -334,22 +319,22 @@ class EC_Bonus_Helper {
             $minThresholdValue = $extraThresholdValue = $bkFlightType === '1' ? 300000 : 600000;
         }
 
-        $avgProfit = $profit / $bkTicketQty;
+        $avgProfit = round($profit / $bkTicketQty);
 
         if($avgProfit < $minThresholdValue) return null;
         $bonusPerTicket = $bonusPercent * $minThresholdValue;
         if($avgProfit > $extraThresholdValue) $bonusPerTicket += $extraBonusPercent * ($avgProfit - $extraThresholdValue);
 
-        // Total bonus
-        if(!$isValidZalo) $bonusPerTicket /= 2;
+        // Total bonus, rounded to whole VND (direct + indirect always equals total)
+        if(!$isValidZalo) $bonusPerTicket = round($bonusPerTicket / 2);
         $totalBonus = $bonusPerTicket * $bkTicketQty;
-        $totalDirectBonus   = $totalBonus * 0.7; // For user completed booking
+        $totalDirectBonus   = round($totalBonus * 0.7); // For user completed booking
         $totalIndirectBonus = $totalBonus - $totalDirectBonus;
 
         // Indirect bonus detail
         $kpiData = EC_Working_Process_Helper::get_kpi_by_bookings([$bkId]);
         $totalIndirectKPI = $kpiData['total_indirect_kpi'] ?: 0;
-        $indirectBonusPerKPI = $totalIndirectKPI > 0 ? $totalIndirectBonus / $totalIndirectKPI : 0;
+        $indirectBonusPerKPI = $totalIndirectKPI > 0 ? round($totalIndirectBonus / $totalIndirectKPI) : 0;
 
         return [
             'srcId'                 => $row['parent_id'],

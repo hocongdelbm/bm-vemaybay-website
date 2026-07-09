@@ -1041,37 +1041,41 @@ function isQLUser()
     return false;
 }
 
-// Check quyền cho admin hệ thống, QL và kế toán
-function isManagerUser($user_id)
-{
+// Check current user is System Admin, Manager or Accountant
+function isManagerUser() {
     global $db, $current_user;
 
-    if (is_admin($current_user)) {
-        return 1;
-    }
+    if (is_admin($current_user)) return 1;
 
-    $sql = 'SELECT COUNT(id) 
-            FROM acl_roles_users 
-            WHERE user_id = "' . $user_id . '"
-                AND role_id IN (
-                    "' . $GLOBALS['app_list_strings']['roles_users']['QUANLY'] . '",
-                    "' . $GLOBALS['app_list_strings']['roles_users']['KETOAN'] . '"
-                )
-                AND deleted = 0';
-    $is_manager = $db->getOne($sql);
+    $userid = $db->quote(trim($current_user->id));
+    $roleManagerId = $GLOBALS['app_list_strings']['roles_users']['QUANLY'] ?? '';
+    $roleAccountantId = $GLOBALS['app_list_strings']['roles_users']['KETOAN'] ?? '';
+
+    $is_manager = $db->getOne(
+        "SELECT COUNT(id) 
+        FROM acl_roles_users 
+        WHERE user_id = '{$userid}'
+            AND role_id IN (
+                '$roleManagerId',
+                '$roleAccountantId'
+            )
+            AND deleted = 0"
+    ) ?? 0;
 
     if ($is_manager) return 1;
     return 0;
 }
 
-// Là nhân viên có role Telesale
-function isTelesaleUser($user_id)
-{
+function isTelesaleUser(string $user_id) {
     global $db;
-
-    $sql = 'SELECT COUNT(id) FROM acl_roles_users WHERE user_id = "' . $user_id . '" AND role_id = "34beb2a2-5ee7-f001-2496-68ca264d1d3f" AND deleted = 0';
-    $is_telesale = $db->getOne($sql);
+    $is_telesale = $db->getOne("SELECT COUNT(id) FROM acl_roles_users WHERE user_id = '$user_id' AND role_id = '34beb2a2-5ee7-f001-2496-68ca264d1d3f' AND deleted = 0");
     return ($is_telesale) ? 1 : 0;
+}
+
+function isDevUser(): bool {
+    global $current_user;
+    if(in_array($current_user->user_name, ['admin', 'hungnh', 'quangnd', 'datlnt', 'trinhvnd', 'nhutnq', 'dahy', 'dehc'])) return true;
+    return false;
 }
 
 // Print varlue to browser

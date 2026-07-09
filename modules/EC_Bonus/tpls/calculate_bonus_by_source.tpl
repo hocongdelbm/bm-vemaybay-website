@@ -1,18 +1,17 @@
-<link rel="stylesheet" type="text/css" href="modules/EC_Bonus/css/calculate_bonus_by_source.css?v=2.0" />
+<link rel="stylesheet" type="text/css" href="modules/EC_Bonus/css/calculate_bonus_by_source.css?v=2.3" />
 
 <h1 class="title mb-0">Tính thưởng theo nguồn</h1>
 <div class="box-section mt-2">
   <form action="index.php" method="get" name="frmCalculateBonusBySource" id="frmCalculateBonusBySource">
     <input type="hidden" name="module" value="EC_Bonus" />
     <input type="hidden" name="action" value="calculate_bonus_by_source" />
-    <input type="hidden" name="source_type" value="{$SOURCE_TYPE_VALUE}" />
     <div class="d-flex align-items-center gap-4">
       <div class="d-flex gap-2 align-items-center">
         <span class="sublabel">Nguồn: </span>
         <input class="box-input" type="text" size="30" tabindex="103" value="{$SOURCE_NAME_VALUE}" id="source_name" name="source_name" autocomplete="off" placeholder="Mã booking, mã phiếu thu,..." required />
       </div>
 
-      <input class="btn btn-primary" type="submit" name="btnRun" title="Tính thưởng" />
+      <button class="btn btn-primary" type="submit" name="btnRun" value="1" title="Tính thưởng">Tính thưởng</button>
     </div>
   </form>
 
@@ -36,14 +35,14 @@
           </tr>
           <tr>
             <td>Nguồn</td>
-            <td></td>
+            <td>{$SOURCE_BONUS.module_label}</td>
             <td>
               <a href="index.php?module={$SOURCE_BONUS.module}&action=DetailView&record={$SOURCE_BONUS.id}" target="_blank">{$SOURCE_BONUS.name}</a>
             </td>
           </tr>
           <tr>
-            <td>Thời gian bay</td>
-            <td></td>
+            <td>Thời điểm tính thưởng</td>
+            <td>Thời gian bay cuối cùng</td>
             <td>{$SOURCE_BONUS.time}</td>
           </tr>
           <tr id="ct-1">
@@ -106,7 +105,7 @@
           <tr id="ct-10">
             <td>(10) Thưởng / vé</td>
             <td>(10) = <a class="ct-ref" href="#ct-6" title="(6) Ngưỡng thưởng tối thiểu">(6)</a> &times; <a class="ct-ref" href="#ct-8" title="(8) Tỷ lệ thưởng">(8)</a>
-              <span class="text-primary">+ max(0, <a class="ct-ref" href="#ct-5" title="(5) Lợi nhuận bình quân / vé">(5)</a> &minus; <a class="ct-ref" href="#ct-7" title="(7) Ngưỡng thưởng thêm">(7)</a>) &times; <a class="ct-ref" href="#ct-9" title="(9) Tỷ lệ thưởng thêm">(9)</a>, chỉ tính khi <a class="ct-ref" href="#ct-5" title="(5) Lợi nhuận bình quân / vé">(5)</a> > <a class="ct-ref" href="#ct-7" title="(7) Ngưỡng thưởng thêm">(7)</a></span>
+              <span class="text-primary">+ MAX(0, <a class="ct-ref" href="#ct-5" title="(5) Lợi nhuận bình quân / vé">(5)</a> &minus; <a class="ct-ref" href="#ct-7" title="(7) Ngưỡng thưởng thêm">(7)</a>) &times; <a class="ct-ref" href="#ct-9" title="(9) Tỷ lệ thưởng thêm">(9)</a>, chỉ tính khi <a class="ct-ref" href="#ct-5" title="(5) Lợi nhuận bình quân / vé">(5)</a> > <a class="ct-ref" href="#ct-7" title="(7) Ngưỡng thưởng thêm">(7)</a></span>
               {if !$SOURCE_BONUS.is_valid_zalo}<span class="text-danger"> &divide; 2 (Chưa vào Zalo)</span>{/if}
             </td>
             <td>{$SOURCE_BONUS.bonus_per_ticket}</td>
@@ -158,12 +157,21 @@
               {foreach from=$BONUS_USERS item=bu}
                 <div class="bonus-user-row">
                   <label class="bonus-user-name" for="direct_bonus_value_{$bu.id}">{$bu.name}</label>
+                  <div class="bonus-percent-wrap">
+                    <input type="text" id="direct_bonus_percent_{$bu.id}" class="bonus-modal-input direct-bonus-percent-input"
+                           data-user-id="{$bu.id}" autocomplete="off" title="Tỷ lệ chia trên tối đa có thể chia" />
+                    <span class="bonus-percent-suffix">%</span>
+                  </div>
                   <input type="text" id="direct_bonus_value_{$bu.id}" class="bonus-modal-input direct-bonus-input"
-                         data-user-id="{$bu.id}" value="{$bu.direct_raw}" autocomplete="off" />
+                         data-user-id="{$bu.id}" value="{$bu.direct_raw}" autocomplete="off"
+                         title="Từ 0 đến tối đa có thể chia ({$BONUS_POOL_FMT})" />
+                  <input type="text" id="direct_bonus_description_{$bu.id}" class="bonus-modal-input direct-bonus-description"
+                         data-user-id="{$bu.id}" value="{$bu.description}" autocomplete="off"
+                         placeholder="Mô tả lý do điều chỉnh" />
                 </div>
               {/foreach}
             </div>
-            <div class="bonus-modal-info">Đã chia: <strong class="bm-total">0</strong></div>
+            <div class="bonus-modal-info">Đã chia: <strong class="bm-total">0</strong> (<span class="bm-total-percent">0</span>%)</div>
             <div class="bonus-modal-error"></div>
           </div>
           <div class="bonus-modal-footer">
@@ -175,7 +183,7 @@
       <script type="text/javascript">
         var BONUS_DIRECT_POOL = {$BONUS_POOL};
       </script>
-      <script type="text/javascript" src="modules/EC_Bonus/js/calculate_bonus_by_source.js?v=1.4"></script>
+      <script type="text/javascript" src="modules/EC_Bonus/js/calculate_bonus_by_source.js?v=2.0"></script>
     {/if}
   {/if}
 </div>

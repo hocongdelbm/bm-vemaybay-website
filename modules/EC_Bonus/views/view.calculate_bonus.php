@@ -1,16 +1,26 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/Sugar_Smarty.php');
-date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-class Viewcalculate_bonus extends SugarView
-{
-    public function display()
-    {
+class Viewcalculate_bonus extends SugarView {
+    public string $grp_sep;
+    public string $dec_sep;
+    public string $timezone;
+    public string $date_format;
+    public string $time_format;
+
+    public function display() {
+        global $current_user, $sugar_config;
+        
         if (!ACLController::checkAccess('EC_Bonus', 'edit', true)) {
             ACLController::displayNoAccess();
             return;
         }
+
+        list($this->grp_sep, $this->dec_sep) = get_number_separators();
+        $this->timezone = $current_user->getPreference('timezone') ?: 'Asia/Ho_Chi_Minh';
+        $this->date_format = $current_user->getPreference('datef') ?: ($sugar_config['datef'] ?? 'd-m-Y');
+        $this->time_format = $current_user->getPreference('timef') ?: ($sugar_config['timef'] ?? 'H:i');
 
         $smarty = new Sugar_Smarty();
 
@@ -28,18 +38,19 @@ class Viewcalculate_bonus extends SugarView
         $smarty->assign('SAVED', $is_save);
 
         if (!empty($_GET['btnRun'])) {
-            $from_day = DatetimeHelper::convert_datetime($from_input, 'd-m-Y', 'Y-m-d');
-            $to_day   = DatetimeHelper::convert_datetime($to_input, 'd-m-Y', 'Y-m-d');
+            $from_day = DatetimeHelper::convert_datetime($from_input, "$this->date_format 00:00:00", 'Y-m-d H:i:s', $this->timezone, "Asia/Ho_Chi_Minh");
+            $to_day   = DatetimeHelper::convert_datetime($to_input, "$this->date_format 23:59:59", 'Y-m-d H:i:s', $this->timezone, "Asia/Ho_Chi_Minh");
 
             if ($from_day === null || $to_day === null) {
                 $smarty->assign('ERROR', 'Định dạng ngày không hợp lệ');
             }
             else {
                 try {
-                    $result = EC_Bonus_Helper::save_bonus_report("$from_day 00:00:00", "$to_day 23:59:59", $is_save);
-                    $smarty->assign('BONUS_REPORT', self::buildBonusReport($result));
+                    $result = EC_Bonus_Helper::save_bonus_report($from_day, $to_day, $is_save);
+                    $smarty->assign('BONUS_REPORT', $this->buildBonusReport($result));
                 } catch (Throwable $th) {
-                    $smarty->assign('ERROR', htmlspecialchars($th->getMessage(), ENT_QUOTES, 'UTF-8'));
+                    if(isDevUser()) $smarty->assign("ERROR", "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+                    else $smarty->assign("ERROR", "Lỗi trong quá trình xử lý, vui lòng liên hệ IT");
                 }
             }
         }
@@ -52,17 +63,15 @@ class Viewcalculate_bonus extends SugarView
      * for the template: resolved names, per-user subtotals and a grand total,
      * VND-formatted amounts. Source name/type/time come from the row itself.
      */
-    private static function buildBonusReport(array $result): array
-    {
+    private function buildBonusReport(array $result): array {
         $user_rows = $result['users'] ?? [];
 
-        $user_names = self::fetchNamesById(
+        $user_names = $this->fetchNamesById(
             "SELECT id, TRIM(CONCAT(IFNULL(last_name,''), ' ', IFNULL(first_name,''))) AS name FROM users WHERE deleted = 0",
             array_keys($user_rows)
         );
 
-        list($grp_sep, $dec_sep) = EC_Bonus_Helper::get_number_seps();
-        $fmt = function ($v) use ($grp_sep, $dec_sep) { return number_format((float) $v, 0, $dec_sep, $grp_sep); };
+        $fmt = function ($v) { return number_format((float) $v, 0, $this->dec_sep, $this->grp_sep); };
         $esc = function ($v) { return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); };
 
         $users = [];
@@ -85,7 +94,7 @@ class Viewcalculate_bonus extends SugarView
 
                 $bonus_time = DatetimeHelper::convert_datetime(
                     (string) ($row['bonusTime'] ?? ''),
-                    'Y-m-d H:i:s', 'd-m-Y H:i'
+                    'Y-m-d H:i:s', "$this->date_format $this->time_format"
                 ) ?: '';
 
                 $u['bookings'][] = [
@@ -134,8 +143,7 @@ class Viewcalculate_bonus extends SugarView
     }
 
     /** Run "$sql_base AND id IN (...)" and return an id => name map */
-    private static function fetchNamesById(string $sql_base, array $ids): array
-    {
+    private function fetchNamesById(string $sql_base, array $ids): array {
         global $db;
 
         if (empty($ids)) return [];

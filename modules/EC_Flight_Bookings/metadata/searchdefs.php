@@ -2,7 +2,7 @@
 global $app_list_strings, $current_user;
 $module_name = 'EC_Flight_Bookings';
 $booking_stt_list = $app_list_strings['booking_status_list'];
-if (isManagerUser($current_user->id)) {
+if (isManagerUser()) {
     $booking_stt_list[100] = 'Thay đổi giao cho';
 }
 $searchdefs[$module_name] = array(

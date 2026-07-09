@@ -73,7 +73,7 @@
   display: flex;
 }
 .bonus-modal {
-  width: 440px;
+  width: 640px;
   max-width: 92vw;
   background: #fff;
   border-radius: 6px;
@@ -115,12 +115,38 @@
   margin-bottom: 6px;
 }
 .bonus-user-row .bonus-user-name {
-  flex: 1;
+  flex: 0 0 130px;
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bonus-user-row .direct-bonus-description {
+  flex: 1;
+  min-width: 120px;
+  font-size: 0.9em;
 }
 .bonus-user-row .direct-bonus-input {
   width: 150px;
   text-align: right;
+}
+.bonus-user-row .bonus-percent-wrap {
+  position: relative;
+  width: 86px;
+  flex: none;
+}
+.bonus-user-row .direct-bonus-percent-input {
+  width: 100%;
+  padding-right: 24px;
+  text-align: right;
+}
+.bonus-percent-wrap .bonus-percent-suffix {
+  position: absolute;
+  top: 50%;
+  right: 9px;
+  transform: translateY(-50%);
+  color: #6c757d;
+  pointer-events: none;
 }
 .bonus-modal-error {
   color: #d9534f;

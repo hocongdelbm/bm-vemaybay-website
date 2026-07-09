@@ -6,7 +6,7 @@ class Viewreport_route_analysis extends SugarView
 {
     function display()
     {
-        if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true) && isManagerUser($GLOBALS['current_user']->id)) {
+        if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true) && isManagerUser()) {
             $smartyCont = new Sugar_Smarty();
             $this->displayJS();
             $this->populateContent($smartyCont);
