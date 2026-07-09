@@ -1165,15 +1165,6 @@ class Viewinputinvoice extends SugarView
         }
     }
 
-    function checkIsInternationalTicket($departure, $arrival)
-    {
-        global $app_list_strings;
-        if (!in_array($departure, array_keys($app_list_strings['domestic_airport_list'])) || !in_array($arrival, array_keys($app_list_strings['domestic_airport_list']))) {
-            return true;
-        }
-        return false;
-    }
-
     function populateBookingPriceDetail($data_arr, $supplier)
     {
         global $db;
@@ -1534,9 +1525,10 @@ class Viewinputinvoice extends SugarView
     public function checkInter($itinerary)
     {
         if (!empty($itinerary) && strpos($itinerary, '-') !== false) {
+            $domesticAirports = EC_Airports::getAirportList(EC_Airports::AIRPORT_SCOPE_DOMESTIC);
             $arr = explode('-', $itinerary);
             foreach ($arr as $i) {
-                if (Flight::isInterLocation($i)) return true;
+                if (!isset($domesticAirports[$i])) return true;
             }
         }
         return false;

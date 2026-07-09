@@ -555,7 +555,7 @@ class APIDatacom {
                     "AirlineCode"           => $flight["Airline"],
                     "CarrierCode"           => $flight["Operator"],
                     "FlightNumber"          => $flight["FlightNumber"],
-                    "FlightDuration"        => Flight::getNiceDuration($flight["Duration"] * 60),
+                    "FlightDuration"        => Bookings_Helper::getNiceDuration($flight["Duration"] * 60),
                     "DepartureDate"         => date("Y-m-d", strtotime($flight["StartDate"])),
                     "DepartureTime"         => date("H:i", strtotime($flight["StartDate"])),
                     "ArrivalDate"           => date("Y-m-d", strtotime($flight["EndDate"])),

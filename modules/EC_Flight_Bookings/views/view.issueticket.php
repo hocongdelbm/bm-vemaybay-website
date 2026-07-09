@@ -1,11 +1,11 @@
 <?php
-require_once("include/Sugar_Smarty.php");
+if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class Viewissueticket extends SugarView {
 	function display() {
 		$smarty = new Sugar_Smarty();
 
-		// Map [iata_code => logo_url] để JS lấy logo hãng bay qua EC_Airlines::getLogoUrl() thay vì tự build đường dẫn ảnh tĩnh.
+		// Map [iata_code => logo_url].
 		$airlineLogoMap = [];
 		foreach (array_keys(EC_Airlines::getAirlineList()) as $airlineCode) {
 			$airlineLogoMap[$airlineCode] = EC_Airlines::getLogoUrl($airlineCode);

@@ -1825,8 +1825,8 @@ function sendAutoCheapPriceMessageZalo()
 				$departure_month = date('m', $departure_timestamp);
 				$departure_year  = date('Y', $departure_timestamp);
 
-				$depInfo = Flight::getAirport($dep_code);
-				$desInfo = Flight::getAirport($des_code);
+				$depCityName = EC_Airports::getCityName($dep_code) ?? $dep_code;
+				$desCityName = EC_Airports::getCityName($des_code) ?? $des_code;
 
 				// Get cheap price (cache)
 				$cacheKey = "$dep_code-$des_code-$departure_year-$departure_month";
@@ -1900,7 +1900,7 @@ function sendAutoCheapPriceMessageZalo()
 								"customer_name" => "bạn",
 								"code" => $booking_name,
 								"ticket_price" => $minPrice,
-								"city_pair" => trim("{$depInfo['CityName']} ($dep_code) đi {$desInfo['CityName']} ($des_code)"),
+								"city_pair" => trim("{$depCityName} ($dep_code) đi {$desCityName} ($des_code)"),
 								"list_departure_date" => $listDate,
 							],
 						];
@@ -2071,8 +2071,8 @@ function maintainZaloChat() {
 					$des_code = ['HAN', 'DAD', 'PQC'];
 					$des_code = $des_code[array_rand($des_code)];
 
-					$depInfo = Flight::getAirport($dep_code);
-					$desInfo = Flight::getAirport($des_code);
+					$depCityName = EC_Airports::getCityName($dep_code) ?? $dep_code;
+					$desCityName = EC_Airports::getCityName($des_code) ?? $des_code;
 					$cacheKey = "$dep_code-$des_code-$departure_year-$departure_month";
 					if (!isset($listFlightSearch[$cacheKey]) || empty($listFlightSearch[$cacheKey])) {
 						$temp = $entryFS->getMinPriceInMonth([
@@ -2123,7 +2123,7 @@ function maintainZaloChat() {
 						if ($minPrice > 0 && !empty($listDate)) {
 							$text = $template_text;
 							$text .= "\n";
-							$text .= "\n✈️ {$depInfo['CityName']} đi {$desInfo['CityName']}";
+							$text .= "\n✈️ {$depCityName} đi {$desCityName}";
 							$text .= "\n💰 Giá vé " . number_format($minPrice, 0, ',', '.') . " VNĐ";
 							$text .= "\n🗓 Ngày đi: " . $listDate;
 							$text .= "\n🌐 Đặt vé tại timchuyenbay.com hoặc để lại lời nhắn để được tư vấn trực tiếp miễn phí";

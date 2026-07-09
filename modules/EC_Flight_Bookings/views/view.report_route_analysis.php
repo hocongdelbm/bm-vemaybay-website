@@ -261,7 +261,7 @@ class Viewreport_route_analysis extends SugarView
         $res = $this->bean->db->query($sql);
 
         $region_dom = $app_list_strings['region_dom'] ?? [];
-        $dom_keys   = array_keys($app_list_strings['domestic_airport_list'] ?? []);
+        $dom_keys   = array_keys(EC_Airports::getAirportList(EC_Airports::AIRPORT_SCOPE_DOMESTIC));
 
         // Thu thập dòng + id BK hoàn tất, rồi tính doanh số real-time 1 lần (batch)
         $rows          = [];

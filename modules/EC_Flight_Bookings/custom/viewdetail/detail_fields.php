@@ -485,7 +485,7 @@ trait DetailFieldsTrait
 
 	private function assignInvoiceExportFields()
 	{
-		// Is invoice export
+		// Is invoice export - Hóa đơn đầu ra
 		$is_invoice_export_title = !$this->bean->is_invoice_export ? 'Xuất thêm HĐ' : 'Đã xuất HĐ ra';
 		$is_invoice_export = '</form>
 		<form class="frmBookingStatus d-flex gap-1 align-items-center" action="index.php" method="post" name="frmCheckInvoiceExport" id="frmCheckInvoiceExport">
@@ -498,11 +498,11 @@ trait DetailFieldsTrait
 		  <span class="w-50">HĐ đầu ra: </span>
 		  <span class="d-flex align-items-center gap-2 flex-fill">
 		  	<input type="checkbox" disabled ' . ($this->bean->is_invoice_export ? 'checked' : '') . ' />
-		  	' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->booking_status == '8') ? '<input type="submit" name="btnCheckInvoiceExport" id="btnCheckInvoiceExport" class="btn btn-primary-2 cursor-pointer" value="' . $is_invoice_export_title . '" title="' . $is_invoice_export_title . '" />' : '') . '
+		  	' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && (int)$this->bean->booking_status === 8) ? '<input type="submit" name="btnCheckInvoiceExport" id="btnCheckInvoiceExport" class="btn btn-primary-2 cursor-pointer" value="' . $is_invoice_export_title . '" title="' . $is_invoice_export_title . '" />' : '') . '
 		  </span>
 		</form>';
 
-		// Is invoice input export
+		// Is invoice input export - Hóa đơn đầu vào
 		$is_invoice_input_export_title = $this->bean->is_invoice_input_export ? 'Chưa xuất HĐ vào' : 'Đã xuất HĐ vào';
 		$is_invoice_input_export = '</form>
 			<form class="frmBookingStatus d-flex gap-1 align-items-center" action="index.php" method="post" name="frmCheckInvoiceInputExport" id="frmCheckInvoiceInputExport">
@@ -514,8 +514,8 @@ trait DetailFieldsTrait
 			<input type="hidden" name="is_invoice_input_export" value="' . ($this->bean->is_invoice_input_export ? 0 : 1) . '" />
 			<span class="w-50">HĐ đầu vào: </span>
 			<span class="d-flex align-items-center gap-2 flex-fill">
-			<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_input_export ? 'checked' : '') . ' />
-			' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->booking_status == '8') ? '<input type="submit" name="btnCheckInvoiceInputExport" class="btn btn-primary-2 cursor-pointer" id="btnCheckInvoiceInputExport" value="' . $is_invoice_input_export_title . '" title="' . $is_invoice_input_export_title . '" />' : '') . '
+			<input type="checkbox" disabled ' . ($this->bean->is_invoice_input_export ? 'checked' : '') . ' />
+			' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && (int)$this->bean->booking_status === 8 && !$this->bean->is_invoice_input_export) ? '<input type="submit" name="btnCheckInvoiceInputExport" class="btn btn-primary-2 cursor-pointer" id="btnCheckInvoiceInputExport" value="' . $is_invoice_input_export_title . '" title="' . $is_invoice_input_export_title . '" />' : '') . '
 			</span>
 		</form>';
 
@@ -525,7 +525,7 @@ trait DetailFieldsTrait
 	private function assignOnlinePaymentFields()
 	{
 		// Online payment
-		$onlinePaymentLink = EC_Flight_Bookings_Helper::get_online_payment_link($this->bean->id, $this->bean->created_by);
+		$onlinePaymentLink = Bookings_Helper::get_online_payment_link($this->bean->id, $this->bean->created_by);
 		$nganluong_code = <<<HTML
 			<div class="nganluong__wrap">
 				<button class="flex-fill d-flex align-items-center justify-content-center gap-1" id="get_qr_code">

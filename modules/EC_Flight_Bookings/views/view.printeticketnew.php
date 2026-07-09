@@ -861,24 +861,14 @@ class Viewprinteticketnew extends SugarView
 		while ($row = $db->fetchByAssoc($res)) {
 			$depCode = $row['departure'] ?? '';
 			$arrCode = $row['arrival'] ?? '';
-			$airlineCode = $row['airline_code'] ?? '';
+			$airlineCode = EC_Airlines::normalizeIataCode($row['airline_code'] ?? '');
+			$airlineName = EC_Airlines::getAirlineName($airlineCode) ?? $airlineCode;
 
-			// Get airport names
-			$depAirport = Flight::getAirport($depCode);
-			$arrAirport = Flight::getAirport($arrCode);
+			$depCityName = EC_Airports::getCityName($depCode) ?? $depCode;
+			$arrCityName = EC_Airports::getCityName($arrCode) ?? $arrCode;
 
-			$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
-			$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
-
-			// Use myGetAirportInfo2 to get proper localized city name
-			$depInfo = function_exists('myGetAirportInfo2') ? myGetAirportInfo2($depCode) : [];
-			$arrInfo = function_exists('myGetAirportInfo2') ? myGetAirportInfo2($arrCode) : [];
-
-			$depCityName = (!empty($depInfo['data'][0]['name'])) ? $depInfo['data'][0]['name'] : ($depAirport['CityName'] ?? $depCode);
-			$arrCityName = (!empty($arrInfo['data'][0]['name'])) ? $arrInfo['data'][0]['name'] : ($arrAirport['CityName'] ?? $arrCode);
-
-			$depAirportName = $depAirport['AirPortName'] ?? '';
-			$arrAirportName = $arrAirport['AirPortName'] ?? '';
+			$depAirportName = EC_Airports::getAirportName($depCode) ?? '';
+			$arrAirportName = EC_Airports::getAirportName($arrCode) ?? '';
 
 			$results[] = [
 				'id' => $row['id'],
@@ -1024,22 +1014,14 @@ class Viewprinteticketnew extends SugarView
 	{
 		$depCode = $row['departure'] ?? '';
 		$arrCode = $row['arrival'] ?? '';
-		$airlineCode = $row['airline_code'] ?? '';
+		$airlineCode = EC_Airlines::normalizeIataCode($row['airline_code'] ?? '');
+		$airlineName = EC_Airlines::getAirlineName($airlineCode) ?? $airlineCode;
 
-		$depAirport = Flight::getAirport($depCode);
-		$arrAirport = Flight::getAirport($arrCode);
+		$depCityName = EC_Airports::getCityName($depCode) ?? $depCode;
+		$arrCityName = EC_Airports::getCityName($arrCode) ?? $arrCode;
 
-		$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
-		$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
-
-		$depInfo = function_exists('myGetAirportInfo2') ? myGetAirportInfo2($depCode) : [];
-		$arrInfo = function_exists('myGetAirportInfo2') ? myGetAirportInfo2($arrCode) : [];
-
-		$depCityName = (!empty($depInfo['data'][0]['name'])) ? $depInfo['data'][0]['name'] : ($depAirport['CityName'] ?? $depCode);
-		$arrCityName = (!empty($arrInfo['data'][0]['name'])) ? $arrInfo['data'][0]['name'] : ($arrAirport['CityName'] ?? $arrCode);
-
-		$depAirportName = $depAirport['AirPortName'] ?? '';
-		$arrAirportName = $arrAirport['AirPortName'] ?? '';
+		$depAirportName = EC_Airports::getAirportName($depCode) ?? '';
+		$arrAirportName = EC_Airports::getAirportName($arrCode) ?? '';
 
 		return [
 			'id' => $row['id'],

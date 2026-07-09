@@ -218,6 +218,8 @@ class EC_HoanVeViewDetail extends ViewDetail
 		$res = $this->bean->db->query($sql);
 		$i = 0;
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
+			$airlineCode = EC_Airlines::normalizeIataCode($row['airline_code']);
+			$airlineName = EC_Airlines::getAirlineName($airlineCode) ?? $airlineCode;
 
 			$html .= '<tr>
 						<td data-label="Loại HK" class="text-center">' . $app_list_strings['passenger_type_list'][(int)$row['loaihk']] . '</td>
@@ -225,7 +227,7 @@ class EC_HoanVeViewDetail extends ViewDetail
 						<td data-label="Họ tên" class="text-start">' . $row['hoten'] . '</td>
 						<td data-label="Ngày sinh" class="text-center">' . (trim($row['ngaysinh']) != '' ? date($date_format, strtotime($row['ngaysinh'])) : '') . '</td>
 						<td data-label="Chiều" class="text-center">' . $app_list_strings['bk_direction_list'][(int)$row['chieubay']] . '</td>
-						<td data-label="Mã hãng" class="text-center">' . $app_list_strings['ma_hang'][$row['airline_code']] . ' (' . $row['airline_code'] . ')</td>
+						<td data-label="Mã hãng" class="text-center">' . $airlineName . ' (' . $row['airline_code'] . ')</td>
 						<td data-label="Nơi đi" class="text-center">' . $row['noidi'] . '</td>
 						<td data-label="Nơi đến" class="text-center">' . $row['noiden'] . '</td>
 						<td data-label="Số vé" class="text-center">' . $row['sove'] . '</td>

@@ -101,7 +101,7 @@ class Viewbonusreport extends SugarView {
 
 		// Helper expects date-only values in the user's format and expands
 		// them to full-day boundaries itself
-		$report = EC_Flight_Bookings_Helper::get_bonus_report($from_date, $to_date);
+		$report = Bookings_Helper::get_bonus_report($from_date, $to_date);
 
 		$this->smartyObj->assign('FROM_DATE', $from_date);
 		$this->smartyObj->assign('TO_DATE', $to_date);

@@ -16,26 +16,14 @@ class EC_Flight_BookingsController extends SugarController
             case "index":
                 $this->action = "ListView";
                 break;
-            case "employeereport":
-                $this->action = "employeereport";
-                break;
-            case "printeticket":
-                $this->action = "printeticket";
-                break;
             case "printeticketnew":
                 $this->action = "printeticketnew";
-                break;
-            case "sendeticket":
-                $this->action = "sendeticket";
                 break;
             case "sendeticketnew":
                 $this->action = "sendeticketnew";
                 break;
             case "sendconfirm":
                 $this->action = "sendconfirm";
-                break;
-            case "monthlyreport":
-                $this->action = "monthlyreport";
                 break;
             case "agentreport":
                 $this->action = "agentreport";
@@ -45,9 +33,6 @@ class EC_Flight_BookingsController extends SugarController
                 break;
             case "debtopay":
                 $this->action = "debtopay";
-                break;
-            case "recoveryorder":
-                $this->action = "recoveryorder";
                 break;
             case "airportstatistics":
                 $this->action = "airportstatistics";
@@ -79,9 +64,6 @@ class EC_Flight_BookingsController extends SugarController
             case "issueticket":
                 $this->action = "issueticket";
                 break;
-            case "updateflightfare":
-                $this->action = "updateflightfare";
-                break;
             case "clientphonetcb":
                 $this->action = "clientphonetcb";
                 break;
@@ -111,20 +93,10 @@ class EC_Flight_BookingsController extends SugarController
             $this->action = "DetailView";
         if ($this->return_action == "index")
             $this->action = "ListView";
-        if ($this->return_action == "printeticket")
-            $this->action = "printeticket";
         if ($this->return_action == "sendeticketnew")
             $this->action = "sendeticketnew";
         if ($this->return_action == "printeticketnew")
             $this->action = "printeticketnew";
-        if ($this->return_action == "sendeticket")
-            $this->action = "sendeticket";
-        if ($this->return_action == "sendeticketnew")
-            $this->action = "sendeticketnew";
-        if ($this->return_action == "employeereport")
-            $this->action = "employeereport";
-        if ($this->return_action == "monthlyreport")
-            $this->action = "monthlyreport";
         if ($this->return_action == "agentreport")
             $this->action = "agentreport";
         if ($this->return_action == "checkflydate")
@@ -133,8 +105,6 @@ class EC_Flight_BookingsController extends SugarController
             $this->action = "debtopay";
         if ($this->return_action == "sendconfirm")
             $this->action = "sendconfirm";
-        if ($this->return_action == "recoveryorder")
-            $this->action = "recoveryorder";
         if ($this->return_action == "airportstatistics")
             $this->action = "airportstatistics";
         if ($this->return_action == "issueticket")

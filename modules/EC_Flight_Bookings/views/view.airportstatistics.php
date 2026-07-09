@@ -1,6 +1,5 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
-require_once("include/Sugar_Smarty.php");
 date_default_timezone_set("Asia/Ho_Chi_Minh");
 
 class Viewairportstatistics extends SugarView
@@ -35,7 +34,7 @@ class Viewairportstatistics extends SugarView
         $from_date    = date('d-m-Y');
         $to_date    = date('d-m-Y');
 
-        $airport = array_keys($app_list_strings['domestic_airport_list']); // Key
+        $airport = array_keys(EC_Airports::getAirportList(EC_Airports::AIRPORT_SCOPE_DOMESTIC)); // Key
         $booking_status = array_keys($app_list_strings['booking_status_list']);
 
         if (!empty($_POST['from_date'])) {
@@ -175,7 +174,7 @@ class Viewairportstatistics extends SugarView
         $js_label           = "[";
         $js_total_ticket    = "[";
         $js_total_bk_qty    = "[";
-        $airport_arr        = $app_list_strings['domestic_airport_list'];
+        $airport_arr        = EC_Airports::getAirportList(EC_Airports::AIRPORT_SCOPE_DOMESTIC);
 
         while ($row = $db->fetchByAssoc($res)) {
             $departure = $row['departure'];
@@ -312,10 +311,10 @@ class Viewairportstatistics extends SugarView
 
     function populateBookingInter($from_date, $to_date)
     {
-        global $db, $app_list_strings, $current_user;
+        global $db, $current_user;
 
-        $airport_key_domestic    = array_keys($app_list_strings['domestic_airport_list']);
-        $airport_arr             = array_merge($app_list_strings['domestic_airport_list'], $app_list_strings['southeast_asia_airport_list'], $app_list_strings['northeast_asia_airport_list'], $app_list_strings['europe_airport_list'], $app_list_strings['americas_airport_list'], $app_list_strings['australia_airport_list'], $app_list_strings['africa_airport_list']);
+        $airport_key_domestic    = array_keys(EC_Airports::getAirportList(EC_Airports::AIRPORT_SCOPE_DOMESTIC));
+        $airport_arr             = EC_Airports::getAirportList();
 
         $domestic_in   = "'" . implode("','", $airport_key_domestic) . "'";
 
@@ -449,6 +448,8 @@ class Viewairportstatistics extends SugarView
 
             for ($k = 0; $k < count($dt_arr); $k++) {
                 $dt_val = explode(',', $dt_arr[$k]);
+                $airlineCode = EC_Airlines::normalizeIataCode($dt_val[4]);
+                $airlineName = EC_Airlines::getAirlineName($airlineCode) ?? $airlineCode;
                 $html .= '<tr>
                     <td></td>
                     <td class="text-end">' . $airport_arr[$dt_val[0]] . '</td>
@@ -458,7 +459,7 @@ class Viewairportstatistics extends SugarView
                     <td class="text-center">' . format_number($dt_val[5]) . '</td>
                     <td class="text-center">' . format_number($dt_val[6]) . '</td>
                     <td class="text-end"></td>
-                    <td class="text-center">' . $GLOBALS['app_list_strings']['ma_hang'][$dt_val[4]] . '</td>
+                    <td class="text-center">' . $airlineName . '</td>
                 </tr>';
             }
 

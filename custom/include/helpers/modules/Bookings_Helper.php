@@ -1,5 +1,5 @@
 <?php
-class EC_Flight_Bookings_Helper
+class Bookings_Helper
 {
     /**
      * Get online payment link
@@ -310,5 +310,36 @@ class EC_Flight_Bookings_Helper
             else if($row['parent_type'] == 'EC_HoanVe') {}
         }
         return $result;
+    }
+
+    /**
+     * Get nice duration from duration
+     * 
+     * @param int $duration_seconds
+     * @return string
+     */
+    public static function getNiceDuration($duration_seconds) {
+        $nice_duration = '';
+        $days = floor($duration_seconds / 86400);
+        $duration_seconds -= $days * 86400;
+        $hours = floor($duration_seconds / 3600);
+        $duration_seconds -= $hours * 3600;
+        $minutes = floor($duration_seconds / 60);
+        $seconds = $duration_seconds - $minutes * 60;
+
+        if ($days > 0) {
+            $nice_duration .= (int)$days . 'd';
+        }
+        if ($hours > 0) {
+            $nice_duration .= ' ' . (int)$hours . 'h';
+        }
+        if ($minutes > 0) {
+            $nice_duration .= ' ' . (int)$minutes . 'm';
+        }
+        if ($seconds > 0) {
+            $nice_duration .= ' ' . $seconds . 's';
+        }
+
+        return trim($nice_duration);
     }
 }
