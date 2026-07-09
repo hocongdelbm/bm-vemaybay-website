@@ -343,7 +343,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 
 		// Lựa chọn HL lượt đi
 		$options_ob = $booking->generateBaggageOptions($booking->airline, $ticket_class_ob, $row['luggage_purchase_text'], $row['luggage_purchase']);
-		pr($options_ob);
+		// pr($options_ob);
 
 		$html .= '<tr class="line_pass' . $row['id'] . '">
 					<td width="20%" class="text-label text-nowrap">Thêm HL lượt đi:</td>
