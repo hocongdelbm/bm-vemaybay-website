@@ -452,32 +452,4 @@ trait PassengerTrait
 		return ['passenger' => $pass, 'baggage' => trim($bag)];
 	}
 
-	// Get zalo id
-
-	private function resolvePassengerIdChain($passengerId)
-	{
-		$ids       = [];
-		$currentId = preg_replace('/[^a-zA-Z0-9\-]/', '', $passengerId);
-		$bookingId = $this->bean->db->quote($this->bean->id);
-		$maxDepth  = 10;
-
-		for ($i = 0; $i < $maxDepth; $i++) {
-			if (empty($currentId) || in_array($currentId, $ids)) break;
-			$ids[] = $currentId;
-
-			$sql = "SELECT parent_detail_id
-                FROM ec_booking_passengers
-                WHERE id = '$currentId'
-                  AND booking_id = '$bookingId'
-                  AND deleted = 0
-                LIMIT 1";
-			$res = $this->bean->db->query($sql);
-			$row = $this->bean->db->fetchByAssoc($res);
-
-			if (!$row || empty($row['parent_detail_id'])) break;
-			$currentId = preg_replace('/[^a-zA-Z0-9\-]/', '', $row['parent_detail_id']);
-		}
-
-		return $ids; // [ID_RENAME_3, ID_RENAME_1, ID_GỐC]
-	}
 }

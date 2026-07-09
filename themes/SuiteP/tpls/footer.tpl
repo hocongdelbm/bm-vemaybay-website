@@ -61,13 +61,14 @@
              wsUrl: '{/literal}{$APP_CONFIG.chat_widget.wsUrl|escape:'javascript'}{literal}',
              restUrl: '{/literal}{$APP_CONFIG.chat_widget.restUrl|escape:'javascript'}{literal}',
              restKey: '{/literal}{$APP_CONFIG.chat_widget.restKey|escape:'javascript'}{literal}',
+             crmUrl: '{/literal}{$APP_CONFIG.chat_widget.crmUrl|escape:'javascript'}{literal}',
              adminId: '{/literal}{$CURRENT_USER_ID|escape:'javascript'}{literal}',
              adminName: '{/literal}{$CURRENT_USER|escape:'javascript'}{literal}',
              autoConnect: true,
              debug: true
          };
      </script>
-     <script src="https://chat.timchuyenbay.net/client/admin_widget.js?v=1.1.0"></script>
+     <script src="https://chat.timchuyenbay.net/client/admin_widget.js?v=1.1.2"></script>
 {/literal}
 {/if}
 </body>

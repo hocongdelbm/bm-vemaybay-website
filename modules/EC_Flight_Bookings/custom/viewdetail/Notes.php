@@ -219,6 +219,4 @@ trait NotesTrait
 		</div>';
 		return $html;
 	}
-
-	// Hiện thông tin hoá đơn
 }

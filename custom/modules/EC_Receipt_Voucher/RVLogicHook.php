@@ -33,7 +33,7 @@ class RVLogicHook
 	// Cập nhật thông tin doanh số
 	function saveRevenueBookingHookReceipt($bean, $event, $arguments)
 	{
-		if (!empty($bean->booking_id) && in_array($bean->loai_thu, [4, 5, 27]) && $bean->rv_status == 1) {
+		if (!empty($bean->booking_id) && in_array($bean->loai_thu, [4, 5]) && $bean->rv_status == 1) {
 			saveRevenueBooking($bean->booking_id);
 			return true;
 		}

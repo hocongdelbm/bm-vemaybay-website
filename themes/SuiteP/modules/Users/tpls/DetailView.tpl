@@ -155,15 +155,14 @@
                         {{/if}}
                         <div class="panel panel-default">
                         <div class="panel-heading {{$panelHeadingCollapse}}">
-
-                            <button class="row g-0 panel-heading-collapsed {{$collapsed}}" type="button" data-bs-toggle="collapse" data-bs-target="#{{$panelId}}" aria-expanded="false">
+                            <a class="row g-0 panel-heading-collapsed {{$collapsed}}" type="button" data-bs-toggle="collapse" data-bs-target="#{{$panelId}}" aria-expanded="false">
                                 <div class="col-xs-12 col-sm-12 col-md-12 d-flex justify-content-between">
                                     <span class="panel-heading-text w-100">{sugar_translate label='{{$label}}' module='{{$module}}'}</span>
                                     <span class="panel-heading-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-dash-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8Z"></path></svg>
                                     </span>
                                 </div>
-                            </button>
+                            </a>
                         </div>
                         <div class="panel-body {{$collapse}} show" id="{{$panelId}}">
                             <div class="tab-content">

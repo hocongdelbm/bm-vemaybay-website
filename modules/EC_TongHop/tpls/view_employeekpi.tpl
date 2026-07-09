@@ -14,10 +14,6 @@
 			font-weight: 600;
 		}
 
-		table.list-data-all a.showdt:hover {
-			color: var(--yellow-color);
-		}
-
 		table.list-data-all thead th{
 			white-space: nowrap;
 		}
@@ -69,19 +65,6 @@
 			height: 100%;
 		}
 
-		/* #mark_detail_tbl { */
-		#mark_detail_tbl--wrap {
-			display: none;
-			position: relative;
-		}
-
-		#mark-loading {
-			padding-top: 8px;
-		}
-		.showall {
-			position: relative;
-		}
-
 		.list-data tbody tr:not(:first-child, :last-child):hover {
 			background-color: #cfeafe !important;
 		}
@@ -119,21 +102,24 @@
 			});
 			
 			// When dialog open
-			$('#dlgViewDetail').on('dialogopen', function(event, ui){					
+			$('#dlgViewDetail').on('dialogopen', function(event, ui){
 				let load_type 	= $.trim($('#load_type').val());
 				let user_id 	= $.trim($('#user_id').val());
 				let from_date 	= $('#from_date').val();
 				let to_date 	= $('#to_date').val();
 
 				if(load_type != ''){
-					$.ajax({	
+					$('#dlgViewDetailContent').html('<div class="dlg-loading" style="text-align:center;padding:60px 0;"><img src="themes/SuiteP/images/loading.gif" width="32"><div style="margin-top:10px;">Đang tải dữ liệu...</div></div>');
+					$.ajax({
 						cache: false,
 						type: 'post',
 						data: 'load_type=' + load_type + '&from_date='+ from_date +'&to_date=' + to_date + '&user_id=' + user_id,
-						async: false,
 						url: 'index.php?entryPoint=entryPointLoadWorkingProcessDetail',
 						success: function(output){
 							$('#dlgViewDetailContent').html(output);
+						},
+						error: function(){
+							$('#dlgViewDetailContent').html('<div style="text-align:center;padding:60px 0;color:#c00;">Có lỗi khi tải dữ liệu, vui lòng thử lại.</div>');
 						}
 					});
 				}
@@ -147,131 +133,21 @@
 				let from_date 	= $('#from_date').val();
 				let to_date 	= $('#to_date').val();
 
-				$.ajax({	
+				$('#dlgViewDetailContent').html('<div class="dlg-loading" style="text-align:center;padding:60px 0;"><img src="themes/SuiteP/images/loading.gif" width="32"><div style="margin-top:10px;">Đang tải dữ liệu...</div></div>');
+				$.ajax({
 					cache: false,
 					type: 'post',
 					data: 'load_type=' + load_type + '&from_date='+ from_date +'&to_date=' + to_date + '&user_id=' + user_id + '&kpi_type=' + kpi_type,
-					async: false,
 					url: 'index.php?entryPoint=entryPointLoadWorkingProcessDetail',
 					success: function(output){
 						$('#dlgViewDetailContent').html(output);
+					},
+					error: function(){
+						$('#dlgViewDetailContent').html('<div style="text-align:center;padding:60px 0;color:#c00;">Có lỗi khi tải dữ liệu, vui lòng thử lại.</div>');
 					}
 				});
 			});
 			
-			$('.allow-number-only2').on('keydown', function (event) {
-				$(this).allowNumberOnly(event);
-			});
-			
-			$(".showdt").click(function() {
-				$.ajax({
-					url: "index.php?entryPoint=entryPointFlightBookings",
-					type: "POST",
-					data: {
-						employee: $(this).attr("employee"),
-						type: $(this).attr("type"),
-						date_search: $("#from_date").val(),
-						line: $(this).attr("id"),
-						for: "populateDetailMark",
-					},
-					beforeSend: function() {
-						$("#mark_detail_tbl>tbody").html('...Loading');
-					},
-					success: function(response) {
-						$("#mark_detail_tbl>tbody").html(response);
-					}
-				});
-
-				$("#mark_detail_tbl--wrap").dialog({
-					width: 700,
-					title: "Chi tiết chấm điểm",
-					modal: true,
-					resizable: false,
-					close: function() {
-						$(".showhidehis").text("Xem lịch sử");
-						$("#history_tbl").html("");
-					},
-				});
-			});
-			
-			// jQuery plugin definition
-			$.fn.allowNumberOnly = function(event) {
-				if(event.shiftKey)
-					return event.preventDefault();
-				if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 110 || event.keyCode == 9 || event.keyCode == 190 || event.keyCode == 13 || event.keyCode == 189 || event.keyCode == 109) {
-				}
-				else {
-					if (event.keyCode < 95) {
-						if (event.keyCode < 48 || event.keyCode > 57) {
-							if (event.keyCode >= 37 && event.keyCode <= 40) {  
-							}
-							else
-							{
-								return event.preventDefault();
-							}
-						}
-					} 
-					else {
-						if (event.keyCode < 96 || event.keyCode > 105) {
-							return event.preventDefault();
-						}
-					}
-				}
-			};
-			
-			$(document).on("click", "#done_btn", function() {
-				$.ajax({
-					url: "index.php?entryPoint=entryPointFlightBookings",
-					type: "POST",
-					data: {
-						mark: $("#left_mark").text(),
-						type: $("#mark_type").val(),
-						mark_date: $("#from_date").val(),
-						assigned_user: $("#assigned_user").val(),
-						remark: $("#user_remark").val(),
-						for: "saveMark",
-					},
-					beforeSend: function() {
-						$("#mark-loading").show();
-						$("#mark-loading").text("Đang lưu...");
-					},
-					success: function(response) {
-						$("#mark-loading").hide();
-						// $("#mark_detail_tbl").dialog("close");
-
-						$("#mark_detail_tbl--wrap").dialog("close");
-						$("#"+$("#line").val()).text($("#left_mark").text());
-					},
-				})
-			});
-
-			$(document).on("click", ".showhidehis", function() {
-				if($(this).text() == "Xem lịch sử") {
-					$(this).text("Rút gọn");
-					$.ajax({
-						url: "index.php?entryPoint=entryPointFlightBookings",
-						type: "POST",
-						data: {
-							date: $("#from_date").val(),
-							type: $("#mark_type").val(),
-							assigned_user: $("#assigned_user").val(),
-							for: "findingHistory",
-						},
-						beforeSend: function() {
-							$("#mark-loading").show();
-							$("#mark-loading").text("Đang tìm...");
-						},
-						success: function(response) {
-							$("#mark-loading").hide();
-							$("#history_tbl").html(response);
-						},
-					})
-				} else {
-					$(this).text("Xem lịch sử");
-					$("#history_tbl").html("");
-				}
-			});
-
 			$("#date_select").change(function() {
 				$("#from_date").val($(this).find("option:selected").attr("fromdate"));
 				$("#to_date").val($(this).find("option:selected").attr("todate"));
@@ -305,13 +181,6 @@
 				}
 			}
 		});
-
-		function calculateLeftMark() {
-			if($("#mark").val() != '' && $("#mark").val() != "-") {
-				$("#left_mark").text(parseInt($("#curr_mark").text()) + parseInt($("#mark").val()));
-			}
-		}
-
     </script>
 {/literal}
 
@@ -475,27 +344,6 @@
 		<td align="center"><span title="Tổng cộng">{$TTL_FINAL}</span></td>
 	</tr>
 </table>
-
-<div id="mark_detail_tbl--wrap" class="p-2">
-	<table id="mark_detail_tbl" class="table-details__booking" cellpadding="0" cellspacing="0">
-		<thead>
-			<tr>
-				<th width="20%" align="center">Hiện tại</th>
-				<th width="20%" align="center">Chấm điểm</th>
-				<th width="20%" align="center">Kết quả</th>
-				<th width="40%">Nhận xét</th>
-			</tr>
-		</thead>
-		<tbody></tbody> 
-		<tfoot>
-			<tr>
-				<td id="mark-loading" align="center" colspan="5"></td>
-			</tr>
-			<tr><td colspan="5" id="history_tbl"></td></tr>
-		</tfoot>
-	</table>
-</div>
-
 {elseif $OWNER}
 <table class="summary-report table-details__booking my-3" cellpadding="0" cellspacing="0">
 	<thead>

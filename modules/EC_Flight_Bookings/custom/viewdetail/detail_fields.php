@@ -1,18 +1,32 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-/**
- * Booking field, ticket detail, and invoice rendering.
- *
- * Used by EC_Flight_BookingsViewDetail. Methods are kept close to the
- * legacy implementation to preserve the old business behavior.
- */
-trait BookingFieldsTrait
+trait DetailFieldsTrait
 {
 	private function assignInvoiceInfoField()
 	{
 		// Thông tin hoá đơn
-		$this->populateInvoiceInf();
+		$iv_account_name = $iv_email = $iv_identity_number = $iv_payment_method = '';
+		$iv_name_banks = $iv_bank_account = '';
+
+		if (!empty($this->bean->shipping_address)) {
+			$invoice_arr = json_decode(str_replace("&quot;", "\"", $this->bean->shipping_address), 1);
+			$iv_account_name = $invoice_arr['iv_account_name'] ?? '';
+			$iv_email = $invoice_arr['iv_email'] ?? '';
+			$iv_identity_number = $invoice_arr['iv_identity_number'] ?? '';
+			$iv_payment_method = $invoice_arr['iv_payment_method'] ?? '';
+			$iv_name_banks = $invoice_arr['iv_name_banks'] ?? '';
+			$iv_bank_account = $invoice_arr['iv_bank_account'] ?? '';
+		}
+
+		$bankList = EC_Flight_Bookings::getInvoiceBankList();
+
+		$this->ss->assign('CUS_IV_ACCOUNT_NAME', $iv_account_name);
+		$this->ss->assign('CUS_IV_EMAIL', $iv_email);
+		$this->ss->assign('CUS_IV_IDENTITY_NUMBER', $iv_identity_number);
+		$this->ss->assign('CUS_IV_PAYMENT_METHOD', $iv_payment_method);
+		$this->ss->assign('CUS_IV_NAME_BANKS', $bankList[$iv_name_banks] ?? $iv_name_banks);
+		$this->ss->assign('CUS_IV_BANK_ACCOUNT', $iv_bank_account);
 	}
 
 	private function assignBookingNameField()
@@ -51,10 +65,27 @@ trait BookingFieldsTrait
 		$this->ss->assign('CUSTOM_CUSTOMER_SOURCE', $customer_source);
 	}
 
+	private function renderActiveBookmarkCheckbox(string $fieldId, string $confirmMessage, string $hiddenFieldName = '')
+	{
+		$hiddenFieldName = $hiddenFieldName ?: $fieldId;
+		$confirmJs = "if(confirm('" . $confirmMessage . "')){this.form.submit();$('.container-waiting').show();}else{this.checked=false;}";
+
+		return '
+			</form><form name="frmCheck' . $fieldId . '" id="frmCheck' . $fieldId . '" action="index.php" method="post">
+				<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
+				<input type="hidden" name="action" value="Save" />
+				<input type="hidden" name="record" value="' . $this->bean->id . '" />
+				<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+				<input type="hidden" name="' . $hiddenFieldName . '" value="1" />
+				<input type="checkbox" name="' . $fieldId . '" id="check' . $fieldId . '" onclick="' . $confirmJs . '" />
+			</form>';
+	}
+
 	private function assignBookingBookmarkField()
 	{
-		// Đánh dấu
-		$list_bookmark = '<div class="d-flex align-items-start flex-nowrap gap-3">';
+		// Đánh dấu - các cờ người dùng CHỦ ĐỘNG gắn cho booking (luôn xác nhận trước khi lưu)
+		$list_bookmark = '<div class="d-flex align-items-start flex-wrap gap-3">';
+
 		// Telesale
 		if ($this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
 			$call_name = $this->bean->db->getOne("SELECT name FROM calls WHERE id = '{$this->bean->telesale_call_id}' AND deleted = 0") ?? '';
@@ -66,16 +97,9 @@ trait BookingFieldsTrait
 			</div>';
 		} elseif ((int)$this->bean->booking_status === 8) {
 			$list_bookmark .= '<div class="item small">
-				</form><form name="frmCheckIsTelesale" id="frmCheckIsTelesale" action="index.php" method="post">
-					<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
-					<input type="hidden" name="action" value="Save" />
-					<input type="hidden" name="record" value="' . $this->bean->id . '" />
-					<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-					<input type="hidden" name="is_telesale_value" value="1" />
-					<label for="checkIsTelesale">Là BK Telesale</label>
-					<input type="checkbox" name="is_telesale" id="checkIsTelesale" onclick="this.form.submit(); $(\'.container-waiting\').show();" />
-				</form>
-			</div>';
+				<label for="checkIsTelesale">Là BK Telesale</label>'
+				. $this->renderActiveBookmarkCheckbox('IsTelesale', 'Bạn có chắc chắn muốn đánh dấu đây là BK Telesale?', 'is_telesale_value') .
+				'</div>';
 		}
 
 		// CTV
@@ -86,40 +110,23 @@ trait BookingFieldsTrait
 			</div>';
 		} else if ((int)$this->bean->booking_status === 8) {
 			$list_bookmark .= '<div class="item small">
-				</form><form name="frmCheckIsCTV" id="frmCheckIsCTV" action="index.php" method="post">
-					<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
-					<input type="hidden" name="action" value="Save" />
-					<input type="hidden" name="record" value="' . $this->bean->id . '" />
-					<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-					<input type="hidden" name="is_ctv_value" value="1" />
-					<label for="checkIsCTV">Là CTV</label>
-					<input type="checkbox" name="is_ctv" id="checkIsCTV" onclick="this.form.submit(); $(\'.container-waiting\').show();" />
-				</form>
-			</div>';
+				<label for="checkIsCTV">Là CTV</label>'
+				. $this->renderActiveBookmarkCheckbox('IsCTV', 'Bạn có chắc chắn muốn đánh dấu đây là BK của CTV?', 'is_ctv_value') .
+				'</div>';
 		}
 
-		// Đại lý
-		if ($this->bean->is_agent && !empty($this->bean->agent_id)) {
+		// BK tham khảo - trước đây là nút riêng trên toolbar (BK tham khảo), nay gộp vào checkbox này
+		if ($this->bean->is_reference) {
 			$list_bookmark .= '<div class="item small">
-				<label for="is_agent">Là đại lý</label>
-				<input type="checkbox" name="is_agent" id="check_is_agent" checked disabled />
-				<br />
-				<a href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
-					' . $this->bean->agent_name . '
-				</a>
+				<label for="checkIsReference">BK tham khảo</label>
+				<input type="checkbox" id="checkIsReference" checked disabled />
 			</div>';
 		} else {
 			$list_bookmark .= '<div class="item small">
-				<label for="check_is_agent">Là đại lý</label>
-				<input type="checkbox" name="is_agent" id="check_is_agent" disabled />
-			</div>';
+				<label for="checkIsReference">BK tham khảo</label>'
+				. $this->renderActiveBookmarkCheckbox('IsReference', 'Bạn có chắc chắn muốn đánh dấu đây là BK tham khảo?', 'is_reference') .
+				'</div>';
 		}
-
-		// Đã giữ chỗ
-		$list_bookmark .= '<div class="item small">
-			<label for="is_hold">Đã giữ chỗ</label>
-			<input type="checkbox" name="is_hold" id="check_is_hold" ' . ($this->bean->is_hold ? 'checked' : '') . ' disabled />
-		</div>';
 
 		$list_bookmark .= '</div>';
 		$this->ss->assign('CUSTOM_BOOKMARK', $list_bookmark);
@@ -127,17 +134,29 @@ trait BookingFieldsTrait
 
 	private function assignSystemBookmarkField()
 	{
-		// Hệ thống đánh dấu
+		// Hệ thống đánh dấu - các cờ do HỆ THỐNG/quy trình khác tự set (không thao tác trực tiếp ở đây)
 		$checkedIsPrior = $this->bean->is_prior ? 'checked' : '';
 		$checkedIsMailConfirm = $this->bean->is_mail_confirm ? 'checked' : '';
-		$checkedIsReference = $this->bean->is_reference ? 'checked' : '';
-		$this->ss->assign('CUSTOM_BOOKMARK_SYSTEM', <<<HTML
-			<div class="d-flex align-items-center gap-3">
-				<div class="item small"><input type="checkbox" id="is_prior" $checkedIsPrior disabled /> <label>Vé cận</label></div>
-				<div class="item small"><input type="checkbox" id="is_mail_confirm" $checkedIsMailConfirm disabled /> <label>Mail xác nhận</label></div>
-				<div class="item small"><input type="checkbox" id="is_reference" $checkedIsReference disabled /> <label>BK tham khảo</label></div>
-		</div>
-		HTML);
+		$checkedIsHold = $this->bean->is_hold ? 'checked' : '';
+
+		$agentHtml = '<div class="item small">
+			<label for="check_is_agent">Là đại lý</label>
+			<input type="checkbox" name="is_agent" id="check_is_agent" ' . ($this->bean->is_agent ? 'checked' : '') . ' disabled />';
+		if ($this->bean->is_agent && !empty($this->bean->agent_id)) {
+			$agentHtml .= '<br /><a href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">' . $this->bean->agent_name . '</a>';
+		}
+		$agentHtml .= '</div>';
+
+		$this->ss->assign('CUSTOM_BOOKMARK_SYSTEM', '
+			<div class="d-flex align-items-start flex-wrap gap-3">
+				<div class="item small"><input type="checkbox" id="is_prior" ' . $checkedIsPrior . ' disabled /> <label>Vé cận</label></div>
+				<div class="item small"><input type="checkbox" id="is_mail_confirm" ' . $checkedIsMailConfirm . ' disabled /> <label>Mail xác nhận</label></div>
+				' . $agentHtml . '
+				<div class="item small">
+					<label for="check_is_hold">Đã giữ chỗ</label>
+					<input type="checkbox" name="is_hold" id="check_is_hold" ' . $checkedIsHold . ' disabled />
+				</div>
+			</div>');
 	}
 
 	private function assignTicketExportedField()
@@ -223,10 +242,11 @@ trait BookingFieldsTrait
 		$this->ss->assign('CONTACT_NAME', $contact_assign . $modal_history_bookings);
 	}
 
-	private function assignContactPhoneField() {
-		$journeys_info = $this->getJourneysByBooking($this->bean->id);
-		$pass_and_bag  = $this->getPassengerAndBaggage($this->bean->id);
-		$zbs_history   = $this->getHistoryZBS($this->bean->phone, $this->bean->id);
+	private function assignContactPhoneField()
+	{
+		// Hành trình/hành khách/hành lý/lịch sử ZBS chỉ cần khi mở dialog "Gửi Zalo" —
+		// load qua AJAX (for=getZaloDialogData) lúc mở dialog thay vì tính sẵn ở đây
+		// (3 query chạy trên mọi lượt xem trang dù phần lớn không bao giờ mở dialog).
 		$contact_phone = '<div class="wrap-phone d-flex align-items-center justify-content-between">
 			<a href="tel:' . $this->bean->phone . '">' . $this->bean->phone . '</a>
 			<div class="d-flex align-items-center gap-2">
@@ -249,9 +269,9 @@ trait BookingFieldsTrait
 					<h6 class="title-zalo-oa-name mb-2">Travelpass tìm chuyến bay</h6>
 					<form method="dialog">
 						<input type="hidden" name="zalo_flight_type" id="zalo_flight_type" value="' . $this->bean->flight_type . '" />
-						<input type="hidden" name="zalo_journeys" id="zalo_journeys" value="' . base64_encode(rawurlencode(json_encode($journeys_info, JSON_UNESCAPED_UNICODE))) . '" />
-						<input type="hidden" name="zalo_passenger" id="zalo_passenger" value="' . $pass_and_bag['passenger'] . '" />
-						<input type="hidden" name="zalo_baggage" id="zalo_baggage" value="' . $pass_and_bag['baggage'] . '" />
+						<input type="hidden" name="zalo_journeys" id="zalo_journeys" value="' . base64_encode(rawurlencode(json_encode([], JSON_UNESCAPED_UNICODE))) . '" />
+						<input type="hidden" name="zalo_passenger" id="zalo_passenger" value="" />
+						<input type="hidden" name="zalo_baggage" id="zalo_baggage" value="" />
 						<input type="hidden" name="zalo_booking_id" id="zalo_booking_id" value="' . $this->bean->id . '" />
 						<input type="hidden" name="zalo_booking_name" id="zalo_booking_name" value="' . $this->bean->name . '" />
 						<input type="hidden" name="zalo_contact" id="zalo_contact" value="' . $this->bean->contact_name . '" />
@@ -261,31 +281,31 @@ trait BookingFieldsTrait
 								<div>
 									<input type="radio" class="form-check-input" id="type_journey" name="zalo_type" value="journey">
 									<label for="type_journey" class="form-check-label">Tin nhắn hành trình
-										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['journey'] . ' tin">(' . $zbs_history['journey'] . ')</span>
+										<span class="me-2 text-danger zbs-count" data-zbs-type="journey" title="Đã gửi 0 tin">(0)</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_payment" name="zalo_type" value="payment">
 									<label for="type_payment" class="form-check-label">Tin nhắn thanh toán
-										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['payment'] . ' tin">(' . $zbs_history['payment'] . ')</span>
+										<span class="me-2 text-danger zbs-count" data-zbs-type="payment" title="Đã gửi 0 tin">(0)</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_code" name="zalo_type" value="code">
 									<label for="type_code" class="form-check-label">Tin nhắn code vé
-										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['code'] . ' tin">(' . $zbs_history['code'] . ')</span>
+										<span class="me-2 text-danger zbs-count" data-zbs-type="code" title="Đã gửi 0 tin">(0)</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_remind-flight" name="zalo_type" value="remind-flight">
 									<label for="type_remind-flight" class="form-check-label">Nhắc nhở giờ bay
-										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['remind'] . ' tin">(' . $zbs_history['remind'] . ')</span>
+										<span class="me-2 text-danger zbs-count" data-zbs-type="remind" title="Đã gửi 0 tin">(0)</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_delay" name="zalo_type" value="delay">
 									<label for="type_delay" class="form-check-label">Thông báo delay
-										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['delay'] . ' tin">(' . $zbs_history['delay'] . ')</span>
+										<span class="me-2 text-danger zbs-count" data-zbs-type="delay" title="Đã gửi 0 tin">(0)</span>
 									</label>
 								</div>
 							</div>	
@@ -310,7 +330,8 @@ trait BookingFieldsTrait
 		$this->ss->assign('CONTACT_PHONE', $contact_phone);
 	}
 
-	private function assignZaloInfoField() {
+	private function assignZaloInfoField()
+	{
 		$booking_id = $this->bean->id;
 		$zalo_id = $this->bean->zalo_id ?? '';
 		// Icon nút thêm/cập nhật
@@ -365,11 +386,12 @@ trait BookingFieldsTrait
 		$this->ss->assign('CUSTOM_ZALO_INFO', '<div class="' . $wrap_class . '">' . $action_html . $info_html . '</div>');
 	}
 
-	private function assignPaidFlagField() {
+	private function assignPaidFlagField()
+	{
 		global $app_list_strings;
 
 		// Check is paid - is agent (Là đại lý)
-		if (!$this->checkIsPaidNote($this->bean->id)) {
+		if (!$this->checkIsPaidNote()) {
 			// không đổi trạng thái nếu đã qua tình trạng xác nhận
 			if (array_search($this->bean->booking_status, array_keys($app_list_strings['booking_status_list'])) < array_search(3, array_keys($app_list_strings['booking_status_list']))) {
 				$bk_stt = '<input type="hidden" name="booking_status" value="3" />';
@@ -532,7 +554,7 @@ trait BookingFieldsTrait
 		$transBody = '';
 		$nganluong_info = json_decode(html_entity_decode($this->bean->nganluong_info), true);
 		$transCount = 0;
-		if(is_array($nganluong_info) && isset($nganluong_info[0])) {
+		if (is_array($nganluong_info) && isset($nganluong_info[0])) {
 			$transCount = count($nganluong_info);
 			foreach ($nganluong_info as $val) {
 				$opdesArr = Onepay::getResponseDescription($val["vpc_TxnResponseCode"] ?? null);
@@ -561,12 +583,11 @@ trait BookingFieldsTrait
 					</div>
 					<div class="history-line status-transaction">
 						<div class="transaction-label">Trạng thái</div>
-						<div class="transaction-value '. $transStatusClass .'">' . ($opdesArr['description']['vi'] ?? 'Chưa xác định') . '</div>
+						<div class="transaction-value ' . $transStatusClass . '">' . ($opdesArr['description']['vi'] ?? 'Chưa xác định') . '</div>
 					</div>
 				</div>';
 			}
-		}
-		else {
+		} else {
 			$transBody = '<p><i>Booking chưa có giao dịch thanh toán nào!</i></p>';
 		}
 		$transactionHistory = <<<HTML
@@ -632,7 +653,7 @@ trait BookingFieldsTrait
 							<span class="label">Số tiền được giảm:</span>
 							<span class="value">' . $discountAmount . ' VND</span>
 						</li>'
-						. ($invalidReason !== '' ? '<li class="voucher-item voucher-item-invalid">
+					. ($invalidReason !== '' ? '<li class="voucher-item voucher-item-invalid">
 							<span class="label">Cảnh báo:</span>
 							<span class="value">' . $invalidReason . '</span>
 						</li>' : '') . '
@@ -707,106 +728,19 @@ trait BookingFieldsTrait
 	{
 		global $current_user;
 
-		// Doanh số
-		$bk_amt = calculateBKAmt($this->bean->id);
-		$total_profit = format_number($bk_amt['total_profit'] ?? 0);
+		$total_profit = '';
+
 		if (is_admin($current_user)) {
-			$total_profit .= '<button class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#profitBookingModal">Chi tiết D/số</button>
-							<div class="modal fade" id="profitBookingModal" tabindex="-1" aria-labelledby="profitBookingModalLabel" aria-hidden="true">
+			$total_profit .= '<button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#profitBookingModal">Chi tiết D/số</button>';
+			if ($current_user->user_name == 'hungnh') {
+				$total_profit .= '<input id="update_revenue" class="btn btn-primary btn-sm ms-2" type="button" value="Cập nhật DS">';
+			}
+
+			$total_profit .= '<div class="modal fade" id="profitBookingModal" tabindex="-1" aria-labelledby="profitBookingModalLabel" aria-hidden="true" data-booking-id="' . $this->bean->id . '">
 								<div class="modal-dialog modal-dialog-centered">
 									<div class="modal-content">
-										<div class="modal-body">
-											<h3 class="sub-title text-center">Chi tiết doanh số booking <span>' . $this->bean->name . '</span></h3>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold">Tổng tiền BK:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_booking'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="Giá bán Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế">Tổng tiền phiếu thu:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_receipt'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="Tiền giảm giá sử dụng điểm tích lũy">Tiền sử dụng điểm:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_points'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="Khoản tiền hãng hoàn lại khi hoàn vé">Tiền hãng hoàn:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_brand_refunded'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold">Tổng tiền bán:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end text-danger">' . format_number($bk_amt['total_amount'] ?? 0) . '</p>
-												</div>
-											</div>
-											<hr>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold">Tổng tiền mua BK:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_booking'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="Số tiền phải hoàn trả cho khách hàng">Tiền hoàn khách:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_pass_refunded'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="Khách sử dụng điểm tích lũy để giảm giá cho BK. Sau đó đổi ý không dùng nữa!">Tiền sử dụng điểm hoàn lại:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_points_refunded'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="Giá mua Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế">Tổng tiền mua phiếu thu:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_receipt'] ?? 0) . '</p>
-												</div>
-											</div>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-semibold" title="">Tổng tiền mua:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-semibold text-end text-danger">' . format_number($bk_amt['total_purchase'] ?? 0) . '</p>
-												</div>
-											</div>
-											<hr>
-											<div class="row">
-												<div class="col-6">
-													<span class="form-label fw-bold" title="">Tổng doanh số:</span>
-												</div>
-												<div class="col-6">
-													<p class="form-label fw-bold text-end text-danger">' . format_number($bk_amt['total_profit'] ?? 0) . '</p>
-												</div>
-											</div>
+										<div class="modal-body" id="profitBookingModalBody">
+											<div class="text-center py-3"><i>Đang tải...</i></div>
 										</div>
 									</div>
 								</div>
@@ -815,178 +749,72 @@ trait BookingFieldsTrait
 		$this->ss->assign('TOTAL_PROFIT', $total_profit);
 	}
 
-	private function renderLineDetailsTableHeader()
+	// HELPERS
+	// ---------------------------
+	private function getVoucherApplied($booking_id = '')
 	{
-		return '<table id="line_details_tbl" border="0" cellpadding="0" cellspacing="0" class="table-config table-line-details table-details__booking">
-					<thead>
-						<tr>
-							<th scope="col" width="3%"></th> 
-							<th scope="col" width="3%">STT</th> 
-							<th scope="col" width="7%">Chiều</th> 
-							<th scope="col" width="7%">Loại HK</th>
-							<th scope="col" width="4%">SL</th>
-							<th scope="col" width="8%">Giá cơ bản</th>
-							<th scope="col" width="6%">VAT</th>
-							<th scope="col" width="8%">Phí sân bay</th>
-							<th scope="col" width="8%">Phí admin</th>
-							<th scope="col" width="7%" title="Phí dịch vụ">Phí DV</th>
-							<th scope="col" width="8%">Thành tiền</th>
-							<th scope="col" width="8%">Giá mua</th>
-							<th scope="col" width="8%">Chiết khấu</th>
-							<th scope="col" width="8%">Phí xuất vé</th>
-							<th scope="col">NCC</th>
-						</tr>
-					</thead>';
-	}
+		if (!$booking_id || empty($booking_id))
+			$booking_id = $this->bean->id;
 
-	private function queryLineDetailRows()
-	{
-		$sql = "SELECT d.id,
-					d.passenger_type,
-					d.quantity,
-					d.unit_price,
-					d.tax_and_fee,
-					d.total_price,
-					d.description,
-					d.direction,
-					d.service_fee,
-					d.admin_fee,
-					d.vat_admin,
-					d.admin_fee_no_vat,
-					d.airport_fee,
-					d.total_bought_price,
-					d.discount_amount,
-					d.fee_bought,
-					d.supplier_id,
-					IF(d.supplier_id IS NOT NULL, (SELECT a.name FROM accounts a WHERE a.deleted=0 AND a.id=d.supplier_id LIMIT 1), '') AS supplier,
-					d.supplier_discount 
-				FROM ec_booking_details d
-				WHERE d.booking_id = '{$this->bean->id}' AND d.deleted = 0 
-				ORDER BY d.direction, d.passenger_type, d.date_entered ";
+		$sql = "SELECT 
+					bv.booking_id,
+					bv.voucher_id,
+					v.name AS code,
+					v.type,
+					v.status,
+					v.campaign_name,
+					v.end_time,
+					v.reduce_amount,
+					v.reduce_percent,
+					v.max_discount,
+					v.condition_voucher,
+					bv.discount_amount
+				FROM bookings_vouchers bv
+					LEFT JOIN ec_vouchers v ON v.id = bv.voucher_id
+				WHERE bv.booking_id = '$booking_id'
+					AND bv.deleted = 0";
 
-		return $this->bean->db->query($sql);
-	}
-
-	private function renderLineDetailRow($row, $i)
-	{
-		global $app_list_strings;
-
-		$admin_fee_inf = '';
-		if ($row['admin_fee_no_vat'] > 0) {
-			$admin_fee_inf = '<div class="admin_fee_no_vat--wrap d-flex align-items-center justify-content-between">
-							<span class="text-start">TVAT:</span>
-							<span class="text-end">' . format_number($row['admin_fee_no_vat']) . '</span>
-						</div>
-						<div class="vat_admin--wrap d-flex align-items-center justify-content-between">
-							<span class="text-start">VAT:</span>
-							<span class="text-end">' . format_number($row['vat_admin']) . '</span>
-						</div>';
+		$res = $this->bean->db->query($sql);
+		$results = [];
+		$bookingPhone = preg_replace('/\D/', '', (string)$this->bean->phone);
+		if (strpos($bookingPhone, '0084') === 0) {
+			$bookingPhone = '0' . substr($bookingPhone, 4);
+		} elseif (strpos($bookingPhone, '84') === 0 && strlen($bookingPhone) >= 11) {
+			$bookingPhone = '0' . substr($bookingPhone, 2);
+		} elseif (strlen($bookingPhone) === 9) {
+			$bookingPhone = '0' . $bookingPhone;
 		}
-
-		$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
-		return '<tr class="' . $even_or_odd . '">
-				<td data-label="Autobook" class="text-center"><input type="checkbox" name="check-detail" class="check-journey" data-id="' . $row['id'] . '" title="Autobook" /></td>
-				<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
-				<td data-label="Chiều" class="text-center">' . $app_list_strings['bk_direction_list'][(int) $row['direction']] . '</td>
-				<td data-label="Loại HK" class="text-center">' . $app_list_strings['passenger_type_list'][(int) $row['passenger_type']] . '</td>
-				<td data-label="SL" class="text-center">' . format_number($row['quantity']) . '</td>
-				<td data-label="Giá cơ bản" class="text-end">' . format_number($row['unit_price']) . '</td>
-				<td data-label="VAT" class="text-end">' . format_number($row['tax_and_fee']) . '</td>
-				<td data-label="Phí sân bay" class="text-end">' . format_number($row['airport_fee']) . '</td>
-				<td data-label="Phí admin" class="text-end"><div class="admin_fee">' . format_number($row['admin_fee']) . '</div>' . $admin_fee_inf . '</td>
-				<td data-label="Phí dịch vụ" class="text-end">' . format_number($row['service_fee']) . '</td>
-				<td data-label="Thành tiền" class="text-end" title="Đã gồm số lượng">' . format_number($row['total_price']) . '</td>
-				<td data-label="Giá mua" class="text-end" title="Đã gồm số lượng">
-					<input type="hidden" name="check_total_bought_price[]" id="check_total_bought_price' . $i . '" value="' . format_number($row['total_bought_price']) . '" />
-					' . (ACLController::checkAccess('Bugs', 'list', true) ? format_number($row['total_bought_price']) : '&nbsp;') . '
-				</td>
-				<td data-label="Chiết khấu" class="text-end">' . format_number($row['supplier_discount']) . '</td>
-				<td data-label="Phí xuất vé" class="text-end">' . format_number($row['fee_bought']) . '</td>
-				<td data-label="NCC" class="text-start">
-					<input type="hidden" name="check_supplier_id[]" id="check_supplier_id' . $i . '" value="' . $row['supplier_id'] . '" />
-					<a href="index.php?module=Accounts&action=DetailView&record=' . $row['supplier_id'] . '" target="_blank">' . $row['supplier'] . '</a>
-				</td>
-			</tr>';
-	}
-
-	private function newLineDetailsTotals()
-	{
-		return [
-			'qty' => 0,
-			'supplier_discount' => 0,
-			'basic_amount' => 0,
-			'vat_amount' => 0,
-			'airport_amount' => 0,
-			'admin_amount' => 0,
-			'service_amount' => 0,
-			'issue_fee' => 0,
-		];
-	}
-
-	private function addLineDetailTotals(&$totals, $row)
-	{
-		$totals['qty'] += $row['quantity'];
-		$totals['supplier_discount'] += $row['supplier_discount'];
-		$totals['basic_amount'] += $row['unit_price'];
-		$totals['vat_amount'] += $row['tax_and_fee'];
-		$totals['airport_amount'] += $row['airport_fee'];
-		$totals['admin_amount'] += $row['admin_fee'];
-		$totals['service_amount'] += $row['service_fee'];
-		$totals['issue_fee'] += $row['fee_bought'];
-	}
-
-	private function renderLineDetailsFooter($totals)
-	{
-		global $locale;
-		$sep = my_get_number_separators();
-		return '<tr class="footer-tr">
-					<td class="hide-mobile show-landscape" colspan="4">Tổng:
-						<input type="hidden" id="grp_seperator" name="grp_seperator" value="' . $sep[0] . '" />
-						<input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />
-						<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />
-					</td>
-					<td data-label="Tổng số vé" class="text-center">' . format_number($totals['qty']) . '</td>
-					<td data-label="Giá cơ bản" class="hide-mobile text-end show-landscape">' . format_number($totals['basic_amount']) . '</td>
-					<td data-label="VAT" class="hide-mobile text-end show-landscape">' . format_number($totals['vat_amount']) . '</td>
-					<td data-label="Phí sân bay" class="hide-mobile text-end show-landscape">' . format_number($totals['airport_amount']) . '</td>
-					<td data-label="Phí admin" class="hide-mobile text-end show-landscape">' . format_number($totals['admin_amount']) . '</td>
-					<td data-label="Phí DV" class="hide-mobile text-end show-landscape">' . format_number($totals['service_amount']) . '</td>
-					<td data-label="Tổng thành tiền" class="text-end into_money">' . format_number($this->bean->subtotal_amount) . '</td>
-					<td data-label="Tổng giá mua" class="text-end purchase_price">' . format_number($this->bean->total_bought_amount) . '</td>
-					<td data-label="Tổng chiết khấu" class="text-end supplier_discount">' . format_number($totals['supplier_discount']) . '</td>
-					<td data-label="Phí xuất vé" class="text-end hide-mobile show-landscape">' . format_number($totals['issue_fee']) . '</td>
-					<td class="text-end hide-mobile show-landscape"></td>
-				</tr>';
-	}
-
-	private function renderSupplierOptionHiddenInput()
-	{
-		return "<input type='hidden' id='supplier_option_val' value='" . myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', '', 'id', 'AND account_type=\'Supplier\' AND is_stop_tracking=0') . "'>";
-	}
-
-	/**
-	 * Render table default passengers
-	 * 
-	 * @return string HTML
-	 */
-
-	function populateInvoiceInf()
-	{
-		$iv_account_name = $iv_email = $iv_identity_number = $iv_payment_method = '';
-
-		if (!empty($this->bean->shipping_address)) {
-			$invoice_arr = json_decode(str_replace("&quot;", "\"", $this->bean->shipping_address), 1);
-			$iv_account_name = $invoice_arr['iv_account_name'] ?? '';
-			$iv_email = $invoice_arr['iv_email'] ?? '';
-			$iv_identity_number = $invoice_arr['iv_identity_number'] ?? '';
-			$iv_payment_method = $invoice_arr['iv_payment_method'] ?? '';
+		while ($row = $this->bean->db->fetchByAssoc($res)) {
+			$row['reduce_amount'] = (int)$row['reduce_amount'];
+			$row['reduce_percent'] = (int)$row['reduce_percent'];
+			$row['max_discount'] = (int)$row['max_discount'];
+			$row['discount_type'] = (int)$row['reduce_percent'] > 0 ? 'percent' : 'amount';
+			$row['condition_voucher'] = json_decode(html_entity_decode(trim((string)$row['condition_voucher'])), true) ?: [];
+			$row['selectable'] = true;
+			$voucherPhone = empty($row['condition_voucher']['for_phone_value'])
+				? ''
+				: preg_replace('/\D/', '', (string)$row['condition_voucher']['for_phone_value']);
+			if (strpos($voucherPhone, '0084') === 0) {
+				$voucherPhone = '0' . substr($voucherPhone, 4);
+			} elseif (strpos($voucherPhone, '84') === 0 && strlen($voucherPhone) >= 11) {
+				$voucherPhone = '0' . substr($voucherPhone, 2);
+			} elseif (strlen($voucherPhone) === 9) {
+				$voucherPhone = '0' . $voucherPhone;
+			}
+			$row['applied_invalid_reason'] = ($voucherPhone !== '' && $bookingPhone !== '' && $voucherPhone !== $bookingPhone)
+				? 'Không còn hợp lệ do đổi SĐT'
+				: '';
+			$results[] = $row;
 		}
-
-		$this->ss->assign('CUS_IV_ACCOUNT_NAME', $iv_account_name);
-		$this->ss->assign('CUS_IV_EMAIL', $iv_email);
-		$this->ss->assign('CUS_IV_IDENTITY_NUMBER', $iv_identity_number);
-		$this->ss->assign('CUS_IV_PAYMENT_METHOD', $iv_payment_method);
+		return $results;
 	}
 
-	// Kiểm tra booker có quyền quản lý booking -> cho thay đổi trạng thái
+	private function checkIsPaidNote()
+	{
+		$sql = "SELECT COUNT(id)
+				FROM ec_working_process
+				WHERE parent_id = '{$this->bean->id}' AND paid = 1 AND deleted = 0";
+		$res = $this->bean->db->getOne($sql);
+		return (int)$res > 0;
+	}
 }

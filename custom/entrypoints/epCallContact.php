@@ -311,8 +311,13 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             $work->parent_type          = 'EC_Flight_Bookings';
                             $work->parent_id            = $booking_id;
                             $work->description          = $note . ' (' . $type_call . ' ' . $call_status . ' ' . $call['call_talk'] . ')';
-                            // Gọi đi
-                            $work->$type_call           = ((string)$call_status === 'done' && !empty($note) && (int)$call['call_talk'] >= 20) ? 1 : 0;
+                            // Gọi đến chỉ cần kết nối (call_talk > 0), gọi đi cần nói chuyện tối thiểu 20s
+                            $work->$type_call           = (
+                                (string)$call_status === 'done' && !empty($note) && (
+                                    ((string)$call['direction'] === 'inbound' && (int)$call['call_talk'] > 0)
+                                    || ((string)$call['direction'] === 'outbound' && (int)$call['call_talk'] >= 20)
+                                )
+                            ) ? 1 : 0;
                             $work->assigned_user_id     = $current_user->id;
                             $work->save();
 

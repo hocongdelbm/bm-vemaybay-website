@@ -568,6 +568,8 @@ $dictionary['EC_Working_Process'] = array(
         array('name' => 'idx_wp_prtid', 'type' => 'index', 'fields' => array('parent_id')),
         array('name' => 'idx_wp_prtype', 'type' => 'index', 'fields' => array('parent_type')),
         array('name' => 'idx_wp_approv', 'type' => 'index', 'fields' => array('approved_by_id')),
+        array('name' => 'idx_wp_dateentered', 'type' => 'index', 'fields' => array('date_entered')),
+        array('name' => 'idx_wp_assign_date', 'type' => 'index', 'fields' => array('assigned_user_id', 'date_entered')),
     ),
     'relationships' => array(),
     'optimistic_locking' => true,

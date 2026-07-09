@@ -24,16 +24,10 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CREATE_RV}',
                 ),
                 array(
-                    'customCode' => '{$MARK_AS_REFERENCE}',
-                ),
-                array(
                     'customCode' => '{$TICKET_RETURN}',
                 ),
                 array(
                     'customCode' => '{$PUBLISHED_TO_WEB}',
-                ),
-                array(
-                    'customCode' => '{$CREATE_INVOICE}',
                 ),
                 // Thay đổi code vé / PNR / nhà cung cấp
                 array(
@@ -51,9 +45,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
                 array(
                     'customCode' => '{$CHANGE_STATUS}',
-                ),
-                array(
-                    'customCode' => '{$UPDATE_REVENUE}',
                 ),
                 array(
                     'customCode' => '{$VIEWED_BOOKING}',
@@ -389,6 +380,24 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'name' => 'iv_payment_method',
                     'label' => 'LBL_IV_PAYMENT_METHOD',
                     'customCode' => '{$CUS_IV_PAYMENT_METHOD}',
+                ),
+            ),
+
+            array(
+                array(),
+                array(
+                    'name' => 'iv_name_banks',
+                    'label' => 'LBL_IV_NAME_BANKS',
+                    'customCode' => '{$CUS_IV_NAME_BANKS}',
+                ),
+            ),
+
+            array(
+                array(),
+                array(
+                    'name' => 'iv_bank_account',
+                    'label' => 'LBL_IV_BANK_ACCOUNT',
+                    'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
                 ),
             ),
         ),

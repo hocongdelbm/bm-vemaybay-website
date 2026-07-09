@@ -48,6 +48,7 @@ $mod_strings = array (
   'LBL_THONGBAO' => 'Đã chi tiền',
   'LNK_RETURN_BK' => 'Booking Hoàn vé',
   'LBL_TICKET_VALIDITY' => 'Hạn bảo lưu',
+  'LBL_HOANVE_INFO' => 'Thông tin hoàn vé',
 );
 
 if (!isset($app_list_strings) || !is_array($app_list_strings)) {

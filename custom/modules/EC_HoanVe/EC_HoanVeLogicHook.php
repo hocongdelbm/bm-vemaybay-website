@@ -27,29 +27,32 @@ class EC_HoanVeLogicHook
 
 	function coloringStatus($focus, $event, $arguments)
 	{
-		global $current_user, $app_list_strings;
+		global $app_list_strings;
 		$focus->tinhtrang = '<label class="fw-semibold" style="color:' . $app_list_strings['tinhtranghoanvecolor_list'][$focus->tinhtrang] . '; ">' . $app_list_strings['tinhtranghoanve_list'][$focus->tinhtrang] . '</label>';
 
 		$focus->booking = '<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $focus->booking_id . '" target="_blank">' . $focus->booking . '</a>';
 
 		// thông báo tình trạng đã chi tiền
-		$total_paid = 0;
-		$sql = "SELECT SUM(IFNULL(p.amount,0))
-				FROM ec_payment_voucher p
-				WHERE p.hoanve_id = '" . $focus->id . "'
-					AND p.pv_status = '3'
-					AND p.deleted = 0  ";
-		$total_paid += $focus->db->getOne($sql);
+		// total_paid_amount đã được tính sẵn qua subquery trong create_new_list_query() (ListView),
+		// chỉ query riêng khi chưa có sẵn (VD: DetailView) để tránh N+1 query khi hiển thị danh sách
+		if (isset($focus->total_paid_amount)) {
+			$total_paid = (float) $focus->total_paid_amount;
+		} else {
+			$sql = "SELECT SUM(IFNULL(p.amount,0))
+					FROM ec_payment_voucher p
+					WHERE p.hoanve_id = '" . $focus->id . "'
+						AND p.pv_status = '3'
+						AND p.deleted = 0  ";
+			$total_paid = (float) $focus->db->getOne($sql);
+		}
 		if ($total_paid > 0)
 			$focus->thongbao = format_number($total_paid);
 		else
 			$focus->thongbao = '<label style="color:red;">' . format_number($total_paid) . '</label>';
 
 		// Hạn bảo lưu
-		if ($current_user->user_name == 'hungnh') {
-			if (!empty($focus->ticket_validity)) {
-				$focus->ticket_validity = '<span class="fw-semibold ' . (strtotime(date('Y-m-d')) > strtotime($focus->ticket_validity) ? 'text-danger' : 'text-success') . '">' . $focus->ticket_validity . '</span>';
-			}
+		if (!empty($focus->ticket_validity)) {
+			$focus->ticket_validity = '<span class="fw-semibold ' . (strtotime(date('Y-m-d')) > strtotime($focus->ticket_validity) ? 'text-danger' : 'text-success') . '">' . $focus->ticket_validity . '</span>';
 		}
 	}
 

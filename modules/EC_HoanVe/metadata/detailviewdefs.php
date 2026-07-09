@@ -31,7 +31,7 @@ $viewdefs[$module_name]['DetailView'] = array(
 
     'panels' =>
     array(
-        'default' =>
+        'LBL_HOANVE_INFO' =>
         array(
             array(
                 array(

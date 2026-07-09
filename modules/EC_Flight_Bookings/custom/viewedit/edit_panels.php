@@ -1,14 +1,257 @@
 <?php
-if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+if (!defined('sugarEntry') || !sugarEntry) {
+	die('Not A Valid Entry Point');
+}
 
-/**
- * Passenger and baggage edit table rendering.
- *
- * Used by EC_Flight_BookingsViewEdit. Methods are kept close to the
- * legacy implementation to preserve the old business behavior.
- */
-trait ECFlightBookingEditPassengerTrait {
-	public function populateLinePassengers() {
+trait EditPanelsTrait
+{
+	public function populateLineItineraries()
+	{
+		global $app_list_strings, $timedate;
+
+		$date_format = $timedate->get_date_format();
+
+		// Khi nhân bản booking, giữ lại mã booking cũ để JS/Save phân biệt dữ liệu nhân bản.
+		$booking_prev_name = (isset($_POST['isDuplicate']) && $_POST['isDuplicate'] == 'true') ? $this->bean->name : '';
+
+		// Query hành trình gốc của booking; row HTML sẽ được render phía JS từ JSON.
+		$sql = "SELECT i.id AS detail_id,
+					i.direction,
+					i.airline_code,
+					i.flight_number,
+					i.ticket_class,
+					i.departure,
+					i.arrival,
+					i.departure_date,
+					i.arrival_date,
+					i.base_price,
+					i.is_layover,
+					i.description,
+					i.time_limit
+				FROM ec_booking_itineraries i
+				WHERE i.booking_id = '{$this->bean->id}'
+					AND add_type = 0 AND i.deleted = 0
+				ORDER BY i.direction, i.transit_order, i.date_entered, i.departure_date";
+
+		$res = $this->bean->db->query($sql);
+		$row_count = $this->bean->db->countRows($res);
+		$row_count = !empty($row_count) ? $row_count : 0;
+
+		/**
+		 * BƯỚC 1: THU THẬP DỮ LIỆU THÀNH MẢNG (CHỈ DỮ LIỆU, KHÔNG HTML)
+		 * Row sẽ được render bằng JS (`renderInitialItineraries()` + `insertItineraryLine(ln)`).
+		 */
+		$itineraries_data = [];
+		if (!empty($this->bean->id)) {
+			$i = 0;
+			while ($row = $this->bean->db->fetchByAssoc($res)) {
+				$itineraries_data[] = [
+					'db_id' => $row['detail_id'],
+					'id' => $row['detail_id'],
+					'direction' => (int) $row['direction'],
+					'airline_code' => $row['airline_code'],
+					'flight_number' => $row['flight_number'],
+					'ticket_class' => $row['ticket_class'],
+					'departure' => $row['departure'],
+					'arrival' => $row['arrival'],
+					'departure_date' => $row['departure_date'] != '' ? date($date_format, strtotime($row['departure_date'])) : '',
+					'departure_h' => $row['departure_date'] != '' ? date('H', strtotime($row['departure_date'])) : '',
+					'departure_m' => $row['departure_date'] != '' ? date('i', strtotime($row['departure_date'])) : '',
+					'arrival_date' => $row['arrival_date'] != '' ? date($date_format, strtotime($row['arrival_date'])) : '',
+					'arrival_h' => $row['arrival_date'] != '' ? date('H', strtotime($row['arrival_date'])) : '',
+					'arrival_m' => $row['arrival_date'] != '' ? date('i', strtotime($row['arrival_date'])) : '',
+					'time_limit_date' => $row['time_limit'] != '' ? date($date_format, strtotime($row['time_limit'])) : '',
+					'time_limit_h' => $row['time_limit'] != '' ? date('H', strtotime($row['time_limit'])) : '',
+					'time_limit_m' => $row['time_limit'] != '' ? date('i', strtotime($row['time_limit'])) : '',
+					'base_price' => (float) $row['base_price'],
+					'is_layover' => (int) $row['is_layover'],
+				];
+
+				// Lưu thông tin airline/ticket_class theo direction để dùng ở chỗ khác
+				if ($row['direction'] == '0') {
+					$this->_outbound_airline = $row['airline_code'];
+					$this->_outbound_ticket_class = $row['ticket_class'];
+					if ($i == 0) {
+						$this->_journey = $row['departure'] . '-' . $row['arrival'];
+					} else {
+						$this->_journey = substr($this->_journey, 0, 3) . '-' . $row['arrival'];
+					}
+				}
+
+				if ($row['direction'] == '1') {
+					$this->_inbound_airline = $row['airline_code'];
+					$this->_inbound_ticket_class = $row['ticket_class'];
+				}
+
+				$i++;
+			}
+		}
+
+		/**
+		 * BƯỚC 2: TẠO HTML KHUNG BẢNG (không render row ở PHP)
+		 * - Header
+		 * - <tbody id="iti_tbody"></tbody> rỗng để JS render
+		 * - Footer với các input hidden cần thiết + JSON data
+		 */
+
+		$html = '<table id="tbl_line_itineraries" class="table-vertical__mobile table-edit__booking table-details__booking" border="0" cellpadding="0" cellspacing="0">';
+		$html .= '<thead>
+			<tr id="iti_first_row">
+				<th scope="col" style="width:8%;" class="text-center">Chiều</th>
+				<th scope="col" style="width:5%;" class="text-center">Mã hãng</th>
+				<th scope="col" style="width:7%;" class="text-center">Số hiệu</th>
+				<th scope="col" style="width:11%;" class="text-center">Hạng vé</th>
+				<th scope="col" style="width:5%;" class="text-center">Nơi đi</th>
+				<th scope="col" style="width:5%;" class="text-center">Nơi đến</th>
+				<th scope="col" style="width:14%;" class="text-center">Ngày giờ đi</th>
+				<th scope="col" style="width:14%;" class="text-center">Ngày giờ đến</th>
+				<th scope="col" style="width:14%;" class="text-center">Hạn giữ chỗ</th>
+				<th scope="col" style="width:8%;" class="text-center">Giá cơ bản</th>
+				<th scope="col" style="width:2%;" class="text-center">Quá cảnh</th>
+				<th scope="col" style="width:3%;" class="text-center">&nbsp;</th>
+			</tr>
+		</thead>';
+		$html .= '<tbody id="iti_tbody"></tbody>';
+		$html .= '<tr id="iti_last_row" class="footer-tr">';
+		$html .= '<td colspan="12" class="text-start">';
+		$html .= '<input type="hidden" name="discount_percent_list" id="discount_percent_list" value="' . get_select_options_with_id($app_list_strings['discount_percent_list'], '') . '" />';
+		$html .= '<input type="hidden" name="direction_list" id="direction_list" value="' . get_select_options_with_id($app_list_strings['bk_direction_list'], '') . '" />';
+		$html .= '<input type="hidden" name="passenger_type_list" id="passenger_type_list" value="' . get_select_options_with_id($app_list_strings['passenger_type_list'], '') . '" />';
+		$html .= '<input type="hidden" name="passenger_salutation_list" id="passenger_salutation_list" value="' . get_select_options_with_id($app_list_strings['passenger_salutation_list'], '') . '" />';
+		$html .= '<input type="hidden" id="iti_row_count" name="iti_row_count" value="' . $row_count . '" />';
+		$html .= '<input type="hidden" id="booking_prev_name" name="booking_prev_name" value="' . $booking_prev_name . '" />';
+		$html .= '<input type="hidden" id="journey" name="journey" value="' . $this->_journey . '" />';
+		$html .= '<input type="hidden" id="iti_data_json" value=\'' . htmlspecialchars(json_encode($itineraries_data), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<input type="button" class="btn btn-primary" id="btnItineraryAddRow" value="Thêm dòng" title="Thêm dòng" />';
+		$html .= ' Số dòng = <label id="lbl_iti_row_count">' . $row_count . '</label>';
+		$html .= '</td>';
+		$html .= '</tr>';
+		$html .= '</table>';
+
+		/**
+		 * BƯỚC 3: GỬI DỮ LIỆU VỀ TEMPLATE
+		 */
+		// Gửi HTML khung bảng (row sẽ được render bằng JS)
+		$this->ss->assign('LINE_ITINERARIES', $html);
+	}
+
+	public function populateLineDetails()
+	{
+		$supplier_cus_sql = " AND account_type = 'Supplier' AND is_stop_tracking = 0 ";
+
+		// Danh sách nhà cung cấp còn theo dõi, truyền xuống JS để render select NCC từng dòng.
+		$supplier_list = str_replace('"', "'", myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', '', 'id', $supplier_cus_sql));
+
+		// Query chi tiết vé/giá gốc; row HTML sẽ được render phía JS từ JSON.
+		$sql = "SELECT id AS detail_id
+					   ,direction
+					   ,passenger_type
+					   ,quantity
+					   ,unit_price
+					   ,tax_and_fee
+					   ,airport_fee
+					   ,admin_fee, vat_admin, admin_fee_no_vat
+					   ,service_fee
+					   ,total_price
+					   ,total_bought_price
+					   ,fee_bought
+					   ,supplier_id
+					   ,supplier_discount
+				FROM ec_booking_details
+				WHERE booking_id='" . $this->bean->id . "'
+				AND deleted = 0
+				ORDER BY direction, passenger_type, date_entered ";
+
+		$res = $this->bean->db->query($sql);
+		$row_count = $this->bean->db->countRows($res);
+		$row_count = !empty($row_count) ? $row_count : 0;
+
+		/**
+		 * BƯỚC 1: THU THẬP DỮ LIỆU THÀNH MẢNG (CHỈ DỮ LIỆU, KHÔNG HTML)
+		 * Row sẽ được render bằng JS (`renderInitialDetails()` + `insertDetailLine(ln)`).
+		 */
+		$details_data = [];
+		if (!empty($this->bean->id)) {
+			while ($row = $this->bean->db->fetchByAssoc($res)) {
+				$details_data[] = [
+					'db_id' => $row['detail_id'],
+					'id' => $row['detail_id'],
+					'direction' => (int) $row['direction'],
+					'passenger_type' => (int) $row['passenger_type'],
+					'quantity' => (int) $row['quantity'],
+					'unit_price' => (float) $row['unit_price'],
+					'tax_and_fee' => (float) $row['tax_and_fee'],
+					'airport_fee' => (float) $row['airport_fee'],
+					'admin_fee' => (float) $row['admin_fee'],
+					'admin_fee_no_vat' => (float) $row['admin_fee_no_vat'],
+					'vat_admin' => (float) $row['vat_admin'],
+					'service_fee' => (float) $row['service_fee'],
+					'total_price' => (float) $row['total_price'],
+					'total_bought_price' => (float) ((float) $row['total_bought_price'] ? $row['total_bought_price'] : ($row['total_price'] - ($row['service_fee']) * $row['quantity'])),
+					'fee_bought' => (float) $row['fee_bought'],
+					'supplier_id' => $row['supplier_id'],
+					'supplier_discount' => (float) $row['supplier_discount'],
+				];
+			}
+		}
+
+		$total_qty = isset($_POST['total_qty']) && !empty($_POST['total_qty']) ? $_POST['total_qty'] : (isset($this->bean->total_qty) ? $this->bean->total_qty : 0);
+		$subtotal_amount = isset($_POST['subtotal_amount']) && !empty($_POST['subtotal_amount']) ? $_POST['subtotal_amount'] : (isset($this->bean->subtotal_amount) ? $this->bean->subtotal_amount : 0);
+		$total_bought_amount = isset($_POST['total_bought_amount']) && !empty($_POST['total_bought_amount']) ? $_POST['total_bought_amount'] : (isset($this->bean->total_bought_amount) ? $this->bean->total_bought_amount : 0);
+
+		/**
+		 * BƯỚC 2: TẠO HTML KHUNG BẢNG (không render row ở PHP)
+		 * - Header
+		 * - <tbody id="bkd_tbody"></tbody> rỗng để JS render
+		 * - Footer với các input hidden cần thiết + JSON data
+		 */
+		$html = '<table id="tbl_line_details" class="table-vertical__mobile table-edit__booking table-details__booking" cellpadding="0" cellspacing="0" border="0">';
+		$html .= '<thead>
+				<tr id="bkd_first_row">
+					<th scope="col" style="width:7%;" class="text-center fw-semibold">Chiều</th>
+					<th scope="col" style="width:9%;" class="text-center fw-semibold">Loại HK</th>
+					<th scope="col" style="width:3%;" class="text-center fw-semibold">SL</th>
+					<th scope="col" style="width:7%;" class="text-center fw-semibold">Giá cơ bản</th>
+					<th scope="col" style="width:6%;" class="text-center fw-semibold">VAT</th>
+					<th scope="col" style="width:7%;" class="text-center fw-semibold">Phí sân bay</th>
+					<th scope="col" style="width:7%;" class="text-center fw-semibold">Phí admin</th>
+					<th scope="col" style="width:7%;" class="text-center fw-semibold">Phí dịch vụ</th>
+					<th scope="col" style="width:9%;" class="text-center fw-semibold">Thành tiền</th>
+					<th scope="col" style="width:9%;" class="text-center fw-semibold">Giá mua</th>
+					<th scope="col" style="width:8%;" class="text-center fw-semibold">Chiết khấu</th>
+					<th scope="col" style="width:8%;" class="text-center fw-semibold">Phí xuất vé</th>
+					<th scope="col" class="text-center fw-semibold">NCC</th>
+					<th scope="col" style="width:3%;" class="text-center fw-semibold">&nbsp;</th>
+				</tr>
+			</thead>';
+		$html .= '<tbody id="bkd_tbody"></tbody>';
+		$html .= '<tr id="bkd_last_row" class="footer-tr">';
+		$html .= '<td colspan="2">';
+		$html .= '<input type="hidden" name="bkd_row_count" id="bkd_row_count" value="' . $row_count . '" />';
+		$html .= '<input type="hidden" name="supplier_list" id="supplier_list" value="' . $supplier_list . '" />';
+		$html .= '<input type="hidden" id="bkd_data_json" value=\'' . htmlspecialchars(json_encode($details_data), ENT_QUOTES, 'UTF-8') . '\' />';
+		$html .= '<div class="d-flex align-items-center gap-2">';
+		$html .= '<input type="button" class="btn btn-primary" id="btnDetailAddRow" value="Thêm dòng" title="Thêm dòng" />';
+		$html .= '<p>Số dòng = <span id="lbl_bkd_row_count">' . $row_count . '</span></p>';
+		$html .= '</div>';
+		$html .= '</td>';
+		$html .= '<td data-label="Tổng số vé"><input type="text" readonly="readonly" name="total_qty" id="total_qty" value="' . format_number($total_qty) . '" /></td>';
+		$html .= '<td class="hide-mobile" colspan="5"></td>';
+		$html .= '<td data-label="Tổng thành tiền" class="text-center">';
+		$html .= '<input type="text" class="text-danger" readonly="readonly" name="subtotal_amount" id="subtotal_amount" value="' . format_number($subtotal_amount) . '" />';
+		$html .= '</td>';
+		$html .= '<td data-label="Tổng giá mua" class="text-center">';
+		$html .= '<input type="text" class="text-danger" readonly="readonly" name="total_bought_amount" id="total_bought_amount" value="' . format_number($total_bought_amount) . '" />';
+		$html .= '</td>';
+		$html .= '<td class="hide-mobile" colspan="4"></td>';
+		$html .= '</tr>';
+		$html .= '</table>';
+
+		$this->ss->assign('LINE_DETAILS', $html);
+	}
+
+	public function populateLinePassengers()
+	{
 		global $app_list_strings, $timedate;
 
 		// Luồng hành lý mới: PHP chỉ xuất khung bảng + JSON, JS render row và option hành lý.
@@ -172,7 +415,8 @@ trait ECFlightBookingEditPassengerTrait {
 	 * 
 	 * @deprecated
 	 */
-	public function populateLinePassengersOld() {
+	public function populateLinePassengersOld()
+	{
 		global $app_list_strings, $timedate, $current_user;
 
 		// Luồng hành lý cũ: PHP render đầy đủ từng dòng hành khách và hành lý.
@@ -334,10 +578,12 @@ trait ECFlightBookingEditPassengerTrait {
 
 			// Nút xóa
 			$html .= '<td data-label="Xóa dòng" class="text-center align-middle">
-				<button type="button" title="Xóa" class="button-remove-in-edit" onclick="markPassengerRowDeleted(' . $i . ')">' . $this->icon_x . '</button>
-				<input type="hidden" name="psg_deleted[]" id="psg_deleted' . $i . '" value="0" />
-				<input type="hidden" name="psg_id[]" id="psg_id' . $i . '" value="' . $passenger_id . '" readonly />
-			</td>';
+						<button type="button" title="Xóa" class="button-remove-in-edit" onclick="markPassengerRowDeleted(' . $i . ')">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
+						</button>
+						<input type="hidden" name="psg_deleted[]" id="psg_deleted' . $i . '" value="0" />
+						<input type="hidden" name="psg_id[]" id="psg_id' . $i . '" value="' . $passenger_id . '" readonly />
+					</td>';
 			$html .= '</tr>';
 
 			#####  Line 2 (Hành lý đi nếu có)  #####

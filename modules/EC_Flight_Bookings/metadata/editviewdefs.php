@@ -46,12 +46,10 @@ $viewdefs[$module_name]['EditView'] = array(
             array(
                 array(
                     'name' => 'flight_type',
-                    'studio' => 'visible',
                     'label' => 'LBL_FLIGHT_TYPE',
                 ),
                 array(
                     'name' => 'ticket_type',
-                    'studio' => 'visible',
                     'label' => 'LBL_TICKET_TYPE',
                 ),
             ),
@@ -59,12 +57,10 @@ $viewdefs[$module_name]['EditView'] = array(
             array(
                 array(
                     'name' => 'holding_status',
-                    'studio' => 'visible',
                     'label' => 'LBL_HOLDING_STATUS',
                 ),
                 array(
                     'name' => 'payment_type',
-                    'studio' => 'visible',
                     'label' => 'LBL_PAYMENT_TYPE',
                 ),
             
@@ -98,7 +94,6 @@ $viewdefs[$module_name]['EditView'] = array(
             array(
                 array(
                     'name' => 'delivery_man',
-                    'studio' => 'visible',
                     'label' => 'LBL_DELIVERY_MAN',
                 ),
                 array(
@@ -150,9 +145,8 @@ $viewdefs[$module_name]['EditView'] = array(
             array(
                 array(
                     'name'      => 'city',
-                    'studio'    => 'visible',
                     'label'     => 'LBL_CITY',
-                    'customCode'=> '{$LOCATION_BOOKING}',
+                    'customCode'=> '{$CITY}',
                 ),
                 array(
                     'name' => 'address',
@@ -202,7 +196,6 @@ $viewdefs[$module_name]['EditView'] = array(
                 ),
                 array(
                     'name' => 'iv_account_name',
-                    'studio' => 'visible',
                     'label' => 'LBL_IV_ACCOUNT_NAME',
                     'customCode' => '{$CUS_IV_ACCOUNT_NAME}',
                 ),
@@ -256,7 +249,6 @@ $viewdefs[$module_name]['EditView'] = array(
                 array(),
                 array(
                     'name' => 'company_address',
-                    'studio' => 'visible',
                     'label' => 'LBL_COMPANY_ADDRESS',
                     'displayParams' => array(
                         'cols' => 32,
@@ -274,23 +266,23 @@ $viewdefs[$module_name]['EditView'] = array(
                 ),
             ),
 
-            // array(
-            //     array(),
-            //     array(
-            //         'name' => 'iv_name_banks',
-            //         'label' => 'LBL_IV_NAME_BANKS',
-            //         'customCode' => '{$CUS_IV_NAME_BANK}',
-            //     ),
-            // ),
+            array(
+                array(),
+                array(
+                    'name' => 'iv_name_banks',
+                    'label' => 'LBL_IV_NAME_BANKS',
+                    'customCode' => '{$CUS_IV_NAME_BANK}',
+                ),
+            ),
 
-            // array(
-            //     array(),
-            //     array(
-            //         'name' => 'iv_bank_account',
-            //         'label' => 'LBL_IV_BANK_ACCOUNT',
-            //         'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
-            //     ),
-            // ),
+            array(
+                array(),
+                array(
+                    'name' => 'iv_bank_account',
+                    'label' => 'LBL_IV_BANK_ACCOUNT',
+                    'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
+                ),
+            ),
         ),
     ),
 );

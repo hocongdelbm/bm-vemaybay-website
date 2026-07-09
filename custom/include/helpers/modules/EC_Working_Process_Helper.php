@@ -124,42 +124,18 @@ class EC_Working_Process_Helper {
                 ORDER BY total_kpi DESC";
 		}
 
-		return 
+		// Gộp 3 lượt quét ec_working_process (booking_count, total_bonus, total_kpi) thành 1 lượt duy nhất:
+		// booking_count/total_bonus vốn có cùng điều kiện WHERE với total_kpi (chỉ khác là total_kpi không
+		// lọc parent_type), nên dùng CASE WHEN để tính cả 3 trong 1 lần quét mà kết quả không đổi.
+		return
             "SELECT SUM(IFNULL(t.booking_count,0)) AS booking_count
                 ,SUM(IFNULL(t.ticket_count,0)) AS ticket_count
                 ,SUM(IFNULL(t.total_bonus,0)) AS total_bonus
                 ,SUM(IFNULL(t.total_kpi,0)) AS total_kpi
             FROM (
-                SELECT DISTINCT COUNT(w.parent_id) AS booking_count
+                SELECT SUM(CASE WHEN w.parent_type='EC_Flight_Bookings' THEN 1 ELSE 0 END) AS booking_count
                     ,0 AS ticket_count
-                    ,0 AS total_bonus
-                    ,0 AS total_kpi
-                FROM ec_working_process w
-                WHERE w.deleted=0
-                    AND w.parent_type='EC_Flight_Bookings' $sql_search2
-
-                UNION
-                SELECT 0 AS booking_count
-                    ,SUM(IFNULL(d.quantity,0)) AS ticket_count
-                    ,0 AS total_bonus
-                    ,0 AS total_kpi
-                FROM ec_booking_details d
-                    LEFT JOIN ec_flight_bookings b ON d.booking_id=b.id AND b.deleted=0
-                WHERE d.deleted=0 AND b.booking_status='8' $sql_search
-
-                UNION
-                SELECT 0 AS booking_count
-                        ,0 AS ticket_count
-                        ,SUM(IFNULL(w.bonus,0)) AS total_bonus
-                        ,0 AS total_kpi
-                FROM ec_working_process w
-                WHERE w.deleted=0
-                AND w.parent_type='EC_Flight_Bookings' $sql_search2
-
-                UNION
-                SELECT 0 AS booking_count
-                    ,0 AS ticket_count
-                    ,0 AS total_bonus
+                    ,SUM(CASE WHEN w.parent_type='EC_Flight_Bookings' THEN IFNULL(w.bonus,0) ELSE 0 END) AS total_bonus
                     ,SUM(
                         IFNULL(w.called,0)
                     + IFNULL(w.confirmed,0)
@@ -181,6 +157,15 @@ class EC_Working_Process_Helper {
                     ) AS total_kpi
                 FROM ec_working_process w
                 WHERE w.deleted=0 $sql_search2
+
+                UNION ALL
+                SELECT 0 AS booking_count
+                    ,SUM(IFNULL(d.quantity,0)) AS ticket_count
+                    ,0 AS total_bonus
+                    ,0 AS total_kpi
+                FROM ec_booking_details d
+                    LEFT JOIN ec_flight_bookings b ON d.booking_id=b.id AND b.deleted=0
+                WHERE d.deleted=0 AND b.booking_status='8' $sql_search
             ) AS t";
 	}
 

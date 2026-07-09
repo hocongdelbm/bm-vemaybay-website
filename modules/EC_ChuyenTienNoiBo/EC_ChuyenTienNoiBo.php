@@ -82,8 +82,10 @@ class EC_ChuyenTienNoiBo extends Basic {
 		
 		if($this->ghiso == 1){
 			// Create working process
-			myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description, $current_user->id, 'create_transfer');
-		} 
+			if (!isWorkingProcessExisting($this->module_dir, $this->id, 'create_transfer')) {
+				myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description, $current_user->id, 'create_transfer');
+			}
+		}
         else {
 			// Remove working process
 			myRemoveWorkingProcess($this->module_dir, $this->id);
