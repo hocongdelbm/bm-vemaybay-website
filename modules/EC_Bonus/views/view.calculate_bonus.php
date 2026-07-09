@@ -12,7 +12,7 @@ class Viewcalculate_bonus extends SugarView {
     public function display() {
         global $current_user, $sugar_config;
         
-        if (!ACLController::checkAccess('EC_Bonus', 'edit', true)) {
+        if (!isManagerUser()) {
             ACLController::displayNoAccess();
             return;
         }
