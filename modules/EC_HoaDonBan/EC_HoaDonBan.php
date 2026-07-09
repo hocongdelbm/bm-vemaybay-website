@@ -461,8 +461,9 @@ class EC_HoaDonBan extends Basic
 			case 'flight':
 				$isInter = false;
 				$arr = explode("-", $itinerary);
+				$domesticAirports = EC_Airports::getAirportList(EC_Airports::AIRPORT_SCOPE_DOMESTIC);
 				foreach ($arr as $code) {
-					if (!isset($GLOBALS['app_list_strings']['domestic_airport_list'][$code])) {
+					if (!isset($domesticAirports[$code])) {
 						$isInter = true;
 						break;
 					}

@@ -3,9 +3,6 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 /**
  * Itinerary rendering and itinerary-change popup data.
- *
- * Used by EC_Flight_BookingsViewDetail. Methods are kept close to the
- * legacy implementation to preserve the old business behavior.
  */
 trait ItineraryTrait
 {
@@ -111,30 +108,6 @@ trait ItineraryTrait
 		return array_values($grouped);
 	}
 
-	private function renderLineItineraryTableHeader()
-	{
-		$html = '<table id="itinerary_tbl" border="0" cellpadding="0" cellspacing="0" class="table-config table-itinerary table-details__booking"> 
-					<thead>
-						<tr>
-							<th scope="col" width="3%"></th> 
-							<th scope="col" width="3%">STT</th>
-							<th scope="col" width="8%">Chiều</th>
-							<th scope="col" width="8%">Mã hãng</th>
-							<th scope="col" width="7%">Số hiệu</th>
-							<th scope="col" width="7%">Hạng vé</th>
-							<th scope="col" width="7%">Nơi đi</th>
-							<th scope="col" width="7%">Nơi đến</th>
-							<th scope="col" width="10%">Ngày giờ đi</th>
-							<th scope="col" width="10%">Ngày giờ đến</th>
-							<th scope="col" width="10%">Hạn giữ chỗ</th>
-							<th scope="col" width="8%">Giá cơ bản</th>
-							<th scope="col">&nbsp;</th>
-						</tr>
-					</thead>';
-
-		return $html;
-	}
-
 	private function getAppliedPassengerItinerariesByDirection()
 	{
 		// Lấy ds những hành khách còn áp dụng hành trình đặt ban đầu
@@ -185,20 +158,20 @@ trait ItineraryTrait
 		return $res;
 	}
 
-	private function renderOriginalItineraryRows($rows, $date_format, $airport_list, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass)
+	private function renderOriginalItineraryRows($rows, $date_format, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass)
 	{
 		$html = '';
 		$check_dep = $check_ret = false;
 
 		foreach ($rows as $i => $row) {
-			// Render từng dòng hành trình gốc: logo hãng, giờ bay, SMS, Remind, Check-in, in vé từng chặng.
-			$html .= $this->renderOriginalItineraryRow($row, $i, $date_format, $airport_list, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass, $check_dep, $check_ret);
+			// Render hành trình gốc
+			$html .= $this->renderOriginalItineraryRow($row, $i, $date_format, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass, $check_dep, $check_ret);
 		}
 
 		return $html;
 	}
 
-	private function renderOriginalItineraryRow($row, $i, $date_format, $airport_list, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass, &$check_dep, &$check_ret)
+	private function renderOriginalItineraryRow($row, $i, $date_format, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass, &$check_dep, &$check_ret)
 	{
 		global $app_list_strings;
 		$html = '';
@@ -260,6 +233,7 @@ trait ItineraryTrait
 			}
 
 			// SMS BUTTON
+			$airport_list = EC_Airports::getAirportList();
 			$journey_name = ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']] ?? '')) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']] ?? ''));
 			$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));
 			$sms_btn = '<input type="button" name="btnSendSMS" value="SMS" title="Send SMS" class="btn btn-primary-2"
@@ -279,28 +253,12 @@ trait ItineraryTrait
 			}
 
 			$html .= '<td data-label="" class="text-center">
-					<form action="index.php?print=true" method="post" name="frmPrintEticket" id="frmPrintEticket' . $i . '" target="_blank">
-						<input type="hidden" name="module" value="EC_Flight_Bookings" />
-						<input type="hidden" name="action" value="printeticket" />
-						<input type="hidden" name="record" value="' . $this->bean->id . '" />
-						<input type="hidden" name="return_module" value="EC_Flight_Bookings" />
-						<input type="hidden" name="return_action" value="" />
-						<input type="hidden" name="return_id" value="' . $this->bean->id . '" />
-						<input type="hidden" name="booking" value="' . $this->bean->name . '" />
-						<input type="hidden" name="booking_id" value="' . $this->bean->id . '" />
-						<input type="hidden" name="contact_email" value="' . $this->bean->email . '" />
-						<input type="hidden" name="contact_name" value="' . $this->bean->contact_name . '" />
-						<input type="hidden" name="itinerary_id" value="' . $row['id'] . '" />
-						<input type="hidden" name="direction" value="' . $row['direction'] . '" />
-						<input type="hidden" name="airline_code" value="' . $row['airline_code'] . '" />
-						<input type="hidden" name="ticket_type" value="' . $this->bean->ticket_type . '" />
 						<div class="action-button-ticket d-flex gap-2 align-items-center justify-content-center">
 							' . $sms_btn . '
 							' . $remind_btn . '
 							' . $checkin_status . '
 						</div>
-					</form>
-				</td>';
+					</td>';
 		} else {
 			$html .= '<td data-label="" class="text-center">&nbsp;</td>';
 		}
@@ -355,23 +313,24 @@ trait ItineraryTrait
 
 		$date_format = $timedate->get_date_format();
 		$user_list = get_user_array(true, '', '', true);
-		$airport_list = $this->getAirportList();
+
 		$pass_qty = $this->countOriginalBookingPassengers();
 		$html = '';
 		$i = 0;
 		$j = ($this->bean->flight_type == 0) ? 3 : 2;
 		$order_iti = 0;
 		$print_iti = 0;
+		$applied_pass = [];
 
 		foreach ($rows as $row) {
 			if ($order_iti != $row['sabre_logs']) {
 				$order_iti = $row['sabre_logs'];
-				$applied_pass = $this->getEditedItineraryAppliedPassengerText($row, $pass_qty);
+				$applied_pass[$order_iti] = $this->getEditedItineraryAppliedPassengerText($row, $pass_qty);
 				$html .= $this->renderEditedItineraryGroupHeader($row, $applied_pass, $user_list);
 				$i = 0;
 			}
 
-			$html .= $this->renderEditedItineraryRow($row, $i, $j, $date_format, $airport_list, $applied_pass, $print_iti);
+			$html .= $this->renderEditedItineraryRow($row, $i, $j, $date_format, $applied_pass, $print_iti);
 
 			if (!empty($row['description'])) {
 				$html .= '<tr><td colspan="15" class="fw-semibold fst-italic">' . $row['description'] . '</td></tr>';
@@ -382,13 +341,6 @@ trait ItineraryTrait
 		}
 
 		return $html;
-	}
-
-	private function getAirportList()
-	{
-		global $app_list_strings;
-
-		return $app_list_strings['domestic_airport_list'] + $app_list_strings['africa_airport_list'] + $app_list_strings['americas_airport_list'] + $app_list_strings['australia_airport_list'] + $app_list_strings['europe_airport_list'] + $app_list_strings['northeast_asia_airport_list'] + $app_list_strings['southeast_asia_airport_list'];
 	}
 
 	private function countOriginalBookingPassengers()
@@ -419,12 +371,12 @@ trait ItineraryTrait
 		</tr>';
 	}
 
-	private function renderEditedItineraryRow($row, $i, $j, $date_format, $airport_list, $applied_pass, &$print_iti)
+	private function renderEditedItineraryRow($row, $i, $j, $date_format, $applied_pass, &$print_iti)
 	{
 		global $app_list_strings;
 
 		$img_src = $this->renderEditedItineraryAirlineLogo($row);
-		$action_html = $this->renderEditedItineraryActionCell($row, $j, $airport_list, $applied_pass, $print_iti);
+		$action_html = $this->renderEditedItineraryActionCell($row, $j, $applied_pass, $print_iti);
 
 		return '<tr class="edited_iti_line">
 				<td class="hide-mobile text-center" style="vertical-align: middle;">
@@ -459,7 +411,7 @@ trait ItineraryTrait
 		return $img_src;
 	}
 
-	private function renderEditedItineraryActionCell($row, $j, $airport_list, $applied_pass, &$print_iti)
+	private function renderEditedItineraryActionCell($row, $j, $applied_pass, &$print_iti)
 	{
 		global $app_list_strings;
 		$remind_btn = '';
@@ -483,25 +435,16 @@ trait ItineraryTrait
 		}
 
 		$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));
+
+		$airport_list = EC_Airports::getAirportList();
 		$journey = ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']] ?? '')) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']] ?? ''));
+
 		return '<td colspan="2" class="text-center">
-				<form action="index.php?print=true" method="post" name="frmPrintEticket" id="frmPrintEticket' . $j . '" target="_blank">
-					<input type="hidden" name="module" value="EC_Flight_Bookings" />
-					<input type="hidden" name="action" value="printeticket" />
-					<input type="hidden" name="record" value="' . $this->bean->id . '" />
-					<input type="hidden" name="booking_id" value="' . $this->bean->id . '" />
-					<input type="hidden" name="contact_email" value="' . $this->bean->email . '" />
-					<input type="hidden" name="contact_name" value="' . $this->bean->contact_name . '" />
-					<input type="hidden" name="itinerary_id" value="' . $row['id'] . '" />
-					<input type="hidden" name="direction" value="' . $row['direction'] . '" />
-					<input type="hidden" name="airline_code" value="' . $row['airline_code'] . '" />
-					<input type="hidden" name="ticket_type" value="' . $this->bean->ticket_type . '" />
-					<div class="d-flex align-items-center gap-2 justify-content-center">
-						<input type="button" name="btnSendSMS" value="SMS" title="Send SMS" class="btn btn-primary-2 fw-semibold flex-fill" direction="' . $row['direction'] . '" flightno="' . $row['flight_number'] . '" journey="' . $journey . '" date="' . explode(' ', $sms_depdate)[0] . '" time="' . explode(' ', $sms_depdate)[1] . '" applied_pass="' . $applied_pass . '" style="max-width:30%" />
-						' . $remind_btn . '
-						' . $checkin_status . '
-					</div>
-				</form>
+				<div class="d-flex align-items-center gap-2 justify-content-center">
+					<input type="button" name="btnSendSMS" value="SMS" title="Send SMS" class="btn btn-primary-2 fw-semibold flex-fill" direction="' . $row['direction'] . '" flightno="' . $row['flight_number'] . '" journey="' . $journey . '" date="' . explode(' ', $sms_depdate)[0] . '" time="' . explode(' ', $sms_depdate)[1] . '" applied_pass="' . $applied_pass . '" style="max-width:30%" />
+					' . $remind_btn . '
+					' . $checkin_status . '
+				</div>
 			</td>';
 	}
 

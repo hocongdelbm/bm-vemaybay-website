@@ -1182,16 +1182,6 @@ function formatPhoneNumber($phoneNumber)
     }
 }
 
-// Format duration 
-function secondsToTimeFormat($seconds)
-{
-    $hours      = floor($seconds / 3600);
-    $minutes    = floor(($seconds % 3600) / 60);
-    $seconds    = $seconds % 60;
-
-    return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
-}
-
 // ========= ONLINE - OFFLINE ===========
 // ======================================
 function read_file_logs_online($user_id)
@@ -1341,10 +1331,8 @@ require_once 'custom/include/utils/exits.php';
 require_once 'custom/include/utils/booking.php';
 require_once 'custom/include/utils/calls.php';
 require_once 'custom/include/utils/string.php';
-require_once 'custom/include/utils/Flight.php';
 require_once 'custom/include/utils/FareClass.php';
 require_once 'custom/include/utils/Baggage.php';
-require_once 'custom/include/utils/printSendTicket.php';
 require_once 'custom/include/utils/daily_ad_cost.php';
 
 // Init helpers

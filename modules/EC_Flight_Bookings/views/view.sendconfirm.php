@@ -92,7 +92,7 @@ class Viewsendconfirm extends SugarView {
 		else return false;
 
 		// Online payment
-		$payment_link = EC_Flight_Bookings_Helper::get_online_payment_link($this->bean->id, $this->bean->created_by);
+		$payment_link = Bookings_Helper::get_online_payment_link($this->bean->id, $this->bean->created_by);
 
 		$body = str_replace(
 			[

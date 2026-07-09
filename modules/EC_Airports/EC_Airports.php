@@ -31,6 +31,15 @@ class EC_Airports extends Basic
     public $geo_country;
     public $is_active;
 
+    const AIRPORT_SCOPE_ALL = 'all';
+    const AIRPORT_SCOPE_DOMESTIC = 'domestic';
+    const AIRPORT_SCOPE_INTER = 'international';
+
+    /**
+     * geo_country = '1' (Việt Nam) trong geo_country_dom là sân bay nội địa, còn lại là quốc tế.
+     */
+    const AIRPORT_GEO_COUNTRY_DOMESTIC = '1';
+
     public function __construct()
     {
         parent::__construct();
@@ -82,77 +91,89 @@ class EC_Airports extends Basic
     }
 
     /**
-     * Import/upsert airports from modules/EC_Airports/list_airports
-     * .json, entries shaped as
-     * {"HAN": {"AirportCode": "HAN", "AirportName": "...", "CityName": "...",
-     * "Prefix": "...", "RegionCode": "VN", "Region": "...", "GeoCountryId": 1,
-     * "GeoCountryName": "..."}, ...}. Records are matched by iata_code.
-     * RegionCode is stored in the "country" field (enum, options=region_dom).
+     * Lấy 1 bản ghi sân bay (name, city_name) theo mã IATA, cache trong request.
+     *
+     * @param string $iataCode Mã IATA (vd "HAN", "SGN")
+     * @return array|null ['name' => ..., 'city_name' => ...] hoặc NULL nếu không tìm thấy
      */
-    public function importFromJsonFileAirport($filePath = '')
+    private static function getAirportRecord($iataCode)
     {
-        if (empty($filePath)) {
-            $filePath = dirname(__FILE__) . '/list_airports.json';
+        static $cache = [];
+
+        $code = strtoupper(trim((string)$iataCode));
+        if ($code === '') {
+            return null;
         }
 
-        if (!file_exists($filePath)) {
-            return array('success' => false, 'message' => 'File not found: ' . $filePath);
-        }
-
-        $rows = json_decode(file_get_contents($filePath), true);
-        if (!is_array($rows)) {
-            return array('success' => false, 'message' => 'Unable to parse JSON file');
-        }
-
-        $prefixMap = array(
-            'Sân bay quốc tế' => 'san-bay-quoc-te',
-            'Sân bay'         => 'san-bay',
-        );
-
-        $created = 0;
-        $updated = 0;
-        $skipped = 0;
-
-        foreach ($rows as $key => $row) {
-            $code = strtoupper(trim(isset($row['AirportCode']) ? $row['AirportCode'] : $key));
-            $airportName = trim(isset($row['AirportName']) ? $row['AirportName'] : '');
-            $cityName = trim(isset($row['CityName']) ? $row['CityName'] : '');
-            $regionCode = strtoupper(trim(isset($row['RegionCode']) ? $row['RegionCode'] : ''));
-            $prefixLabel = trim(isset($row['Prefix']) ? $row['Prefix'] : '');
-            $geoCountryId = isset($row['GeoCountryId']) ? (string) $row['GeoCountryId'] : '';
-
-            if ($code === '' || $airportName === '') {
-                $skipped++;
-                continue;
-            }
-
+        if (!array_key_exists($code, $cache)) {
             $bean = BeanFactory::getBean('EC_Airports');
-            $existingId = $bean->db->getOne(
-                "SELECT id FROM ec_airports WHERE iata_code = '" . $bean->db->quote($code) . "' AND deleted = 0"
+            $row = $bean->db->fetchOne(
+                "SELECT name, city_name FROM ec_airports WHERE iata_code = '" . $bean->db->quote($code) . "' AND deleted = 0"
             );
-
-            if (!empty($existingId)) {
-                $bean->retrieve($existingId);
-                $updated++;
-            } else {
-                $created++;
-            }
-
-            $bean->name = $airportName;
-            $bean->iata_code = $code;
-            $bean->city_name = $cityName;
-            $bean->country = $regionCode;
-            $bean->prefix = isset($prefixMap[$prefixLabel]) ? $prefixMap[$prefixLabel] : 'san-bay';
-            $bean->geo_country = $geoCountryId;
-            $bean->is_active = 1;
-            $bean->save();
+            $cache[$code] = $row ?: null;
         }
 
-        return array(
-            'success' => true,
-            'created' => $created,
-            'updated' => $updated,
-            'skipped' => $skipped,
-        );
+        return $cache[$code];
+    }
+
+    /**
+     * Lấy tên sân bay theo mã IATA.
+     *
+     * @param string $iataCode Mã IATA (vd "HAN", "SGN")
+     * @return string|null Tên sân bay hoặc NULL nếu không tìm thấy
+     */
+    public static function getAirportName($iataCode)
+    {
+        return self::getAirportRecord($iataCode)['name'] ?? null;
+    }
+
+    /**
+     * Lấy tên thành phố theo mã IATA sân bay.
+     *
+     * @param string $iataCode Mã IATA (vd "HAN", "SGN")
+     * @return string|null Tên thành phố hoặc NULL nếu không tìm thấy
+     */
+    public static function getCityName($iataCode)
+    {
+        return self::getAirportRecord($iataCode)['city_name'] ?? null;
+    }
+
+    /**
+     * Lấy danh sách sân bay đang active dạng mảng [iata_code => city_name].
+     *
+     * @param string $scope AIRPORT_SCOPE_ALL | AIRPORT_SCOPE_DOMESTIC | AIRPORT_SCOPE_INTER
+     * @return array
+     */
+    public static function getAirportList($scope = self::AIRPORT_SCOPE_ALL)
+    {
+        static $cache = [];
+
+        if (!isset($cache[$scope])) {
+            $list = [];
+            $bean = BeanFactory::getBean('EC_Airports');
+
+            $sql = "SELECT iata_code, city_name FROM ec_airports
+                    WHERE deleted = 0 AND is_active = 1
+                        AND iata_code IS NOT NULL AND iata_code != ''";
+
+            if ($scope === self::AIRPORT_SCOPE_DOMESTIC) {
+                $sql .= " AND geo_country = '" . self::AIRPORT_GEO_COUNTRY_DOMESTIC . "'";
+            } elseif ($scope === self::AIRPORT_SCOPE_INTER) {
+                $sql .= " AND geo_country != '" . self::AIRPORT_GEO_COUNTRY_DOMESTIC . "'";
+            }
+
+            $res = $bean->db->query($sql);
+            while ($row = $bean->db->fetchByAssoc($res)) {
+                $code = strtoupper(trim($row['iata_code']));
+                if ($code === '') {
+                    continue;
+                }
+                $list[$code] = $row['city_name'];
+            }
+
+            $cache[$scope] = $list;
+        }
+
+        return $cache[$scope];
     }
 }

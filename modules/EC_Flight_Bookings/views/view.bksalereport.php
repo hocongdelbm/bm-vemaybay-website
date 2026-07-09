@@ -2,15 +2,7 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class Viewbksalereport extends SugarView {
-	/** @var Sugar_Smarty **/
 	public $smartyObj;
-
-	// ===== Cấu hình thưởng (Phase 1: chỉ thưởng trực tiếp) =====
-	const BONUS_MIN_SERVICE_FEE = 110000; // Phí dịch vụ tối thiểu/vé để đủ điều kiện thưởng (nội địa)
-	const BONUS_THRESHOLD_FEE   = 120000; // Mốc tính phần dôi ra (surplus)
-	const BONUS_DIRECT_RATE     = 0.7;    // Booker nhận 70% (30% còn lại là quỹ gián tiếp - Phase 2)
-	const BONUS_OA_MULTIPLIER   = 1.0;    // Phase 1: chưa có trường "Đã vào OA", tạm tính 1.0
-	const BONUS_EFFECTIVE_DATE  = '2026-07-01'; // Áp dụng cho vé xuất từ 01-07-2026
 
 	function display() {
 		$this->smartyObj = new Sugar_Smarty();
@@ -100,13 +92,12 @@ class Viewbksalereport extends SugarView {
 
 		// Revenue: Ticket sales, Change flight date, Baggage, Refund
 		$data_revenue = calculateRevenueOfDate($from_date, $to_date);
-		
+
 		$html = '';
 		$total_bk_qty = $total_ticket_qty = 0;
 		$total_revenue_amount = 0;
 		$total_bought_amount = 0;
 		$total_profit_amount = 0;
-		$total_bonus_amount = 0;
 		$i = 1;
 
 		// 1. Gom dữ liệu
@@ -131,7 +122,6 @@ class Viewbksalereport extends SugarView {
 						'revenue_amount' 	=> 0,
 						'bought_amount'  	=> 0,
 						'profit_amount'  	=> 0,
-						'bonus_amount'   	=> 0,
 					];
 				}
 
@@ -144,7 +134,6 @@ class Viewbksalereport extends SugarView {
 				$grouped[$uid]['revenue_amount'] += $row['subtotal_amount'];
 				$grouped[$uid]['bought_amount']  += $row['total_bought_price'];
 				$grouped[$uid]['profit_amount']  += $row['profit_amount'];
-				$grouped[$uid]['bonus_amount']   += $row['bonus_amount'];
 			}
 
 			// 2. SORT ở đây
@@ -167,15 +156,13 @@ class Viewbksalereport extends SugarView {
 					<td class="text-end">' . format_number($row['revenue_amount']) . '</td>
 					<td class="text-end">' . format_number($row['bought_amount']) . '</td>
 					<td class="text-end">' . format_number($row['profit_amount']) . '</td>
-					<td class="text-end">' . format_number($row['bonus_amount']) . '</td>
 				</tr>';
-				
+
 				$total_bk_qty     		+= $row['total_bk'];
 				$total_ticket_qty 		+= $row['ticket_qty'];
 				$total_revenue_amount   += $row['revenue_amount'];
 				$total_bought_amount    += $row['bought_amount'];
 				$total_profit_amount    += $row['profit_amount'];
-				$total_bonus_amount    	+= $row['bonus_amount'];
 				$i++;
 			}
 		}
@@ -186,7 +173,6 @@ class Viewbksalereport extends SugarView {
 		$total_revenue_amount = format_number($total_revenue_amount);
 		$total_bought_amount = format_number($total_bought_amount);
 		$total_profit_amount = format_number($total_profit_amount);
-		$total_bonus_amount = format_number($total_bonus_amount);
 
 		return <<<HTML
 			<thead>
@@ -196,8 +182,7 @@ class Viewbksalereport extends SugarView {
 				<th width="5%">Vé</th>
 				<th width="10%">Doanh thu</th>
 				<th width="10%">Giá mua</th>
-				<th width="10%">Doanh số</th>'
-				<th width="10%">Thưởng</th>
+				<th width="10%">Doanh số</th>
 			</thead>
 			<tbody>
 				$html
@@ -209,7 +194,6 @@ class Viewbksalereport extends SugarView {
 					<td class="text-end">{$total_revenue_amount}</td>
 					<td class="text-end">{$total_bought_amount}</td>
 					<td class="text-end">{$total_profit_amount}</td>
-					<td class="text-end">{$total_bonus_amount}</td>
 				</tr>
 			</tbody>
 		HTML;
@@ -217,27 +201,19 @@ class Viewbksalereport extends SugarView {
 
 	// Chi tiết doanh số
 	public function getDetailDSBooking($from_date, $to_date, $assigned_user_id) {
-		global $current_user;
-		// Cột "Thưởng" đang phát triển: chỉ hiển thị cho tôi (user id = 1)
-		$show_bonus = ($current_user->id === '1');
-
 		$html = '<thead>
 					<th>STT</th>
 					<th>Ngày chứng từ</th>
 					<th>Booking</th>
 					<th>Ngày xuất vé</th>
 					<th>Số vé</th>
-					<th>Doanh số</th>'
-					. ($show_bonus ? '<th>Thưởng</th>' : '') . '
+					<th>Doanh số</th>
 				</thead><tbody>';
 
 		$data_revenue = calculateRevenueOfDate($from_date, $to_date);
 
-		// Thông tin phục vụ tính thưởng cho các booking vé
-		$bonus_info = $show_bonus ? $this->getBookingBonusInfo($this->collectBookingIds($data_revenue)) : [];
-
 		$i 			= 1;
-		$total_qty  = $total_ds_booking = $total_bonus = 0;
+		$total_qty  = $total_ds_booking = 0;
 
 		if (!empty($data_revenue) && $data_revenue['count'] > 0) {
 
@@ -249,7 +225,6 @@ class Viewbksalereport extends SugarView {
 				$uid = $row['user_id'] ?: 'empty';
 
 				if ($uid === $assigned_user_id) {
-					$bonus = $show_bonus ? $this->calculateDirectBonus($row, $bonus_info) : 0;
 					$html .= '<tr>
 						<td class="text-center fw-semibold">' . $i . '</td>
 						<td class="text-center">' . $row['voucher_date'] . '</td>
@@ -259,14 +234,12 @@ class Viewbksalereport extends SugarView {
 						</td>
 						<td class="text-center">' . $row['date_ticket_issue'] . '</td>
 						<td class="text-center">' . $row['total_quantity'] . '</td>
-						<td class="text-end">' . format_number($row['profit_amount']) . '</td>'
-						. ($show_bonus ? '<td class="text-end">' . format_number($bonus) . '</td>' : '') . '
+						<td class="text-end">' . format_number($row['profit_amount']) . '</td>
 					</tr>';
 					$i++;
 
 					$total_qty += $row['total_quantity'];
 					$total_ds_booking += $row['profit_amount'];
-					$total_bonus += $bonus;
 				}
 			}
 		}
@@ -278,196 +251,9 @@ class Viewbksalereport extends SugarView {
 			 		<td></td>
 			 		<td></td>
 			 		<td class="text-center">' . format_number($total_qty) . '</td>
-			 		<td class="text-end">' . format_number($total_ds_booking) . '</td>'
-			 		. ($show_bonus ? '<td class="text-end">' . format_number($total_bonus) . '</td>' : '') . '
+			 		<td class="text-end">' . format_number($total_ds_booking) . '</td>
 			 	</tr></tbody>';
 
 		return $html;
-	}
-
-	/**
-	 * Lấy danh sách booking_id (vé) từ kết quả doanh số để tra cứu thông tin tính thưởng.
-	 */
-	private function collectBookingIds($data_revenue) {
-		$ids = [];
-		if (!empty($data_revenue) && !empty($data_revenue['count'])) {
-			foreach ($data_revenue['details'] as $row) {
-				if ($row['parent_type'] === 'EC_Flight_Bookings' && !empty($row['booking_id'])) {
-					$ids[$row['booking_id']] = $row['booking_id'];
-				}
-			}
-		}
-		return array_values($ids);
-	}
-
-	/**
-	 * Truy vấn thông tin phục vụ tính thưởng cho từng booking:
-	 * nguồn khách, loại vé (nội địa/quốc tế), ngày xuất vé, ngày bay cuối cùng và các sân bay đến.
-	 *
-	 * @return array map booking_id => ['customer_source','ticket_type','date_ticket_issue','flight_departure_date','arrivals'[]]
-	 */
-	private function getBookingBonusInfo(array $booking_ids) {
-		global $db;
-
-		$info = [];
-		if (empty($booking_ids)) {
-			return $info;
-		}
-
-		$quoted = array_map(function ($id) use ($db) {
-			return "'" . $db->quote($id) . "'";
-		}, $booking_ids);
-		$in_clause = implode(',', $quoted);
-
-		$sql = "SELECT bk.id
-					, bk.customer_source
-					, bk.ticket_type
-					, bk.date_ticket_issue
-					, (
-						SELECT MAX(iti.departure_date)
-						FROM ec_booking_itineraries iti
-						WHERE iti.booking_id = bk.id AND iti.deleted = 0
-					) AS flight_departure_date
-				FROM ec_flight_bookings bk
-				WHERE bk.id IN ($in_clause) AND bk.deleted = 0";
-
-		$res = $db->query($sql);
-		while ($row = $db->fetchByAssoc($res)) {
-			$row['arrivals'] = [];
-			$info[$row['id']] = $row;
-		}
-
-		// Sân bay đến (để phân vùng vé quốc tế)
-		$sql_iti = "SELECT booking_id, arrival
-					FROM ec_booking_itineraries
-					WHERE booking_id IN ($in_clause) AND deleted = 0
-						AND arrival IS NOT NULL AND arrival != ''";
-
-		$res_iti = $db->query($sql_iti);
-		while ($row = $db->fetchByAssoc($res_iti)) {
-			if (isset($info[$row['booking_id']])) {
-				$info[$row['booking_id']]['arrivals'][] = strtoupper(trim($row['arrival']));
-			}
-		}
-
-		return $info;
-	}
-
-	/**
-	 * Tính thưởng trực tiếp (70%) cho 1 dòng doanh số.
-	 * Phase 1: chỉ tính cho booking vé (EC_Flight_Bookings); chưa xử lý hoàn vé / dịch vụ cộng thêm.
-	 */
-	private function calculateDirectBonus($row, array $bonus_info) {
-		// Chỉ tính cho booking vé
-		if ($row['parent_type'] !== 'EC_Flight_Bookings') {
-			return 0;
-		}
-
-		$booking_id = $row['booking_id'] ?? '';
-		$info = $bonus_info[$booking_id] ?? null;
-		if (empty($info)) {
-			return 0;
-		}
-
-		$qty = (int)$row['total_quantity'];
-		if ($qty <= 0) {
-			return 0;
-		}
-
-		// Điều kiện: áp dụng cho vé xuất từ ngày hiệu lực
-		$issue_date = substr((string)($info['date_ticket_issue'] ?? ''), 0, 10);
-		if ($issue_date === '' || $issue_date < self::BONUS_EFFECTIVE_DATE) {
-			return 0;
-		}
-
-		// Điều kiện: chỉ tính khi chuyến bay đã khởi hành (ngày bay đã qua)
-		$dep = $info['flight_departure_date'] ?? '';
-		if (empty($dep) || strtotime($dep . ' UTC') === false || strtotime($dep . ' UTC') >= time()) {
-			return 0;
-		}
-
-		// Phí dịch vụ trung bình mỗi vé = doanh số / số vé
-		$p_dv = $row['profit_amount'] / $qty;
-
-		if ((int)$info['ticket_type'] === 2) {
-			// Vé quốc tế: thưởng cố định theo vùng, không phụ thuộc surplus
-			$t_per_ticket = $this->getIntlBonusRate($info['arrivals']);
-		} else {
-			// Vé nội địa: phải đạt phí dịch vụ tối thiểu
-			if ($p_dv < self::BONUS_MIN_SERVICE_FEE) {
-				return 0;
-			}
-
-			$surplus = max(0, $p_dv - self::BONUS_THRESHOLD_FEE);
-
-			switch ($this->getSourceCategory($info['customer_source'])) {
-				case 'reference':
-					$t_per_ticket = 22000 + 0.30 * $surplus;
-					break;
-				case 'personal':
-					$t_per_ticket = 33000 + 0.40 * $surplus;
-					break;
-				case 'system':
-				default:
-					$t_per_ticket = 5500 + 0.10 * $surplus;
-					break;
-			}
-
-			$t_per_ticket *= self::BONUS_OA_MULTIPLIER;
-		}
-
-		$total_bonus = $t_per_ticket * $qty;
-
-		// Booker nhận 70% (phần trực tiếp)
-		return (int)round($total_bonus * self::BONUS_DIRECT_RATE);
-	}
-
-	/**
-	 * Phân loại nguồn khách thành 3 nhóm thưởng.
-	 * Mặc định (trống/không xác định) -> 'system' (mức thưởng thấp nhất - an toàn).
-	 */
-	private function getSourceCategory($customer_source) {
-		$customer_source = (string)$customer_source;
-
-		$system    = ['system_ads', 'system_old', 'receipt_voucher'];
-		$reference = ['is_reference', 'care'];
-		$personal  = ['new', 'agent'];
-
-		if (in_array($customer_source, $reference, true)) {
-			return 'reference';
-		}
-		if (in_array($customer_source, $personal, true)) {
-			return 'personal';
-		}
-		return 'system';
-	}
-
-	/**
-	 * Mức thưởng cố định/vé cho vé quốc tế theo vùng đến.
-	 * Nếu hành trình tới nhiều vùng -> lấy mức cao nhất.
-	 */
-	private function getIntlBonusRate(array $arrivals) {
-		global $app_list_strings;
-
-		$se_asia  = $app_list_strings['southeast_asia_airport_list'] ?? [];
-		$ne_asia  = $app_list_strings['northeast_asia_airport_list'] ?? [];
-		$domestic = $app_list_strings['domestic_airport_list'] ?? [];
-
-		$rate = 0;
-		foreach ($arrivals as $code) {
-			if (isset($domestic[$code])) {
-				continue; // bỏ qua chặng nội địa (vé khứ hồi)
-			}
-			if (isset($se_asia[$code])) {
-				$rate = max($rate, 300000); // Đông Nam Á
-			} elseif (isset($ne_asia[$code])) {
-				$rate = max($rate, 350000); // Châu Á khác
-			} else {
-				$rate = max($rate, 400000); // Vùng khác (Âu/Mỹ/Úc/Phi...)
-			}
-		}
-
-		// Không xác định được vùng đến quốc tế -> mặc định vùng khác
-		return $rate ?: 400000;
 	}
 }

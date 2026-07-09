@@ -13,13 +13,10 @@ trait DetailPanelsTrait
      */
     public function populateLineItineraries($deparment_info)
     {
-        global $app_list_strings, $timedate, $current_user;
+        global $timedate, $current_user;
 
         // Date format
         $date_format = $timedate->get_date_format();
-
-        // Airport list
-        $airport_list = $app_list_strings['domestic_airport_list'] + $app_list_strings['africa_airport_list'] + $app_list_strings['americas_airport_list'] + $app_list_strings['australia_airport_list'] + $app_list_strings['europe_airport_list'] + $app_list_strings['northeast_asia_airport_list'] + $app_list_strings['southeast_asia_airport_list'];
 
         // E-ticket mail permission
         $use_mail_eticket = is_admin($current_user) ? 1 : $deparment_info['use_mail_eticket'];
@@ -27,13 +24,30 @@ trait DetailPanelsTrait
         // Itinerary rows
         $itineraryRows = $this->getItineraryRowsForDetail();
 
-        // Itinerary header
-        $html = $this->renderLineItineraryTableHeader();
+        // Iti header
+        $html = '<table id="itinerary_tbl" border="0" cellpadding="0" cellspacing="0" class="table-config table-itinerary table-details__booking"> 
+					<thead>
+						<tr>
+							<th scope="col" width="3%"></th> 
+							<th scope="col" width="3%">STT</th>
+							<th scope="col" width="8%">Chiều</th>
+							<th scope="col" width="8%">Mã hãng</th>
+							<th scope="col" width="7%">Số hiệu</th>
+							<th scope="col" width="7%">Hạng vé</th>
+							<th scope="col" width="7%">Nơi đi</th>
+							<th scope="col" width="7%">Nơi đến</th>
+							<th scope="col" width="10%">Ngày giờ đi</th>
+							<th scope="col" width="10%">Ngày giờ đến</th>
+							<th scope="col" width="10%">Hạn giữ chỗ</th>
+							<th scope="col" width="8%">Giá cơ bản</th>
+							<th scope="col">&nbsp;</th>
+						</tr>
+					</thead>';
 
         // Applied passengers
         list($departure_applied_pass, $arrival_applied_pass) = $this->getAppliedPassengerItinerariesByDirection();
 
-        $html .= $this->renderOriginalItineraryRows($itineraryRows['original'], $date_format, $airport_list, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass);
+        $html .= $this->renderOriginalItineraryRows($itineraryRows['original'], $date_format, $use_mail_eticket, $departure_applied_pass, $arrival_applied_pass);
 
         // Itinerary templates
         return $this->appendLineItineraryTemplates($html, $itineraryRows['edited']);

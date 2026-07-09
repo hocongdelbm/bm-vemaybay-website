@@ -252,7 +252,7 @@ trait EditPanelsTrait
 
 	public function populateLinePassengers()
 	{
-		global $app_list_strings, $timedate;
+		global $timedate;
 
 		// Luồng hành lý mới: PHP chỉ xuất khung bảng + JSON, JS render row và option hành lý.
 
@@ -361,8 +361,6 @@ trait EditPanelsTrait
 		$baggage_options_outbound = $this->bean->getBaggageOptionsData($this->bean->airline);
 		$baggage_options_inbound = $this->bean->getBaggageOptionsData($this->bean->airline_inbound);
 
-		$supplier_list_html = myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', '', 'id', $sql_supplier);
-
 		$html = '<table id="tbl_line_passengers" class="table-vertical__mobile table-edit__booking table-config table-details__booking" cellpadding="0" cellspacing="0" border="0">';
 		$html .= '<thead>';
 		$html .= '<tr id="psg_first_row">';
@@ -388,9 +386,6 @@ trait EditPanelsTrait
 		$html .= '<input type="hidden" id="baggage_options_outbound" value=\'' . htmlspecialchars(json_encode($baggage_options_outbound), ENT_QUOTES, 'UTF-8') . '\' />';
 		$html .= '<input type="hidden" id="baggage_options_inbound" value=\'' . htmlspecialchars(json_encode($baggage_options_inbound), ENT_QUOTES, 'UTF-8') . '\' />';
 		$html .= '<input type="hidden" id="psg_passengers_data_json" value=\'' . htmlspecialchars(json_encode($passengers_data), ENT_QUOTES, 'UTF-8') . '\' />';
-		$html .= '<input type="hidden" id="supplier_list_json" value=\'' . htmlspecialchars(json_encode($supplier_list_html), ENT_QUOTES, 'UTF-8') . '\' />';
-		$html .= '<input type="hidden" id="passenger_type_list_json" value=\'' . htmlspecialchars(json_encode(get_select_options_with_id($app_list_strings['passenger_type_list'], 0)), ENT_QUOTES, 'UTF-8') . '\' />';
-		$html .= '<input type="hidden" id="passenger_salutation_list_json" value=\'' . htmlspecialchars(json_encode(get_select_options_with_id($app_list_strings['passenger_salutation_list'], 0)), ENT_QUOTES, 'UTF-8') . '\' />';
 		$html .= '</td>';
 		$html .= '</tr>';
 		$html .= '</table>';
@@ -400,14 +395,6 @@ trait EditPanelsTrait
 		 */
 		// Gửi HTML khung bảng (row sẽ được render bằng JS)
 		$this->ss->assign('LINE_PASSENGERS', $html);
-
-		// Gửi dữ liệu JSON cho JavaScript xử lý
-		$this->ss->assign('PASSENGERS_DATA_JSON', json_encode($passengers_data));
-
-		// Gửi các danh sách lookup dạng JSON
-		$this->ss->assign('PASSENGER_TYPE_LIST', get_select_options_with_id($app_list_strings['passenger_type_list'], 0));
-		$this->ss->assign('PASSENGER_SALUTATION_LIST', get_select_options_with_id($app_list_strings['passenger_salutation_list'], 0));
-		$this->ss->assign('SUPPLIER_LIST', $supplier_list_html);
 	}
 
 	/**

@@ -17,7 +17,7 @@ trait AssetsTrait
 
 	private function displayJSTrait()
 	{
-		global $app_list_strings, $current_user;
+		global $current_user;
 
 		$jsVer   = inDeveloperMode() ? time() : '1.3.1';
 
@@ -30,19 +30,18 @@ trait AssetsTrait
 				<script src="modules/' . $this->bean->module_dir . '/js/print_ticket_new.js?v=' . $jsVer . '"></script>
 			';
 
-		// Map [iata_code => logo_url] để JS lấy logo hãng bay qua EC_Airlines::getLogoUrl() thay vì tự build đường dẫn ảnh tĩnh.
 		$airlineLogoMap = [];
 		foreach (array_keys(EC_Airlines::getAirlineList()) as $airlineCode) {
 			$airlineLogoMap[$airlineCode] = EC_Airlines::getLogoUrl($airlineCode);
 		}
 
-		// Inject biến PHP sang JS để các script phía client dùng đúng trạng thái booking và cấu hình hiện tại.
+		// Inject biến PHP sang JS
 		$js .= '<script>
 			var airline_logo_map = ' . json_encode($airlineLogoMap) . ';
 			var booking_status = "' . $this->bean->booking_status . '";
 			var win_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '0')) . '";
 			var lose_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '1')) . '";
-			var domestic_airport_lst = ["' . implode('","', array_keys($app_list_strings['domestic_airport_list'])) . '"];
+			const domestic_airport_lst = ["' . implode('","', array_keys(EC_Airports::getAirportList(EC_Airports::AIRPORT_SCOPE_DOMESTIC))) . '"];
 		
 			let bba_ticket_class = ["Eco Saver max", "Eco Saver", "Eco Smart", "Eco Flex", "Pre smart", "Pre Flex", "Buz smart", "Buz Flex"];
 			let vja_ticket_class = ["Eco", "Eco1", "B1 Eco", "W1 Eco", "E1 Eco", "R1 Eco"];
@@ -52,8 +51,6 @@ trait AssetsTrait
 			const all_ticket_class = [].concat(bba_ticket_class, vja_ticket_class, vna_ticket_class, vta_ticket_class);
 			const is_current_user_admin = ' . (is_admin($current_user) ? 'true' : 'false') . ';
 			const can_edit_completed_line_details = ' . (isManagerUser($current_user->id) ? 'true' : 'false') . ';
-			const is_invoice_export = "' . $this->bean->is_invoice_export . '";
-			const is_invoice_input_export = "' . $this->bean->is_invoice_input_export . '";
 		</script>';
 
 		// Phải tạo phiếu thu trước rồi mới nhấn đã thanh toán.

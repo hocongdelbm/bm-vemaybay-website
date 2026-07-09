@@ -412,10 +412,6 @@ $(document).ready(function () {
     $('form[name="DetailView"] input:button[name="Edit"]').remove();
   }
 
-  if (booking_status == "8" && is_invoice_input_export == "1") {
-    $("#btnCheckInvoiceInputExport").hide();
-  }
-
   // Cancelled booking
   $("#frmCancelled").submit(function () {
     if (!confirm("Bạn có chắc là muốn hủy booking này ?")) return false;
@@ -1316,47 +1312,6 @@ $(document).ready(function () {
   });
   // End add luggage
 
-  // Begin change name
-  $("#change_name_btn").click(function () {
-    $.ajax({
-      url: "index.php?entryPoint=entryPointFlightBookings",
-      type: "POST",
-      data:
-        "for=changeName&id=" +
-        $("#bkg_no_name").val() +
-        "&flight_type=" +
-        $("#flight_type").val() +
-        "&airline_out=" +
-        $("#airline_out").val() +
-        "&airline_in=" +
-        $("#airline_in").val() +
-        "&ticket_class0=" +
-        $(".ticket_class0").text() +
-        "&ticket_class1=" +
-        $(".ticket_class1").text(),
-      beforeSend: function () {
-        $("body").css({ cursor: "wait" });
-      },
-      success: function (response) {
-        $("#line_passengers_name_area").html(response);
-      },
-    });
-    $("#change_name").dialog({
-      title: "Đối tên hành khách",
-      width: 1300,
-      modal: true,
-      resizable: false,
-    });
-  });
-  $("#change_name").submit(function () {
-    if (!checkLineItems(2)) {
-      return false;
-    }
-    createNewLineDetail(2);
-    return true;
-  });
-  // End change name
-
   // Begin change flight time
   $("#change_flight_time").click(function () {
     $.ajax({
@@ -1444,7 +1399,7 @@ $(document).ready(function () {
     $(this).allowNumberOnly(event);
   });
 
-  $("#add_luggage, #change_name, #bkg_detail").on(
+  $("#add_luggage, #bkg_detail").on(
     "dialogclose",
     function (event) {
       $("#tbl_line_passengers_luggage").html("");

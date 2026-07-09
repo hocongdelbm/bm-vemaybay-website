@@ -93,65 +93,6 @@ class EC_Airlines extends Basic
     }
 
     /**
-     * Import/upsert airlines from modules/EC_Airlines/list_airlines.json
-     */
-    public function importFromJsonFileAirlines($filePath = '')
-    {
-        if (empty($filePath)) {
-            $filePath = dirname(__FILE__) . '/list_airlines.json';
-        }
-
-        if (!file_exists($filePath)) {
-            return array('success' => false, 'message' => 'File not found: ' . $filePath);
-        }
-
-        $rows = json_decode(file_get_contents($filePath), true);
-        if (!is_array($rows)) {
-            return array('success' => false, 'message' => 'Unable to parse JSON file');
-        }
-
-        $created = 0;
-        $updated = 0;
-        $skipped = 0;
-
-        foreach ($rows as $key => $row) {
-            $code = strtoupper(trim(isset($row['AirlineCode']) ? $row['AirlineCode'] : $key));
-            $name = trim(isset($row['AirlineName']) ? $row['AirlineName'] : '');
-            $regionCode = strtoupper(trim(isset($row['RegionCode']) ? $row['RegionCode'] : ''));
-
-            if ($code === '' || $name === '') {
-                $skipped++;
-                continue;
-            }
-
-            $bean = BeanFactory::getBean('EC_Airlines');
-            $existingId = $bean->db->getOne(
-                "SELECT id FROM ec_airlines WHERE iata_code = '" . $bean->db->quote($code) . "' AND deleted = 0"
-            );
-
-            if (!empty($existingId)) {
-                $bean->retrieve($existingId);
-                $updated++;
-            } else {
-                $created++;
-            }
-
-            $bean->name = $name;
-            $bean->iata_code = $code;
-            $bean->country = $regionCode;
-            $bean->is_active = 1;
-            $bean->save();
-        }
-
-        return array(
-            'success' => true,
-            'created' => $created,
-            'updated' => $updated,
-            'skipped' => $skipped,
-        );
-    }
-
-    /**
      * Chuẩn hoá mã hãng bay legacy (VNA, VJA, VNP, BBA, VTA...) về đúng mã IATA
      *
      * @param string $rawCode Mã hãng bay gốc (vd "VNA", "VN")

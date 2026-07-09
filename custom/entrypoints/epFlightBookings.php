@@ -421,13 +421,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'addLuggage') {
 	exit;
 }
 
-// đổi tên
-if (isset($_POST['for']) && $_POST['for'] == 'changeName') {
-	$pass_detail = populateLinePassengers($_POST['id'], $_POST['flight_type'], '2', $_POST['airline_in'], $_POST['airline_out'], $_POST['ticket_class0'], $_POST['ticket_class1']);
-	echo $pass_detail;
-	exit;
-}
-
 // đổi ngày h bay dùng cho edit
 if (isset($_POST['for']) && $_POST['for'] == 'changeFlightTime') {
 	$iti_detail = populateLineItineraries($_POST['id']);
@@ -3426,12 +3419,11 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 		WHERE i.direction=0 AND i.add_type=0 AND i.deleted=0
 	";
 
+	$dom_keys = array_keys(EC_Airports::getAirportList(EC_Airports::AIRPORT_SCOPE_DOMESTIC));
 	if ($scope === 'domestic') {
-		$dom_keys = array_keys($app_list_strings['domestic_airport_list']);
 		$dom_in   = "'" . implode("','", $dom_keys) . "'";
 		$route_filter = "AND route.departure IN ({$dom_in}) AND route.arrival IN ({$dom_in})";
 	} elseif ($scope === 'international') {
-		$dom_keys = array_keys($app_list_strings['domestic_airport_list']);
 		$dom_in   = "'" . implode("','", $dom_keys) . "'";
 		$route_filter = "AND (route.departure NOT IN ({$dom_in}) OR route.arrival NOT IN ({$dom_in}))";
 	} elseif ($scope === 'country' && !empty($_POST['dest_country'])) {
@@ -3440,7 +3432,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 		// Ràng buộc theo nhóm (report tách Nội địa/Quốc tế theo cả điểm đi & đến)
 		$grp = $_POST['grp'] ?? '';
 		if ($grp === 'dom' || $grp === 'intl') {
-			$dom_keys = array_keys($app_list_strings['domestic_airport_list']);
 			$dom_in   = "'" . implode("','", $dom_keys) . "'";
 			if ($grp === 'dom') {
 				$cond .= " AND route.departure IN ({$dom_in}) AND route.arrival IN ({$dom_in})";
