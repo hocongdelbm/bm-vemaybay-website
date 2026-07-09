@@ -25,10 +25,10 @@ class Viewcalculate_bonus extends SugarView {
         $smarty = new Sugar_Smarty();
 
         // Calendar widget submits "d-m-Y" dates via GET; default to the last 3 days (VN time)
-        $from_input = trim((string) ($_GET['from_date'] ?? ''));
-        $to_input   = trim((string) ($_GET['to_date'] ?? ''));
-        if ($from_input === '') $from_input = date('d-m-Y', strtotime('-3 days'));
-        if ($to_input === '')   $to_input   = date('d-m-Y');
+        $from_input = trim($_GET['from_date'] ?? '');
+        $to_input   = trim($_GET['to_date'] ?? '');
+        if ($from_input === '') $from_input = date($this->date_format, strtotime('-3 days'));
+        if ($to_input === '')   $to_input   = date($this->date_format);
 
         $smarty->assign('FROM_DATE_VALUE', htmlspecialchars($from_input, ENT_QUOTES, 'UTF-8'));
         $smarty->assign('TO_DATE_VALUE', htmlspecialchars($to_input, ENT_QUOTES, 'UTF-8'));
@@ -38,8 +38,10 @@ class Viewcalculate_bonus extends SugarView {
         $smarty->assign('SAVED', $is_save);
 
         if (!empty($_GET['btnRun'])) {
-            $from_day = DatetimeHelper::convert_datetime($from_input, "$this->date_format 00:00:00", 'Y-m-d H:i:s', $this->timezone, "Asia/Ho_Chi_Minh");
-            $to_day   = DatetimeHelper::convert_datetime($to_input, "$this->date_format 23:59:59", 'Y-m-d H:i:s', $this->timezone, "Asia/Ho_Chi_Minh");
+            // Date-only parse: the helper zeroes uncovered fields, so from-day gets 00:00:00;
+            // the to-day bound carries its literal end-of-day time in the input value
+            $from_day = DatetimeHelper::convert_datetime($from_input, $this->date_format, 'Y-m-d H:i:s', $this->timezone, 'Asia/Ho_Chi_Minh');
+            $to_day   = DatetimeHelper::convert_datetime("$to_input 23:59:59", "$this->date_format H:i:s", 'Y-m-d H:i:s', $this->timezone, 'Asia/Ho_Chi_Minh');
 
             if ($from_day === null || $to_day === null) {
                 $smarty->assign('ERROR', 'Định dạng ngày không hợp lệ');

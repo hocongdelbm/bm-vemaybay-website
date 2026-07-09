@@ -89,7 +89,7 @@ class DatetimeHelper {
      * @return string|null Converted datetime, or null when the input cannot be parsed
      */
     public static function convert_datetime(string $input, string $fromFormat, string $toFormat, string $fromTimezone = '', string $toTimezone = ''): ?string {
-        global $current_user, $sugar_config;
+        global $current_user;
 
         if ($fromTimezone === '') {
             $fromTimezone = $current_user->getPreference('timezone') ?: 'Asia/Ho_Chi_Minh';

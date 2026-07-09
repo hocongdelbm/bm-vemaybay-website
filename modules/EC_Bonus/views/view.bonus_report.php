@@ -29,11 +29,11 @@ class Viewbonus_report extends SugarView {
         $view_all = (bool) isManagerUser();
         $smarty->assign('VIEW_ALL', $view_all);
 
-        // Calendar widget submits "d-m-Y" dates via GET; default to the current month (VN time)
+        // Calendar widget submits dates in the user's format via GET; default to the current month
         $from_input = trim((string) ($_GET['from_date'] ?? ''));
         $to_input   = trim((string) ($_GET['to_date'] ?? ''));
-        if ($from_input === '') $from_input = date('01-m-Y');
-        if ($to_input === '')   $to_input   = date('d-m-Y');
+        if ($from_input === '') $from_input = date($this->date_format, strtotime('first day of this month'));
+        if ($to_input === '')   $to_input   = date($this->date_format);
 
         $smarty->assign('FROM_DATE_VALUE', htmlspecialchars($from_input, ENT_QUOTES, 'UTF-8'));
         $smarty->assign('TO_DATE_VALUE', htmlspecialchars($to_input, ENT_QUOTES, 'UTF-8'));
@@ -42,13 +42,17 @@ class Viewbonus_report extends SugarView {
         $source_input = trim((string) ($_GET['source_name'] ?? ''));
         $smarty->assign('SOURCE_NAME_VALUE', htmlspecialchars($source_input, ENT_QUOTES, 'UTF-8'));
 
-        if ($from_input === null || $to_input === null) {
+        // ec_bonus.bonus_time is stored in UTC; convert the user-timezone day bounds
+        $from_utc = DatetimeHelper::convert_datetime("$from_input 00:00:00", "$this->date_format H:i:s", 'Y-m-d H:i:s', $this->timezone, 'UTC');
+        $to_utc   = DatetimeHelper::convert_datetime("$to_input 23:59:59", "$this->date_format H:i:s", 'Y-m-d H:i:s', $this->timezone, 'UTC');
+
+        if ($from_utc === null || $to_utc === null) {
             $smarty->assign('ERROR', 'Định dạng ngày không hợp lệ');
         }
         else {
             try {
                 $smarty->assign('BONUS_REPORT', $this->buildReport(
-                    $from_input, $to_input, $view_all ? '' : $current_user->id, $source_input
+                    $from_utc, $to_utc, $view_all ? '' : $current_user->id, $source_input
                 ));
             }
             catch (Throwable $th) {
@@ -65,21 +69,13 @@ class Viewbonus_report extends SugarView {
      * the template: rows grouped per user with subtotals and a grand total,
      * VND-formatted amounts, both levels sorted by total bonus descending.
      *
-     * @param string $from_day     Y-m-d, VN time
-     * @param string $to_day       Y-m-d, VN time
+     * @param string $from_utc     Y-m-d H:i:s, UTC lower bound
+     * @param string $to_utc       Y-m-d H:i:s, UTC upper bound
      * @param string $only_user_id Restrict to this assigned user; '' = all users
      * @param string $source_name  Filter by source name (partial match); '' = all sources
      */
-    private function buildReport(string $from_day, string $to_day, string $only_user_id, string $source_name = ''): array {
+    private function buildReport(string $from_utc, string $to_utc, string $only_user_id, string $source_name = ''): array {
         global $db;
-
-        // ec_bonus.bonus_time is stored in UTC; convert the user day bounds
-        $from_utc = DatetimeHelper::convert_datetime(
-            "$from_day 00:00:00", "$this->date_format H:i:s", 'Y-m-d H:i:s', $this->timezone, 'UTC'
-        ) ?: "$from_day 00:00:00";
-        $to_utc = DatetimeHelper::convert_datetime(
-            "$to_day 23:59:59", "$this->date_format H:i:s", 'Y-m-d H:i:s', $this->timezone, 'UTC'
-        ) ?: "$to_day 23:59:59";
 
         $user_cond = $only_user_id !== ''
             ? " AND b.assigned_user_id = '" . $db->quote($only_user_id) . "'"

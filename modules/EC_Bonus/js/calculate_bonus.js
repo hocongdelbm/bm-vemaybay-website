@@ -24,10 +24,13 @@ Calendar.setup({
   var select = document.getElementById('quick_range');
   if (!select) return;
 
+  // Same user date format as the Calendar pickers, e.g. "%d-%m-%Y"
   function fmt(d) {
-    var dd = String(d.getDate()).padStart(2, '0');
-    var mm = String(d.getMonth() + 1).padStart(2, '0');
-    return dd + '-' + mm + '-' + d.getFullYear();
+    var format = window.cal_date_format || '%d-%m-%Y';
+    return format
+      .replace('%d', String(d.getDate()).padStart(2, '0'))
+      .replace('%m', String(d.getMonth() + 1).padStart(2, '0'))
+      .replace('%Y', String(d.getFullYear()));
   }
 
   select.addEventListener('change', function () {

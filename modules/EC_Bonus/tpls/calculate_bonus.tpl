@@ -58,7 +58,7 @@
     </div>
   </form>
 
-  <script type="text/javascript" src="modules/EC_Bonus/js/calculate_bonus.js?v=1.2"></script>
+  <script type="text/javascript" src="modules/EC_Bonus/js/calculate_bonus.js?v=1.3"></script>
 
   {if isset($ERROR)}
     <div class="alert alert-danger mt-3">Tính thưởng thất bại: {$ERROR}</div>
