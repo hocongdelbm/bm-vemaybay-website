@@ -139,18 +139,14 @@ function saveRevenueBookingJob()
 }
 
 /**
- * Save the booking bonus report (last 3 days by flight date) into ec_bonus
+ * Save the booking bonus report (yesterday by flight date) into ec_bonus.
+ * Scheduled at 1am daily, so each run closes out the previous day.
  */
-function saveBonusReportJob()
-{
-	try {
-		EC_Bonus_Helper::save_bonus_report();
-	} catch (Throwable $th) {
-		$message = "Save bonus report failed";
-		$message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
-		NotificationService::sendErrorMessage($message);
-	}
-
+function saveBonusReportJob() {
+	// save_bonus_report expects Y-m-d H:i:s bounds in Vietnam time
+	$tz = new DateTimeZone('Asia/Ho_Chi_Minh');
+	$yesterday = (new DateTime('yesterday', $tz))->format('Y-m-d');
+	EC_Bonus_Helper::save_bonus_report("$yesterday 00:00:00", "$yesterday 23:59:59", true);
 	return true;
 }
 
