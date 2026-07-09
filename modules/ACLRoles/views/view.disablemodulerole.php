@@ -27,6 +27,7 @@ class ACLRolesViewDisablemodulerole extends SugarView
         echo '<link rel="stylesheet" href="modules/ACLRoles/css/disablemodulerole.css">';
 
         $db = DBManagerFactory::getInstance();
+        $this->ensureAclActionsForModules($db);
 
         // Bước 3: thực thi (POST confirmed=1)
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['confirmed'])) {
@@ -185,6 +186,52 @@ class ACLRolesViewDisablemodulerole extends SugarView
         echo '    </div>'; // drm-card__body
         echo '  </div>'; // drm-card
         echo '</div>'; // drm-wrap
+    }
+
+    /**
+     * Đồng bộ các module có hỗ trợ ACL vào bảng acl_actions.
+     *
+     * Một số custom module truy cập được bình thường nhưng chưa có dòng
+     * acl_actions, nên picker không thấy module đó khi query DISTINCT category.
+     */
+    private function ensureAclActionsForModules($db): void
+    {
+        global $beanList;
+
+        if (empty($beanList) || !is_array($beanList)) {
+            return;
+        }
+
+        require_once('modules/ACLActions/ACLAction.php');
+
+        $existing = [];
+        $result = $db->query("SELECT DISTINCT category FROM acl_actions WHERE deleted = 0");
+        while ($row = $db->fetchByAssoc($result)) {
+            $existing[$row['category']] = true;
+        }
+
+        foreach ($beanList as $module => $class) {
+            if ($class === 'Tracker') {
+                continue;
+            }
+
+            $bean = BeanFactory::newBean($module);
+            if (!$bean || !empty($bean->acl_display_only) || !$bean->bean_implements('ACL')) {
+                continue;
+            }
+
+            $category = $bean->getACLCategory();
+            if (isset($existing[$category])) {
+                continue;
+            }
+
+            if (!empty($bean->acltype)) {
+                ACLAction::addActions($category, $bean->acltype);
+            } else {
+                ACLAction::addActions($category);
+            }
+            $existing[$category] = true;
+        }
     }
 
     // ── Bước 2: Xác nhận ──────────────────────────────────────────────────────
