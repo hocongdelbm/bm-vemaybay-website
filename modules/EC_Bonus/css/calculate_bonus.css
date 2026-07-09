@@ -1,0 +1,23 @@
+.bonus-table-wrap {
+  max-height: 70vh;
+  overflow: auto;
+}
+.bonus-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fdf1ef;
+  color: #d9534f;
+  border-color: #f0c9c4;
+}
+.bonus-table tbody tr:hover td {
+  background: #f0f4f8;
+}
+.bonus-table tbody tr.row-subtotal td {
+  background: #f6f6f6;
+}
+.bonus-table tfoot tr.row-grand td {
+  background: #fdf1ef;
+  color: #d9534f;
+  font-size: 1.05em;
+}

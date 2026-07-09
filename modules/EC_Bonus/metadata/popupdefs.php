@@ -1,12 +1,12 @@
 <?php
 $popupMeta = array(
-    'moduleMain' => 'EC_Booking_Bonus',
-    'varName' => 'EC_Booking_Bonus',
-    'orderBy' => 'ec_booking_bonus.name',
+    'moduleMain' => 'EC_Bonus',
+    'varName' => 'EC_Bonus',
+    'orderBy' => 'ec_bonus.name',
     'whereClauses' => array(
-        'name' => 'ec_booking_bonus.name',
+        'name' => 'ec_bonus.name',
     ),
-    'searchInputs' => array('ec_booking_bonus_number', 'name', 'priority', 'status'),
+    'searchInputs' => array('ec_bonus_number', 'name', 'priority', 'status'),
     'listviewdefs' => array(
         'NAME' => array(
             'width' => '30%',

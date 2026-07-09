@@ -1331,7 +1331,6 @@ function update_field_booking($id, $field, $value, $datatype = 'string')
     $db->query($sql);
 }
 
-require_once 'custom/include/utils/address.php';
 require_once 'custom/include/utils/Telegram.php';
 require_once 'custom/include/utils/Mattermost.php';
 require_once 'custom/include/utils/exits.php';
