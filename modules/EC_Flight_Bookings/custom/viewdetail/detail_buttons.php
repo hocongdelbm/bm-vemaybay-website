@@ -217,7 +217,14 @@ trait DetailButtonsTrait
 	{
 		global $app_list_strings, $current_user;
 
-		if (isManagerUser($current_user->id) && !in_array($this->bean->booking_status, [7, 8]) || is_admin($current_user)) {
+		// // Change booking status button
+		// $now = date("Y-m-d H:i:s");
+		// $time_current = date("H:i:s", strtotime('+7 hours', strtotime($now)));
+
+		/**
+		 * Trong khung giờ 21h - 6h sáng thì được thấy nút "chuyển trạng thái booking"
+		 */
+		if (isManagerUser() && !in_array($this->bean->booking_status, [7, 8]) || is_admin($current_user)) {
 			$change_status = '</form>
 				<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus" class="d-flex align-items-center gap-2">
 					<input type="hidden" name="module" value="EC_Flight_Bookings" />

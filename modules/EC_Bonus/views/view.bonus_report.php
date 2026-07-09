@@ -1,12 +1,16 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/Sugar_Smarty.php');
-date_default_timezone_set('Asia/Ho_Chi_Minh');
+require_once('modules/Currencies/Currency.php');
 
-class Viewbonus_report extends SugarView
-{
-    public function display()
-    {
+class Viewbonus_report extends SugarView {
+    public string $grp_sep;
+    public string $dec_sep;
+    public string $timezone;
+    public string $date_format;
+    public string $time_format;
+
+    public function display() {
         global $current_user, $sugar_config;
 
         if (!ACLController::checkAccess('EC_Bonus', 'list', true)) {
@@ -14,10 +18,15 @@ class Viewbonus_report extends SugarView
             return;
         }
 
+        list($this->grp_sep, $this->dec_sep) = get_number_separators();
+        $this->timezone = $current_user->getPreference('timezone') ?: 'Asia/Ho_Chi_Minh';
+        $this->date_format = $current_user->getPreference('datef') ?: ($sugar_config['datef'] ?? 'd-m-Y');
+        $this->time_format = $current_user->getPreference('timef') ?: ($sugar_config['timef'] ?? 'H:i');
+
         $smarty = new Sugar_Smarty();
 
         // Admin / manager / accountant sees everyone, others only their own rows
-        $view_all = (bool) isManagerUser($current_user->id);
+        $view_all = (bool) isManagerUser();
         $smarty->assign('VIEW_ALL', $view_all);
 
         // Calendar widget submits "d-m-Y" dates via GET; default to the current month (VN time)
@@ -33,19 +42,18 @@ class Viewbonus_report extends SugarView
         $source_input = trim((string) ($_GET['source_name'] ?? ''));
         $smarty->assign('SOURCE_NAME_VALUE', htmlspecialchars($source_input, ENT_QUOTES, 'UTF-8'));
 
-        $from_day = DatetimeHelper::convert_datetime($from_input, 'd-m-Y', 'Y-m-d');
-        $to_day   = DatetimeHelper::convert_datetime($to_input, 'd-m-Y', 'Y-m-d');
-
-        if ($from_day === null || $to_day === null) {
+        if ($from_input === null || $to_input === null) {
             $smarty->assign('ERROR', 'Định dạng ngày không hợp lệ');
         }
         else {
             try {
-                $smarty->assign('BONUS_REPORT', self::buildReport(
-                    $from_day, $to_day, $view_all ? '' : $current_user->id, $source_input
+                $smarty->assign('BONUS_REPORT', $this->buildReport(
+                    $from_input, $to_input, $view_all ? '' : $current_user->id, $source_input
                 ));
-            } catch (Throwable $th) {
-                $smarty->assign('ERROR', htmlspecialchars($th->getMessage(), ENT_QUOTES, 'UTF-8'));
+            }
+            catch (Throwable $th) {
+                if(isDevUser()) $smarty->assign("ERROR", "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+                else $smarty->assign("ERROR", "Lỗi trong quá trình xử lý, vui lòng liên hệ IT");
             }
         }
 
@@ -62,16 +70,15 @@ class Viewbonus_report extends SugarView
      * @param string $only_user_id Restrict to this assigned user; '' = all users
      * @param string $source_name  Filter by source name (partial match); '' = all sources
      */
-    private static function buildReport(string $from_day, string $to_day, string $only_user_id, string $source_name = ''): array
-    {
+    private function buildReport(string $from_day, string $to_day, string $only_user_id, string $source_name = ''): array {
         global $db;
 
-        // ec_bonus.bonus_time is stored in UTC; convert the VN day bounds
+        // ec_bonus.bonus_time is stored in UTC; convert the user day bounds
         $from_utc = DatetimeHelper::convert_datetime(
-            "$from_day 00:00:00", 'Y-m-d H:i:s', 'Y-m-d H:i:s', 'Asia/Ho_Chi_Minh', 'UTC'
+            "$from_day 00:00:00", "$this->date_format H:i:s", 'Y-m-d H:i:s', $this->timezone, 'UTC'
         ) ?: "$from_day 00:00:00";
         $to_utc = DatetimeHelper::convert_datetime(
-            "$to_day 23:59:59", 'Y-m-d H:i:s', 'Y-m-d H:i:s', 'Asia/Ho_Chi_Minh', 'UTC'
+            "$to_day 23:59:59", "$this->date_format H:i:s", 'Y-m-d H:i:s', $this->timezone, 'UTC'
         ) ?: "$to_day 23:59:59";
 
         $user_cond = $only_user_id !== ''
@@ -100,12 +107,11 @@ class Viewbonus_report extends SugarView
                 {$user_cond}
                 {$source_cond}";
 
-        list($grp_sep, $dec_sep) = EC_Bonus_Helper::get_number_seps();
-        $fmt = function ($v) use ($grp_sep, $dec_sep) { return number_format((float) $v, 0, $dec_sep, $grp_sep); };
+        $fmt = function ($v) { return number_format((float) $v, 0, $this->dec_sep, $this->grp_sep); };
         $esc = function ($v) { return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); };
 
         $users_map = [];
-        $grand = ['bookings' => 0, 'kpi' => 0, 'direct' => 0.0, 'indirect' => 0.0, 'total' => 0.0];
+        $grand = ['bookings' => 0, 'kpi' => 0, 'direct' => 0, 'indirect' => 0, 'total' => 0];
 
         $res = $db->query($sql);
         while ($row = $db->fetchByAssoc($res)) {
@@ -116,19 +122,19 @@ class Viewbonus_report extends SugarView
                     'name'     => $esc($row['user_name'] !== '' ? $row['user_name'] : $uid),
                     'bookings' => [],
                     'kpi'      => 0,
-                    'direct'   => 0.0,
-                    'indirect' => 0.0,
-                    'total'    => 0.0,
+                    'direct'   => 0,
+                    'indirect' => 0,
+                    'total'    => 0,
                 ];
             }
 
-            $direct   = (float) $row['direct_bonus'];
-            $indirect = (float) $row['indirect_bonus'];
-            $kpi      = (int) $row['kpi'];
+            $direct   = $row['direct_bonus'];
+            $indirect = $row['indirect_bonus'];
+            $kpi      = $row['kpi'];
 
             $bonus_time = DatetimeHelper::convert_datetime(
                 (string) $row['bonus_time'],
-                'Y-m-d H:i:s', 'd-m-Y H:i', 'UTC', 'Asia/Ho_Chi_Minh'
+                'Y-m-d H:i:s', "$this->date_format H:i", 'UTC', $this->timezone
             ) ?: '';
 
             $users_map[$uid]['bookings'][] = [

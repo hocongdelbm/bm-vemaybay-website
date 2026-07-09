@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="modules/EC_Bonus/css/calculate_bonus.css?v=1.2" />
+<link rel="stylesheet" type="text/css" href="modules/EC_Bonus/css/calculate_bonus.css?v=1.5" />
 
 <h1 class="title mb-0">{if $VIEW_ALL}Báo cáo thưởng{else}Thưởng của tôi{/if}</h1>
 
@@ -7,6 +7,18 @@
     <input type="hidden" name="module" value="EC_Bonus" />
     <input type="hidden" name="action" value="bonus_report" />
     <div class="d-flex align-items-center gap-4">
+      <div class="d-flex gap-2 align-items-center">
+        <select class="form-select w-auto" id="quick_range" tabindex="102" title="Chọn nhanh khoảng thời gian">
+          <option value="">Tùy chọn</option>
+          <option value="today">Hôm nay</option>
+          <option value="yesterday">Hôm qua</option>
+          <option value="last7">7 ngày qua</option>
+          <option value="this_week">Tuần này</option>
+          <option value="this_month">Tháng này</option>
+          <option value="last_month">Tháng trước</option>
+        </select>
+      </div>
+
       <div class="from-to-date--wrap d-inline-flex gap-2 align-items-center">
         <div class="d-flex gap-2 align-items-center date_trigger--wrap fdate_trigger--wrap">
           <span class="sublabel">Từ ngày: </span>
@@ -55,7 +67,7 @@
     </div>
   </form>
 
-  <script type="text/javascript" src="modules/EC_Bonus/js/calculate_bonus.js?v=1.0"></script>
+  <script type="text/javascript" src="modules/EC_Bonus/js/calculate_bonus.js?v=1.2"></script>
 
   {if isset($ERROR)}
     <div class="alert alert-danger mt-3">Không thể xem báo cáo: {$ERROR}</div>
@@ -69,10 +81,10 @@
             <tr>
               {if $VIEW_ALL}<th>Nhân viên</th>{/if}
               <th>Nguồn</th>
-              <th>Thời gian bay</th>
+              <th>Thời điểm tính thưởng</th>
               <th style="text-align:right">KPI</th>
-              <th style="text-align:right">Thưởng trực tiếp</th>
               <th style="text-align:right">Thưởng gián tiếp</th>
+              <th style="text-align:right">Thưởng trực tiếp</th>
               <th style="text-align:right">Tổng thưởng</th>
             </tr>
           </thead>
@@ -88,8 +100,8 @@
                   </td>
                   <td>{$bk.time}</td>
                   <td style="text-align:right">{$bk.kpi}</td>
-                  <td style="text-align:right">{$bk.direct}</td>
                   <td style="text-align:right">{$bk.indirect}</td>
+                  <td style="text-align:right">{$bk.direct}</td>
                   <td style="text-align:right">{$bk.total}</td>
                 </tr>
               {/foreach}
@@ -99,8 +111,8 @@
                   <td><strong>{$user.bookings|@count} nguồn</strong></td>
                   <td></td>
                   <td style="text-align:right"><strong>{$user.kpi}</strong></td>
-                  <td style="text-align:right"><strong>{$user.direct}</strong></td>
                   <td style="text-align:right"><strong>{$user.indirect}</strong></td>
+                  <td style="text-align:right"><strong>{$user.direct}</strong></td>
                   <td style="text-align:right"><strong>{$user.total}</strong></td>
                 </tr>
               {/if}
@@ -116,8 +128,8 @@
               {/if}
               <td></td>
               <td style="text-align:right"><strong>{$BONUS_REPORT.grand.kpi}</strong></td>
-              <td style="text-align:right"><strong>{$BONUS_REPORT.grand.direct}</strong></td>
               <td style="text-align:right"><strong>{$BONUS_REPORT.grand.indirect}</strong></td>
+              <td style="text-align:right"><strong>{$BONUS_REPORT.grand.direct}</strong></td>
               <td style="text-align:right"><strong>{$BONUS_REPORT.grand.total}</strong></td>
             </tr>
           </tfoot>

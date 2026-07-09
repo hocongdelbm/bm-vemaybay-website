@@ -26,7 +26,7 @@ if ($listRights) {
 	}
 
 	// Doanh số booker
-	if (isManagerUser($current_user->id)) {
+	if (isManagerUser()) {
 		$module_menu[] = [
 			"index.php?module=EC_Flight_Bookings&action=airportstatistics&return_module=EC_Flight_Bookings&return_action=airportstatistics",
 			"Phân tích hành trình",
@@ -113,7 +113,7 @@ if ($listRights) {
 		];
 
 		$module_menu[]= [
-			"index.php?module=EC_Flight_Bookings&action=bonusreport",
+			"index.php?module=EC_Bonus&action=index",
 			$mod_strings['LNK_BONUS'],
 			"growth",
 			"EC_Flight_Bookings"

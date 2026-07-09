@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="modules/EC_Bonus/css/calculate_bonus.css?v=1.0" />
+<link rel="stylesheet" type="text/css" href="modules/EC_Bonus/css/calculate_bonus.css?v=1.5" />
 
 <h1 class="title mb-0">
   Tính thưởng
@@ -54,11 +54,11 @@
         <label class="sublabel" for="save_records" style="margin-bottom:0; cursor:pointer;">Lưu kết quả</label>
       </div>
 
-      <input class="btn btn-primary" type="submit" name="btnRun" title="Tính thưởng" />
+      <button class="btn btn-primary" type="submit" name="btnRun" value="1" title="Tính thưởng">Tính thưởng</button>
     </div>
   </form>
 
-  <script type="text/javascript" src="modules/EC_Bonus/js/calculate_bonus.js?v=1.0"></script>
+  <script type="text/javascript" src="modules/EC_Bonus/js/calculate_bonus.js?v=1.2"></script>
 
   {if isset($ERROR)}
     <div class="alert alert-danger mt-3">Tính thưởng thất bại: {$ERROR}</div>
