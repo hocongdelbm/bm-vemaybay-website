@@ -37,13 +37,13 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 		</span>';
 		$this->ss->assign('AMOUNT', $amount);
 
-		$loaithu_arr = ['4', '5', '10', '11', '12', '13', '14', '16', '27'];
+		$loaithu_arr = EC_Receipt_Voucher::$LOAI_THU_SUPPLIER;
 		$loai_thu = '<label>' . $app_list_strings['loai_thu_list'][(int)$this->bean->loai_thu] . '</label>';
-		if (($this->bean->loai_thu == 4 || $this->bean->loai_thu == 5) && ($this->bean->is_debt || !empty($this->bean->customer))) {
+		if (in_array((string)$this->bean->loai_thu, EC_Receipt_Voucher::$LOAI_THU_BOOKING) && ($this->bean->is_debt || !empty($this->bean->customer))) {
 			$loai_thu .= '&nbsp;-&nbsp;Đối tượng:&nbsp;<label>' . $this->bean->customer . '</label>';
 		}
 
-		if (in_array((int)$this->bean->loai_thu, $loaithu_arr)) {
+		if (in_array((string)$this->bean->loai_thu, $loaithu_arr)) {
 			$loai_thu .= '<table cellpadding="0" cellspacing="0" border="0" class="table-details__booking mt-2">
 					<thead>
 						<tr>
