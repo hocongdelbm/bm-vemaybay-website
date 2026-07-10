@@ -359,6 +359,7 @@ function calculateBKTotalAmtBatch(array $booking_ids)
 
     global $db;
     $ids_sql = implode("','", array_map([$db, 'quote'], $booking_ids));
+    $loai_thu_bk_in = EC_Receipt_Voucher::loaiThuSqlIn(EC_Receipt_Voucher::$LOAI_THU_BOOKING);
 
     $sql = "SELECT
             b.id AS booking_id,
@@ -381,7 +382,7 @@ function calculateBKTotalAmtBatch(array $booking_ids)
                 FROM ec_receipt_voucher pt
                 WHERE pt.booking_id = b.id
                 AND pt.rv_status IN (1, 2)
-                AND pt.loai_thu IN ('4','5')
+                AND pt.loai_thu IN ($loai_thu_bk_in)
                 AND pt.deleted = 0
             ), 0)
             -
@@ -413,7 +414,7 @@ function calculateBKTotalAmtBatch(array $booking_ids)
                 FROM ec_receipt_voucher pt
                 WHERE pt.booking_id = b.id
                 AND pt.rv_status IN (1, 2)
-                AND pt.loai_thu IN ('4','5')
+                AND pt.loai_thu IN ($loai_thu_bk_in)
                 AND pt.deleted = 0
             ), 0)
             -
@@ -507,6 +508,7 @@ function calculateBKAmtBatch(array $booking_ids)
 
     global $db;
     $ids_sql = implode("','", array_map([$db, 'quote'], $booking_ids));
+    $loai_thu_bk_in = EC_Receipt_Voucher::loaiThuSqlIn(EC_Receipt_Voucher::$LOAI_THU_BOOKING);
 
     $sql = "SELECT
             b.id AS booking_id,
@@ -514,7 +516,7 @@ function calculateBKAmtBatch(array $booking_ids)
                 IFNULL(b.total_amount, 0)
                 + IFNULL((SELECT SUM(IFNULL(pc.down*1000, 0)) FROM ec_contact_points_log pc WHERE pc.parent_type = 'EC_Flight_Bookings' AND pc.parent_id = b.id AND pc.deleted = 0), 0)
                 + IFNULL((SELECT SUM(IFNULL(hv.tongtienhang, 0)) FROM ec_hoanve hv WHERE hv.tinhtrang='1' AND hv.deleted = 0 AND hv.booking_id = b.id), 0)
-                + IFNULL((SELECT SUM(IFNULL(pt.amount, 0)) FROM ec_receipt_voucher pt WHERE pt.booking_id = b.id AND pt.rv_status IN (1, 2) AND pt.loai_thu IN ('4','5') AND pt.deleted = 0), 0)
+                + IFNULL((SELECT SUM(IFNULL(pt.amount, 0)) FROM ec_receipt_voucher pt WHERE pt.booking_id = b.id AND pt.rv_status IN (1, 2) AND pt.loai_thu IN ($loai_thu_bk_in) AND pt.deleted = 0), 0)
             ) AS revenue,
             (
                 IFNULL((SELECT SUM(IFNULL(d.total_bought_price, 0)) FROM ec_booking_details d WHERE d.booking_id = b.id AND d.deleted = 0), 0)
@@ -523,7 +525,7 @@ function calculateBKAmtBatch(array $booking_ids)
                         SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0)))
                     FROM ec_booking_passengers p WHERE p.booking_id = b.id AND p.deleted = 0 AND (p.add_type IS NULL OR p.add_type = '')), 0)
                 + IFNULL((SELECT SUM(IFNULL(hv.tongtienkhach, 0)) FROM ec_hoanve hv WHERE hv.tinhtrang='1' AND hv.deleted = 0 AND hv.booking_id = b.id), 0)
-                + IFNULL((SELECT SUM(IFNULL(pt.bought_amount,0) + IFNULL(pt.bought_amount2,0) + IFNULL(pt.bought_amount3,0)) FROM ec_receipt_voucher pt WHERE pt.booking_id = b.id AND pt.rv_status IN (1, 2) AND pt.loai_thu IN ('4','5') AND pt.deleted = 0), 0)
+                + IFNULL((SELECT SUM(IFNULL(pt.bought_amount,0) + IFNULL(pt.bought_amount2,0) + IFNULL(pt.bought_amount3,0)) FROM ec_receipt_voucher pt WHERE pt.booking_id = b.id AND pt.rv_status IN (1, 2) AND pt.loai_thu IN ($loai_thu_bk_in) AND pt.deleted = 0), 0)
                 + IFNULL((SELECT SUM(IFNULL(pc2.up * 1000, 0)) FROM ec_contact_points_log pc2 WHERE pc2.parent_type = 'EC_Contact_Points_Log' AND pc2.parent_id IN (SELECT pc_inner.id FROM ec_contact_points_log pc_inner WHERE pc_inner.parent_type = 'EC_Flight_Bookings' AND pc_inner.parent_id = b.id AND pc_inner.deleted = 0) AND pc2.deleted = 0), 0)
             ) AS total_purchase
         FROM ec_flight_bookings b
@@ -552,6 +554,7 @@ function calculateBKAmtBatch(array $booking_ids)
 function calculateBKAmt($booking_id, $only_profit = false)
 {
     global $db;
+    $loai_thu_bk_in = EC_Receipt_Voucher::loaiThuSqlIn(EC_Receipt_Voucher::$LOAI_THU_BOOKING);
 
     $sql = "SELECT
             b.id AS booking_id,
@@ -577,7 +580,7 @@ function calculateBKAmt($booking_id, $only_profit = false)
                     FROM ec_receipt_voucher pt
                     WHERE pt.booking_id = b.id
                     AND pt.rv_status IN (1, 2)
-                    AND pt.loai_thu IN ('4','5')
+                    AND pt.loai_thu IN ($loai_thu_bk_in)
                     AND pt.deleted = 0
                 ), 0)
             ) AS total_amount,
@@ -588,7 +591,7 @@ function calculateBKAmt($booking_id, $only_profit = false)
                 FROM ec_receipt_voucher pt 
                 WHERE pt.booking_id = b.id 
                 AND pt.rv_status IN (1, 2)
-                AND pt.loai_thu IN ('4','5')
+                AND pt.loai_thu IN ($loai_thu_bk_in)
                 AND pt.deleted = 0
             ), 0) AS total_amount_receipt,
             -- GIÁ MUA Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế
@@ -597,7 +600,7 @@ function calculateBKAmt($booking_id, $only_profit = false)
                 FROM ec_receipt_voucher pt 
                 WHERE pt.booking_id = b.id 
                 AND pt.rv_status IN (1, 2)
-                AND pt.loai_thu IN ('4','5')
+                AND pt.loai_thu IN ($loai_thu_bk_in)
                 AND pt.deleted = 0
             ), 0) AS total_purchase_receipt,
             -- Tiền giảm giá sử dụng điểm tích lũy
@@ -662,7 +665,7 @@ function calculateBKAmt($booking_id, $only_profit = false)
                     FROM ec_receipt_voucher pt 
                     WHERE pt.booking_id = b.id 
                     AND pt.rv_status IN (1, 2)
-                    AND pt.loai_thu IN ('4','5')
+                    AND pt.loai_thu IN ($loai_thu_bk_in)
                     AND pt.deleted = 0
                 ), 0)
                 +
@@ -1040,7 +1043,6 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
     if (!empty($condition_arr['customer_source']) && is_array($condition_arr['customer_source'])) {
         $customer_source_conditions = [];
         $has_receipt_voucher = false;
-        $has_reference = false;
 
         foreach ($condition_arr['customer_source'] as $source) {
             $source = trim((string)$source);
@@ -1049,7 +1051,6 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
             if ($source === 'receipt_voucher') {
                 $has_receipt_voucher = true;
             } elseif ($source === 'is_reference') {
-                $has_reference = true;
                 $customer_source_conditions[] = 'bk.is_reference = 1';
             } else {
                 $customer_source_conditions[] = "bk.customer_source = '" . $db->quote($source) . "'";
@@ -1196,7 +1197,8 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
             FROM ec_receipt_voucher p
             LEFT JOIN ec_flight_bookings bk ON bk.id = p.booking_id AND bk.deleted = 0
             WHERE 
-                p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
+                -- Đã thêm 2 loại 21, 27 so với sql cũ
+                p.loai_thu IN (" . EC_Receipt_Voucher::loaiThuSqlIn(EC_Receipt_Voucher::$LOAI_THU_SUPPLIER) . ")
                 AND p.ngayhachtoan >= '$from_utc' AND p.ngayhachtoan <= '$to_utc'
                 AND p.deleted = 0
                 $where_receipt_voucher_only

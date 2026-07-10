@@ -80,11 +80,13 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit
 	{
 		$js_file = 'modules/EC_Receipt_Voucher/js/view.edit.js';
 		$v = file_exists($js_file) ? filemtime($js_file) : time();
+
 		$js = '<script type="text/javascript" src="' . $js_file . '?v=' . $v . '"></script>';
 		$js .= '<script>
 			var record = "' . $this->bean->id . '";
 			var loai_thu = "' . $this->bean->loai_thu . '";
 			var amount_type = "' . $this->bean->amount_type . '";
+			var loai_thu_arr = ' . json_encode(EC_Receipt_Voucher::$LOAI_THU_SUPPLIER) . ';
 		</script>';
 
 		echo $js;
@@ -141,7 +143,7 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit
 
 
 		// LOAI THU
-		$loaithu_arr = ['4', '5', '10', '11', '12', '13', '14', '16', '27'];
+		$loaithu_arr = EC_Receipt_Voucher::$LOAI_THU_SUPPLIER;
 		$loaithu = '<style>
 			.ui-autocomplete-loading {
 				background: white url(custom/jqueryui/css/ui-lightness/images/ui-anim_basic_16x16.gif) right center no-repeat;
@@ -166,6 +168,7 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit
 				</div>
 			</div>
 		</div>';
+
 		$loaithu .= '<span id="span_supplier" ' . (in_array($this->bean->loai_thu, $loaithu_arr) ? '' : 'style="display:none;"') . '>
 		<table border="0" width="100%" cellpadding="0" cellspacing="0" style="line-height:20px;">';
 		$loaithu .= '<tr>

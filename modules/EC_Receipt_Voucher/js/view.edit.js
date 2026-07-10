@@ -17,15 +17,11 @@ $(document).ready(function () {
 		$('#exchange_rate').attr('readonly', true);
 	}
 
-	// loại thu
+	// loại thu — trạng thái ban đầu do PHP render (display:none để chống nháy),
+	// JS lo thay đổi động. trigger('change') bên dưới tự set hiện/ẩn theo loại thu
+	// nên không cần clear span_supplier thủ công ở đây.
 	var html_customer = $('#span_customer').html();
 	var html_supplier = $('#span_supplier').html();
-	var loai_thu = $('#loai_thu :selected').val();
-	var loai_thu_arr = ['4', '5', '11', '12', '13', '14', '16', '21', '27'];
-
-	if (!loai_thu_arr.includes(loai_thu)) {
-		$('#span_supplier').html('');
-	}
 
 	$('#loai_thu').change(function () {
 		let loai_thu = $('#loai_thu :selected').val();
@@ -70,150 +66,126 @@ $(document).ready(function () {
 	});
 
 	// xử lý sự kiện submit
-	$('#EditView').submit(function (e) {
+	$('#EditView').submit(function () {
 		var action = $('#EditView input:hidden[name="action"]').val();
+		if (action != 'Save') {
+			return;
+		}
+
 		var amount = unformatNumber($('#amount').val());
 		var receipt_type = $('#receipt_type :selected').val();
 		var loai_thu = $('#loai_thu :selected').val();
+		var isSupplier = loai_thu_arr.includes(loai_thu);
 		var tknganhang_id = $('#tknganhang_id :selected').val();
 		var com_location = $('#com_location_id :selected').val();
 		var booking_id = $('#booking_id').val();
 		var delivery_man = $('#delivery_man_id').val();
-		var supplier_id = loai_thu_arr.includes(loai_thu) ? $('#supplier_id :selected').val() : $('#account_id_c').val();
+		var supplier_id = isSupplier ? $('#supplier_id :selected').val() : $('#account_id_c').val();
 		var supplier2_id = $('#supplier2_id :selected').val();
 		var supplier3_id = $('#supplier3_id :selected').val();
 		var sell_amount = unformatNumber($('#sell_amount').val());
 		var sell_amount2 = unformatNumber($('#sell_amount2').val());
 		var sell_amount3 = unformatNumber($('#sell_amount3').val());
-		var bought_amount = unformatNumber($('#bought_amount').val());
 		var bought_amount2 = unformatNumber($('#bought_amount2').val());
 		var bought_amount3 = unformatNumber($('#bought_amount3').val());
 		var total_sell = parseInt(sell_amount + sell_amount2 + sell_amount3);
 
-		if (action == 'Save') {
-			if (amount == '' && loai_thu != '4' && loai_thu != '5' && loai_thu != '27') {
-				$text_warning = 'Số tiền không được trống!';
-				showToastWarning($text_warning);
-				$('#amount').focus();
-				return false;
+		// Số tiền
+		if (amount == '' && loai_thu != '4' && loai_thu != '5' && loai_thu != '27') {
+			showToastWarning('Số tiền không được trống!');
+			$('#amount').focus();
+			return false;
+		}
+
+		// Tài khoản ngân hàng
+		if (receipt_type == 'credit_transfer' && tknganhang_id == '') {
+			showToastWarning('Tài khoản ngân hàng không được trống!');
+			$('#tknganhang_id').focus();
+			return false;
+		}
+
+		// Địa điểm
+		if (receipt_type == 'cash' && com_location == '' && loai_thu != 22) {
+			showToastWarning('Địa điểm không được trống!');
+			$('#com_location_id').focus();
+			return false;
+		}
+
+		// Người giao chỉ hợp lệ với loại thu 21
+		if (delivery_man.length > 0 && loai_thu != '21') {
+			showToastWarning('Loại thu và người giao chưa phù hợp!');
+			$('#delivery_man_id').focus();
+			return false;
+		}
+
+		// Loại thu "Thu tiền vé" thì phải chèn booking
+		if ((loai_thu == '1' || loai_thu == '4' || loai_thu == '5') && booking_id == '') {
+			showToastWarning('Booking không được để trống!');
+			$('#booking_name').focus();
+			return false;
+		}
+
+		// Nhà cung cấp / Đối tượng
+		if ((isSupplier && supplier_id == '') || (loai_thu == '7' && supplier_id.length == 0)) {
+			if (isSupplier) {
+				showToastWarning('Nhà cung cấp không được trống!');
+				$('#account_id_c').focus();
+			} else {
+				showToastWarning('Đối tượng không được trống!');
+				$('#customer').focus();
 			}
+			return false;
+		}
 
-			if (receipt_type == 'credit_transfer' && tknganhang_id == '') {
+		if (bought_amount2 > 0 && supplier2_id == '') {
+			showToastWarning('Nhà cung cấp không được trống!');
+			$('#supplier2_id').focus();
+			return false;
+		}
+		if (bought_amount3 > 0 && supplier3_id == '') {
+			showToastWarning('Nhà cung cấp không được trống!');
+			$('#supplier3_id').focus();
+			return false;
+		}
 
-				$('.toast-warning').addClass('active');
-				$('.toast-warning #toast-content').text('Tài khoản ngân hàng không được trống!');
-				$('.toast-warning .progress-bar').animate({ width: "100%" }, 3000);
-				setTimeout(function () {
-					$(".toast-warning").removeClass('active');
-				}, 4000);
+		// Giá bán
+		if (isSupplier && sell_amount == '' && loai_thu != '4' && loai_thu != '5' && loai_thu != '27') {
+			showToastWarning('Giá bán không được trống!');
+			$('#bought_amount').focus();
+			return false;
+		}
+		if (supplier2_id != '' && sell_amount2 == '' && loai_thu != '4' && loai_thu != '5' && loai_thu != '27') {
+			showToastWarning('Giá bán không được trống!');
+			$('#sell_amount2').focus();
+			return false;
+		}
+		if (supplier3_id != '' && sell_amount3 == '' && loai_thu != '4' && loai_thu != '5' && loai_thu != '27') {
+			showToastWarning('Giá bán không được trống!');
+			$('#sell_amount3').focus();
+			return false;
+		}
 
-				$('#tknganhang_id').focus();
-				return false;
-			}
-
-			if (receipt_type == 'cash' && com_location == '' && loai_thu != 22) {
-				$('.toast-warning').addClass('active');
-				$('.toast-warning #toast-content').text('Địa điểm không được trống!');
-				$('.toast-warning .progress-bar').animate({ width: "100%" }, 3000);
-
-				setTimeout(function () {
-					$(".toast-warning").removeClass('active');
-				}, 4000);
-
-				$('#com_location_id').focus();
-				return false;
-			}
-
-			if (delivery_man.length > 0 && loai_thu != '21') {
-				$('.toast-warning').addClass('active');
-				$('.toast-warning #toast-content').text('Loại thu và người giao chưa phù hợp!');
-				$('.toast-warning .progress-bar').animate({ width: "100%" }, 3000);
-				setTimeout(function () {
-					$(".toast-warning").removeClass('active');
-				}, 4000);
-
-				$('#delivery_man_id').focus();
-				return false;
-			}
-
-			// Loại thu "Thu tiền vé" thì phải chèn booking
-			if ((loai_thu == '1' || loai_thu == '4' || loai_thu == '5') && booking_id == '') {
-				$text_warning = 'Booking không được để trống!';
-				showToastWarning($text_warning);
-				$('#booking_name').focus();
-				return false;
-			}
-
-			// Check supplier
-			if ((loai_thu_arr.includes(loai_thu) && supplier_id == '') || (loai_thu == '7' && supplier_id.length == 0)) {
-				if (loai_thu_arr.includes(loai_thu)) {
-					$text_warning = 'Nhà cung cấp không được trống!';
-					showToastWarning($text_warning);
-					$('#account_id_c').focus();
-				} else {
-					$text_warning = 'Đối tượng không được trống!';
-					showToastWarning($text_warning);
-					$('#customer').focus();
-				}
-				return false;
-			}
-
-			if (bought_amount2 > 0 && supplier2_id == '') {
-				$text_warning = 'Nhà cung cấp không được trống!';
-				showToastWarning($text_warning);
-				$('#supplier2_id').focus();
-				return false;
-			}
-			if (bought_amount3 > 0 && supplier3_id == '') {
-				$text_warning = 'Nhà cung cấp không được trống!';
-				showToastWarning($text_warning);
-				$('#supplier3_id').focus();
-				return false;
-			}
-
-			// Sell amount
-			if (loai_thu_arr.includes(loai_thu) && sell_amount == '' && loai_thu != '4' && loai_thu != '5' && loai_thu != '27') {
-				$text_warning = 'Giá bán không được trống!';
-				showToastWarning($text_warning);
-				$('#bought_amount').focus();
-				return false;
-			}
-			if (supplier2_id != '' && sell_amount2 == '' && loai_thu != '4' && loai_thu != '5' && loai_thu != '27') {
-				$text_warning = 'Giá bán không được trống!';
-				showToastWarning($text_warning);
-				$('#sell_amount2').focus();
-				return false;
-			}
-			if (supplier3_id != '' && sell_amount3 == '' && loai_thu != '4' && loai_thu != '5' && loai_thu != '27') {
-				$text_warning = 'Giá bán không được trống!';
-				showToastWarning($text_warning);
-				$('#sell_amount3').focus();
-				return false;
-			}
-
-			// Bought amount
-			if (loai_thu_arr.includes(loai_thu)) {
-				const suppliers = [
-					{ id: supplier_id, amount: String($('#bought_amount').val() || ''), selector: '#bought_amount' },
-					{ id: supplier2_id, amount: String($('#bought_amount2').val() || ''), selector: '#bought_amount2' },
-					{ id: supplier3_id, amount: String($('#bought_amount3').val() || ''), selector: '#bought_amount3' }
-				];
-				for (const sup of suppliers) {
-					if (sup.id !== '' && sup.amount.trim() === '') {
-						showToastWarning('Giá mua không được trống!');
-						$(sup.selector).focus();
-						return false;
-					}
+		// Giá mua
+		if (isSupplier) {
+			const suppliers = [
+				{ id: supplier_id, amount: String($('#bought_amount').val() || ''), selector: '#bought_amount' },
+				{ id: supplier2_id, amount: String($('#bought_amount2').val() || ''), selector: '#bought_amount2' },
+				{ id: supplier3_id, amount: String($('#bought_amount3').val() || ''), selector: '#bought_amount3' }
+			];
+			for (const sup of suppliers) {
+				if (sup.id !== '' && sup.amount.trim() === '') {
+					showToastWarning('Giá mua không được trống!');
+					$(sup.selector).focus();
+					return false;
 				}
 			}
+		}
 
-			// Check total sell and amount
-			if (loai_thu_arr.includes(loai_thu) && amount != total_sell) {
-				$text_warning = 'Số tiền và tổng giá bán phải bằng nhau!';
-				showToastWarning($text_warning);
-				$('#amount').focus();
-				return false;
-			}
+		// Số tiền phải bằng tổng giá bán
+		if (isSupplier && amount != total_sell) {
+			showToastWarning('Số tiền và tổng giá bán phải bằng nhau!');
+			$('#amount').focus();
+			return false;
 		}
 	});
 

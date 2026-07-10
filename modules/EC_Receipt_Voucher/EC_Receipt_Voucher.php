@@ -44,6 +44,26 @@ class EC_Receipt_Voucher extends Basic {
 	public $delivery_man_id;
 	public $delivery_man;
 
+	/**
+	 * Các loại thu cần nhập/hiển thị thông tin Nhà cung cấp (Giá bán/Giá mua).
+	 */
+	public static $LOAI_THU_SUPPLIER = ['4', '5', '10', '11', '12', '13', '14', '16', '21', '27'];
+
+	/**
+	 * Các loại thu là phiếu thu gắn với Booking (đổi giờ bay + phí hành lý) —
+	 * dùng để tính doanh số / công nợ của booking. Khác với $LOAI_THU_SUPPLIER.
+	 */
+	public static $LOAI_THU_BOOKING = ['4', '5'];
+
+	/**
+	 * Render danh sách loại thu thành chuỗi cho mệnh đề SQL IN, ví dụ: "'4','5','10'".
+	 * Chỉ chứa số nên an toàn để nội suy trực tiếp vào SQL.
+	 */
+	public static function loaiThuSqlIn(array $list)
+	{
+		return "'" . implode("','", $list) . "'";
+	}
+
 	public function bean_implements($interface)
 	{
 		switch ($interface) {
