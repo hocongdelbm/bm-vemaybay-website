@@ -1001,6 +1001,15 @@ EOHTML;
         $ss->assign("AUTHENTICATED", isset($_SESSION["authenticated_user_id"]));
         $ss->assign('MOD', return_module_language($GLOBALS['current_language'], 'Users'));
 
+        if (isset($_SESSION["authenticated_user_id"])) {
+            global $current_user;
+            $ss->assign("CURRENT_USER_ID", $current_user->id);
+            $ss->assign(
+                "CURRENT_USER",
+                $current_user->full_name == '' || !showFullName() ? $current_user->user_name : $current_user->full_name
+            );
+        }
+
         $bottomLinkList = array();
         if (isset($this->action) && $this->action != "EditView") {
             $bottomLinkList['print'] = array($app_strings['LNK_PRINT'] => getPrintLink());
