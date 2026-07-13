@@ -2787,6 +2787,10 @@ $(document).ready(function () {
 
     return value;
   }
+
+  $("#select-all-passengers").on("click", function () {
+    $('input[name="check-passenger"]').prop('checked', $(this).is(':checked'));
+  });
 });
 
 // Chi tiết doanh số booking (modal) - load qua AJAX khi mở, thay vì build sẵn mỗi lần tải trang
