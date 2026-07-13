@@ -34,26 +34,34 @@ trait ZaloSmsTrait
 		$stt_dep = $stt_ret = 0;
 		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			// Lượt đi
+			$departure_code = $row['departure'] ?? '';
+			$departure_name = EC_Airports::getCityName($departure_code) ?: $departure_code;
+
+			$arrival_code = $row['arrival'] ?? '';
+			$arrival_name = EC_Airports::getCityName($arrival_code) ?: $arrival_code;
+
 			if ($row['direction'] == '0') {
 				$departure_date = explode(' ', $row['departure_date']);
+				$airline_code = EC_Airlines::normalizeIataCode($this->bean->airline);
+				$airline_name = EC_Airlines::getAirlineName($airline_code) ?: $airline_code;
+
 				if ($stt_dep == 0) {
 					$journeys[$row['id']] = array(
 						'type' => 'dep',
-						'dep_code' => $row['departure'],
-						'arv_code' => $row['arrival'],
+						'dep_code' => $departure_code,
+						'arv_code' => $arrival_code,
 						'date' => $departure_date[0],
 						'time' => substr($departure_date[1], 0, -3),
 						'flightno' => $row['flight_number'],
-						'dep_name' => myGetAirportInfo2($row['departure'])['data'][0]['name'] . ' (' . $row['departure'] . ')',
-						'arv_name' => myGetAirportInfo2($row['arrival'])['data'][0]['name'] . ' (' . $row['arrival'] . ')',
-						'airline' => myGetAirlineInfo2($this->bean->airline, 'CODE')['data'][0]['name'] ?? '',
+						'dep_name' => $departure_name . ' (' . $departure_code . ')',
+						'arv_name' => $arrival_name . ' (' . $arrival_code . ')',
+						'airline' => $airline_name ?? '',
 						'datetime' => date('d/m/Y', strtotime($departure_date[0])) . ' ' . substr($departure_date[1], 0, -3),
 						'class' => $row['ticket_class'],
 					);
 				} else {
-					$journeys['dep']['arv_code'] = $row['arrival'];
-					$journeys['dep']['arv_name'] = myGetAirportInfo2($row['arrival'])['data'][0]['name'] . ' (' . $row['arrival'] . ')';
+					$journeys['dep']['arv_code'] = $arrival_code;
+					$journeys['dep']['arv_name'] = $arrival_name . ' (' . $arrival_code . ')';
 				}
 
 				$stt_dep++;
@@ -62,23 +70,26 @@ trait ZaloSmsTrait
 			// Lượt về
 			if ($row['direction'] == '1') {
 				$return_date = explode(' ', $row['departure_date']);
+				$airline_code = EC_Airlines::normalizeIataCode($this->bean->airline_inbound);
+				$airline_name = EC_Airlines::getAirlineName($airline_code) ?: $airline_code;
+
 				if ($stt_ret == 0) {
 					$journeys[$row['id']] = array(
 						'type' => 'ret',
 						'dep_code' => $row['departure'],
-						'arv_code' => $row['arrival'],
+						'arv_code' => $arrival_code,
 						'date' => $return_date[0],
 						'time' => substr($return_date[1], 0, -3),
 						'flightno' => $row['flight_number'],
-						'dep_name' => myGetAirportInfo2($row['departure'])['data'][0]['name'] . ' (' . $row['departure'] . ')',
-						'arv_name' => myGetAirportInfo2($row['arrival'])['data'][0]['name'] . ' (' . $row['arrival'] . ')',
-						'airline' => myGetAirlineInfo2($this->bean->airline_inbound, 'CODE')['data'][0]['name'] ?? '',
+						'dep_name' => $departure_name . ' (' . $departure_code . ')',
+						'arv_name' => $arrival_name . ' (' . $arrival_code . ')',
+						'airline' => $airline_name ?? '',
 						'datetime' => date('d/m/Y', strtotime($return_date[0])) . ' ' . substr($return_date[1], 0, -3),
 						'class' => $row['ticket_class'],
 					);
 				} else {
-					$journeys['ret']['arv_code'] = $row['arrival'];
-					$journeys['ret']['arv_name'] = myGetAirportInfo2($row['arrival'])['data'][0]['name'] . ' (' . $row['arrival'] . ')';
+					$journeys['ret']['arv_code'] = $arrival_code;
+					$journeys['ret']['arv_name'] = $arrival_name . ' (' . $arrival_code . ')';
 				}
 
 				$stt_ret++;
