@@ -563,15 +563,11 @@ function myGetWorkingProcessCount($parent_type, $parent_id, $field = '')
 }
 
 // Hàm kiểm tra sự tồn tại của WorkingProcess
-function isWorkingProcessExisting($parent_type, $parent_id, $field = '')
-{
+function isWorkingProcessExisting($parent_type, $parent_id, $field = '') {
     // Ngoại trừ xuất hđ đầu ra
     global $db;
-
-    $sql    = "SELECT COUNT(*) as count FROM ec_working_process WHERE parent_id = '$parent_id' AND parent_type = '$parent_type' AND $field = 1 AND deleted = 0";
-    $result = $db->query($sql);
-    $row    = $db->fetchByAssoc($result);
-    return $row['count'] > 0;
+    $sql = "SELECT COUNT(*) FROM ec_working_process WHERE parent_id = '$parent_id' AND parent_type = '$parent_type' AND $field = 1 AND deleted = 0";
+    return $db->getOne($sql) > 0;
 }
 
 // Remove working process exist
