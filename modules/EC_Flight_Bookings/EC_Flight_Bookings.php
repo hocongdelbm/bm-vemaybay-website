@@ -2198,11 +2198,14 @@ class EC_Flight_Bookings extends Basic
 		$i = 0;
 
 		while ($row = $db->fetchByAssoc($res)) {
-			if ($row['airline_code'] == 'VN')
-				$row['airline_code'] = 'VNA';
-			$airline = myGetAirlineInfo2(trim($row['airline_code']), 'CODE');
-			$departure = myGetAirportInfo2(trim($row['departure']));
-			$arrival = myGetAirportInfo2(trim($row['arrival']));
+			$airline_code = EC_Airlines::normalizeIataCode($row['airline_code']);
+			$airlineName = EC_Airlines::getAirlineName($airline_code) ?: $airline_code;
+
+			$departure_code = $row['departure'] ?? '';
+			$departure_name = EC_Airports::getCityName($departure_code) ?: $departure_code;
+
+			$arrival_code = $row['arrival'] ?? '';
+			$arrival_name = EC_Airports::getCityName($arrival_code) ?: $arrival_code;
 
 			if ((int) $row['direction'] === 0 && $i == 0) {
 				$time_limit = $row['time_limit'];
@@ -2225,7 +2228,7 @@ class EC_Flight_Bookings extends Basic
 																<div style="font-family: sans-serif">
 																	<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
 																		<p style=" margin: 0; font-size: 14px; text-align: center; mso-line-height-alt: 16.8px; ">
-																			<span style="font-size: 32px;"><strong>' . $departure['data'][0]['code'] . '</strong></span>
+																			<span style="font-size: 32px;"><strong>' . $departure_code . '</strong></span>
 																		</p>
 																	</div>
 																</div>
@@ -2238,7 +2241,7 @@ class EC_Flight_Bookings extends Basic
 																<div style="font-family: sans-serif">
 																	<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
 																		<p style=" margin: 0; text-align: center; mso-line-height-alt: 14.399999999999999px; ">
-																			<span style="font-size: 16px">' . $departure['data'][0]['name'] . '</span>
+																			<span style="font-size: 16px">' . $departure_name . '</span>
 																		</p>
 																	</div>
 																</div>
@@ -2277,7 +2280,7 @@ class EC_Flight_Bookings extends Basic
 																<div style="font-family: sans-serif">
 																<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
 																	<p style=" margin: 0; font-size: 14px; text-align: center; mso-line-height-alt: 16.8px; ">
-																		<span style="font-size: 32px;"><strong>' . $arrival['data'][0]['code'] . '</strong></span>
+																		<span style="font-size: 32px;"><strong>' . $arrival_code . '</strong></span>
 																	</p>
 																</div>
 																</div>
@@ -2290,7 +2293,7 @@ class EC_Flight_Bookings extends Basic
 																<div style="font-family: sans-serif">
 																	<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
 																		<p style="margin: 0;text-align: center;mso-line-height-alt: 14.399999999999999px;">
-																			<span style="font-size: 16px">' . $arrival['data'][0]['name'] . '</span>
+																			<span style="font-size: 16px">' . $arrival_name . '</span>
 																		</p>
 																	</div>
 																</div>
@@ -2319,7 +2322,7 @@ class EC_Flight_Bookings extends Basic
 																<div style="font-family: sans-serif">
 																	<div class="" style="font-size: 12px;font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif;mso-line-height-alt: 14.399999999999999px;color: #000;line-height: 1.5;">
 																		<p style="margin: 0;text-align: center;mso-line-height-alt: 14.399999999999999px;">
-																			<span style="font-size: 13px; font-weight: 600;">Hãng: ' . $airline['data'][0]['name'] . '</span>
+																			<span style="font-size: 13px; font-weight: 600;">Hãng: ' . $airlineName . '</span>
 																		</p>
 																	</div>
 																</div>
@@ -2343,14 +2346,14 @@ class EC_Flight_Bookings extends Basic
 								<div style="font-family: sans-serif">
 									<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
 										<p style=" margin: 0; font-size: 14px; text-align: center; mso-line-height-alt: 16.8px; ">
-											<span style="font-size: 32px;"><strong>' . $departure['data'][0]['code'] . '</strong></span>
+											<span style="font-size: 32px;"><strong>' . $departure_code . '</strong></span>
 										</p>
 									</div>
 								</div>
 								<div style="font-family: sans-serif">
 									<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
 										<p style=" margin: 0; text-align: center; mso-line-height-alt: 14.399999999999999px; ">
-											<span style="font-size: 16px">' . $departure['data'][0]['name'] . '</span>
+											<span style="font-size: 16px">' . $departure_name . '</span>
 										</p>
 									</div>
 								</div>
@@ -2371,7 +2374,7 @@ class EC_Flight_Bookings extends Basic
 								<div style="font-family: sans-serif">
 									<div class="" style="font-size: 12px;font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif;mso-line-height-alt: 14.399999999999999px;color: #000;line-height: 1.5;">
 										<p style="margin: 0;text-align: center;mso-line-height-alt: 14.399999999999999px;">
-											<span style="font-size: 13px; font-weight: 600;">Hãng: ' . $airline['data'][0]['name'] . '</span>
+											<span style="font-size: 13px; font-weight: 600;">Hãng: ' . $airlineName . '</span>
 										</p>
 									</div>
 								</div>
@@ -2381,13 +2384,13 @@ class EC_Flight_Bookings extends Basic
 							<div class="d-flex align-items-center flex-fill flex-column">
 								<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
 									<p style=" margin: 0; font-size: 14px; text-align: center; mso-line-height-alt: 16.8px; ">
-										<span style="font-size: 32px;"><strong>' . $arrival['data'][0]['code'] . '</strong></span>
+										<span style="font-size: 32px;"><strong>' . $arrival_code . '</strong></span>
 									</p>
 								</div>
 								<div style="font-family: sans-serif">
 									<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
 										<p style="margin: 0;text-align: center;mso-line-height-alt: 14.399999999999999px;">
-											<span style="font-size: 16px">' . $arrival['data'][0]['name'] . '</span>
+											<span style="font-size: 16px">' . $arrival_name . '</span>
 										</p>
 									</div>
 								</div>
