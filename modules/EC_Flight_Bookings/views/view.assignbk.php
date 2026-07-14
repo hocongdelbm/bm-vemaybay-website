@@ -1,54 +1,58 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-class Viewassignbk extends SugarView
-{
-	function display()
-	{
+class Viewassignbk extends SugarView {
+    public string $timezone;
+    public string $date_format;
+    public string $time_format;
+
+	public function display() {
+		global $current_user, $sugar_config;
+
+        $this->timezone = $current_user->getPreference('timezone') ?: 'Asia/Ho_Chi_Minh';
+        $this->date_format = $current_user->getPreference('datef') ?: ($sugar_config['datef'] ?? 'd-m-Y');
+        $this->time_format = $current_user->getPreference('timef') ?: ($sugar_config['timef'] ?? 'H:i');
+		
 		$smartyCont = new Sugar_Smarty();
-		$this->populateContent($smartyCont);
-		$smartyCont->display('modules/' . $this->bean->object_name . '/tpls/view_assignbk.tpl');
+		$smartyCont->assign('IS_ALLOWED_USER', is_admin($current_user));
+		$smartyCont->assign('ONLINE_DATA', $this->getUserSttInf());
+		$smartyCont->assign('LIST_USER', $this->getListUsers());
+		$smartyCont->display("modules/{$this->bean->object_name}/tpls/view_assignbk.tpl");
 	}
 
-	function populateContent($smartyobj)
-	{
-		global $current_user;
-		$smartyobj->assign('IS_ALLOWED_USER', is_admin($current_user));
-		$smartyobj->assign('ONLINE_DATA', $this->getUserSttInf());
-		$smartyobj->assign('LIST_USER', $this->getListUsers());
-	}
-
-	function getUserSttInf()
-	{
+	public function getUserSttInf() {
 		global $app_list_strings, $current_user;
 
-		$sql = '
-			SELECT eor.*, u.title AS user_title
-			FROM ec_online_report eor
-			LEFT JOIN users u ON u.id = eor.assigned_user_id AND u.deleted = 0
-			WHERE eor.deleted = 0
-			AND DATE_FORMAT(DATE_ADD(eor.date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-			ORDER BY FIELD(eor.status, 1, 2, 0), eor.last_online
-		';
+		// date_entered is stored in UTC, so compare against today's UTC date
+		$today_utc = gmdate('Y-m-d');
 
-		$arr_group_badge = array(
+		$sql =
+			"SELECT eor.*, u.title AS user_title
+			FROM ec_online_report eor
+				LEFT JOIN users u ON u.id = eor.assigned_user_id AND u.deleted = 0
+			WHERE eor.deleted = 0
+				AND DATE(eor.date_entered) = '$today_utc'
+			ORDER BY FIELD(eor.status, 1, 2, 0), eor.last_online";
+
+		$arr_group_badge = [
 			'Booker'   => '<span class="badge bg-primary">Booker</span>',
 			'KeToan'   => '<span class="badge bg-warning text-dark">Kế toán</span>',
 			'Laptop'   => '<span class="badge bg-danger">Laptop</span>',
 			'Admin'    => '<span class="badge bg-dark">Admin</span>',
 			'QuanLy'  => '<span class="badge bg-secondary">Manager</span>',
 			'Telesale' => '<span class="badge bg-info">Telesale</span>',
-		);
+		];
 
 		// SQL CALL INBOUND
-		$sql_inbound = 'SELECT u.id as user_id, count(*) as quantity_inbound
-						FROM calls c
-						LEFT JOIN users u ON u.id = c.assigned_user_id AND u.deleted = 0
-						WHERE c.direction = "inbound"
-						AND DATE(c.date_entered) = "' . date('Y-m-d', strtotime('+7 hours', strtotime(date('Y-m-d H:i:s')))) . '"
-						AND c.deleted = 0
-						GROUP BY user_id
-					';
+		$sql_inbound = 
+			"SELECT u.id as user_id, count(*) as quantity_inbound
+			FROM calls c
+				LEFT JOIN users u ON u.id = c.assigned_user_id AND u.deleted = 0
+			WHERE DATE(c.date_entered) = '$today_utc'
+				AND c.direction = 'inbound'
+				AND c.deleted = 0
+			GROUP BY user_id";
+					
 		$arr_inbound = array();
 		$res_inbound = $this->bean->db->query($sql_inbound);
 		while ($row_inbound = $this->bean->db->fetchByAssoc($res_inbound)) {
@@ -56,8 +60,8 @@ class Viewassignbk extends SugarView
 		}
 
 		$arr_agent = custom_get_sip_number();
-		$res 	 = $this->bean->db->query($sql);
-		$i 		 = 0;
+		$res = $this->bean->db->query($sql);
+		$i   = 0;
 
 		$html 	 = '<table id="online_tbl" class="table-online_tbl table-details__booking" cellpadding="0" cellspacing="0">
 						<thead>
@@ -85,9 +89,13 @@ class Viewassignbk extends SugarView
 			while ($row = $this->bean->db->fetchByAssoc($res)) {
 				$start_online = '';
 				if (isset($row['start_online']) && !empty($row['start_online']) && strtotime($row['start_online']) !== false) {
-					$start_online = date('d-m-Y H:i:s', strtotime($row['start_online']));
+					$start_online = DatetimeHelper::convert_datetime($row['start_online']
+						, DatetimeHelper::DB_FORMAT, "$this->date_format $this->time_format"
+						, DatetimeHelper::DB_TIMEZONE, $this->timezone
+					);
 				}
 
+				$row_class = $status_class = '';
 				if ($row['status'] == 0) {
 					$row_class = 'offline';
 					$status_class = '';
