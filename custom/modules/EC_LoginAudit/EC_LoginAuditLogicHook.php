@@ -52,19 +52,18 @@ class loginActions
 
         // Nếu login lần đầu cập nhật start_online
         if ($la_event === 'after_login' && $la_result === 'Success') {
-            // date_entered and start_online are stored in UTC
-            $sql_exist = '
-                SELECT id, start_online
+            $today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
+            $sql_exist = 
+                "SELECT id, start_online
                 FROM ec_online_report
-                WHERE deleted = 0
-                    AND assigned_user_id = "' . $current_user->id . '"
-                    AND DATE(date_entered) = "' . gmdate('Y-m-d') . '"
-            ';
+                WHERE assigned_user_id = '{$current_user->id}'
+                    AND DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = '$today_vn '
+                    AND deleted = 0";
+
             $row = $db->fetchByAssoc($db->query($sql_exist));
 
             if (!empty($row) && empty($row['start_online'])) {
-                $start_time = gmdate('Y-m-d H:i:s');
-                $db->query("UPDATE ec_online_report SET start_online = '$start_time' WHERE id = '{$row['id']}' AND deleted = 0");
+                $db->query("UPDATE ec_online_report SET start_online = NOW() WHERE id = '{$row['id']}' AND deleted = 0");
             } 
         }
     }

@@ -301,7 +301,7 @@ function classifyContactv2($contactId)
  * Tìm tất cả hành trình của 1 booking
  *
  * @param string $booking_id ID của booking
- * @return string Trả về thông tin hành trình của booking đó SNG-HAN
+ * @return array Trả về thông tin hành trình của booking đó SNG-HAN
  */
 function journeyOfBooking($booking_id)
 {
@@ -325,12 +325,12 @@ function journeyOfBooking($booking_id)
 				WHERE iti.booking_id = "' . $booking_id . '" AND iti.direction = 0';
 
     $res = $db->query($sql);
-    $journey = array();
+    $journey = [];
     while ($row = $db->fetchByAssoc($res)) {
-        $journey = array(
+        $journey = [
             'departure' => $row['departure'],
             'arrival' => $row['arrival']
-        );
+        ];
     }
     return $journey;
 }
@@ -1391,6 +1391,7 @@ function getZaloDialogData($booking_id)
 
     if (empty($booking_id)) return $empty;
 
+    /** @var EC_Flight_Bookings **/
     $booking = BeanFactory::getBean('EC_Flight_Bookings', $booking_id);
     if (empty($booking->id)) return $empty;
 

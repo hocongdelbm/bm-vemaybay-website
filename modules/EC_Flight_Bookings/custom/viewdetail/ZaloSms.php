@@ -9,8 +9,7 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  */
 trait ZaloSmsTrait
 {
-	public function getJourneysByBooking($bookingId)
-	{
+	public function getJourneysByBooking($bookingId): array {
 		// Chuẩn bị dữ liệu hành trình gốc để gửi Zalo/ZBS: mã sân bay, giờ bay, số hiệu, hãng, hạng vé.
 		$journeys = [];
 		if (is_null($bookingId) || empty($bookingId)) return $journeys;

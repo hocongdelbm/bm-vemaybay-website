@@ -156,24 +156,26 @@ function agent_change_status($agent, $status) {
                 $sip_number     = custom_get_sip_number($agent);
                 $status_value   = $status == 'Available' ? 1 : ($status == 'On Break' ? 2 : 0);
 
-                $where_sql = '';
+                $last_online_update = '';
                 if ($status != 'Logged Out') {
-                    $where_sql .= ', last_online = "' . $timestamp_now . '"';
+                    $last_online_update .= ', last_online = NOW()';
                 }
 
                 if ($sip_number) {
-                    $sql_online = '
-                        UPDATE ec_online_report 
-                        SET status = ' . $status_value . ' ' . $where_sql . '
-                        WHERE assigned_user_id = "' . $sip_number . '"
-                        AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-                        AND deleted = 0
-                    ';
+                    $today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
+                    $sql_online = 
+                        "UPDATE ec_online_report 
+                        SET status = $status_value
+                            $last_online_update
+                        WHERE assigned_user_id = '$sip_number'
+                            AND DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = '$today_vn'
+                            AND deleted = 0";
+
                     $result_sql_online = $db->query($sql_online);
 
                     if ($result_sql_online) {
-                        $busy           = ($status == 'Available') ? 0 : 1;
-                        $time_current   = date('Y-m-d H:i:s', strtotime('+7 hour'));
+                        $busy = ($status == 'Available') ? 0 : 1;
+                        $current_datetime_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d H:i:s');
                         $array_admin = [
                             '168889bb-54c2-59c7-8b3f-649102530d3c',
                             '622ecf27-f729-7187-7e27-6520e0dab882',
@@ -181,7 +183,7 @@ function agent_change_status($agent, $status) {
                         ];
                         
                         if (!in_array($sip_number, $array_admin)) {
-                            content_log($sip_number, $time_current, $busy);
+                            content_log($sip_number, $current_datetime_vn, $busy);
                         }
                     }
                 }

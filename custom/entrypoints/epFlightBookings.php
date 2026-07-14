@@ -493,14 +493,14 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveInvoiceInfInline') {
 if (isset($_POST['for']) && $_POST['for'] == 'updateUsrStt') {
 	// chỉ cập nhật cho user là người dùng thông thường
 	if (!is_admin($current_user)) {
-		// kiếm tra đã có online hôm nay chưa (date_entered is stored in UTC)
-		$sql_exist = '
-			SELECT id
+		// kiếm tra đã có online hôm nay chưa
+
+		$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
+		$sql_exist = "SELECT id
 			FROM ec_online_report
-			WHERE deleted = 0
-			AND assigned_user_id = "' . $current_user->id . '"
-			AND DATE(date_entered) = "' . gmdate('Y-m-d') . '"
-		';
+			WHERE assigned_user_id = '{$current_user->id}'
+				AND DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = '$today_vn'
+				AND deleted = 0";
 
 		$res_exist = $db->query($sql_exist);
 		$row_exist = $db->fetchByAssoc($res_exist);
@@ -514,13 +514,11 @@ if (isset($_POST['for']) && $_POST['for'] == 'updateUsrStt') {
 			// để lưu s lấy theo ngày chỉnh sửa
 
 			if (strtotime($online->start_online) === false) {
-				// start_online is stored in UTC
-				$sql = '
-					UPDATE ec_online_report
-					SET start_online = "' . gmdate('Y-m-d H:i:s') . '"
-					WHERE id = "' . $online->id . '"
-				';
-				$db->query($sql);
+				$db->query(
+					"UPDATE ec_online_report
+					SET start_online = NOW()
+					WHERE id = '{$online->id}'"
+				);
 			}
 		}
 	} else {
@@ -3122,28 +3120,27 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 		$html .= '</table></div>';
 
 		$denominator_booking_completed = ($count_booking_completed == 0) ? 1 : $count_booking_completed;
-		$html_summary .= '
-						<div class="d-flex gap-2 mb-3 flex-nowrap">
-							<div class="flex-fill lh-base">
-								<p>👤 *Họ tên: ' . $name_contact . '</p>  
-								<p>📞 *SĐT: ' . $phone_contact . '</p>
-								<p>📧 *Email: ' . $email_contact . '</p>
-								<p>⭐ *Điểm tích lũy: <span style="color:red">' . $points_contact . ' điểm</span></p>
-							</div>
-							<div class="flex-fill lh-base">
-								<p>🏷️ *Loại khách hàng: <span class="fw-bold">' . $type_contact['label'] . '</span></p>  
-								<p>📊 *Tổng booking: ' . $count_booking . ' (<span class="text-primary fw-bold">' . $count_booking_completed . ' hoàn tất</span>, <span class="text-danger fw-bold">' . $count_booking_cancel . ' hủy</span>, <span class="text-dark fw-bold">' . $count_booking_other . ' Khác</span>)</p>
-								<p>✅ *Tỷ lệ hoàn tất: <span class="fw-bold">' . round(($count_booking_completed / $count_booking * 100), 2) . '%</span></p>
-								<p>❌ *Tỷ lệ hủy: <span class="fw-bold">' . round(($count_booking_cancel / $count_booking * 100), 2) . '%</span></p>
-								<p>🏷️ *Mô tả: ' . $type_contact['desc'] . '</p>
-							</div>
-							<div class="flex-fill lh-base">
-								<p>💰 *Tổng doanh thu: <span class="fw-bold">' . format_number($total_revenue) . '</span></p>  
-								<p>💸 *Doanh thu trung bình: <span class="fw-bold">' . format_number($total_revenue / $denominator_booking_completed) . '</span></p>
-								<p>💰 *Tổng doanh số: <span class="fw-bold">' . format_number($total_profit) . '</span></p>  
-								<p>💸 *Doanh số trung bình: <span class="fw-bold">' . format_number($total_profit / $denominator_booking_completed) . '</span></p>
-							</div>
-						</div>';
+		$html_summary .= '<div class="d-flex gap-2 mb-3 flex-nowrap">
+			<div class="flex-fill lh-base">
+				<p>👤 *Họ tên: ' . $name_contact . '</p>  
+				<p>📞 *SĐT: ' . $phone_contact . '</p>
+				<p>📧 *Email: ' . $email_contact . '</p>
+				<p>⭐ *Điểm tích lũy: <span style="color:red">' . $points_contact . ' điểm</span></p>
+			</div>
+			<div class="flex-fill lh-base">
+				<p>🏷️ *Loại khách hàng: <span class="fw-bold">' . ($type_contact['label'] ?? '') . '</span></p>  
+				<p>📊 *Tổng booking: ' . $count_booking . ' (<span class="text-primary fw-bold">' . $count_booking_completed . ' hoàn tất</span>, <span class="text-danger fw-bold">' . $count_booking_cancel . ' hủy</span>, <span class="text-dark fw-bold">' . $count_booking_other . ' Khác</span>)</p>
+				<p>✅ *Tỷ lệ hoàn tất: <span class="fw-bold">' . round(($count_booking_completed / $count_booking * 100), 2) . '%</span></p>
+				<p>❌ *Tỷ lệ hủy: <span class="fw-bold">' . round(($count_booking_cancel / $count_booking * 100), 2) . '%</span></p>
+				<p>🏷️ *Mô tả: ' . ($type_contact['desc'] ?? '') . '</p>
+			</div>
+			<div class="flex-fill lh-base">
+				<p>💰 *Tổng doanh thu: <span class="fw-bold">' . format_number($total_revenue) . '</span></p>  
+				<p>💸 *Doanh thu trung bình: <span class="fw-bold">' . format_number($total_revenue / $denominator_booking_completed) . '</span></p>
+				<p>💰 *Tổng doanh số: <span class="fw-bold">' . format_number($total_profit) . '</span></p>  
+				<p>💸 *Doanh số trung bình: <span class="fw-bold">' . format_number($total_profit / $denominator_booking_completed) . '</span></p>
+			</div>
+		</div>';
 	}
 
 
@@ -3282,6 +3279,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'refund_points') {
  */
 if (isset($_POST['for']) && $_POST['for'] == 'previewSendMail') {
 	$booking_id = $_POST['booking_id'] ?? '';
+	/** @var EC_Flight_Bookings **/
 	$bk = BeanFactory::getBean('EC_Flight_Bookings', $booking_id);
 
 	$contact_name 		= ucwords(myRemoveUnicodeChars($bk->contact_name));

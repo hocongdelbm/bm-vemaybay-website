@@ -1564,52 +1564,54 @@ function checkStatusOnlineUser()
 
 // Kiểm tra xem booking giao cho booker đã được xử lý hay chưa? 
 // Thời gian xử lý tối đa là 2 phút
-function checkBookingHandle()
-{
-	global $db;
-	$sql = '
-		SELECT 
+function checkBookingHandle() {
+	global $db, $timedate;
+
+	$now_vn = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+	$today_vn = $now_vn->format('Y-m-d');
+	$current_minute_vn = $now_vn->format('Y-m-d H:i');
+
+	$sql = "SELECT
 			onl.id, onl.booking_id,
 			b.total_qty, b.name AS booking_name, b.contact_name, b.phone,
 			IF(
-				b.booking_status <> 1 
+				b.booking_status <> 1
 				OR (
 	 				SELECT IF(COUNT(id) > 0, 1, 0)
 	 				FROM tracker
 	 				WHERE user_id = b.assigned_user_id AND item_id = b.id
-	 			), 1, 0 
+	 			), 1, 0
 	 		) AS is_processed
 		FROM ec_online_report onl
-		LEFT JOIN ec_flight_bookings b ON b.id = onl.booking_id AND b.deleted = 0
+			LEFT JOIN ec_flight_bookings b ON b.id = onl.booking_id AND b.deleted = 0
 		WHERE onl.deleted = 0
-			AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
-			AND (onl.booking_id <> "" AND onl.booking_id IS NOT NULL) 
-			AND TIMESTAMPDIFF(MINUTE, DATE_FORMAT(onl.start_assign, "%Y-%m-%d %H:%i"), "' . date('Y-m-d H:i') . '") >= 2
-			AND b.deleted = 0
-	';
+			AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= '$today_vn'
+			AND (onl.booking_id <> '' AND onl.booking_id IS NOT NULL)
+			AND TIMESTAMPDIFF(MINUTE, DATE_FORMAT(DATE_ADD(onl.start_assign, INTERVAL 7 HOUR), '%Y-%m-%d %H:%i'), '$current_minute_vn') >= 2
+			AND b.deleted = 0";
 
 	$res = $db->query($sql);
-	$clear_bk_onl 		= array();
-	$reassign_bk_arr 	= array();
-	$user_off_arr 		= array();
+	$clear_bk_onl 		= [];
+	$reassign_bk_arr 	= [];
+	$user_off_arr 		= [];
 
 	while ($row = $db->fetchByAssoc($res)) {
 		if ($row['is_processed']) {
 			$clear_bk_onl[] = $row['id'];
 		} else {
-			$reassign_bk_arr[] = array(
-				'booking_id' 		=> $row['booking_id'],
-				'total_qty' 		=> $row['total_qty'],
+			$reassign_bk_arr[] = [
+				'booking_id' 	=> $row['booking_id'],
+				'total_qty' 	=> $row['total_qty'],
 				'booking_name' 	=> $row['booking_name'],
 				'contact_name' 	=> $row['contact_name'],
-				'phone' 			=> $row['phone']
-			);
+				'phone' 		=> $row['phone']
+			];
 			$onl = new EC_Online_Report;
 			$onl->retrieve($row['id']);
 			$onl->booking_id = '';
 			$onl->start_assign = '';
 			$onl->status = 0;
-			$onl->last_online = date('Y-m-d H:i:s');
+			$onl->last_online = $timedate->now();
 
 			$user_off_arr[]  = $onl->name;
 			$booking_off[] = $row['booking_name'];
@@ -1623,9 +1625,12 @@ function checkBookingHandle()
 	if (count($clear_bk_onl) > 0) {
 		$sql1 = '
 			UPDATE ec_online_report
-			SET booking_id = NULL, start_assign = NULL, status = 1
+			SET booking_id = NULL
+				,start_assign = NULL
+				,status = 1
+				,date_modified = NOW()
 			WHERE id IN ("' . implode('","', $clear_bk_onl) . '")
-			AND deleted = 0
+				AND deleted = 0
 		';
 		$db->query($sql1);
 	}
@@ -1657,26 +1662,25 @@ function checkBookingHandle()
 // Tìm những booking giao cho ksnb, giao lại cho người online
 function reAssignBooking()
 {
-	global $db, $app_list_strings, $sugar_config;
+	global $db;
+
+	$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
 
 	// kt có người online
-	$sql_onl = '
-		SELECT IF(COUNT(id) > 0, 1, 0)
+	$sql_onl = "SELECT IF(COUNT(id) > 0, 1, 0)
 		FROM ec_online_report
-		WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
+		WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
 			AND status IN (1, 2)
-			AND deleted = 0
-	';
+			AND deleted = 0";
 	$is_onl = $db->getOne($sql_onl); // 0, 1
 
 	if ($is_onl) {
-		$sql = '
-			SELECT id, name, contact_name, phone, total_qty
+		$sql = 
+			"SELECT id, name, contact_name, phone, total_qty
 			FROM ec_flight_bookings
-			WHERE assigned_user_id = "e3bbb3e5-6660-0bf7-8976-54869c4ee609"
+			WHERE assigned_user_id = 'e3bbb3e5-6660-0bf7-8976-54869c4ee609'
 				AND deleted = 0 
-				AND booking_status = 1
-		';
+				AND booking_status = 1";
 		$res = $db->query($sql);
 		$row_count = $db->countRows($res);
 
@@ -1689,16 +1693,14 @@ function reAssignBooking()
 				if ($assgined_user_id != 'e3bbb3e5-6660-0bf7-8976-54869c4ee609') {
 					$user = new User;
 					$user->retrieve($assgined_user_id);
-					$sql_upd = '
-						UPDATE ec_flight_bookings
-						SET assigned_user_id = "' . $assgined_user_id . '"
-						WHERE id = "' . $row['id'] . '"
-						AND deleted = 0
-					';
+					$sql_upd = "UPDATE ec_flight_bookings
+								SET assigned_user_id = '$assgined_user_id'
+									,date_modified = NOW()
+								WHERE id = '{$row['id']}' AND deleted = 0";
 					$db->query($sql_upd);
 
 					// assignBooking() đã cập nhật ec_online_report (status, booking_id, total_qty)
-					$reassign_bk[] = "Booking: " . $row['name'] . ' giao cho: ' . $user->last_name . ' ' . $user->first_name;
+					$reassign_bk[] = "Booking: {$row['name']} giao cho: " . trim("$user->last_name $user->first_name");
 				}
 			}
 

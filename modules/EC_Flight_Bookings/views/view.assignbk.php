@@ -23,17 +23,15 @@ class Viewassignbk extends SugarView {
 	public function getUserSttInf() {
 		global $app_list_strings, $current_user;
 
-		// date_entered is stored in UTC, so compare against today's UTC date
 		$today_utc = gmdate('Y-m-d');
-		$today_vn = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
-		$yesterday_vn = $today_vn->modify('-1 day')->format('Y-m-d'); // e.g. "2026-07-13"
+		$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
 
 		$sql =
 			"SELECT eor.*, u.title AS user_title
 			FROM ec_online_report eor
 				LEFT JOIN users u ON u.id = eor.assigned_user_id AND u.deleted = 0
 			WHERE eor.deleted = 0
-				AND DATE(eor.date_entered) = '$yesterday_vn'
+				AND DATE(DATE_ADD(eor.date_entered, INTERVAL 7 HOUR)) = '$today_vn'
 			ORDER BY FIELD(eor.status, 1, 2, 0), eor.last_online";
 
 		$arr_group_badge = [

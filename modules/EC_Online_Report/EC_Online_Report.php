@@ -46,18 +46,19 @@ class EC_Online_Report extends Basic
 	}
 
 	// Quy trình giao booking 
-	public function assignBooking($booking_id, $total_qty, $is_test = 0)
-	{
-		global $db;
+	public function assignBooking($booking_id, $total_qty, $is_test = 0) {
+		global $db, $timedate;
+		
+		$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
+        $current_datetime_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d H:i:s'); 
 
-		$arr_id_admin = array(
+		$arr_id_admin = [
 			'1', //ducpham
-			'168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
-			'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //panda
-			'9eb0f65f-a9f6-65bb-1985-637ca8511491', //trinh
-			'622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
-			'e4a1676e-536d-b5d2-75c2-6502656a118b', //cuongnv
-		);
+			'168889bb-54c2-59c7-8b3f-649102530d3c', // hungnh
+			'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', // panda
+			'9eb0f65f-a9f6-65bb-1985-637ca8511491', // trinh
+			'622ecf27-f729-7187-7e27-6520e0dab882', // quangnd
+		];
 		$time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
 		$ksnb_user_id = 'e3bbb3e5-6660-0bf7-8976-54869c4ee609';
 
@@ -70,16 +71,16 @@ class EC_Online_Report extends Basic
 		';
 
 		// Lấy người online đầu hàng
-		$sql_assign = '
-			SELECT id, assigned_user_id
+		$sql_assign = 
+			"SELECT id, assigned_user_id
 			FROM ec_online_report
-			WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
+			WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
 				AND status = 1
 				AND deleted = 0
-				' . $sql_exclude_telesale . '
+				$sql_exclude_telesale
 			ORDER BY last_online
-			LIMIT 1
-		';
+			LIMIT 1";
+
 		$res_assign = $this->db->query($sql_assign);
 		$row_assign = $this->db->fetchByAssoc($res_assign);
 
@@ -89,29 +90,30 @@ class EC_Online_Report extends Basic
 			if (!$is_test) {
 				$online = new EC_Online_Report;
 				$online->retrieve($row_assign['id']);
-				$online->status      = 2;
-				$online->last_online = date('Y-m-d H:i:s');
-				$online->booking_id  = $booking_id;
-				$online->start_assign = date('Y-m-d H:i:00');
-				$online->total_qty   = $total_qty;
+				$online->status       = 2;
+				$online->booking_id   = $booking_id;
+				// current time in the user's timezone/format; save() converts datetime fields back to DB format (UTC)
+				$online->last_online  = $timedate->now();
+				$online->start_assign = $timedate->now();
+				$online->total_qty    = $total_qty;
 				$online->save();
 
 				if (!in_array($assigned_user_id, $arr_id_admin)) {
-					content_log($assigned_user_id, $time_current, '', 1);
+					content_log($assigned_user_id, $current_datetime_vn, 0);
 				}
 			}
 		} else {
 			// Không có ai online, thử lấy người busy
-			$sql_assign_busy = '
-				SELECT id, assigned_user_id
+			$sql_assign_busy = 
+				"SELECT id, assigned_user_id
 				FROM ec_online_report
-				WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
+				WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
 					AND status = 2
 					AND deleted = 0
-					' . $sql_exclude_telesale . '
+					$sql_exclude_telesale
 				ORDER BY last_online
-				LIMIT 1
-			';
+				LIMIT 1";
+
 			$res_assign_busy = $this->db->query($sql_assign_busy);
 			$row_assign      = $this->db->fetchByAssoc($res_assign_busy);
 
@@ -122,13 +124,13 @@ class EC_Online_Report extends Basic
 					$online = new EC_Online_Report;
 					$online->retrieve($row_assign['id']);
 					$online->booking_id   = $booking_id;
-					$online->start_assign = date('Y-m-d H:i:00');
-					$online->last_online  = date('Y-m-d H:i:s');
+					$online->start_assign = $timedate->now();
+					$online->last_online  = $timedate->now();
 					$online->total_qty    = $total_qty;
 					$online->save();
 
 					if (!in_array($assigned_user_id, $arr_id_admin)) {
-						content_log($assigned_user_id, $time_current, '', 1);
+						content_log($assigned_user_id, $current_datetime_vn, 0);
 					}
 				}
 			} else {
@@ -143,12 +145,7 @@ class EC_Online_Report extends Basic
 		}
 
 		// CẬP NHẬT ASSIGN BOOKING
-		$sql_assign_booking = '
-			UPDATE ec_flight_bookings
-			SET assigned_user_id = "' . $assigned_user_id . '"
-			WHERE id = "' . $booking_id . '" AND deleted = 0
-		';
-		$db->query($sql_assign_booking);
+		$db->query("UPDATE ec_flight_bookings SET assigned_user_id = '$assigned_user_id' WHERE id = '$booking_id' AND deleted = 0");
 
 		return $assigned_user_id;
 	}
@@ -156,31 +153,28 @@ class EC_Online_Report extends Basic
 	// Tạo record ec_online_report cho hôm nay với những user chưa có
 	public function populateOnlineReport()
 	{
-		$date_check = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
+		$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
 
-		$sql = '
-			SELECT id, first_name, last_name, title
+		$sql = "SELECT id, first_name, last_name, title
 			FROM users
 			WHERE deleted = 0
-				AND status = "Active"
+				AND status = 'Active'
 				AND td_sip IS NOT NULL 
-				AND td_sip != ""
-				AND title != "Bot"
-				AND (is_admin = 0 OR title = "QuanLy")
-				AND id NOT IN ("e3bbb3e5-6660-0bf7-8976-54869c4ee609") 
-			ORDER BY date_entered
-		';
+				AND td_sip != ''
+				AND title != 'Bot'
+				AND (is_admin = 0 OR title = 'QuanLy')
+				AND id NOT IN ('e3bbb3e5-6660-0bf7-8976-54869c4ee609') 
+			ORDER BY date_entered";
 
 		$res = $this->db->query($sql);
 
 		while ($row = $this->db->fetchByAssoc($res)) {
-			$sql_exist = '
-				SELECT IF(COUNT(id) > 0, 1, 0)
+			$sql_exist = 
+				"SELECT IF(COUNT(id) > 0, 1, 0)
 				FROM ec_online_report
-				WHERE deleted = 0
-					AND assigned_user_id = "' . $row['id'] . '"
-					AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . $date_check . '"
-			';
+				WHERE assigned_user_id = '{$row['id']}'
+					AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
+					AND deleted = 0";
 
 			if (!$this->db->getOne($sql_exist)) {
 				$online = new EC_Online_Report;
@@ -200,21 +194,24 @@ class EC_Online_Report extends Basic
 	// sl người được ưu tiên mặc định tối đa 3 người
 	public function changeOnlinePosition($onl_id, $change_type)
 	{
-		$onl_id     = preg_replace('/[^a-f0-9\-]/i', '', (string)$onl_id);
+		$onl_id = preg_replace('/[^a-f0-9\-]/i', '', (string)$onl_id);
 		$change_type = in_array($change_type, ['up', 'down', 'off', 'busy', 'delete']) ? $change_type : '';
 		if (empty($onl_id) || empty($change_type)) return '';
 
 		if ($change_type == 'delete') {
-			$this->db->query('UPDATE ec_online_report SET deleted = 1 WHERE id = "' . $onl_id . '"');
+			$this->db->query("UPDATE ec_online_report SET deleted = 1, date_modified = NOW() WHERE id = '$onl_id'");
 			return '';
 		}
+
+		global $timedate;
+		$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
 
 		// Offline
 		if ($change_type == 'off') {
 			$onl = new EC_Online_Report;
 			$onl->retrieve($onl_id);
 			$onl->status = 0;
-			$onl->last_online 	= date('Y-m-d H:i:s');
+			$onl->last_online = $timedate->now();
 			$onl->booking_id = '';
 			$onl->start_assign = '';
 			$onl->save();
@@ -222,30 +219,29 @@ class EC_Online_Report extends Basic
 			$onl = new EC_Online_Report;
 			$onl->retrieve($onl_id);
 			$onl->status = 2;
-			$onl->last_online = date('Y-m-d H:i:s');
+			$onl->last_online = $timedate->now();
 			$onl->save();
 		} else if ($change_type == 'up' || $change_type == 'down') {
 			// kt còn người Online
-			$sql_onl_cnt = '
-				SELECT COUNT(id)
+			$sql_onl_cnt = 
+				"SELECT COUNT(id)
 				FROM ec_online_report
-				WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
+				WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
 					AND status = 1
-					AND deleted = 0
-			';
+					AND deleted = 0";
 			$onl_cnt = $this->db->getOne($sql_onl_cnt);
 
 			if ($change_type == 'up' && $onl_cnt > 0) {
 				// Đưa lên đầu hàng Online
-				$sql1 = '
-					SELECT id, last_online
+				$sql1 = 
+					"SELECT id, last_online
 					FROM ec_online_report
-					WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
+					WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
 						AND status = 1
 						AND deleted = 0
 					ORDER BY last_online
-					LIMIT 1
-				';
+					LIMIT 1";
+
 				$res1 = $this->db->query($sql1);
 				$row1 = $this->db->fetchByAssoc($res1);
 
@@ -253,6 +249,7 @@ class EC_Online_Report extends Basic
 					UPDATE ec_online_report
 					SET status = 1
 						, last_online = "' . date('Y-m-d H:i:s', strtotime('-1 minute', strtotime($row1['last_online']))) . '"
+						, date_modified = NOW()
 					WHERE id = "' . $onl_id . '" AND deleted = 0
 				';
 				$this->db->query($sql2);
@@ -261,7 +258,7 @@ class EC_Online_Report extends Basic
 				$onl = new EC_Online_Report;
 				$onl->retrieve($onl_id);
 				$onl->status = 1;
-				$onl->last_online = date('Y-m-d H:i:s');
+				$onl->last_online = $timedate->now();
 				$onl->booking_id = '';
 				$onl->start_assign = '';
 				$onl->save();

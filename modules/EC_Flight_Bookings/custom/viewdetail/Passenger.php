@@ -384,7 +384,7 @@ trait PassengerTrait
 
 	/**
 	 * Render table default receipt voucher
-	 * @return string HTML
+	 * @return array
 	 */
 
 	public function getPassengerAndBaggage($booking_id)

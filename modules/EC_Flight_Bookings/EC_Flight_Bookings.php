@@ -74,6 +74,9 @@ class EC_Flight_Bookings extends Basic
 	public $account_id;
 	public $account_name;
 	public $contact_id;
+	public $tax_code;
+	public $company_name;
+	public $company_address;
 	public $discount_percent;
 	public $customer_source;
 	public $zalo_id;
