@@ -57,11 +57,16 @@ class CustomController extends BaseController
                 }
             }
 
-            // Đánh dấu booking tham khảo
-            if (strtoupper(trim($booking->contact_name)) === 'THAM KHAO') {
+            // Đánh dấu booking tham khảo - update by datlnt
+            $domain_short_code = $sugar_config['short_domain_code'] ?? [];
+            $upper_contact_name = strtoupper(trim($booking->contact_name));
+            $contact_name_prefix = strtok($upper_contact_name, '_');
+            if ($upper_contact_name === 'THAM KHAO' || in_array($contact_name_prefix, $domain_short_code)){
                 $booking->is_reference = 1;
             }
-
+            // if (strtoupper(trim($booking->contact_name)) === 'THAM KHAO') {
+            //     $booking->is_reference = 1;
+            // }
             $booking->save();
             $booking_id = $booking->id;
             $assigned_user_id_bk = $booking->assigned_user_id;
