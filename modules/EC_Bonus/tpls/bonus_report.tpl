@@ -89,12 +89,27 @@
             </tr>
           </thead>
           <tbody>
-            {foreach from=$BONUS_REPORT.users item=user}
-              {foreach from=$user.bookings item=bk name=ubk}
-                <tr>
-                  {if $VIEW_ALL && $smarty.foreach.ubk.first}
-                    <td rowspan="{$user.bookings|@count}"><strong>{$user.name}</strong></td>
-                  {/if}
+            {* When filtering by source the user is looking for specific rows: start expanded *}
+            {if $SOURCE_NAME_VALUE eq ''}{assign var=expand_details value=0}{else}{assign var=expand_details value=1}{/if}
+            {foreach from=$BONUS_REPORT.users item=user name=usr}
+              {assign var=uidx value=$smarty.foreach.usr.index}
+              <tr class="row-subtotal">
+                {if $VIEW_ALL}<td><strong>{$user.name}</strong></td>{/if}
+                <td>
+                  <a href="javascript:void(0)" class="bonus-toggle-details" data-uidx="{$uidx}" title="Xem chi tiết">
+                    <strong>{$user.bookings|@count} nguồn</strong>
+                    <span class="bonus-caret">{if $expand_details}&#9662;{else}&#9656;{/if}</span>
+                  </a>
+                </td>
+                <td></td>
+                <td style="text-align:right"><strong>{$user.kpi}</strong></td>
+                <td style="text-align:right"><strong>{$user.indirect}</strong></td>
+                <td style="text-align:right"><strong>{$user.direct}</strong></td>
+                <td style="text-align:right"><strong>{$user.total}</strong></td>
+              </tr>
+              {foreach from=$user.bookings item=bk}
+                <tr class="bonus-detail-row bonus-detail-{$uidx}"{if !$expand_details} style="display:none"{/if}>
+                  {if $VIEW_ALL}<td></td>{/if}
                   <td>
                     <a href="index.php?module={$bk.module}&action=DetailView&record={$bk.id}" target="_blank">{$bk.name}</a>
                   </td>
@@ -105,17 +120,6 @@
                   <td style="text-align:right">{$bk.total}</td>
                 </tr>
               {/foreach}
-              {if $VIEW_ALL && $SOURCE_NAME_VALUE eq ''}
-                <tr class="row-subtotal">
-                  <td><strong>Tổng của {$user.name}</strong></td>
-                  <td><strong>{$user.bookings|@count} nguồn</strong></td>
-                  <td></td>
-                  <td style="text-align:right"><strong>{$user.kpi}</strong></td>
-                  <td style="text-align:right"><strong>{$user.indirect}</strong></td>
-                  <td style="text-align:right"><strong>{$user.direct}</strong></td>
-                  <td style="text-align:right"><strong>{$user.total}</strong></td>
-                </tr>
-              {/if}
             {/foreach}
           </tbody>
           <tfoot>
@@ -135,6 +139,24 @@
           </tfoot>
         </table>
       </div>
+      {literal}
+      <script type="text/javascript">
+        (function () {
+          var toggles = document.querySelectorAll('.bonus-toggle-details');
+          for (var i = 0; i < toggles.length; i++) {
+            toggles[i].addEventListener('click', function () {
+              var rows = document.querySelectorAll('.bonus-detail-' + this.getAttribute('data-uidx'));
+              var show = rows.length > 0 && rows[0].style.display === 'none';
+              for (var j = 0; j < rows.length; j++) {
+                rows[j].style.display = show ? '' : 'none';
+              }
+              var caret = this.querySelector('.bonus-caret');
+              if (caret) caret.innerHTML = show ? '&#9662;' : '&#9656;';
+            });
+          }
+        })();
+      </script>
+      {/literal}
     {/if}
   {/if}
 </div>
