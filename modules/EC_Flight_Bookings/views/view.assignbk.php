@@ -25,13 +25,15 @@ class Viewassignbk extends SugarView {
 
 		// date_entered is stored in UTC, so compare against today's UTC date
 		$today_utc = gmdate('Y-m-d');
+		$today_vn = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+		$yesterday_vn = $today_vn->modify('-1 day')->format('Y-m-d'); // e.g. "2026-07-13"
 
 		$sql =
 			"SELECT eor.*, u.title AS user_title
 			FROM ec_online_report eor
 				LEFT JOIN users u ON u.id = eor.assigned_user_id AND u.deleted = 0
 			WHERE eor.deleted = 0
-				AND DATE(eor.date_entered) = '$today_utc'
+				AND DATE(eor.date_entered) = '$yesterday_vn'
 			ORDER BY FIELD(eor.status, 1, 2, 0), eor.last_online";
 
 		$arr_group_badge = [
@@ -60,6 +62,7 @@ class Viewassignbk extends SugarView {
 		}
 
 		$arr_agent = custom_get_sip_number();
+		pr($sql);
 		$res = $this->bean->db->query($sql);
 		$i   = 0;
 
