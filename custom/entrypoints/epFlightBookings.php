@@ -430,7 +430,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeFlightTime') {
 
 // lấy thông tin yêu cầu xuất hoá đơn
 if (isset($_POST['for']) && $_POST['for'] == 'getInvoiceInfJson') {
-	$booking = new EC_Flight_Bookings;
+	/** @var EC_Flight_Bookings **/
+	$booking = new EC_Flight_Bookings();
 	$booking->retrieve($_POST['booking_id']);
 
 	$inv_inf = json_decode(str_replace("&quot;", "\"", $booking->shipping_address), 1) ?: [];
@@ -492,13 +493,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveInvoiceInfInline') {
 if (isset($_POST['for']) && $_POST['for'] == 'updateUsrStt') {
 	// chỉ cập nhật cho user là người dùng thông thường
 	if (!is_admin($current_user)) {
-		// kiếm tra đã có online hôm nay chưa
+		// kiếm tra đã có online hôm nay chưa (date_entered is stored in UTC)
 		$sql_exist = '
-			SELECT id 
+			SELECT id
 			FROM ec_online_report
 			WHERE deleted = 0
 			AND assigned_user_id = "' . $current_user->id . '"
-			AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
+			AND DATE(date_entered) = "' . gmdate('Y-m-d') . '"
 		';
 
 		$res_exist = $db->query($sql_exist);
@@ -513,9 +514,10 @@ if (isset($_POST['for']) && $_POST['for'] == 'updateUsrStt') {
 			// để lưu s lấy theo ngày chỉnh sửa
 
 			if (strtotime($online->start_online) === false) {
+				// start_online is stored in UTC
 				$sql = '
 					UPDATE ec_online_report
-					SET start_online = "' . date('Y-m-d H:i:s', strtotime($online->date_modified)) . '"
+					SET start_online = "' . gmdate('Y-m-d H:i:s') . '"
 					WHERE id = "' . $online->id . '"
 				';
 				$db->query($sql);
