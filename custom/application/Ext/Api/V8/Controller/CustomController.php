@@ -40,12 +40,17 @@ class CustomController extends BaseController
             $booking->set_created_by = false;
             $booking->created_by = $user_id;
             $booking->modified_user_id = $user_id;
-
+            // add logic to indentify "booking THAM KHAO" - datlnt
+			$short_domain_code = array_map(function ($code) {
+				return strtoupper(trim($code));
+			}, $sugar_config['short_domain_code'] ?? []);
+			$upper_contact_name = strtoupper(trim($booking->contact_name));
+			$contact_name_prefix = strtok($upper_contact_name, '_');
             /**
              * Map calls and booking telesale - get lastest call telesale of phone
              * Loại trừ các booking tham khảo, booking TEST
              */
-            if (!empty($booking->phone) && !empty($booking->contact_name) && !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore)) {
+            if (!empty($booking->phone) && !empty($booking->contact_name) && !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore) && !in_array($contact_name_prefix, $short_domain_code, true)) {
                 /**
                  * @var Call $call
                  */
@@ -58,10 +63,12 @@ class CustomController extends BaseController
             }
 
             // Đánh dấu booking tham khảo - update by datlnt
-            $domain_short_code = $sugar_config['short_domain_code'] ?? [];
+            $domain_short_code = array_map(function ($code) {
+                return strtoupper(trim($code));
+            }, $sugar_config['short_domain_code'] ?? []);
             $upper_contact_name = strtoupper(trim($booking->contact_name));
             $contact_name_prefix = strtok($upper_contact_name, '_');
-            if ($upper_contact_name === 'THAM KHAO' || in_array($contact_name_prefix, $domain_short_code)){
+            if ($upper_contact_name === 'THAM KHAO' || in_array($contact_name_prefix, $domain_short_code, true)){
                 $booking->is_reference = 1;
             }
             // if (strtoupper(trim($booking->contact_name)) === 'THAM KHAO') {
@@ -72,11 +79,12 @@ class CustomController extends BaseController
             $assigned_user_id_bk = $booking->assigned_user_id;
 
             // ===== AUTO-LINK CALL → BOOKING (Case 3) =====
-            // Điều kiện: booking có SĐT, không phải TEST
+            // Điều kiện: booking có SĐT, không phải TEST, không phải booking tham khảo
             if (
                 !empty($booking_id) &&
                 !empty($booking->phone) &&
-                !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore)
+                !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore) &&
+                !$booking->is_reference
             ) {
                 // Tìm cuộc gọi inbound gần nhất trong 3 ngày trở lại đây
                 $sql_call = '

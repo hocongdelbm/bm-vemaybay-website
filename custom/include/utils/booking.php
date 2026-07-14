@@ -459,18 +459,28 @@ function ec_classify_booking_source(array $booking_ids, array $contact_names)
 {
     if (empty($booking_ids)) return [];
 
-    global $db;
+    global $db, $sugar_config;
     $bookerNames         = ['Panda Po', 'Bao Gia Khach', 'Khach Hang Hoi'];
     $allPlaceholderNames = array_merge($bookerNames, ['Tham Khao']);
+    $shortDomainCodes    = array_map(function ($code) {
+        return strtoupper(trim($code));
+    }, $sugar_config['short_domain_code'] ?? []);
 
     $ids_sql   = implode("','", array_map([$db, 'quote'], $booking_ids));
     $names_sql = "'" . implode("','", array_map([$db, 'quote'], $allPlaceholderNames)) . "'";
+
+    // Booking THAM KHAO mới đặt tên theo mẫu "<short_domain_code>_<số>" (vd: VJ_0399092452)
+    // thay vì literal "Tham Khao" — bổ sung điều kiện LIKE theo từng mã để audit-history vẫn nhận diện đúng.
+    $domain_code_conditions = array_map(function ($code) use ($db) {
+        return 'UPPER(before_value_string) LIKE "' . $db->quote($code) . '\_%"';
+    }, $shortDomainCodes);
+    $domain_code_sql = !empty($domain_code_conditions) ? ' OR ' . implode(' OR ', $domain_code_conditions) : '';
 
     // 1 query duy nhất, tận dụng index parent_id — thay cho EXISTS tương quan per-row.
     $sql = "SELECT DISTINCT parent_id, before_value_string
             FROM ec_flight_bookings_audit
             WHERE field_name = 'contact_name'
-              AND before_value_string IN ({$names_sql})
+              AND (before_value_string IN ({$names_sql}){$domain_code_sql})
               AND parent_id IN ('{$ids_sql}')";
     $res = $db->query($sql);
 
@@ -488,8 +498,12 @@ function ec_classify_booking_source(array $booking_ids, array $contact_names)
         $name = trim((string)($contact_names[$id] ?? ''));
         $isPlaceholder = in_array($name, $bookerNames, true);
         $isBooker      = $isPlaceholder || isset($auditedBooker[$id]);
+
+        $namePrefix         = strtok(strtoupper($name), '_');
+        $isReferenceByCode  = in_array($namePrefix, $shortDomainCodes, true);
         $isCustomer    = $name !== ''
             && !in_array($name, $allPlaceholderNames, true)
+            && !$isReferenceByCode
             && !isset($auditedAny[$id]);
         $result[$id] = ['is_booker' => $isBooker, 'is_customer' => $isCustomer];
     }

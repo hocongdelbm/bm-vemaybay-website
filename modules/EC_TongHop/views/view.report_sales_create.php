@@ -31,7 +31,20 @@ class Viewreport_sales_create extends SugarView
 
 	function populateContent($smarty)
 	{
-		global $db, $current_user;
+		global $db, $current_user, $sugar_config;
+
+		$extracted_shortcode = $sugar_config['short_domain_code'] ?? [];
+		$domain_code_conditions = array_map(function ($code) use ($db) {
+			return 'UPPER(aud_all.before_value_string) LIKE "' . $db->quote(strtoupper(trim($code))) . '\_%"';
+		}, $extracted_shortcode);
+		$domain_code_sql = !empty($domain_code_conditions) ? ' OR ' . implode(' OR ', $domain_code_conditions) : '';
+
+		// Kiểm tra trực tiếp trên contact_name hiện tại — không chỉ dựa vào is_reference,
+		// vì is_reference chỉ được set khi booking tạo qua CustomController::save_booking.
+		$domain_code_conditions_current = array_map(function ($code) use ($db) {
+			return 'UPPER(bk.contact_name) LIKE "' . $db->quote(strtoupper(trim($code))) . '\_%"';
+		}, $extracted_shortcode);
+		$domain_code_sql_current = !empty($domain_code_conditions_current) ? ' OR ' . implode(' OR ', $domain_code_conditions_current) : '';
 
 		$smarty->assign('MODULE_NAME', $this->bean->object_name);
 		$smarty->assign('MODULE_ACTION', 'report_sales_issue');
@@ -625,7 +638,10 @@ class Viewreport_sales_create extends SugarView
 							CASE
 								WHEN bk.contact_name IS NOT NULL
 								AND bk.contact_name <> ''
-								AND bk.contact_name NOT IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi','Tham Khao')
+								AND NOT (
+									bk.contact_name IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi','Tham Khao')
+									OR IFNULL(bk.is_reference, 0) = 1" . $domain_code_sql_current . "
+								)
 								AND aud_all.parent_id IS NULL
 								THEN 1 ELSE 0
 							END AS is_customer,
@@ -634,7 +650,10 @@ class Viewreport_sales_create extends SugarView
 								WHEN bk.booking_status = 8
 								AND bk.contact_name IS NOT NULL
 								AND bk.contact_name <> ''
-								AND bk.contact_name NOT IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi','Tham Khao')
+								AND NOT (
+									bk.contact_name IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi','Tham Khao')
+									OR IFNULL(bk.is_reference, 0) = 1" . $domain_code_sql_current . "
+								)
 								AND aud_all.parent_id IS NULL
 								THEN 1 ELSE 0
 							END AS is_customer_com,
@@ -647,7 +666,7 @@ class Viewreport_sales_create extends SugarView
 						LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
 						LEFT JOIN ec_booking_details d ON d.booking_id = bk.id AND d.deleted = 0
 						LEFT JOIN ec_flight_bookings_audit aud_booker ON aud_booker.parent_id = bk.id AND aud_booker.field_name = 'contact_name' AND aud_booker.before_value_string IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi')
-						LEFT JOIN ec_flight_bookings_audit aud_all ON aud_all.parent_id = bk.id AND aud_all.field_name = 'contact_name' AND aud_all.before_value_string IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi','Tham Khao')
+						LEFT JOIN ec_flight_bookings_audit aud_all ON aud_all.parent_id = bk.id AND aud_all.field_name = 'contact_name' AND (aud_all.before_value_string IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi','Tham Khao')" . $domain_code_sql . ")
 						WHERE bk.deleted = 0
 						" . str_replace('bk.date_entered_bk', 'bk.date_entered', $where_period) . "
 						GROUP BY bk.id

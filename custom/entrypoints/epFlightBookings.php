@@ -1,5 +1,5 @@
 <?php
-global $db, $current_user, $app_list_strings;
+global $db, $current_user, $app_list_strings, $sugar_config;
 
 if (isset($_POST['for']) && $_POST['for'] == 'getBookingStatus') {
 	$user_list = get_user_array(true, 'Active', '', true);
@@ -2108,6 +2108,19 @@ if (isset($_POST['for']) && $_POST['for'] == 'getBookerBooking') {
 
 // list KhachHang booking
 if (isset($_POST['for']) && $_POST['for'] == 'getKhachHangBooking') {
+	$extracted_shortcode = $sugar_config['short_domain_code'] ?? [];
+	$domain_code_conditions = array_map(function ($code) use ($db) {
+		return 'UPPER(before_value_string) LIKE "' . $db->quote(strtoupper(trim($code))) . '\_%"';
+	}, $extracted_shortcode);
+	$domain_code_sql = !empty($domain_code_conditions) ? ' OR ' . implode(' OR ', $domain_code_conditions) : '';
+
+	// Kiểm tra trực tiếp trên contact_name hiện tại — không chỉ dựa vào is_reference,
+	// vì is_reference chỉ được set khi booking tạo qua CustomController::save_booking.
+	$domain_code_conditions_current = array_map(function ($code) use ($db) {
+		return 'UPPER(bk.contact_name) LIKE "' . $db->quote(strtoupper(trim($code))) . '\_%"';
+	}, $extracted_shortcode);
+	$domain_code_sql_current = !empty($domain_code_conditions_current) ? ' OR ' . implode(' OR ', $domain_code_conditions_current) : '';
+
 	$html2 = '
 			<table id="khachhang_bk_tbl" class="detail_bk_tbl table-details__booking table-getKhachHangBooking2" cellspacing="0" cellpadding="0">
 				<thead>
@@ -2138,14 +2151,14 @@ if (isset($_POST['for']) && $_POST['for'] == 'getKhachHangBooking') {
 		WHERE bk.deleted = 0
 		AND DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN "' . date('Y-m-d', strtotime($_POST['fdate'])) . '" AND "' . date('Y-m-d', strtotime($_POST['tdate'])) . '"
 		AND bk.created_by = "' . $db->quote($_POST['user']) . '"
-		AND bk.contact_name NOT IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao")
+		AND NOT (IFNULL(bk.is_reference, 0) = 1 OR bk.contact_name IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao")' . $domain_code_sql_current . ')
 		AND bk.contact_name IS NOT NULL 
 		AND bk.contact_name != ""
 		AND NOT EXISTS (
 			SELECT 1 FROM ec_flight_bookings_audit 
 			WHERE parent_id = bk.id 
-			AND field_name = "contact_name" 
-			AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao")
+			AND field_name = "contact_name"
+			AND (before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao")' . $domain_code_sql . ')
 		)
 		ORDER BY FIELD(booking_status, 8, 7, 3, 2, 6, 1, 4), bk.date_entered DESC
 	';
