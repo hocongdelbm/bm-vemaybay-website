@@ -4,8 +4,6 @@ date_default_timezone_set("Asia/Ho_Chi_Minh");
 
 class Viewreport_sales_issue extends SugarView
 {
-    public $_loai_thu_str = "'4', '5', '10', '11', '12', '13', '14', '16'";
-
     function display()
     {
         if (ACLController::checkAccess('EC_Flight_Bookings', 'view', true)) {

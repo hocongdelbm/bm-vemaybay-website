@@ -169,10 +169,10 @@ class entryOutputInvoiceClass extends entryClass
                                             $note = new Note();
                                             $note->id                   = '';
                                             $note->name                 = $booking;
-                                            $note->description             = trim("Đã xuất hoá đơn đầu ra số: $invNumber");
-                                            $note->parent_type             = "EC_Flight_Bookings";
-                                            $note->parent_id             = $booking_id;
-                                            $note->booking_status         = $booking_status;
+                                            $note->description          = trim("Đã xuất hoá đơn đầu ra số: $invNumber");
+                                            $note->parent_type          = "EC_Flight_Bookings";
+                                            $note->parent_id            = $booking_id;
+                                            $note->booking_status       = $booking_status;
                                             $note->working_process_id   = $workId;
                                             $note->assigned_user_id     = $this->currentUser->id;
                                             $note->save();

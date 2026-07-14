@@ -1,6 +1,5 @@
 <?php
-class Bookings_Helper
-{
+class Bookings_Helper {
     /**
      * Get online payment link
      *
@@ -20,5 +19,22 @@ class Bookings_Helper
         }
 
         return $payment_link;
+    }
+
+    public static function get_duration_text(int $durationSeconds): string {
+        $parts   = [];
+        $days    = (int) floor($durationSeconds / 86400);
+        $durationSeconds -= $days * 86400;
+        $hours   = (int) floor($durationSeconds / 3600);
+        $durationSeconds -= $hours * 3600;
+        $minutes = (int) floor($durationSeconds / 60);
+        $seconds = $durationSeconds - $minutes * 60;
+
+        if ($days > 0)    $parts[] = "{$days}d";
+        if ($hours > 0)   $parts[] = "{$hours}h";
+        if ($minutes > 0) $parts[] = "{$minutes}m";
+        if ($seconds > 0) $parts[] = "{$seconds}s";
+
+        return implode(' ', $parts);
     }
 }

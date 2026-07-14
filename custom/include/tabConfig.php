@@ -1,5 +1,5 @@
 <?php
-// created: 2026-07-07 09:24:30
+// created: 2026-07-13 08:31:40
 $GLOBALS['tabStructure'] = array (
   'LBL_GROUPTAB3_1684394664' => 
   array (
@@ -60,6 +60,8 @@ $GLOBALS['tabStructure'] = array (
       0 => 'EC_Location',
       1 => 'Documents',
       2 => 'EC_LoginAudit',
+      3 => 'EC_Airlines',
+      4 => 'EC_Airports',
     ),
   ),
 );

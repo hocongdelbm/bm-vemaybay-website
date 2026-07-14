@@ -307,18 +307,18 @@ trait ItineraryTrait
 		$html = '';
 		$i = 0;
 		$order_iti = 0;
-		$print_iti = 0;
+		$printed_actions = [];
 		$applied_pass = [];
 
 		foreach ($rows as $row) {
 			if ($order_iti != $row['sabre_logs']) {
 				$order_iti = $row['sabre_logs'];
 				$applied_pass[$order_iti] = $this->getEditedItineraryAppliedPassengerText($row, $pass_qty);
-				$html .= $this->renderEditedItineraryGroupHeader($row, $applied_pass, $user_list);
+				$html .= $this->renderEditedItineraryGroupHeader($row, $applied_pass[$order_iti], $user_list);
 				$i = 0;
 			}
 
-			$html .= $this->renderEditedItineraryRow($row, $i, $date_format, $applied_pass, $print_iti);
+			$html .= $this->renderEditedItineraryRow($row, $i, $date_format, $applied_pass[$row['sabre_logs']], $printed_actions);
 
 			if (!empty($row['description'])) {
 				$html .= '<tr><td colspan="15" class="fw-semibold fst-italic">' . $row['description'] . '</td></tr>';
@@ -358,7 +358,7 @@ trait ItineraryTrait
 		</tr>';
 	}
 
-	private function renderEditedItineraryRow($row, $i, $date_format, $applied_pass, &$print_iti)
+	private function renderEditedItineraryRow($row, $i, $date_format, $applied_pass, &$printed_actions)
 	{
 		global $app_list_strings;
 
@@ -371,7 +371,7 @@ trait ItineraryTrait
 			$img_src .= '<br />(<b>' . $row['airline_code'] . '</b>)';
 		}
 
-		$action_html = $this->renderEditedItineraryActionCell($row, $applied_pass, $print_iti);
+		$action_html = $this->renderEditedItineraryActionCell($row, $applied_pass, $printed_actions);
 
 		return '<tr class="edited_iti_line">
 				<td class="hide-mobile text-center" style="vertical-align: middle;">
@@ -393,14 +393,18 @@ trait ItineraryTrait
 			</tr>';
 	}
 
-	private function renderEditedItineraryActionCell($row, $applied_pass, &$print_iti)
+	private function renderEditedItineraryActionCell($row, $applied_pass, &$printed_actions)
 	{
 		global $app_list_strings;
 
+		// Remind + checkin gắn với chặng bay đầu của mỗi chiều trong cùng lần thay đổi
+		// (chặng transit không có nút riêng).
+		$action_key = $row['sabre_logs'] . '|' . $row['direction'];
+
 		$remind_btn = '';
 		$checkin_status = '';
-		if ($print_iti != $row['sabre_logs']) {
-			$print_iti = $row['sabre_logs'];
+		if (empty($row['is_layover']) && !isset($printed_actions[$action_key])) {
+			$printed_actions[$action_key] = true;
 			if ($row['is_remind'] == 0) {
 				$remind_btn = '<div class="dropdown">
 						<button class="btn btn-primary-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Remind</button>

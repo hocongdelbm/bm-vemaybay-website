@@ -11,11 +11,60 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit
 	function display()
 	{
 		if (empty($this->bean->id) || $this->bean->rv_status == '0' || (isset($_POST['isDuplicate']) && $_POST['isDuplicate'])) {
+			if (empty($this->bean->id) && !empty($_REQUEST['booking_id']) && isset($_REQUEST['go_with']) && $_REQUEST['go_with'] !== '') {
+				$this->prefillLuggageFromBooking($_REQUEST['booking_id'], $_REQUEST['go_with']);
+			}
+
 			$this->displayCSS();
 			$this->displayJS();
 			$this->customFields();
 			parent::display();
 		} else echo '<p class="error">Chứng từ đã khóa</p>';
+	}
+
+	/**
+	 * Autofill Nhà cung cấp/Giá bán/Giá mua/VAT giá mua từ đợt đổi thông tin hành lý
+	 * (ec_booking_passengers.go_with) vào tối đa 3 slot NCC của phiếu thu.
+	 * Outbound và inbound của cùng 1 dòng hành khách có thể khác NCC (supplier_id vs
+	 * supplier_inbound_id) nên tách thành 2 nhóm riêng trước khi gom theo NCC.
+	 */
+	private function prefillLuggageFromBooking($booking_id, $go_with)
+	{
+		$db = $this->bean->db;
+		$booking_id_q = $db->quote($booking_id);
+		$go_with = (int) $go_with;
+
+		$sql = "
+			SELECT supplier_id, 0 AS direction,
+				SUM(luggage_price) AS sell, SUM(luggage_purchase) AS buy, SUM(vat_luggage_purchase) AS vat
+			FROM ec_booking_passengers
+			WHERE deleted = 0 AND booking_id = '{$booking_id_q}' AND go_with = {$go_with}
+				AND supplier_id IS NOT NULL AND supplier_id != ''
+			GROUP BY supplier_id
+			HAVING SUM(luggage_price) > 0 OR SUM(luggage_purchase) > 0
+
+			UNION ALL
+
+			SELECT supplier_inbound_id, 1 AS direction,
+				SUM(luggage_price_inbound), SUM(luggage_purchase_inbound), SUM(vat_luggage_purchase_inbound)
+			FROM ec_booking_passengers
+			WHERE deleted = 0 AND booking_id = '{$booking_id_q}' AND go_with = {$go_with}
+				AND supplier_inbound_id IS NOT NULL AND supplier_inbound_id != ''
+			GROUP BY supplier_inbound_id
+			HAVING SUM(luggage_price) > 0 OR SUM(luggage_purchase) > 0
+		";
+
+		$res = $db->query($sql);
+		$n = 0;
+		while ($n < 3 && ($row = $db->fetchByAssoc($res))) {
+			$n++;
+			$s = $n > 1 ? $n : '';
+			$this->bean->{"supplier{$s}_id"}      = $row['supplier_id'];
+			$this->bean->{"sup_direction{$s}"}    = $row['direction'];
+			$this->bean->{"sell_amount{$s}"}      = $row['sell'];
+			$this->bean->{"bought_amount{$s}"}    = $row['buy'];
+			$this->bean->{"vat_bought_amount{$s}"} = $row['vat'];
+		}
 	}
 
 	function displayCSS()
@@ -31,11 +80,13 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit
 	{
 		$js_file = 'modules/EC_Receipt_Voucher/js/view.edit.js';
 		$v = file_exists($js_file) ? filemtime($js_file) : time();
+
 		$js = '<script type="text/javascript" src="' . $js_file . '?v=' . $v . '"></script>';
 		$js .= '<script>
 			var record = "' . $this->bean->id . '";
 			var loai_thu = "' . $this->bean->loai_thu . '";
 			var amount_type = "' . $this->bean->amount_type . '";
+			var loai_thu_arr = ' . json_encode(EC_Receipt_Voucher::$LOAI_THU_SUPPLIER) . ';
 		</script>';
 
 		echo $js;
@@ -92,7 +143,7 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit
 
 
 		// LOAI THU
-		$loaithu_arr = ['4', '5', '10', '11', '12', '13', '14', '16', '27'];
+		$loaithu_arr = EC_Receipt_Voucher::$LOAI_THU_SUPPLIER;
 		$loaithu = '<style>
 			.ui-autocomplete-loading {
 				background: white url(custom/jqueryui/css/ui-lightness/images/ui-anim_basic_16x16.gif) right center no-repeat;
@@ -117,6 +168,7 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit
 				</div>
 			</div>
 		</div>';
+
 		$loaithu .= '<span id="span_supplier" ' . (in_array($this->bean->loai_thu, $loaithu_arr) ? '' : 'style="display:none;"') . '>
 		<table border="0" width="100%" cellpadding="0" cellspacing="0" style="line-height:20px;">';
 		$loaithu .= '<tr>
@@ -126,20 +178,23 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit
 			<td style="width:20%; font-weight:bold; text-align:center;">Giá mua</td>
 		</tr>';
 		foreach ([1, 2, 3] as $n) {
-			$s     = $n > 1 ? $n : '';
-			$supId = "supplier{$s}_id";
-			$sellF = "sell_amount{$s}";
-			$buyF  = "bought_amount{$s}";
-			$dirF  = "sup_direction{$s}";
+			$s       = $n > 1 ? $n : '';
+			$supId   = "supplier{$s}_id";
+			$sellF   = "sell_amount{$s}";
+			$buyF    = "bought_amount{$s}";
+			$dirF    = "sup_direction{$s}";
+			$vatBuyF = "vat_bought_amount{$s}";
 			$loaithu .= $this->buildSupplierSelectRow(
 				$supId,
 				$sellF,
 				$buyF,
 				$dirF,
+				$vatBuyF,
 				$this->bean->$supId ?? '',
 				$this->bean->$sellF ?? 0,
 				$this->bean->$buyF  ?? 0,
-				$this->bean->$dirF  ?? ''
+				$this->bean->$dirF  ?? '',
+				$this->bean->$vatBuyF ?? 0
 			);
 		}
 		$loaithu .= '</table></span></div>';
@@ -152,7 +207,7 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit
 		$this->ss->assign('EMPLOYEE_NAME', $employee_list);
 	}
 
-	private function buildSupplierSelectRow($supId, $sellF, $buyF, $dirF, $supplierId, $sellAmount, $boughtAmount, $direction = '')
+	private function buildSupplierSelectRow($supId, $sellF, $buyF, $dirF, $vatBuyF, $supplierId, $sellAmount, $boughtAmount, $direction = '', $vatBought = 0)
 	{
 		global $app_list_strings;
 		$options = myGetSelectOptionsWithDb('Accounts', $supplierId, 'id', " AND account_type='Supplier' AND is_stop_tracking = 0 ");
@@ -179,6 +234,7 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit
 			</td>
 			<td style="text-align:left; padding:3px;">
 				<input class="allow-number-only" type="text" id="' . $buyF . '" name="' . $buyF . '" value="' . format_number($boughtAmount) . '" tabindex="106" style="width:100%;" />
+				<input type="hidden" id="' . $vatBuyF . '" name="' . $vatBuyF . '" value="' . format_number($vatBought) . '" />
 			</td>
 		</tr>';
 	}

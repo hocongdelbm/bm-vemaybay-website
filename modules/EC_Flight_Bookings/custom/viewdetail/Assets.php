@@ -5,30 +5,27 @@ trait AssetsTrait
 {
 	private function displayCSSTrait()
 	{
-		$cssVer   = inDeveloperMode() ? time() : '1.3.2';
-
+		$cssVer = inDeveloperMode() ? time() : '1.3.2';
 		$css = '<link type="text/css" rel="stylesheet" href="themes/SuiteP/libs/css/select2.min.css" />' .
 			'<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/view.detail.css?v=' . $cssVer . '" />' .
 			'<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/api_zalo.css?v=' . $cssVer . '" />' .
 			'<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/autobook.css?v=' . $cssVer . '" />';
-
 		echo $css;
 	}
 
-	private function displayJSTrait()
-	{
+	private function displayJSTrait() {
 		global $current_user;
 
-		$jsVer   = inDeveloperMode() ? time() : '1.3.2';
+		$jsVer = inDeveloperMode() ? time() : '1.3.3';
 
 		$js = '
-				<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=' . $jsVer . '"></script>
-				<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=' . $jsVer . '"></script>
-				<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=' . $jsVer . '"></script>
-				<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=' . $jsVer . '"></script>
-				<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=' . $jsVer . '"></script>
-				<script src="modules/' . $this->bean->module_dir . '/js/print_ticket_new.js?v=' . $jsVer . '"></script>
-			';
+			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=' . $jsVer . '"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=' . $jsVer . '"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=' . $jsVer . '"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=' . $jsVer . '"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=' . $jsVer . '"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/print_ticket_new.js?v=' . $jsVer . '"></script>
+		';
 
 		$airlineLogoMap = [];
 		foreach (array_keys(EC_Airlines::getAirlineList()) as $airlineCode) {
