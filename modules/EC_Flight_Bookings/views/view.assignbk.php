@@ -62,7 +62,6 @@ class Viewassignbk extends SugarView {
 		}
 
 		$arr_agent = custom_get_sip_number();
-		pr($sql);
 		$res = $this->bean->db->query($sql);
 		$i   = 0;
 
