@@ -57,6 +57,9 @@ $from_date = !empty($data['from_date']) ? $db->quote($data['from_date']) : '';
 $to_date = !empty($data['to_date']) ? $db->quote($data['to_date']) : '';
 
 $system_booker_names = ['Panda Po', 'Bao Gia Khach', 'Báo Giá Khách', 'Khach Hang Hoi', 'Khách Hàng Hỏi', 'Tham Khao', 'Tham Khảo'];
+$short_domain_code = array_map(function ($code) {
+    return strtoupper(trim($code));
+}, $sugar_config['short_domain_code'] ?? []);
 
 // BƯỚC 1: Tiền xử lý tất cả IP vào một mảng phẳng duy nhất để thực thi 1 query duy nhất
 $all_clean_ips = [];
@@ -131,7 +134,9 @@ if (!empty($all_clean_ips)) {
             // Tên liên hệ gốc (Nếu đã từng đổi tên thì lấy tên cũ nhất từ bảng Audit, không có audit thì lấy hiện hành)
             $initial_contact = !empty($row['initial_contact_name']) ? $row['initial_contact_name'] : $row['current_contact_name'];
             $initial_contact = trim((string) $initial_contact);
-            $is_ref = (int)$row['is_reference'] === 1;
+            $is_ref = (int)$row['is_reference'] === 1
+                || strtoupper($initial_contact) === 'THAM KHAO'
+                || in_array(strtok(strtoupper($initial_contact), '_'), $short_domain_code, true);
             $status = (int)$row['booking_status'];
 
             $is_booker = !empty($booker_ip_set) ? isset($booker_ip_set[$ip]) : in_array($initial_contact, $system_booker_names);

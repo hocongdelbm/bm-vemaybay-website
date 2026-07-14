@@ -180,7 +180,7 @@ class EC_Flight_BookingsLogicHook
 	}
 
 	public function updateFields($focus, $event, $arguments) {
-		global $current_user;
+		global $current_user, $sugar_config;
 
 		// Contact ID
 		if (!empty($focus->contact_name) && empty($focus->contact_id)) {
@@ -196,7 +196,13 @@ class EC_Flight_BookingsLogicHook
 		 * Map cuộc gọi và booking cho case booker đặt giùm khách hàng
 		 */
 		if (isset($_POST['is_telesale_value']) && empty($focus->telesale_call_id)) {
-			if (!empty($focus->phone) && !in_array(strtoupper(trim($focus->contact_name)), $focus->contact_name_ignore)) {
+			// add logic to indentify "booking THAM KHAO" - datlnt
+			$short_domain_code = array_map(function ($code) {
+				return strtoupper(trim($code));
+			}, $sugar_config['short_domain_code'] ?? []);
+			$upper_contact_name = strtoupper(trim($focus->contact_name));
+			$contact_name_prefix = strtok($upper_contact_name, '_');
+			if (!empty($focus->phone) && !in_array(strtoupper(trim($focus->contact_name)), $focus->contact_name_ignore) && !in_array($contact_name_prefix, $short_domain_code, true)) {
 				/** @var Call **/
 				$call = BeanFactory::newBean("Calls");
 				$call_id = $call->getTelesaleCalls($focus->phone, $focus->fetched_row['date_entered']);
@@ -294,12 +300,17 @@ class EC_Flight_BookingsLogicHook
 			$list_name_test = ['DEMO', 'IT', 'CUONG NGUYEN', 'CUONG NG'];
 			$list_name_help = ['PANDA PO', 'BAO GIA KHACH'];
 			$list_name_reference = ['THAM KHAO'];
-
+			// add logic to indentify "booking THAM KHAO" - datlnt
+			$short_domain_code = array_map(function ($code) {
+				return strtoupper(trim($code));
+			}, $sugar_config['short_domain_code'] ?? []);
+			$upper_contact_name = strtoupper(trim($focus->contact_name));
+			$contact_name_prefix = strtok($upper_contact_name, '_');
 			// Send Telegram
 			try {
 				$messageData = [];
 				$link = $sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&action=DetailView&record=" . $focus->id;
-				if (in_array(strtoupper($focus->contact_name), $list_name_reference)) {
+				if (in_array($contact_name_prefix, $short_domain_code, true) || in_array($upper_contact_name, $list_name_reference, true)) {
 					$messageData = [
 						'text' => "Booking tham khảo: $focus->name - $focus->phone",
 						'parse_mode' => 'HTML',
@@ -314,7 +325,7 @@ class EC_Flight_BookingsLogicHook
 							],
 						]
 					];
-				} else if (in_array(strtoupper($focus->contact_name), $list_name_help)) {
+				} else if (in_array($upper_contact_name, $list_name_help, true)) {
 					$messageData = [
 						'text' => "Booking báo giá khách: $focus->name - $focus->phone",
 						'parse_mode' => 'HTML',
@@ -329,7 +340,7 @@ class EC_Flight_BookingsLogicHook
 							],
 						]
 					];
-				} else if (in_array(strtoupper($focus->contact_name), $list_name_test)) {
+				} else if (in_array($upper_contact_name, $list_name_test, true)) {
 					$messageData = [
 						'text' => "Demo booking, test hệ thống: $focus->name",
 						'parse_mode' => 'HTML',

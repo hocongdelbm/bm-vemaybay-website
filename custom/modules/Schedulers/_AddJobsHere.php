@@ -1765,7 +1765,7 @@ function sendAutoCheapPriceMessageZalo()
 				) AS list_message
 			FROM ec_flight_bookings bk
 				LEFT JOIN ec_booking_itineraries iti ON iti.booking_id = bk.id AND iti.direction = '0' AND iti.deleted = 0
-			WHERE UPPER(bk.contact_name) = 'THAM KHAO'
+			WHERE (bk.is_reference = 1 OR UPPER(bk.contact_name) = 'THAM KHAO')
 				AND bk.total_amount = 0
 				AND bk.date_entered BETWEEN '$fromDateQuery 17:00:00' AND '$yesterday 16:59:59'
 				AND bk.phone IS NOT NULL AND bk.phone != ''

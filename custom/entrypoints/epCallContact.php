@@ -464,7 +464,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 } else if (!empty($booking_id)) {
                     $booking = new EC_Flight_Bookings();
                     $booking->retrieve($booking_id);
-                    if (!empty($booking->id) && strtoupper(trim($booking->contact_name)) == 'THAM KHAO' && $booking->total_amount == 0) {
+                    if (!empty($booking->id) && (strtoupper(trim($booking->contact_name)) == 'THAM KHAO' || (int)$booking->is_reference === 1) && $booking->total_amount == 0) {
                         $sqlItineraries = "SELECT departure AS dep_code, arrival AS des_code, departure_date
                             FROM ec_booking_itineraries 
                             WHERE booking_id = '{$booking_id}'
