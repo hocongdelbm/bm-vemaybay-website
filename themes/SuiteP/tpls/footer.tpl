@@ -55,7 +55,7 @@
     </div>
     {if $AUTHENTICATED}
 {literal}
-     <script>
+    <script>
          window.ECChatbotWidgetConfig = {
              role: 'admin',
              wsUrl: '{/literal}{$APP_CONFIG.chat_widget.wsUrl|escape:'javascript'}{literal}',
@@ -68,7 +68,7 @@
              debug: true
          };
      </script>
-     <script src="https://devchat.timchuyenbay.net/client/admin_widget.js?v=1.1.2"></script>
+     <script src="https://chat.timchuyenbay.net/client/admin_widget.js?v=1.1.2"></script>
 {/literal}
 {/if}
 </body>
