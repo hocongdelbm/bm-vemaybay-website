@@ -311,8 +311,22 @@ class EC_Flight_BookingsLogicHook
 				$messageData = [];
 				$link = $sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&action=DetailView&record=" . $focus->id;
 				if (in_array($contact_name_prefix, $short_domain_code, true) || in_array($upper_contact_name, $list_name_reference, true)) {
+					// Booking tham khảo vẫn giao cho nhân viên online theo công thức
+					$focus->assigned_user_id = $onl->assignBooking($focus->id, $focus->total_qty);
+					$assigned_text = '';
+					// User admin, ksnb thì không cập nhật lại / không hiển thị người nhận
+					if ($focus->assigned_user_id != '1' && $focus->assigned_user_id != 'e3bbb3e5-6660-0bf7-8976-54869c4ee609') {
+						$sql = "UPDATE ec_flight_bookings
+							SET assigned_user_id = '$focus->assigned_user_id'
+							WHERE id = '$focus->id'";
+						$focus->db->query($sql);
+						$user = new User;
+						$user->retrieve($focus->assigned_user_id);
+						$assigned_text = "\n" . trim("Giao cho: $user->last_name $user->first_name");
+					}
+
 					$messageData = [
-						'text' => "Booking tham khảo: $focus->name - $focus->phone",
+						'text' => "Booking tham khảo: $focus->name - $focus->phone" . $assigned_text,
 						'parse_mode' => 'HTML',
 						'reply_markup' => [
 							'inline_keyboard' => [
@@ -402,8 +416,31 @@ class EC_Flight_BookingsLogicHook
 				}
 				$botToken = $sugar_config['telegram']['cty']['bot_token'] ?? '';
 				$chatId = $sugar_config['telegram']['cty']['chat_id'] ?? '';
-				Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
-			} catch (Exception $e) {
+
+				// Thiếu cấu hình 
+				if (empty($botToken) || empty($chatId)) {
+					LoggerHelper::error("autoAssignBooking: Không gửi được Telegram cho booking {$focus->id} - thiếu cấu hình telegram", [
+						'booking_id'    => $focus->id,
+						'has_bot_token' => !empty($botToken),
+						'has_chat_id'   => !empty($chatId),
+					]);
+				} else {
+					$tele_res  = Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
+					$tele_json = json_decode((string) $tele_res, true);
+
+					if (!is_array($tele_json) || empty($tele_json['ok'])){
+						LoggerHelper::error("autoAssignBooking: Gửi Telegram thất bại cho booking {$focus->id}", [
+							'booking_id' => $focus->id,
+							'response'   => $tele_res,
+							'payload'    => $messageData,
+						]);
+					}
+				}
+			} catch (\Throwable $e) {
+				LoggerHelper::error(
+					"autoAssignBooking: Lỗi khi gửi Telegram cho booking " . ($focus->id ?? '') . ": {$e->getMessage()} (dòng {$e->getLine()} trong {$e->getFile()})",
+					['booking_id' => $focus->id ?? null, 'exception' => get_class($e), 'payload' => $messageData ?? null]
+				);
 			}
 		}
 	}

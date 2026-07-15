@@ -40,10 +40,32 @@ class Telegram {
      */
     public static function sendMessageData($data, $bot_token, $chat_id, $thread_id = '') {
         if(empty($chat_id) || empty($bot_token)) return false;
-        
+
+        $res = self::postMessageData($data, $bot_token, $chat_id, $thread_id);
+
+        // Group được nâng cấp lên supergroup -> Telegram trả chat_id mới qua migrate_to_chat_id.
+        // Tự động gửi lại với chat_id mới để thông báo không bị mất khi config chưa kịp cập nhật.
+        $decoded = json_decode((string) $res, true);
+        if (is_array($decoded) && empty($decoded['ok']) && !empty($decoded['parameters']['migrate_to_chat_id'])) {
+            $res = self::postMessageData($data, $bot_token, $decoded['parameters']['migrate_to_chat_id'], $thread_id);
+        }
+
+        return $res;
+    }
+
+    /**
+     * Gửi 1 request sendMessage (POST JSON body) tới 1 chat_id cụ thể
+     *
+     * @param string $data JSON
+     * @param string $bot_token
+     * @param string|int $chat_id
+     * @param string $thread_id
+     * @return string|false JSON
+     */
+    private static function postMessageData($data, $bot_token, $chat_id, $thread_id = '') {
         $url = "https://api.telegram.org/bot$bot_token/sendMessage?chat_id=$chat_id";
         if(!empty($thread_id)) $url .= "&message_thread_id=$thread_id";
-    
+
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_HTTPHEADER, [

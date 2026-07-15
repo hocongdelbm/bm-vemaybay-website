@@ -59,7 +59,6 @@ class EC_Online_Report extends Basic
 			'9eb0f65f-a9f6-65bb-1985-637ca8511491', // trinh
 			'622ecf27-f729-7187-7e27-6520e0dab882', // quangnd
 		];
-		$time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
 		$ksnb_user_id = 'e3bbb3e5-6660-0bf7-8976-54869c4ee609';
 
 		// Nhân viên Telesale không xử lý booking -> loại khỏi danh sách được auto-assign
@@ -90,9 +89,9 @@ class EC_Online_Report extends Basic
 			if (!$is_test) {
 				$online = new EC_Online_Report;
 				$online->retrieve($row_assign['id']);
-				$online->status       = 2;
+				// Không chuyển người được giao sang Busy nữa - giữ Online để tiếp tục xoay vòng
+				// $online->status       = 2;
 				$online->booking_id   = $booking_id;
-				// current time in the user's timezone/format; save() converts datetime fields back to DB format (UTC)
 				$online->last_online  = $timedate->now();
 				$online->start_assign = $timedate->now();
 				$online->total_qty    = $total_qty;

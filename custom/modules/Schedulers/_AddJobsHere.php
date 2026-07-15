@@ -1628,6 +1628,7 @@ function checkBookingHandle() {
 			SET booking_id = NULL
 				,start_assign = NULL
 				,status = 1
+				,last_online = NOW()
 				,date_modified = NOW()
 			WHERE id IN ("' . implode('","', $clear_bk_onl) . '")
 				AND deleted = 0
