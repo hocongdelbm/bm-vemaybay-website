@@ -89,9 +89,9 @@ class EC_Online_Report extends Basic
 			if (!$is_test) {
 				$online = new EC_Online_Report;
 				$online->retrieve($row_assign['id']);
-				$online->status       = 2;
+				// Không chuyển người được giao sang Busy nữa - giữ Online để tiếp tục xoay vòng
+				// $online->status       = 2;
 				$online->booking_id   = $booking_id;
-				// current time in the user's timezone/format; save() converts datetime fields back to DB format (UTC)
 				$online->last_online  = $timedate->now();
 				$online->start_assign = $timedate->now();
 				$online->total_qty    = $total_qty;
