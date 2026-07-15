@@ -402,8 +402,32 @@ class EC_Flight_BookingsLogicHook
 				}
 				$botToken = $sugar_config['telegram']['cty']['bot_token'] ?? '';
 				$chatId = $sugar_config['telegram']['cty']['chat_id'] ?? '';
-				Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
-			} catch (Exception $e) {
+
+				// Thiếu cấu hình -> Telegram::sendMessageData trả về false im lặng, nên log lại
+				if (empty($botToken) || empty($chatId)) {
+					LoggerHelper::error("autoAssignBooking: Không gửi được Telegram cho booking {$focus->id} - thiếu cấu hình telegram", [
+						'booking_id'    => $focus->id,
+						'has_bot_token' => !empty($botToken),
+						'has_chat_id'   => !empty($chatId),
+					]);
+				} else {
+					$tele_res  = Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
+					$tele_json = json_decode((string) $tele_res, true);
+
+					// Telegram trả {"ok":true,...} khi thành công; log chi tiết khi thất bại
+					if ($tele_res === false || !is_array($tele_json) || empty($tele_json['ok'])) {
+						LoggerHelper::error("autoAssignBooking: Gửi Telegram thất bại cho booking {$focus->id}", [
+							'booking_id' => $focus->id,
+							'response'   => $tele_res,
+							'payload'    => $messageData,
+						]);
+					}
+				}
+			} catch (\Throwable $e) {
+				LoggerHelper::error(
+					"autoAssignBooking: Lỗi khi gửi Telegram cho booking " . ($focus->id ?? '') . ": {$e->getMessage()} (dòng {$e->getLine()} trong {$e->getFile()})",
+					['booking_id' => $focus->id ?? null, 'exception' => get_class($e), 'payload' => $messageData ?? null]
+				);
 			}
 		}
 	}
