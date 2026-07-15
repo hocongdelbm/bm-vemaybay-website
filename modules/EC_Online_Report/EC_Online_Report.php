@@ -89,9 +89,9 @@ class EC_Online_Report extends Basic
 				$online = new EC_Online_Report;
 				$online->retrieve($row_assign['id']);
 				// $online->status       = 2; // Không chuyển người được giao sang Busy nữa - giữ Online để tiếp tục xoay vòng
-				$online->booking_id   = $booking_id; 
-				$online->last_online  = $timedate->now();
-				$online->start_assign = $timedate->now();
+				$online->booking_id   = $booking_id;
+				$online->last_online  = $timedate->nowDb();
+				$online->start_assign = $timedate->nowDb();
 				$online->total_qty    = $total_qty;
 				$online->save();
 
@@ -118,8 +118,8 @@ class EC_Online_Report extends Basic
 					$online = new EC_Online_Report;
 					$online->retrieve($row_assign['id']);
 					$online->booking_id   = $booking_id;
-					$online->start_assign = $timedate->now();
-					$online->last_online  = $timedate->now();
+					$online->start_assign = $timedate->nowDb();
+					$online->last_online  = $timedate->nowDb();
 					$online->total_qty    = $total_qty;
 					$online->save();
 
@@ -206,7 +206,7 @@ class EC_Online_Report extends Basic
 			$onl = new EC_Online_Report;
 			$onl->retrieve($onl_id);
 			$onl->status = 0;
-			$onl->last_online = $timedate->now();
+			$onl->last_online = $timedate->nowDb();
 			$onl->booking_id = '';
 			$onl->start_assign = '';
 			$onl->save();
@@ -214,7 +214,7 @@ class EC_Online_Report extends Basic
 			$onl = new EC_Online_Report;
 			$onl->retrieve($onl_id);
 			$onl->status = 2;
-			$onl->last_online = $timedate->now();
+			$onl->last_online = $timedate->nowDb();
 			$onl->save();
 		} else if ($change_type == 'up' || $change_type == 'down') {
 			// kt còn người Online
@@ -253,7 +253,7 @@ class EC_Online_Report extends Basic
 				$onl = new EC_Online_Report;
 				$onl->retrieve($onl_id);
 				$onl->status = 1;
-				$onl->last_online = $timedate->now();
+				$onl->last_online = $timedate->nowDb();
 				$onl->booking_id = '';
 				$onl->start_assign = '';
 				$onl->save();

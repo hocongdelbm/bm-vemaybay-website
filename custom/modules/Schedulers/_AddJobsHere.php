@@ -1579,7 +1579,7 @@ function checkBookingHandle() {
 			$onl->booking_id = '';
 			$onl->start_assign = '';
 			$onl->status = 0;
-			$onl->last_online = $timedate->now();
+			$onl->last_online = $timedate->nowDb();
 
 			$user_off_arr[]  = $onl->name;
 			$booking_off[] = $row['booking_name'];
@@ -1589,18 +1589,26 @@ function checkBookingHandle() {
 	}
 
 	// Nếu booking đã giao được xử lý -> user online -> Xoá thông tin đã giao trong bảng online
+	// Update từng row với last_online tăng dần (không dùng 1 câu UPDATE chung NOW() cho nhiều id)
+	// để tránh trùng last_online giữa nhiều user trong cùng 1 lượt cron -> phá vỡ round-robin (ORDER BY last_online bị tie)
 	if (count($clear_bk_onl) > 0) {
-		$sql1 = '
-			UPDATE ec_online_report
-			SET booking_id = NULL
-				,start_assign = NULL
-				,status = 1
-				,last_online = NOW()
-				,date_modified = NOW()
-			WHERE id IN ("' . implode('","', $clear_bk_onl) . '")
-				AND deleted = 0
-		';
-		$db->query($sql1);
+		$clear_base_gmt = new DateTime($timedate->nowDb(), new DateTimeZone('UTC'));
+
+		foreach ($clear_bk_onl as $idx => $clear_onl_id) {
+			$clear_last_online = (clone $clear_base_gmt)->modify("+{$idx} seconds")->format('Y-m-d H:i:s');
+
+			$sql1 = '
+				UPDATE ec_online_report
+				SET booking_id = NULL
+					,start_assign = NULL
+					,status = 1
+					,last_online = "' . $clear_last_online . '"
+					,date_modified = NOW()
+				WHERE id = "' . $clear_onl_id . '"
+					AND deleted = 0
+			';
+			$db->query($sql1);
+		}
 	}
 
 	// user off thì thông báo

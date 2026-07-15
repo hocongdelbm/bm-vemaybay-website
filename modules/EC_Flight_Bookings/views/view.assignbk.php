@@ -26,6 +26,7 @@ class Viewassignbk extends SugarView {
 		$smartyCont->display("modules/{$this->bean->object_name}/tpls/view_assignbk.tpl");
 	}
 
+
 	public function getUserSttInf() {
 		global $app_list_strings, $current_user;
 

@@ -95,7 +95,7 @@ function write_file_backup_log_calls($json)
  */
 function agent_change_status($agent, $status)
 {
-    global $db, $sugar_config;
+    global $db, $sugar_config, $timedate;
     $domain = $sugar_config['postgreconfig']['domain_name'] ?? '';
 
     if (empty($agent) || empty($status) || empty($domain)) {
@@ -163,7 +163,7 @@ function agent_change_status($agent, $status)
 
                 $last_online_update = '';
                 if ($status != 'Logged Out') {
-                    $last_online_update .= ', last_online = NOW()';
+                    $last_online_update .= ', last_online = "' . $timedate->nowDb() . '"';
                 }
 
                 $GLOBALS['log']->debug("agent_change_status: custom_get_sip_number(agent={$agent}) resolved sip_number=" . var_export($sip_number, true));
