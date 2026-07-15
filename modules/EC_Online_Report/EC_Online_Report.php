@@ -63,10 +63,6 @@ class EC_Online_Report extends Basic
 
 		$assigned_user_id = '';
 
-		// Bọc trong transaction + FOR UPDATE để khóa row ứng viên: tránh race condition khi
-		// 2 booking được lưu gần như đồng thời cùng đọc trúng 1 người trước khi last_online kịp cập nhật
-		$db->query('START TRANSACTION');
-
 		try {
 			// Lấy người online đầu hàng (khóa row)
 			$sql_assign =
@@ -77,8 +73,7 @@ class EC_Online_Report extends Basic
 					AND deleted = 0
 					$sql_exclude_telesale
 				ORDER BY last_online
-				LIMIT 1
-				FOR UPDATE";
+				LIMIT 1";
 
 			$res_assign = $this->db->query($sql_assign);
 			$row_assign = $this->db->fetchByAssoc($res_assign);
@@ -106,8 +101,7 @@ class EC_Online_Report extends Basic
 						AND deleted = 0
 						$sql_exclude_telesale
 					ORDER BY last_online
-					LIMIT 1
-					FOR UPDATE";
+					LIMIT 1";
 
 				$res_assign_busy = $this->db->query($sql_assign_busy);
 				$row_assign      = $this->db->fetchByAssoc($res_assign_busy);
@@ -135,11 +129,11 @@ class EC_Online_Report extends Basic
 
 			// CẬP NHẬT ASSIGN BOOKING
 			$db->query("UPDATE ec_flight_bookings SET assigned_user_id = '$assigned_user_id' WHERE id = '$booking_id' AND deleted = 0");
-
-			$db->query('COMMIT');
 		} catch (\Throwable $e) {
-			$db->query('ROLLBACK');
-			throw $e;
+			LoggerHelper::error(
+				"assignBooking: lỗi khi gán booking {$booking_id}: {$e->getMessage()}",
+				['booking_id' => $booking_id]
+			);
 		}
 
 		return $assigned_user_id;
