@@ -414,14 +414,12 @@ class EC_Flight_BookingsLogicHook
 					$tele_res  = Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
 					$tele_json = json_decode((string) $tele_res, true);
 
-					// Telegram trả {"ok":true,...} khi thành công; log chi tiết khi thất bại
-					if ($tele_res === false || !is_array($tele_json) || empty($tele_json['ok'])) {
-						LoggerHelper::error("autoAssignBooking: Gửi Telegram thất bại cho booking {$focus->id}", [
-							'booking_id' => $focus->id,
-							'response'   => $tele_res,
-							'payload'    => $messageData,
-						]);
-					}
+					LoggerHelper::error("DEBUG autoAssignBooking: Gửi Telegram cho booking {$focus->id}", [
+						'booking_id' => $focus->id,
+						'response'   => $tele_res,
+						'tele_json'   => $tele_json,
+						'payload'    => $messageData,
+					]);
 				}
 			} catch (\Throwable $e) {
 				LoggerHelper::error(

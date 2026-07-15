@@ -6,13 +6,20 @@ class Viewassignbk extends SugarView {
     public string $date_format;
     public string $time_format;
 
-	public function display() {
+	// Khởi tạo timezone/định dạng ngày giờ từ preference của user.
+	// Tách riêng để cả display() lẫn getUserSttInf() (gọi trực tiếp từ epFlightBookings)
+	// đều khởi tạo được typed property, tránh "must not be accessed before initialization".
+	private function initFormats() {
 		global $current_user, $sugar_config;
 
-        $this->timezone = $current_user->getPreference('timezone') ?: 'Asia/Ho_Chi_Minh';
-        $this->date_format = $current_user->getPreference('datef') ?: ($sugar_config['datef'] ?? 'd-m-Y');
-        $this->time_format = $current_user->getPreference('timef') ?: ($sugar_config['timef'] ?? 'H:i');
-		
+		$this->timezone = $current_user->getPreference('timezone') ?: 'Asia/Ho_Chi_Minh';
+		$this->date_format = $current_user->getPreference('datef') ?: ($sugar_config['datef'] ?? 'd-m-Y');
+		$this->time_format = $current_user->getPreference('timef') ?: ($sugar_config['timef'] ?? 'H:i');
+	}
+
+	public function display() {
+		$this->initFormats();
+
 		$smartyCont = new Sugar_Smarty();
 		$smartyCont->assign('IS_ALLOWED_USER', is_admin($current_user));
 		$smartyCont->assign('ONLINE_DATA', $this->getUserSttInf());
@@ -22,6 +29,9 @@ class Viewassignbk extends SugarView {
 
 	public function getUserSttInf() {
 		global $app_list_strings, $current_user;
+
+		// Có thể được gọi trực tiếp (auto-refresh dashboard) mà không qua display()
+		$this->initFormats();
 
 		$today_utc = gmdate('Y-m-d');
 		$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
