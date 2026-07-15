@@ -46,19 +46,11 @@ class EC_Online_Report extends Basic
 	}
 
 	// Quy trình giao booking 
-	public function assignBooking($booking_id, $total_qty, $is_test = 0) {
+	public function assignBooking($booking_id, $total_qty) {
 		global $db, $timedate;
 		
 		$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
         $current_datetime_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d H:i:s'); 
-
-		$arr_id_admin = [
-			'1', //ducpham
-			'168889bb-54c2-59c7-8b3f-649102530d3c', // hungnh
-			'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', // panda
-			'9eb0f65f-a9f6-65bb-1985-637ca8511491', // trinh
-			'622ecf27-f729-7187-7e27-6520e0dab882', // quangnd
-		];
 		$ksnb_user_id = 'e3bbb3e5-6660-0bf7-8976-54869c4ee609';
 
 		// Nhân viên Telesale không xử lý booking -> loại khỏi danh sách được auto-assign
@@ -69,57 +61,60 @@ class EC_Online_Report extends Basic
 			)
 		';
 
-		// Lấy người online đầu hàng
-		$sql_assign = 
-			"SELECT id, assigned_user_id
-			FROM ec_online_report
-			WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
-				AND status = 1
-				AND deleted = 0
-				$sql_exclude_telesale
-			ORDER BY last_online
-			LIMIT 1";
+		$assigned_user_id = '';
 
-		$res_assign = $this->db->query($sql_assign);
-		$row_assign = $this->db->fetchByAssoc($res_assign);
+		// Bọc trong transaction + FOR UPDATE để khóa row ứng viên: tránh race condition khi
+		// 2 booking được lưu gần như đồng thời cùng đọc trúng 1 người trước khi last_online kịp cập nhật
+		$db->query('START TRANSACTION');
 
-		if ($row_assign) {
-			$assigned_user_id = $row_assign['assigned_user_id'];
+		try {
+			// Lấy người online đầu hàng (khóa row)
+			$sql_assign =
+				"SELECT id, assigned_user_id
+				FROM ec_online_report
+				WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
+					AND status = 1
+					AND deleted = 0
+					$sql_exclude_telesale
+				ORDER BY last_online
+				LIMIT 1
+				FOR UPDATE";
 
-			if (!$is_test) {
+			$res_assign = $this->db->query($sql_assign);
+			$row_assign = $this->db->fetchByAssoc($res_assign);
+
+			if ($row_assign) {
+				$assigned_user_id = $row_assign['assigned_user_id'];
+
 				$online = new EC_Online_Report;
 				$online->retrieve($row_assign['id']);
-				// Không chuyển người được giao sang Busy nữa - giữ Online để tiếp tục xoay vòng
-				// $online->status       = 2;
-				$online->booking_id   = $booking_id;
+				// $online->status       = 2; // Không chuyển người được giao sang Busy nữa - giữ Online để tiếp tục xoay vòng
+				$online->booking_id   = $booking_id; 
 				$online->last_online  = $timedate->now();
 				$online->start_assign = $timedate->now();
 				$online->total_qty    = $total_qty;
 				$online->save();
 
-				if (!in_array($assigned_user_id, $arr_id_admin)) {
-					content_log($assigned_user_id, $current_datetime_vn, 0);
-				}
-			}
-		} else {
-			// Không có ai online, thử lấy người busy
-			$sql_assign_busy = 
-				"SELECT id, assigned_user_id
-				FROM ec_online_report
-				WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
-					AND status = 2
-					AND deleted = 0
-					$sql_exclude_telesale
-				ORDER BY last_online
-				LIMIT 1";
+				content_log($assigned_user_id, $current_datetime_vn, 0);
+			} else {
+				// Không có ai online, thử lấy người busy (khóa row)
+				$sql_assign_busy =
+					"SELECT id, assigned_user_id
+					FROM ec_online_report
+					WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
+						AND status = 2
+						AND deleted = 0
+						$sql_exclude_telesale
+					ORDER BY last_online
+					LIMIT 1
+					FOR UPDATE";
 
-			$res_assign_busy = $this->db->query($sql_assign_busy);
-			$row_assign      = $this->db->fetchByAssoc($res_assign_busy);
+				$res_assign_busy = $this->db->query($sql_assign_busy);
+				$row_assign      = $this->db->fetchByAssoc($res_assign_busy);
 
-			if ($row_assign) {
-				$assigned_user_id = $row_assign['assigned_user_id'];
+				if ($row_assign) {
+					$assigned_user_id = $row_assign['assigned_user_id'];
 
-				if (!$is_test) {
 					$online = new EC_Online_Report;
 					$online->retrieve($row_assign['id']);
 					$online->booking_id   = $booking_id;
@@ -128,22 +123,24 @@ class EC_Online_Report extends Basic
 					$online->total_qty    = $total_qty;
 					$online->save();
 
-					if (!in_array($assigned_user_id, $arr_id_admin)) {
-						content_log($assigned_user_id, $current_datetime_vn, 0);
-					}
+					content_log($assigned_user_id, $current_datetime_vn, 0);
+				} else {
+					$assigned_user_id = $ksnb_user_id;
 				}
-			} else {
+			}
+
+			if ($assigned_user_id == '') {
 				$assigned_user_id = $ksnb_user_id;
 			}
-		}
 
-		if ($assigned_user_id == '') {
-			// Fallback: user ksnb
-			$assigned_user_id = $ksnb_user_id;
-		}
+			// CẬP NHẬT ASSIGN BOOKING
+			$db->query("UPDATE ec_flight_bookings SET assigned_user_id = '$assigned_user_id' WHERE id = '$booking_id' AND deleted = 0");
 
-		// CẬP NHẬT ASSIGN BOOKING
-		$db->query("UPDATE ec_flight_bookings SET assigned_user_id = '$assigned_user_id' WHERE id = '$booking_id' AND deleted = 0");
+			$db->query('COMMIT');
+		} catch (\Throwable $e) {
+			$db->query('ROLLBACK');
+			throw $e;
+		}
 
 		return $assigned_user_id;
 	}

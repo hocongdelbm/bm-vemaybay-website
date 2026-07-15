@@ -144,7 +144,7 @@
             });
         });
 
-        // Auto-refresh bảng online mỗi 30 giây, bỏ qua khi có action đang diễn ra
+        // Auto-refresh bảng online mỗi 10 giây, bỏ qua khi có action đang diễn ra
         var onlineRefreshTimer = setInterval(function() {
             if ($(".online_btn:disabled").length > 0) return;
             $.get("index.php?entryPoint=entryPointFlightBookings&for=getOnlineStatus", function(html) {
@@ -152,7 +152,7 @@
                     $("#online_report").html(html);
                 }
             });
-        }, 30000);
+        }, 10000);
 
         function resizeCusBtn() {
             if($(this).width() < 1050) { 

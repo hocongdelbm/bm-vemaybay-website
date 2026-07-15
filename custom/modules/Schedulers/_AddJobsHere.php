@@ -1667,7 +1667,6 @@ function reAssignBooking()
 								WHERE id = '{$row['id']}' AND deleted = 0";
 					$db->query($sql_upd);
 
-					// assignBooking() đã cập nhật ec_online_report (status, booking_id, total_qty)
 					$reassign_bk[] = "Booking: {$row['name']} giao cho: " . trim("$user->last_name $user->first_name");
 				}
 			}
