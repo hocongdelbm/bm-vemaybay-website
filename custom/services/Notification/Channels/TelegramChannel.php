@@ -136,7 +136,7 @@ class TelegramChannel implements NotificationChannelInterface {
         try {
             $curl = curl_init();
             if ($curl === false) {
-                // LoggerHelper::error("{$method} {$url} cURL failed to initialize");
+                $GLOBALS['log']->error("{$method} {$url} cURL failed to initialize");
                 return $this->returnError("cURL failed to initialize in BM");
             }
             curl_setopt($curl, CURLOPT_URL, $url);
@@ -157,15 +157,20 @@ class TelegramChannel implements NotificationChannelInterface {
             curl_close($curl);
 
             if ($response === false || $errorNo) {
-                // LoggerHelper::error("{$method} {$url} cURL error $errorNo: $error");
+                $GLOBALS['log']->error("{$method} {$url} cURL error $errorNo: $error");
                 return $this->returnError("cURL error $errorNo: $error");
+            }
+
+            $decoded = json_decode((string) $response, true);
+            if (is_array($decoded) && empty($decoded['ok'])) {
+                $GLOBALS['log']->error("{$method} {$url} Telegram API rejected message: {$response}");
             }
 
             return $response;
         }
         catch (\Throwable $th) {
             $message = "Exception error {$th->getCode()}: {$th->getMessage()} on line {$th->getLine()}";
-            // LoggerHelper::error("{$method} {$this->ENDPOINT}/{$path} $message");
+            $GLOBALS['log']->error("{$method} {$url} $message");
             return $this->returnError("An exception error has occurred: $message");
         }
         finally {

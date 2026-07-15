@@ -1541,6 +1541,9 @@ function checkBookingHandle() {
 
 	$sql = "SELECT
 			onl.id, onl.booking_id,
+			onl.start_assign AS raw_start_assign,
+			DATE_ADD(onl.start_assign, INTERVAL 7 HOUR) AS start_assign_vn,
+			TIMESTAMPDIFF(MINUTE, DATE_FORMAT(DATE_ADD(onl.start_assign, INTERVAL 7 HOUR), '%Y-%m-%d %H:%i'), '$current_minute_vn') AS diff_minutes,
 			b.total_qty, b.name AS booking_name, b.contact_name, b.phone,
 			IF(
 				b.booking_status <> 1
@@ -1563,7 +1566,15 @@ function checkBookingHandle() {
 	$reassign_bk_arr 	= [];
 	$user_off_arr 		= [];
 
+	// DEBUG: kiểm tra logic múi giờ, XÓA sau khi debug xong
+	$GLOBALS['log']->error("[DEBUG checkBookingHandle] now_vn={$now_vn->format('Y-m-d H:i:s')} current_minute_vn={$current_minute_vn}");
+
 	while ($row = $db->fetchByAssoc($res)) {
+		// DEBUG: XÓA sau khi debug xong
+		$GLOBALS['log']->error(
+			"[DEBUG row] onl_id={$row['id']} booking={$row['booking_name']} raw_start_assign(GMT)={$row['raw_start_assign']} start_assign_vn={$row['start_assign_vn']} diff_minutes={$row['diff_minutes']} is_processed={$row['is_processed']}"
+		);
+
 		if ($row['is_processed']) {
 			$clear_bk_onl[] = $row['id'];
 		} else {
@@ -1590,7 +1601,8 @@ function checkBookingHandle() {
 
 	// Nếu booking đã giao được xử lý -> user online -> Xoá thông tin đã giao trong bảng online
 	// Update từng row với last_online tăng dần (không dùng 1 câu UPDATE chung NOW() cho nhiều id)
-	// để tránh trùng last_online giữa nhiều user trong cùng 1 lượt cron -> phá vỡ round-robin (ORDER BY last_online bị tie)
+	// để tránh trùng last_online giữa nhiều user trong cùng 1 lượt cron
+	$GLOBALS['log']->error("[DEBUG checkBookingHandle] clear_bk_onl count=" . count($clear_bk_onl));
 	if (count($clear_bk_onl) > 0) {
 		$clear_base_gmt = new DateTime($timedate->nowDb(), new DateTimeZone('UTC'));
 
@@ -1612,12 +1624,14 @@ function checkBookingHandle() {
 	}
 
 	// user off thì thông báo
+	$GLOBALS['log']->error("[DEBUG checkBookingHandle] user_off_arr count=" . count($user_off_arr));
 	if (count($user_off_arr) > 0) {
 		$message = 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr);
 		NotificationService::sendWarningMessage($message, 'cty');
 	}
 
 	// Giao lại các booking cho user onl khác
+	$GLOBALS['log']->error("[DEBUG checkBookingHandle] reassign_bk_arr count=" . count($reassign_bk_arr));
 	if (is_array($reassign_bk_arr) && count($reassign_bk_arr) > 0) {
 		foreach ($reassign_bk_arr as $reassign_bk) {
 			$onl_r = new EC_Online_Report;
