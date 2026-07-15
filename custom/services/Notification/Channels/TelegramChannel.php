@@ -139,7 +139,7 @@ class TelegramChannel implements NotificationChannelInterface {
      * @param array $curlOptions
      * @return string JSON
      */
-    protected function sendHTTPRequest($method, $url, $header = [], $requestBody = null, $curlOptions = []) {
+    protected function sendHTTPRequest($method, $url, $header = [], $requestBody = null, $curlOptions = [], $allowMigrateRetry = true) {
         try {
             $curl = curl_init();
             if ($curl === false) {
@@ -170,6 +170,18 @@ class TelegramChannel implements NotificationChannelInterface {
 
             $decoded = json_decode((string) $response, true);
             if (is_array($decoded) && empty($decoded['ok'])) {
+                // Group được nâng cấp lên supergroup -> Telegram trả chat_id mới qua migrate_to_chat_id.
+                // Tự động gửi lại với chat_id mới để thông báo không bị mất khi config chưa kịp cập nhật.
+                if ($allowMigrateRetry && !empty($decoded['parameters']['migrate_to_chat_id'])) {
+                    $newChatId = (string) $decoded['parameters']['migrate_to_chat_id'];
+                    $GLOBALS['log']->error("Telegram chat {$this->chatId} đã nâng cấp lên supergroup {$newChatId}, gửi lại. Hãy cập nhật chat_id trong config.");
+
+                    $newUrl  = str_replace("chat_id={$this->chatId}", "chat_id={$newChatId}", $url);
+                    $newBody = $this->replaceChatIdInBody($requestBody, $newChatId);
+                    $this->chatId = $newChatId;
+
+                    return $this->sendHTTPRequest($method, $newUrl, $header, $newBody, $curlOptions, false);
+                }
                 $GLOBALS['log']->error("{$method} {$url} Telegram API rejected message: {$response}");
             }
 
@@ -187,8 +199,31 @@ class TelegramChannel implements NotificationChannelInterface {
 
 
     /**
+     * Thay chat_id trong request body (dùng khi retry vì group nâng cấp supergroup).
+     * Hỗ trợ body dạng array (sendDocument) hoặc chuỗi JSON (sendMessageData, sendInlineKeyboardMessage).
+     *
+     * @param array|string|null $requestBody
+     * @param string $newChatId
+     * @return array|string|null
+     */
+    private function replaceChatIdInBody($requestBody, string $newChatId) {
+        if (is_array($requestBody)) {
+            if (array_key_exists('chat_id', $requestBody)) $requestBody['chat_id'] = $newChatId;
+            return $requestBody;
+        }
+        if (is_string($requestBody) && $requestBody !== '') {
+            $decoded = json_decode($requestBody, true);
+            if (is_array($decoded) && array_key_exists('chat_id', $decoded)) {
+                $decoded['chat_id'] = $newChatId;
+                return json_encode($decoded, JSON_UNESCAPED_UNICODE);
+            }
+        }
+        return $requestBody;
+    }
+
+    /**
      * Return error template
-     * 
+     *
      * @param string $description A human-readable description of the error
      * @return string JSON
      */
