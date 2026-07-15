@@ -13,17 +13,14 @@ class loginActions
             $la_event = 'login_failed';
         }
 
-        $agent_status   = '';
         switch ($la_event) {
             case 'login_failed':
                 $la_result = "Failed";
                 break;
             case 'after_login':
-                $agent_status   = 'Available';
                 $la_result = "Success";
                 break;
             case 'before_logout':
-                $agent_status   = 'Logged Out';
                 $la_result = "Logout";
                 break;
             default:
@@ -45,11 +42,6 @@ class loginActions
 
         $db->query($query, false);
         
-        // Update change status agent and update agent status
-        if (!empty($la_event) && !empty($agent_status) && !empty($current_user->td_sip)) {
-            agent_change_status($current_user->td_sip, $agent_status);
-        }
-
         // Nếu login lần đầu cập nhật start_online
         if ($la_event === 'after_login' && $la_result === 'Success') {
             $today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');

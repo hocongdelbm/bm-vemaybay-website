@@ -93,12 +93,14 @@ function write_file_backup_log_calls($json)
  *
  * @return void
  */
-function agent_change_status($agent, $status) {
+function agent_change_status($agent, $status)
+{
     global $db, $sugar_config;
     $domain = $sugar_config['postgreconfig']['domain_name'] ?? '';
 
     if (empty($agent) || empty($status) || empty($domain)) {
-        return json_encode(['error' => 1, 'httpcode' => 400, 'message' => 'Agent status bad request']);
+        $GLOBALS['log']->error("agent_change_status bad request: agent={$agent}, status={$status}, domain={$domain}");
+        return false;
     }
 
     $token  = 'sdjfhsgaksuegrqw38463784672793746rwadjksfgha3e467dhcauw4y5t783yr';
@@ -108,17 +110,18 @@ function agent_change_status($agent, $status) {
         $curl = curl_init($url);
 
         if ($curl === false) {
-            return json_encode(['error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize']);
+            $GLOBALS['log']->error("agent_change_status: cURL failed to initialize");
+            return false;
         }
 
         curl_setopt_array($curl, array(
-            // CURLOPT_URL             => "https://$domain/agent_status/change_status.php",
+            CURLOPT_URL             => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_FOLLOWLOCATION => false,
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT        => 3,
-            CURLOPT_CONNECTTIMEOUT => 2,
+            CURLOPT_TIMEOUT        => 6,
+            CURLOPT_CONNECTTIMEOUT => 3,
             CURLOPT_CUSTOMREQUEST   => 'POST',
             CURLOPT_POSTFIELDS     => [
                 'agent'  => "{$agent}@{$domain}",
@@ -133,26 +136,28 @@ function agent_change_status($agent, $status) {
         curl_close($curl);
 
         if ($json === false || $httpcode !== 200) {
-            $GLOBALS['log']->fatal("Agent status CURL error: " . $curlError);
+            $GLOBALS['log']->error("Agent status CURL error: httpcode={$httpcode}, curlError=" . $curlError . ", body=" . $json);
             return false;
         }
 
         $arr = json_decode($json, true);
         if (empty($arr['success']['code']) || $arr['success']['code'] != 200) {
+            $GLOBALS['log']->error("Agent status change rejected by PBX: " . $json);
             return false;
         }
-        
+
         if ($httpcode == 200 && $arr['success']['code'] == 200) {
-            $agent  = $db->quote($agent);
-            $status = $db->quote($status);
+            $agent_quoted  = $db->quote($agent);
+            $status_quoted = $db->quote($status);
             $sql_as = 'UPDATE users
-                       SET agent_status = "' . $status . '"
-                       WHERE td_sip = "' . $agent . '"
+                       SET agent_status = "' . $status_quoted . '"
+                       WHERE td_sip = "' . $agent_quoted . '"
                        AND deleted = 0';
 
             $result_sql_as = $db->query($sql_as);
+            $GLOBALS['log']->debug("agent_change_status: updated users.agent_status, agent={$agent}, status={$status}, affected_rows=" . ($result_sql_as ? $db->getAffectedRowCount($result_sql_as) : 'query_failed'));
+
             if ($result_sql_as) {
-                $timestamp_now  = date('Y-m-d H:i:s');
                 $sip_number     = custom_get_sip_number($agent);
                 $status_value   = $status == 'Available' ? 1 : ($status == 'On Break' ? 2 : 0);
 
@@ -161,10 +166,12 @@ function agent_change_status($agent, $status) {
                     $last_online_update .= ', last_online = NOW()';
                 }
 
+                $GLOBALS['log']->debug("agent_change_status: custom_get_sip_number(agent={$agent}) resolved sip_number=" . var_export($sip_number, true));
+
                 if ($sip_number) {
                     $today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
-                    $sql_online = 
-                        "UPDATE ec_online_report 
+                    $sql_online =
+                        "UPDATE ec_online_report
                         SET status = $status_value
                             $last_online_update
                         WHERE assigned_user_id = '$sip_number'
@@ -172,26 +179,24 @@ function agent_change_status($agent, $status) {
                             AND deleted = 0";
 
                     $result_sql_online = $db->query($sql_online);
+                    $GLOBALS['log']->debug("agent_change_status: updated ec_online_report, sip_number={$sip_number}, date={$today_vn}, affected_rows=" . ($result_sql_online ? $db->getAffectedRowCount($result_sql_online) : 'query_failed'));
 
                     if ($result_sql_online) {
                         $busy = ($status == 'Available') ? 0 : 1;
                         $current_datetime_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d H:i:s');
-                        $array_admin = [
-                            '168889bb-54c2-59c7-8b3f-649102530d3c',
-                            '622ecf27-f729-7187-7e27-6520e0dab882',
-                            '1',
-                        ];
-                        
-                        if (!in_array($sip_number, $array_admin)) {
-                            content_log($sip_number, $current_datetime_vn, $busy);
-                        }
+
+                        content_log($sip_number, $current_datetime_vn, $busy);
                     }
                 }
             }
+        } else {
+            $GLOBALS['log']->debug("agent_change_status: skipped users/ec_online_report update, httpcode={$httpcode}, arr_code=" . ($arr['success']['code'] ?? 'n/a'));
         }
+
+        return true;
     } catch (Exception $e) {
-        $GLOBALS['log']->fatal("agent_change_status error: " . $e->getMessage());
-        return json_encode(['error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()]);
+        $GLOBALS['log']->error("agent_change_status error: " . $e->getCode() . ': ' . $e->getMessage());
+        return false;
     }
 }
 
@@ -413,9 +418,6 @@ function getCallFailedCauseMeaning($cause)
     return $meanings[strtoupper($cause)] ?? 'Không xác định';
 }
 
-
-function returnStragtegyCallSales($strategy) {}
-
 function proposeCallImprovementStrategy($asr)
 {
     $strategies = [
@@ -450,51 +452,6 @@ function proposeCallImprovementStrategy($asr)
 
     $randomIndex = array_rand($strategies[$key]);
     return $strategies[$key][$randomIndex];
-}
-
-function get_log_call($call_id, $uuid = '')
-{
-
-    global $db, $sugar_config;
-    $domain_name = $sugar_config['postgreconfig']['domain_name'] ?? 'td.timchuyenbay.net';
-    $token  = 'f47a2d3b91e8c0f6b5d44a13c8a7e2dd38f9627aef1b79c452e0ad5e68f3c1db65f8e2a9374d1a26c6f5b8e49b029fd03a4c78b821c1a2fe56d74e9b3a8fc2f';
-
-    $body_request = array(
-        'uuid' => $uuid,
-        'call_id' => $call_id,
-        'token' => $token,
-    );
-
-    try {
-        $curl = curl_init();
-        if ($curl === false) {
-            return json_encode(['error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize']);
-        }
-
-        curl_setopt_array($curl, array(
-            CURLOPT_URL             => "https://" . $domain_name . "/apiv1/getLogCall.php",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
-            CURLOPT_SSL_VERIFYPEER => false, // Use at localhost
-            CURLOPT_TIMEOUT        => 0,
-            CURLOPT_CUSTOMREQUEST   => 'POST',
-            CURLOPT_POSTFIELDS      => $body_request,
-        ));
-
-        $json = curl_exec($curl);
-        $httpcode   = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
-        $arr = json_decode(html_entity_decode($json), true);
-
-        if ($httpcode === 200 && isset($arr['code']) && (int)$arr['code'] === 200) {
-            return json_encode(array('error' => 0, 'httpcode' => $arr['code'], 'data' => $arr['data']));
-        } else {
-            return json_encode(['error' => 1, 'httpcode' => $arr['code'], 'data' => $arr]);
-        }
-    } catch (Exception $e) {
-        return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
-    }
 }
 
 function save_log_call($log_call)

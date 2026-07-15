@@ -6,9 +6,6 @@ class Viewassignbk extends SugarView {
     public string $date_format;
     public string $time_format;
 
-	// Khởi tạo timezone/định dạng ngày giờ từ preference của user.
-	// Tách riêng để cả display() lẫn getUserSttInf() (gọi trực tiếp từ epFlightBookings)
-	// đều khởi tạo được typed property, tránh "must not be accessed before initialization".
 	private function initFormats() {
 		global $current_user, $sugar_config;
 
@@ -18,6 +15,8 @@ class Viewassignbk extends SugarView {
 	}
 
 	public function display() {
+		global $current_user;
+
 		$this->initFormats();
 
 		$smartyCont = new Sugar_Smarty();

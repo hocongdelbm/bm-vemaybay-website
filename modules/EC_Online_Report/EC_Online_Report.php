@@ -133,7 +133,6 @@ class EC_Online_Report extends Basic
 					}
 				}
 			} else {
-				// Fallback: user ksnb
 				$assigned_user_id = $ksnb_user_id;
 			}
 		}

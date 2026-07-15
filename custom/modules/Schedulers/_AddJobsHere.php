@@ -14,9 +14,7 @@ $job_strings[] = 'lockSalaryAtEndMonth'; // khoá bảng lương vào cuối m�
 $job_strings[] = 'updateWorkingDays'; // cập nhật ngày công trong bảng lương
 $job_strings[] = 'updateMissingEfforts'; // cập nhật nỗ lực thật sự của tháng nếu bảng lương khoá trước ngày cuối tháng
 $job_strings[] = 'updateOnlineReport'; // cập nhật ds online mỗi ngày
-// $job_strings[] = 'checkOnlineUser'; // Kiểm tra xem booking giao đã được xử lý, để biết user còn online hay không
 $job_strings[] = 'checkBookingHandle'; // Kiểm tra xem booking đã giao được xử lý hay chưa
-$job_strings[] = 'checkStatusOnlineUser'; // Kiểm tra user còn online hay không
 $job_strings[] = 'reAssignBooking'; // lặp lại việc giao booking nếu gặp booking chưa được giao
 $job_strings[] = 'calculateCashFlow'; // Tính toán dòng tiền trong 3 ngày trước
 $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
@@ -1532,36 +1530,6 @@ function updateMissingEfforts()
 	return true;
 }
 
-
-// Kiểm tra user còn online hay không
-function checkStatusOnlineUser()
-{
-	global $db;
-
-	// 0: Offline
-	// 1: Online
-	// 2: Busy
-	$path           = "secure_sessions/check_online_logs/";
-	$timestamp_now 	= strtotime('+7 hours');
-
-	foreach (array_diff(scandir($path), ['.', '..', 'Thumbs.db', basename(__FILE__)]) as $file) {
-		$user_id 		= str_replace('_', '-', pathinfo($file, PATHINFO_FILENAME));
-		$data_user 		= json_decode(read_file_logs_online($user_id), true);
-		$diffInSeconds 	= abs($timestamp_now - strtotime($data_user['last_time']));
-		$agent 			= custom_get_sip_number($user_id);
-
-		if ($user_id == 'c57196c6-e211-9856-43d5-6695498f39ae') continue; //tiennguyen
-
-		// Kiểm tra trạng thái busy (10 phút) và không tương tác (2 phút 30 giây)
-		if (($data_user['busy'] == 1 && $diffInSeconds > 600) || ($data_user['busy'] == 0 && $diffInSeconds > 150)) {
-			if ($agent) agent_change_status($agent, 'Logged Out');
-		}
-	}
-
-	return true;
-}
-
-
 // Kiểm tra xem booking giao cho booker đã được xử lý hay chưa? 
 // Thời gian xử lý tối đa là 2 phút
 function checkBookingHandle() {
@@ -1620,8 +1588,7 @@ function checkBookingHandle() {
 		}
 	}
 
-	// Nếu booking đã giao được xử lý -> user online 
-	// -> Xoá thông tin đã giao trong bảng online
+	// Nếu booking đã giao được xử lý -> user online -> Xoá thông tin đã giao trong bảng online
 	if (count($clear_bk_onl) > 0) {
 		$sql1 = '
 			UPDATE ec_online_report
