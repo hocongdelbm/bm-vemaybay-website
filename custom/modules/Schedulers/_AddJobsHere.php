@@ -1535,15 +1535,13 @@ function updateMissingEfforts()
 function checkBookingHandle() {
 	global $db, $timedate;
 
-	$now_vn = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
-	$today_vn = $now_vn->format('Y-m-d');
-	$current_minute_vn = $now_vn->format('Y-m-d H:i');
+	$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
+	// So sánh mốc thời gian phải tính theo GIÂY và cùng hệ quy chiếu GMT với start_assign đang lưu trong DB.
+	// (Trước đây dùng DATE_FORMAT '%Y-%m-%d %H:%i' làm tròn xuống đầu phút ở CẢ 2 vế nên ngưỡng "2 phút" bị lệch tới ~59 giây -> kích hoạt sớm/muộn không ổn định.)
+	$now_gmt = $timedate->nowDb();
 
 	$sql = "SELECT
 			onl.id, onl.booking_id,
-			onl.start_assign AS raw_start_assign,
-			DATE_ADD(onl.start_assign, INTERVAL 7 HOUR) AS start_assign_vn,
-			TIMESTAMPDIFF(MINUTE, DATE_FORMAT(DATE_ADD(onl.start_assign, INTERVAL 7 HOUR), '%Y-%m-%d %H:%i'), '$current_minute_vn') AS diff_minutes,
 			b.total_qty, b.name AS booking_name, b.contact_name, b.phone,
 			IF(
 				b.booking_status <> 1
@@ -1558,23 +1556,17 @@ function checkBookingHandle() {
 		WHERE onl.deleted = 0
 			AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= '$today_vn'
 			AND (onl.booking_id <> '' AND onl.booking_id IS NOT NULL)
-			AND TIMESTAMPDIFF(MINUTE, DATE_FORMAT(DATE_ADD(onl.start_assign, INTERVAL 7 HOUR), '%Y-%m-%d %H:%i'), '$current_minute_vn') >= 2
+			AND onl.start_assign IS NOT NULL
+			AND TIMESTAMPDIFF(SECOND, onl.start_assign, '$now_gmt') >= 120
 			AND b.deleted = 0";
 
 	$res = $db->query($sql);
 	$clear_bk_onl 		= [];
 	$reassign_bk_arr 	= [];
 	$user_off_arr 		= [];
-
-	// DEBUG: kiểm tra logic múi giờ, XÓA sau khi debug xong
-	$GLOBALS['log']->error("[DEBUG checkBookingHandle] now_vn={$now_vn->format('Y-m-d H:i:s')} current_minute_vn={$current_minute_vn}");
+	$booking_off 		= [];
 
 	while ($row = $db->fetchByAssoc($res)) {
-		// DEBUG: XÓA sau khi debug xong
-		$GLOBALS['log']->error(
-			"[DEBUG row] onl_id={$row['id']} booking={$row['booking_name']} raw_start_assign(GMT)={$row['raw_start_assign']} start_assign_vn={$row['start_assign_vn']} diff_minutes={$row['diff_minutes']} is_processed={$row['is_processed']}"
-		);
-
 		if ($row['is_processed']) {
 			$clear_bk_onl[] = $row['id'];
 		} else {
@@ -1602,7 +1594,6 @@ function checkBookingHandle() {
 	// Nếu booking đã giao được xử lý -> user online -> Xoá thông tin đã giao trong bảng online
 	// Update từng row với last_online tăng dần (không dùng 1 câu UPDATE chung NOW() cho nhiều id)
 	// để tránh trùng last_online giữa nhiều user trong cùng 1 lượt cron
-	$GLOBALS['log']->error("[DEBUG checkBookingHandle] clear_bk_onl count=" . count($clear_bk_onl));
 	if (count($clear_bk_onl) > 0) {
 		$clear_base_gmt = new DateTime($timedate->nowDb(), new DateTimeZone('UTC'));
 
@@ -1624,14 +1615,12 @@ function checkBookingHandle() {
 	}
 
 	// user off thì thông báo
-	$GLOBALS['log']->error("[DEBUG checkBookingHandle] user_off_arr count=" . count($user_off_arr));
 	if (count($user_off_arr) > 0) {
 		$message = 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr);
 		NotificationService::sendWarningMessage($message, 'cty');
 	}
 
 	// Giao lại các booking cho user onl khác
-	$GLOBALS['log']->error("[DEBUG checkBookingHandle] reassign_bk_arr count=" . count($reassign_bk_arr));
 	if (is_array($reassign_bk_arr) && count($reassign_bk_arr) > 0) {
 		foreach ($reassign_bk_arr as $reassign_bk) {
 			$onl_r = new EC_Online_Report;
