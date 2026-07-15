@@ -55,6 +55,13 @@ class TelegramChannel implements NotificationChannelInterface {
             $url .= "&text=" . urlencode(trim("$message_type $message"));
             return $this->sendHTTPRequest('GET', $url);
         }
+
+        $GLOBALS['log']->error(sprintf(
+            'TelegramChannel::sendMessage skipped - message:%s chatId:%s botToken:%s',
+            empty($message) ? 'EMPTY' : 'ok',
+            empty($this->chatId) ? 'EMPTY' : 'ok',
+            empty($this->botToken) ? 'EMPTY' : 'ok'
+        ));
         return $this->returnError("Invalid params");
     }
 
