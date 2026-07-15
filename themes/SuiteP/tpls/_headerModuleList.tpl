@@ -6,37 +6,6 @@
           const currentURLQuery = window.location.search;
           const AGENT_STATUS = $('#agent_status').val();
 
-          // if(currentURLQuery.indexOf('module=EC_Zalo&action=index') === -1) {
-          //      // BEHAVIOR USER
-          //      $.ajax({
-          //           url: "index.php?entryPoint=entryPointBehaviorUser",
-          //           type: "POST",
-          //           cache: false,
-          //           data: {
-          //                url_behavior: currentURL,
-          //                for: "saveBehaviorUser",
-          //           },
-          //           success: function(response) {}
-          //      });
-          // }
-
-          // $('body').on('click', function(e) {
-          //      const currentTime = new Date(new Date().toString().split('GMT')[0]+' UTC').toISOString().split('.')[0].replace('T',' ');
-              
-          //      if(e.target.id != 'busy_stt'){
-          //           $.ajax({
-          //                url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
-          //                type: "POST",
-          //                cache: false,
-          //                data: {
-          //                     time: currentTime,
-          //                     for: "saveLastClickUser",
-          //                },
-          //                success: function(response) {}
-          //           });
-          //      }
-          // });
-
           const themeToggleItems = document.querySelectorAll("[data-bs-theme-value]");
           const htmlElement = document.documentElement; 
           const themeIcon = document.querySelector(".theme-icon-active");
