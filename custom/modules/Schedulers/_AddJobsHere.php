@@ -15,6 +15,7 @@ $job_strings[] = 'updateWorkingDays'; // cập nhật ngày công trong bảng l
 $job_strings[] = 'updateMissingEfforts'; // cập nhật nỗ lực thật sự của tháng nếu bảng lương khoá trước ngày cuối tháng
 $job_strings[] = 'updateOnlineReport'; // cập nhật ds online mỗi ngày
 $job_strings[] = 'checkBookingHandle'; // Kiểm tra xem booking đã giao được xử lý hay chưa
+$job_strings[] = 'checkStatusOnlineUser'; // OFF user Online nhưng không thao tác gì (tracker) trong 5 phút
 $job_strings[] = 'reAssignBooking'; // lặp lại việc giao booking nếu gặp booking chưa được giao
 $job_strings[] = 'calculateCashFlow'; // Tính toán dòng tiền trong 3 ngày trước
 $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
@@ -1575,28 +1576,12 @@ function checkBookingHandle() {
 				'contact_name' 	=> $row['contact_name'],
 				'phone' 		=> $row['phone']
 			];
+			$user_off_arr[] = $db->getOne("SELECT name FROM ec_online_report WHERE id = '{$row['id']}' AND deleted = 0");
+			$booking_off[]  = $row['booking_name'];
+
+			// OFF user + đồng bộ agent (Logged Out) qua logic dùng chung
 			$onl = new EC_Online_Report;
-			$onl->retrieve($row['id']);
-			$onl->booking_id = '';
-			$onl->start_assign = '';
-			$onl->status = 0;
-			$onl->last_online = $timedate->nowDb();
-
-			$user_off_arr[]  = $onl->name;
-			$booking_off[] = $row['booking_name'];
-
-			$onl->save();
-
-			// Hệ thống chủ động off user -> đồng bộ agent về Offline (Logged Out)
-			// để 'checked busy' (pill trạng thái) + softphone khớp trạng thái Offline.
-			if (!empty($onl->assigned_user_id)) {
-				$db->query("UPDATE users SET agent_status = 'Logged Out' WHERE id = '" . $db->quote($onl->assigned_user_id) . "' AND deleted = 0");
-
-				if (function_exists('content_log')) {
-					$now_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d H:i:s');
-					content_log($onl->assigned_user_id, $now_vn, 1); // busy = 1
-				}
-			}
+			$onl->setOffline($row['id']);
 		}
 	}
 
@@ -1624,7 +1609,7 @@ function checkBookingHandle() {
 
 	// user off thì thông báo
 	if (count($user_off_arr) > 0) {
-		$message = 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr);
+		$message = 'User này đã bị Off vì quá 5 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr);
 		NotificationService::sendWarningMessage($message, 'cty');
 	}
 
@@ -1641,6 +1626,66 @@ function checkBookingHandle() {
 			$message = 'Booking ' . $reassign_bk['booking_name'] . " được giao lại cho $user->last_name $user->first_name";
 			NotificationService::sendMessage($message, 'cty');
 		}
+	}
+
+	return true;
+}
+
+// OFF user đang Online nhưng KHÔNG thao tác gì trong 5 phút.
+// Tín hiệu hoạt động = bảng tracker (mọi thao tác/điều hướng trong CRM đều sinh record).
+// Bỏ qua: user đang giữ booking (checkBookingHandle lo), user vừa Online < 5 phút (grace),
+// và user admin không phải QuanLy (không tham gia cơ chế online).
+function checkStatusOnlineUser()
+{
+	global $db, $timedate;
+
+	$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
+	$now_gmt  = $timedate->nowDb();
+	$thr_gmt  = date('Y-m-d H:i:s', strtotime('-5 minutes', strtotime($now_gmt))); // ngưỡng 5 phút (GMT)
+
+	// (1) Tập user còn hoạt động trong 5 phút gần nhất (tracker.date_modified lưu GMT)
+	$active_user_ids = [];
+	$res_active = $db->query("SELECT DISTINCT user_id FROM tracker WHERE deleted = 0 AND date_modified >= '$thr_gmt'");
+	while ($row_active = $db->fetchByAssoc($res_active)) {
+		if (!empty($row_active['user_id'])) {
+			$active_user_ids[$row_active['user_id']] = true;
+		}
+	}
+
+	// (2) User Online hôm nay cần xét OFF
+	$sql = "SELECT onl.id, onl.assigned_user_id, onl.last_online, onl.name
+		FROM ec_online_report onl
+			JOIN users u ON u.id = onl.assigned_user_id AND u.deleted = 0
+		WHERE onl.deleted = 0
+			AND onl.status = 1
+			AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= '$today_vn'
+			AND (onl.booking_id IS NULL OR onl.booking_id = '')
+			AND (u.is_admin = 0 OR u.title = 'QuanLy')";
+
+	$res = $db->query($sql);
+	$user_off_arr = [];
+
+	while ($row = $db->fetchByAssoc($res)) {
+		// Grace: vừa Online / đổi trạng thái < 5 phút -> chưa tính idle
+		if (!empty($row['last_online']) && $row['last_online'] >= $thr_gmt) {
+			continue;
+		}
+
+		// Có hoạt động trong tracker -> còn làm việc, bỏ qua
+		if (isset($active_user_ids[$row['assigned_user_id']])) {
+			continue;
+		}
+
+		// Idle -> OFF (dùng logic dùng chung, đồng bộ luôn agent/tổng đài)
+		$onl = new EC_Online_Report;
+		$onl->setOffline($row['id']);
+
+		$user_off_arr[] = $row['name'];
+	}
+
+	if (count($user_off_arr) > 0) {
+		$message = 'User bị Off vì quá 5 phút không thao tác chứng từ / tương tác khách hàng: ' . implode(', ', $user_off_arr);
+		NotificationService::sendWarningMessage($message, 'cty');
 	}
 
 	return true;

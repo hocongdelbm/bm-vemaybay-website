@@ -140,8 +140,11 @@ class EC_Online_Report extends Basic
 	}
 
 	// Tạo record ec_online_report cho hôm nay với những user chưa có
+	// Không bao gồm Admin (Admin QuanLy tạo record)
 	public function populateOnlineReport()
 	{
+		global $timedate;
+
 		$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
 
 		$sql = "SELECT id, first_name, last_name, title
@@ -171,9 +174,7 @@ class EC_Online_Report extends Basic
 				$online->assigned_user_id = $row['id'];
 				$online->status           = 0;
 				$online->title            = $row['title'];
-				// Không để last_online = NULL: NULL bị xếp đầu tiên khi ORDER BY last_online
-				// -> user vừa được tạo (đang Offline) sẽ chen lên vị trí 1 khi online.
-				$online->last_online      = $GLOBALS['timedate']->nowDb();
+				$online->last_online      = $timedate->nowDb();
 				$online->save();
 			}
 		}
@@ -273,16 +274,43 @@ class EC_Online_Report extends Basic
 		return '';
 	}
 
+	// OFF 1 user: Offline (status = 0), trả booking đang giữ về hàng chờ,
+	// đồng bộ agent (checked busy / pill + softphone/tổng đài) về Logged Out.
+	// Dùng chung cho checkBookingHandle (quá hạn xử lý booking) và checkStatusOnlineUser (idle).
+	public function setOffline($onl_id)
+	{
+		global $timedate;
+
+		$onl_id = preg_replace('/[^a-f0-9\-]/i', '', (string)$onl_id);
+		if (empty($onl_id)) return '';
+
+		$onl = new EC_Online_Report;
+		$onl->retrieve($onl_id);
+		if (empty($onl->id)) return '';
+
+		$assigned_user_id = $onl->assigned_user_id;
+
+		$onl->status       = 0;
+		$onl->booking_id   = '';
+		$onl->start_assign = '';
+		$onl->last_online  = $timedate->nowDb();
+		$onl->save();
+
+		$this->syncAgentStatus($assigned_user_id, 'Logged Out');
+
+		return $assigned_user_id;
+	}
+
 	// Đồng bộ users.agent_status (checked busy / pill + softphone) + tổng đài cho 1 user.
 	// agent_change_status tự lo content_log + cập nhật ec_online_report.status theo agent_status.
 	private function syncAgentStatus($user_id, $agent_status)
 	{
 		if (empty($user_id) || empty($agent_status)) return;
 
-		// Luôn cập nhật users.agent_status trực tiếp (đảm bảo khớp kể cả khi tổng đài lỗi)
+		// Luôn cập nhật users.agent_status trực tiếp
 		$this->db->query("UPDATE users SET agent_status = '" . $this->db->quote($agent_status) . "' WHERE id = '" . $this->db->quote($user_id) . "' AND deleted = 0");
 
-		// Best-effort: đồng bộ trạng thái agent trên tổng đài (không chặn thao tác nếu lỗi)
+		// ồng bộ trạng thái agent trên tổng đài
 		$sip = function_exists('custom_get_sip_number') ? custom_get_sip_number($user_id) : '';
 		if (!empty($sip) && function_exists('agent_change_status')) {
 			try {

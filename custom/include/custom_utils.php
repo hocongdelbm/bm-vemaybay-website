@@ -1118,6 +1118,19 @@ function global_test_input($data)
 }
 
 
+/**
+ * Cơ chế Online/Offline (tạo record ec_online_report, check online/off) KHÔNG áp dụng cho user admin mà title khác 'QuanLy'.
+ * Tương đương điều kiện SQL: (is_admin = 0 OR title = 'QuanLy').
+ *
+ * @param User $user Bean user (thường là $current_user)
+ * @return bool true nếu user tham gia cơ chế online/offline
+ */
+function isUserEligibleForOnline($user): bool
+{
+    if (empty($user) || empty($user->id)) return false;
+    return !is_admin($user) || (($user->title ?? '') === 'QuanLy');
+}
+
 function custom_get_sip_number($key = '')
 {
     global $db;

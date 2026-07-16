@@ -72,6 +72,11 @@ class loginActions
             return;
         }
 
+        // Cơ chế online/offline không áp dụng cho admin không phải QuanLy
+        if (function_exists('isUserEligibleForOnline') && !isUserEligibleForOnline($user)) {
+            return;
+        }
+
         $user_id  = $user->id;
         $now_gmt  = $timedate->nowDb();
         $today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
