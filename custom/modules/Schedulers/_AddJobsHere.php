@@ -1660,6 +1660,7 @@ function checkStatusOnlineUser()
 			AND onl.status = 1
 			AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= '$today_vn'
 			AND (onl.booking_id IS NULL OR onl.booking_id = '')
+			AND u.title != 'Bot'
 			AND (u.is_admin = 0 OR u.title = 'QuanLy')";
 
 	$res = $db->query($sql);
