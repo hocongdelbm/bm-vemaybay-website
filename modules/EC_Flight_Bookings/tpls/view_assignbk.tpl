@@ -11,7 +11,6 @@
     {$ONLINE_DATA}
 </div>
 
-
 <div class="online-rules">
     <div class="online-rules__title">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
@@ -25,7 +24,6 @@
         <li>Được giao booking mà <b>quá 5 phút chưa xử lý</b> → hệ thống tự chuyển <b>Offline</b> và giao lại cho người khác.</li>
         <li>Đang Online mà <b>quá 5 phút không thao tác chứng từ / không tương tác khách hàng</b> (mở booking, chat, gọi…) → hệ thống tự chuyển <b>Offline</b>. Cứ có thao tác là được tính, không bị Off.</li>
         <li>Trạng thái này đồng bộ với <b>tổng đài</b>: chỉ khi Online mới nhận cuộc gọi, <b>Busy/Offline</b> sẽ ngưng.</li>
-        <li><i>Admin (không phải Quản lý) không tham gia bảng này.</i></li>
     </ul>
     {if $IS_ALLOWED_USER}
     <ul class="online-rules__list online-rules__admin">

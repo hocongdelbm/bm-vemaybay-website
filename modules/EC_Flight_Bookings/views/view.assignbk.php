@@ -76,15 +76,22 @@ class Viewassignbk extends SugarView {
 		$res = $this->bean->db->query($sql);
 		$i   = 0;
 
+		// Cột "Hoạt động gần nhất" chỉ hiện cho admin KHÔNG phải QuanLy (mục đích theo dõi/kỹ thuật)
+		$can_see_activity = is_admin($current_user) && (($current_user->title ?? '') !== 'QuanLy');
+
 		$html 	 = '<table id="online_tbl" class="table-online_tbl table-details__booking" cellpadding="0" cellspacing="0">
 						<thead>
 							<th class="hide-mobile" width="5%">#</th>
 							<th width="15%">Họ tên</th>
-							<th width="10%">SIP</th>
-							<th width="10%">Tình trạng</th>
-							<th class="hide-mobile" width="10%">Chức vụ</th>
-							<th class="hide-mobile" width="15%">Check-in</th>
-							<th class="hide-mobile text-nowrap" width="10%">Nhận cuộc gọi</th>';
+							<th width="8%">SIP</th>
+							<th width="8%">Tình trạng</th>
+							<th class="hide-mobile" width="8%">Chức vụ</th>
+							<th class="hide-mobile" width="10%">Check-in</th>
+							<th class="hide-mobile text-nowrap" width="8%">Nhận cuộc gọi</th>';
+
+		if ($can_see_activity) {
+			$html .= '<th class="hide-mobile text-nowrap">Hoạt động gần nhất</th>';
+		}
 
 		if (is_admin($current_user)) {
 			$html .= '<th></th>';
@@ -103,6 +110,14 @@ class Viewassignbk extends SugarView {
 				$start_online = '';
 				if (isset($row['start_online']) && !empty($row['start_online']) && strtotime($row['start_online']) !== false) {
 					$start_online = DatetimeHelper::convert_datetime($row['start_online']
+						, DatetimeHelper::DB_FORMAT, "$this->date_format $this->time_format"
+						, DatetimeHelper::DB_TIMEZONE, $this->timezone
+					);
+				}
+
+				$last_activity = '';
+				if ($can_see_activity && !empty($row['last_activity']) && strtotime($row['last_activity']) !== false) {
+					$last_activity = DatetimeHelper::convert_datetime($row['last_activity']
 						, DatetimeHelper::DB_FORMAT, "$this->date_format $this->time_format"
 						, DatetimeHelper::DB_TIMEZONE, $this->timezone
 					);
@@ -130,6 +145,10 @@ class Viewassignbk extends SugarView {
 						<td class="hide-mobile text-center group_sip">' . ($arr_group_badge[$row['user_title']] ?? $row['user_title']) . '</td>
 						<td class="hide-mobile text-center start_online">' . $start_online . '</td>
 						<td class="hide-mobile text-center fw-semibold call_inbound">' . ($arr_inbound[$row['assigned_user_id']] ?? '') . '</td>';
+
+				if ($can_see_activity) {
+					$html .= '<td class="hide-mobile text-center last_activity">' . $last_activity . '</td>';
+				}
 
 				if (is_admin($current_user)) {
 					// các nút thao tác
