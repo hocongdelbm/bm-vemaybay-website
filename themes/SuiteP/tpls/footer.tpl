@@ -69,6 +69,32 @@
          };
      </script>
      <script src="https://chat.timchuyenbay.net/client/admin_widget.js?v=1.1.2"></script>
+     <script>
+         // Ghi nhận hoạt động khi nhân viên tương tác chat widget (WebSocket ngoài -> không sinh tracker).
+         // Ping tối đa 1 lần / 60s để checkStatusOnlineUser coi user còn hoạt động, tránh OFF oan.
+         (function () {
+             var lastPing = 0, THROTTLE = 60000;
+             function pingActivity() {
+                 var now = Date.now();
+                 if (now - lastPing < THROTTLE) return;
+                 lastPing = now;
+                 try {
+                     var url = 'index.php?entryPoint=entryPointRecordActivity';
+                     if (navigator.sendBeacon) {
+                         var fd = new FormData(); fd.append('source', 'chatwidget');
+                         navigator.sendBeacon(url, fd);
+                     } else {
+                         fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'source=chatwidget', keepalive: true });
+                     }
+                 } catch (e) {}
+             }
+             function inWidget(node) {
+                 return node && node.closest && node.closest('[class*="ec-cw__"]');
+             }
+             document.addEventListener('click', function (e) { if (inWidget(e.target)) pingActivity(); }, true);
+             document.addEventListener('keydown', function (e) { if (inWidget(e.target)) pingActivity(); }, true);
+         })();
+     </script>
 {/literal}
 {/if}
 </body>

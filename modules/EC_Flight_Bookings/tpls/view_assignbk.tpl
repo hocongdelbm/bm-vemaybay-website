@@ -23,7 +23,9 @@
         <li><span class="dot dot-offline"></span><b>Offline</b>: không nhận booking và không nhận cuộc gọi.</li>
         <li><b>Đăng nhập BM</b> = tự động Online (xếp cuối hàng); <b>Đăng xuất</b> = Offline.</li>
         <li>Được giao booking mà <b>quá 5 phút chưa xử lý</b> → hệ thống tự chuyển <b>Offline</b> và giao lại cho người khác.</li>
+        <li>Đang Online mà <b>quá 5 phút không thao tác chứng từ / không tương tác khách hàng</b> (mở booking, chat, gọi…) → hệ thống tự chuyển <b>Offline</b>. Cứ có thao tác là được tính, không bị Off.</li>
         <li>Trạng thái này đồng bộ với <b>tổng đài</b>: chỉ khi Online mới nhận cuộc gọi, <b>Busy/Offline</b> sẽ ngưng.</li>
+        <li><i>Admin (không phải Quản lý) không tham gia bảng này.</i></li>
     </ul>
     {if $IS_ALLOWED_USER}
     <ul class="online-rules__list online-rules__admin">

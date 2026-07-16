@@ -86,6 +86,7 @@ $entry_point_registry = array(
     // ONLINE - OFFLINE
     'entryPointUpdateTimeUserClick'         => array('file' => 'custom/entrypoints/epUpdateTimeUserClick.php', 'auth' => true),
     'entryPointBehaviorUser'                => array('file' => 'custom/entrypoints/epBehaviorUser.php', 'auth' => true),
+    'entryPointRecordActivity'              => array('file' => 'custom/entrypoints/epRecordActivity.php', 'auth' => true),
 
     // Tracker
     'entryPointTracker'                     => array('file' => 'custom/entrypoints/epTracker.php', 'auth' => true),
