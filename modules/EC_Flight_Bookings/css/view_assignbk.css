@@ -1,0 +1,91 @@
+#online_report .group_img {
+    vertical-align: bottom;
+}
+
+#online_report .offline {
+    background-image: repeating-linear-gradient(
+        20deg, #ccc, #ccc 30px, #dbdbdb 30px, #dbdbdb 60px
+    );
+}
+
+#online_report .stt_online {
+    color: var(--bs-green-2);
+    font-weight: 600;
+}
+
+#online_report .stt_busy {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+#online_report .col_name {
+    position: relative;
+}
+
+.blue_bold {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.name_loading {
+    vertical-align: middle;
+    padding-left: 10px;
+}
+
+#online_report td.group_sip span {
+    font-size: 13px;
+}
+
+#online_tbl thead tr th {
+    background: #fff2cc;
+    color: #000;
+}
+
+/* Ghi chú quy tắc Online / Busy / Offline */
+.online-rules {
+    border: 1px solid #ffe08a;
+    background: #fffdf5;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: #4a4a4a;
+}
+
+.online-rules__title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #8a6d00;
+}
+
+.online-rules__list {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.online-rules__list li {
+    margin: 3px 0;
+}
+
+.online-rules__admin {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #ffe08a;
+}
+
+.online-rules .dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.online-rules .dot-online  { background: #1bcfb4; }
+.online-rules .dot-busy    { background: #ff9800; }
+.online-rules .dot-offline { background: #9aa0a6; }

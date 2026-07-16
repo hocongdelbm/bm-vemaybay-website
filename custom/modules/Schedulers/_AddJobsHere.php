@@ -1531,13 +1531,11 @@ function updateMissingEfforts()
 }
 
 // Kiểm tra xem booking giao cho booker đã được xử lý hay chưa? 
-// Thời gian xử lý tối đa là 2 phút
+// Thời gian xử lý tối đa là 5 phút
 function checkBookingHandle() {
 	global $db, $timedate;
 
 	$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
-	// So sánh mốc thời gian phải tính theo GIÂY và cùng hệ quy chiếu GMT với start_assign đang lưu trong DB.
-	// (Trước đây dùng DATE_FORMAT '%Y-%m-%d %H:%i' làm tròn xuống đầu phút ở CẢ 2 vế nên ngưỡng "2 phút" bị lệch tới ~59 giây -> kích hoạt sớm/muộn không ổn định.)
 	$now_gmt = $timedate->nowDb();
 
 	$sql = "SELECT
@@ -1557,7 +1555,7 @@ function checkBookingHandle() {
 			AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= '$today_vn'
 			AND (onl.booking_id <> '' AND onl.booking_id IS NOT NULL)
 			AND onl.start_assign IS NOT NULL
-			AND TIMESTAMPDIFF(SECOND, onl.start_assign, '$now_gmt') >= 120
+			AND TIMESTAMPDIFF(SECOND, onl.start_assign, '$now_gmt') >= 300
 			AND b.deleted = 0";
 
 	$res = $db->query($sql);
@@ -1588,12 +1586,22 @@ function checkBookingHandle() {
 			$booking_off[] = $row['booking_name'];
 
 			$onl->save();
+
+			// Hệ thống chủ động off user -> đồng bộ agent về Offline (Logged Out)
+			// để 'checked busy' (pill trạng thái) + softphone khớp trạng thái Offline.
+			if (!empty($onl->assigned_user_id)) {
+				$db->query("UPDATE users SET agent_status = 'Logged Out' WHERE id = '" . $db->quote($onl->assigned_user_id) . "' AND deleted = 0");
+
+				if (function_exists('content_log')) {
+					$now_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d H:i:s');
+					content_log($onl->assigned_user_id, $now_vn, 1); // busy = 1
+				}
+			}
 		}
 	}
 
-	// Nếu booking đã giao được xử lý -> user online -> Xoá thông tin đã giao trong bảng online
-	// Update từng row với last_online tăng dần (không dùng 1 câu UPDATE chung NOW() cho nhiều id)
-	// để tránh trùng last_online giữa nhiều user trong cùng 1 lượt cron
+	// Nếu booking đã giao được xử lý -> user online -> Xoá thông tin Booking đã giao trong bảng online của user đó
+	// Update từng row với last_online tăng dần (không dùng 1 câu UPDATE chung NOW() cho nhiều id) để tránh trùng last_online giữa nhiều user trong cùng 1 lượt cron
 	if (count($clear_bk_onl) > 0) {
 		$clear_base_gmt = new DateTime($timedate->nowDb(), new DateTimeZone('UTC'));
 

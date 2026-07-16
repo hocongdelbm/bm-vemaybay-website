@@ -2,6 +2,9 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class Viewassignbk extends SugarView {
+    // Version asset (JS/CSS) - tăng khi cần bust cache
+    private const ASSET_VERSION = '1.0.0';
+
     public string $timezone;
     public string $date_format;
     public string $time_format;
@@ -20,12 +23,12 @@ class Viewassignbk extends SugarView {
 		$this->initFormats();
 
 		$smartyCont = new Sugar_Smarty();
+		$smartyCont->assign('VERSION', self::ASSET_VERSION);
 		$smartyCont->assign('IS_ALLOWED_USER', is_admin($current_user));
 		$smartyCont->assign('ONLINE_DATA', $this->getUserSttInf());
 		$smartyCont->assign('LIST_USER', $this->getListUsers());
 		$smartyCont->display("modules/{$this->bean->object_name}/tpls/view_assignbk.tpl");
 	}
-
 
 	public function getUserSttInf() {
 		global $app_list_strings, $current_user;
@@ -42,7 +45,7 @@ class Viewassignbk extends SugarView {
 				LEFT JOIN users u ON u.id = eor.assigned_user_id AND u.deleted = 0
 			WHERE eor.deleted = 0
 				AND DATE(DATE_ADD(eor.date_entered, INTERVAL 7 HOUR)) = '$today_vn'
-			ORDER BY FIELD(eor.status, 1, 2, 0), eor.last_online";
+			ORDER BY FIELD(eor.status, 1, 2, 0), eor.last_online IS NULL, eor.last_online";
 
 		$arr_group_badge = [
 			'Booker'   => '<span class="badge bg-primary">Booker</span>',

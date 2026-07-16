@@ -161,10 +161,9 @@ function agent_change_status($agent, $status)
                 $sip_number     = custom_get_sip_number($agent);
                 $status_value   = $status == 'Available' ? 1 : ($status == 'On Break' ? 2 : 0);
 
-                $last_online_update = '';
-                if ($status != 'Logged Out') {
-                    $last_online_update .= ', last_online = "' . $timedate->nowDb() . '"';
-                }
+                // Luôn cập nhật last_online (kể cả khi Logged Out) để không giữ lại
+                // mốc last_online cũ/nhỏ -> tránh việc user online lại chen lên vị trí 1.
+                $last_online_update = ', last_online = "' . $timedate->nowDb() . '"';
 
                 $GLOBALS['log']->debug("agent_change_status: custom_get_sip_number(agent={$agent}) resolved sip_number=" . var_export($sip_number, true));
 

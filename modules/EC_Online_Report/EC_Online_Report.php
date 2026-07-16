@@ -72,7 +72,7 @@ class EC_Online_Report extends Basic
 					AND status = 1
 					AND deleted = 0
 					$sql_exclude_telesale
-				ORDER BY last_online
+				ORDER BY last_online IS NULL, last_online
 				LIMIT 1";
 
 			$res_assign = $this->db->query($sql_assign);
@@ -100,7 +100,7 @@ class EC_Online_Report extends Basic
 						AND status = 2
 						AND deleted = 0
 						$sql_exclude_telesale
-					ORDER BY last_online
+					ORDER BY last_online IS NULL, last_online
 					LIMIT 1";
 
 				$res_assign_busy = $this->db->query($sql_assign_busy);
@@ -171,6 +171,9 @@ class EC_Online_Report extends Basic
 				$online->assigned_user_id = $row['id'];
 				$online->status           = 0;
 				$online->title            = $row['title'];
+				// Không để last_online = NULL: NULL bị xếp đầu tiên khi ORDER BY last_online
+				// -> user vừa được tạo (đang Offline) sẽ chen lên vị trí 1 khi online.
+				$online->last_online      = $GLOBALS['timedate']->nowDb();
 				$online->save();
 			}
 		}
@@ -186,6 +189,19 @@ class EC_Online_Report extends Basic
 		$onl_id = preg_replace('/[^a-f0-9\-]/i', '', (string)$onl_id);
 		$change_type = in_array($change_type, ['up', 'down', 'off', 'busy', 'delete']) ? $change_type : '';
 		if (empty($onl_id) || empty($change_type)) return '';
+
+		// Đồng bộ trạng thái agent (checked busy / pill + tổng đài) theo nút admin bấm.
+		// Làm TRƯỚC phần đổi vị trí để logic 'up' giữ quyền quyết định cuối với last_online.
+		//   up / down -> Online (Available) | busy -> Busy (On Break) | off / delete -> Offline (Logged Out)
+		$agent_status_map = [
+			'up'     => 'Available',
+			'down'   => 'Available',
+			'busy'   => 'On Break',
+			'off'    => 'Logged Out',
+			'delete' => 'Logged Out',
+		];
+		$assigned_user_id = $this->db->getOne("SELECT assigned_user_id FROM ec_online_report WHERE id = '$onl_id' AND deleted = 0");
+		$this->syncAgentStatus($assigned_user_id, $agent_status_map[$change_type] ?? '');
 
 		if ($change_type == 'delete') {
 			$this->db->query("UPDATE ec_online_report SET deleted = 1, date_modified = NOW() WHERE id = '$onl_id'");
@@ -228,7 +244,7 @@ class EC_Online_Report extends Basic
 					WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
 						AND status = 1
 						AND deleted = 0
-					ORDER BY last_online
+					ORDER BY last_online IS NULL, last_online
 					LIMIT 1";
 
 				$res1 = $this->db->query($sql1);
@@ -255,5 +271,25 @@ class EC_Online_Report extends Basic
 		}
 
 		return '';
+	}
+
+	// Đồng bộ users.agent_status (checked busy / pill + softphone) + tổng đài cho 1 user.
+	// agent_change_status tự lo content_log + cập nhật ec_online_report.status theo agent_status.
+	private function syncAgentStatus($user_id, $agent_status)
+	{
+		if (empty($user_id) || empty($agent_status)) return;
+
+		// Luôn cập nhật users.agent_status trực tiếp (đảm bảo khớp kể cả khi tổng đài lỗi)
+		$this->db->query("UPDATE users SET agent_status = '" . $this->db->quote($agent_status) . "' WHERE id = '" . $this->db->quote($user_id) . "' AND deleted = 0");
+
+		// Best-effort: đồng bộ trạng thái agent trên tổng đài (không chặn thao tác nếu lỗi)
+		$sip = function_exists('custom_get_sip_number') ? custom_get_sip_number($user_id) : '';
+		if (!empty($sip) && function_exists('agent_change_status')) {
+			try {
+				agent_change_status($sip, $agent_status);
+			} catch (\Throwable $e) {
+				LoggerHelper::error("changeOnlinePosition: agent_change_status error - " . $e->getMessage());
+			}
+		}
 	}
 }

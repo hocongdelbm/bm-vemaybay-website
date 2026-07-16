@@ -4,6 +4,14 @@ const SIP_PASSWORD = document.getElementById('sip_password').value;
 const AGENT_STATUS = document.getElementById('agent_status').value || 'Available';
 const CURRENT_USER = document.getElementById('sip_instance_id').value;
 
+// Trạng thái agent hiện tại + metadata cho bộ chọn 3 mức (Online / Busy / Offline)
+let currentAgentStatus = AGENT_STATUS; // 'Available' | 'On Break' | 'Logged Out'
+const AGENT_STATUS_META = {
+    'Available':  { key: 'online',  label: 'Online' },
+    'On Break':   { key: 'busy',    label: 'Busy' },
+    'Logged Out': { key: 'offline', label: 'Offline' },
+};
+
 const SIP_DOMAIN = 'td.timchuyenbay.net';
 const WS_SERVERS = `wss://${SIP_DOMAIN}:7444`;
 const SIP_URI = `sip:${SIP_USER}@${SIP_DOMAIN}`;
@@ -127,11 +135,7 @@ function check_online_for_call() {
     if (Object.keys(sessions).length > 0) return;
 
     if (configuration.uri && configuration.password) {
-        if (AGENT_STATUS == 'Available') {
-            if ($('input#busy_stt').prop('checked') == true) {
-                return;
-            }
-
+        if (currentAgentStatus == 'Available') {
             if (!ua.isConnected()) ua.start();
             showConnect(true);
         } else {
@@ -460,42 +464,8 @@ $(document).ready(function () {
         toggleCallNumpad();
     });
 
-    // Checked trạng thái bận của user
-    if (AGENT_STATUS == 'Available') {
-        showConnect(true);
-    } else {
-        showConnect(false);
-        ua.stop();
-    }
-
-    // Checkbox busy
-    $('input#busy_stt').change(function () {
-        let status = 'Available';
-
-        if ($(this).prop('checked') == true) {
-            // status = 'Logged Out';
-            status = 'On Break';
-            showConnect(false);
-            if (ua) ua.stop();
-        } else {
-            check_online_for_call();
-            showConnect(true);
-        }
-
-        $.ajax({
-            url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
-            data: {
-                agent: SIP_USER,
-                status: status,
-                for: "changeStatusAgent"
-            },
-            type: "POST",
-            cache: false,
-            success: function (response) {
-                console.log(response);
-            }
-        });
-    });
+    // Bộ chọn trạng thái agent (Online / Busy / Offline) kiểu Gmail
+    initAgentStatusSelector();
 
     // Nút gọi đi - Phone
     $(document).on('click', '.btn-voiceip-calling', function () {
@@ -1358,6 +1328,73 @@ function showToastCall(type = '', call_id = '', zalo_id = '', phone = '', hotlin
     });
 }
 
+/*************  AGENT STATUS SELECTOR (Gmail-style)  *************/
+// Cập nhật hiển thị pill + đánh dấu option đang chọn theo trạng thái agent
+function renderAgentStatus(status) {
+    var meta = AGENT_STATUS_META[status] || AGENT_STATUS_META['Available'];
+
+    $('#agent_status_dot')
+        .removeClass('agent-status__dot--online agent-status__dot--busy agent-status__dot--offline')
+        .addClass('agent-status__dot--' + meta.key);
+    $('#agent_status_text').text(meta.label);
+
+    $('#agent_status_menu .agent-status__option').removeClass('active');
+    $('#agent_status_menu .agent-status__option[data-status="' + status + '"]').addClass('active');
+}
+
+// Áp trạng thái: cập nhật UI + điều khiển softphone, (tuỳ chọn) đồng bộ về server
+function applyAgentStatus(status, sync) {
+    if (!AGENT_STATUS_META[status]) status = 'Available';
+    currentAgentStatus = status;
+    renderAgentStatus(status);
+
+    // Online -> kết nối softphone; Busy / Offline -> ngắt nhận cuộc gọi
+    if (status === 'Available') {
+        if (ua && !ua.isConnected()) ua.start();
+        showConnect(true);
+    } else {
+        if (ua) ua.stop();
+        showConnect(false);
+    }
+
+    // Chỉ đồng bộ khi user chủ động đổi (không gọi lúc khởi tạo trang)
+    if (sync) {
+        $.ajax({
+            url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
+            data: { agent: SIP_USER, status: status, for: "changeStatusAgent" },
+            type: "POST",
+            cache: false
+        });
+    }
+}
+
+function initAgentStatusSelector() {
+    var $wrap = $('#change_user_status');
+    if ($wrap.length === 0) return;
+
+    $wrap.show();
+    applyAgentStatus(currentAgentStatus, false); // áp trạng thái ban đầu từ agent_status, không gọi server
+
+    // Mở / đóng menu
+    $('#agent_status_pill').on('click', function (e) {
+        e.stopPropagation();
+        $wrap.toggleClass('open');
+    });
+
+    // Chọn trạng thái
+    $wrap.on('click', '.agent-status__option', function (e) {
+        e.stopPropagation();
+        var status = $(this).attr('data-status');
+        $wrap.removeClass('open');
+        if (status && status !== currentAgentStatus) {
+            applyAgentStatus(status, true);
+        }
+    });
+
+    // Bấm ra ngoài -> đóng menu
+    $(document).on('click', function () { $wrap.removeClass('open'); });
+}
+
 function showConnect(check = true) {
     if (check) {
         let color = '#1bcfb4';
@@ -1365,14 +1402,12 @@ function showConnect(check = true) {
         $('#call-phone__circle').html(icon);
         $('#agent-number').html(SIP_USER);
         $("#availability-status").removeClass("busy").addClass("online");
-        $('input#busy_stt').prop("checked", false);
     }
     else {
         let color = '#ff5f4d';
         let icon = `<svg width="28px" height="28px" viewBox="0 0 24 24" fill="none" class="icon icon-phone icon-busy" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M22.0005 18.3291C22.0005 18.6891 21.9205 19.0591 21.7505 19.4191C21.5805 19.7791 21.3605 20.1191 21.0705 20.4391C20.5805 20.9791 20.0405 21.3691 19.4305 21.6191C18.8305 21.8691 18.1705 21.9991 17.4705 21.9991C16.4505 21.9991 15.3605 21.7591 14.2105 21.2691C13.0605 20.7791 11.9005 20.1191 10.7605 19.2891C10.1805 18.8591 9.61055 18.4191 9.06055 17.9391L12.3205 14.6791C12.3305 14.6791 12.3305 14.6791 12.3405 14.6891C12.8605 15.1291 13.2905 15.4291 13.6305 15.6091C13.6805 15.6291 13.7405 15.6591 13.8105 15.6891C13.8905 15.7191 13.9705 15.7291 14.0605 15.7291C14.2305 15.7291 14.3605 15.6691 14.4705 15.5591L15.2305 14.8091C15.4805 14.5591 15.7205 14.3691 15.9505 14.2491C16.1805 14.1091 16.4105 14.0391 16.6605 14.0391C16.8505 14.0391 17.0505 14.0791 17.2705 14.1691C17.4905 14.2591 17.7205 14.3891 17.9705 14.5591L21.2905 16.9091C21.5505 17.0891 21.7305 17.2991 21.8405 17.5491C21.9405 17.7991 22.0005 18.0491 22.0005 18.3291Z" fill="${color}"></path> <path d="M10.76 13.24L7.5 16.5C7.49 16.5 7.49 16.5 7.48 16.49C6.45 15.45 5.52 14.36 4.68 13.22C3.87 12.1 3.22 10.97 2.74 9.86C2.73 9.84 2.73 9.83 2.72 9.81C2.24 8.67 2 7.58 2 6.54C2 5.86 2.12 5.21 2.36 4.61C2.56 4.1 2.86 3.62 3.27 3.19C3.34 3.11 3.42 3.02 3.51 2.94C3.67 2.78 3.83 2.64 4 2.53C4.01 2.53 4.01 2.53 4.01 2.53C4.51 2.17 5.04 2 5.6 2C5.88 2 6.16 2.06 6.41 2.18C6.65 2.29 6.86 2.45 7.03 2.68C7.05 2.7 7.06 2.72 7.08 2.74L9.4 6.01C9.58 6.26 9.71 6.49 9.8 6.71C9.89 6.92 9.94 7.13 9.94 7.32C9.94 7.56 9.87 7.8 9.73 8.03C9.6 8.26 9.41 8.5 9.17 8.74L8.41 9.53C8.3 9.64 8.25 9.77 8.25 9.93C8.25 10.01 8.26 10.08 8.28 10.16C8.31 10.24 8.34 10.3 8.36 10.36C8.54 10.69 8.85 11.12 9.29 11.64C9.74 12.16 10.22 12.69 10.74 13.22C10.75 13.23 10.75 13.23 10.76 13.24Z" fill="${color}"></path> <path d="M21.7709 2.22891C21.4709 1.92891 20.9809 1.92891 20.6809 2.22891L2.23086 20.6889C1.93086 20.9889 1.93086 21.4789 2.23086 21.7789C2.38086 21.9189 2.57086 21.9989 2.77086 21.9989C2.97086 21.9989 3.16086 21.9189 3.31086 21.7689L21.7709 3.30891C22.0809 3.00891 22.0809 2.52891 21.7709 2.22891Z" fill="${color}"></path></g></svg>`;
         $('#call-phone__circle').html(icon);
         $("#availability-status").removeClass("online").addClass("busy");
-        $('input#busy_stt').prop("checked", true);
     }
 }
 
