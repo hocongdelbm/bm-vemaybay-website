@@ -90,6 +90,22 @@ $dictionary['EC_Online_Report'] = array(
             'reportable' => 0,
             'len' => 36,
         ),
+        // thời điểm hoạt động gần nhất (heartbeat: thao tác AJAX trong-trang, chat widget, cuộc gọi)
+        'last_activity' =>
+        array(
+            'required' => false,
+            'name' => 'last_activity',
+            'vname' => 'LBL_LAST_ACTIVITY',
+            'type' => 'datetime',
+            'massupdate' => 0,
+            'comments' => 'Ghi nhận hoạt động của user cho các thao tác KHÔNG sinh record tracker',
+            'help' => '',
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '0',
+            'audited' => 0,
+            'reportable' => 0,
+        ),
         // thời điểm bắt đầu giao booking để kt
         'start_assign' =>
         array(

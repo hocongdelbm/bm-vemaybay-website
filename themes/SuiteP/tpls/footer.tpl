@@ -70,29 +70,33 @@
      </script>
      <script src="https://chat.timchuyenbay.net/client/admin_widget.js?v=1.1.2"></script>
      <script>
-         // Ghi nhận hoạt động khi nhân viên tương tác chat widget (WebSocket ngoài -> không sinh tracker).
-         // Ping tối đa 1 lần / 60s để checkStatusOnlineUser coi user còn hoạt động, tránh OFF oan.
+         // Helper dùng chung: ghi nhận hoạt động cho các thao tác KHÔNG sinh record tracker
+         // (AJAX trong-trang, chat widget, cuộc gọi softphone...).
+         // Endpoint chỉ UPDATE cột last_activity -> KHÔNG phình bảng.
+         // THROTTLE 3 phút: dù click/gõ bao nhiêu lần cũng chỉ gọi tối đa 1 lần / 3 phút
+         // (vẫn dư an toàn dưới ngưỡng OFF 5 phút).
+         var CRM_ACTIVITY_THROTTLE = 180000; // 3 phút
+         window.recordCrmActivity = function () {
+             var now = Date.now();
+             if (now - (window.__lastCrmActivityPing || 0) < CRM_ACTIVITY_THROTTLE) return;
+             window.__lastCrmActivityPing = now;
+             try {
+                 var url = 'index.php?entryPoint=entryPointRecordActivity';
+                 if (navigator.sendBeacon) {
+                     navigator.sendBeacon(url, new Blob([], { type: 'application/x-www-form-urlencoded' }));
+                 } else {
+                     fetch(url, { method: 'POST', keepalive: true });
+                 }
+             } catch (e) {}
+         };
+
+         // Heartbeat tương tác toàn cục: mọi click / gõ phím trong BM -> ghi nhận hoạt động.
+         // Bao trùm mọi thao tác AJAX trong-trang (booking detail, chat widget, điền form...) vốn KHÔNG sinh tracker. 
+         // Auto-refresh (timer) không phải sự kiện user nên không tính
+         // -> vẫn OFF đúng người thật sự rời máy.
          (function () {
-             var lastPing = 0, THROTTLE = 60000;
-             function pingActivity() {
-                 var now = Date.now();
-                 if (now - lastPing < THROTTLE) return;
-                 lastPing = now;
-                 try {
-                     var url = 'index.php?entryPoint=entryPointRecordActivity';
-                     if (navigator.sendBeacon) {
-                         var fd = new FormData(); fd.append('source', 'chatwidget');
-                         navigator.sendBeacon(url, fd);
-                     } else {
-                         fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'source=chatwidget', keepalive: true });
-                     }
-                 } catch (e) {}
-             }
-             function inWidget(node) {
-                 return node && node.closest && node.closest('[class*="ec-cw__"]');
-             }
-             document.addEventListener('click', function (e) { if (inWidget(e.target)) pingActivity(); }, true);
-             document.addEventListener('keydown', function (e) { if (inWidget(e.target)) pingActivity(); }, true);
+             document.addEventListener('click', window.recordCrmActivity, true);
+             document.addEventListener('keydown', window.recordCrmActivity, true);
          })();
      </script>
 {/literal}

@@ -31,6 +31,7 @@ class EC_Online_Report extends Basic
 	public $status;
 	public $booking_id;
 	public $last_online;
+	public $last_activity;
 	public $start_assign;
 	public $total_qty;
 	public $title;

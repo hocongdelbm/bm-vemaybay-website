@@ -1653,7 +1653,7 @@ function checkStatusOnlineUser()
 	}
 
 	// (2) User Online hôm nay cần xét OFF
-	$sql = "SELECT onl.id, onl.assigned_user_id, onl.last_online, onl.name
+	$sql = "SELECT onl.id, onl.assigned_user_id, onl.last_online, onl.last_activity, onl.name
 		FROM ec_online_report onl
 			JOIN users u ON u.id = onl.assigned_user_id AND u.deleted = 0
 		WHERE onl.deleted = 0
@@ -1671,7 +1671,12 @@ function checkStatusOnlineUser()
 			continue;
 		}
 
-		// Có hoạt động trong tracker -> còn làm việc, bỏ qua
+		// Heartbeat (thao tác AJAX trong-trang, chat widget, cuộc gọi) còn mới -> bỏ qua
+		if (!empty($row['last_activity']) && $row['last_activity'] >= $thr_gmt) {
+			continue;
+		}
+
+		// Có hoạt động trong tracker (điều hướng trang module) -> còn làm việc, bỏ qua
 		if (isset($active_user_ids[$row['assigned_user_id']])) {
 			continue;
 		}

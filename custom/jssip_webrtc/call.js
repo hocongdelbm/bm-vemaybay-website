@@ -130,6 +130,15 @@ ua.on('disconnected', function (ev) {
 
 /*************  CHECK ONLINE FOR CALL  *************/
 setInterval(check_online_for_call, 90000);
+
+// Đang trong cuộc gọi -> ghi nhận hoạt động định kỳ (cuộc gọi dài không sinh record tracker,
+// record `calls` thường chỉ ghi lúc kết thúc) để checkStatusOnlineUser không OFF oan giữa cuộc gọi.
+setInterval(function () {
+    if (typeof sessions === 'object' && Object.keys(sessions).length > 0 && typeof window.recordCrmActivity === 'function') {
+        window.recordCrmActivity('call');
+    }
+}, 60000);
+
 function check_online_for_call() {
     // On calling not check online
     if (Object.keys(sessions).length > 0) return;
@@ -149,16 +158,12 @@ function check_online_for_call() {
 ua.on('newRTCSession', function (ev) {
     var thisSession = ev.session;
 
-    console.warn(thisSession);
-
     /************  HANDLE INBOUND CALL  ************/
     if (thisSession.direction === "incoming") {
         let INVITE = thisSession._request.data;
         let call_id = extract_call_id(INVITE);
         let phone = thisSession._request.from._uri._user.length < 12 ? thisSession._request.from._uri._user : '';
         let zalo_id = thisSession._request.from._uri._user.length > 18 ? thisSession._request.from._uri._user : '';
-
-        console.warn('thisSession direction incoming: ' + call_id + ' - ' + phone + ' - ' + zalo_id);
 
         // SPAM
         if (isSpamPhoneNumber(phone)) {
@@ -198,8 +203,6 @@ ua.on('newRTCSession', function (ev) {
 
         // Nghe máy (accepted = sau khi agent nhấn chấp nhận)
         thisSession.on("accepted", function () {
-            console.warn('thisSession accepted inbound');
-
             incomingCallAudio.autoplay = false;
             incomingCallAudio.pause();
             $(document).prop('title', 'Đang gọi...');
@@ -207,8 +210,6 @@ ua.on('newRTCSession', function (ev) {
 
         // Confirmed – cuộc gọi được thiết lập hoàn toàn
         thisSession.on("confirmed", function () {
-            console.warn('thisSession confirmed inbound');
-
             if (activeSession !== thisSession) return;
 
             $(document).prop('title', 'Đang gọi...');
@@ -243,7 +244,6 @@ ua.on('newRTCSession', function (ev) {
         // Ended – cuộc gọi đến đã kết thúc (sau khi kết nối)
         thisSession.on("ended", function () {
             delete sessions[call_id];
-            console.warn('thisSession ended inbound');
 
             var hasRinging = Object.values(sessions).some(function (s) { return s.direction === 'incoming' && !s.isEstablished(); });
             if (!hasRinging) {
@@ -274,8 +274,6 @@ ua.on('newRTCSession', function (ev) {
 
         // Failed – cuộc gọi đến kết thúc TRƯỚC khi kết nối (nhỡ, từ chối...)
         thisSession.on("failed", function () {
-            console.warn('thisSession failed inbound');
-
             delete sessions[call_id];
             var hasRinging = Object.values(sessions).some(function (s) { return s.direction === 'incoming' && !s.isEstablished(); });
             if (!hasRinging) {
@@ -326,8 +324,6 @@ ua.on('newRTCSession', function (ev) {
     sessions[outCallId] = thisSession;
 
     thisSession.on("confirmed", function () {
-        console.warn('thisSession confirmed outbound');
-
         $(document).prop('title', 'Đang gọi...');
 
         // Close notification
@@ -377,8 +373,6 @@ ua.on('newRTCSession', function (ev) {
 
     /************  HANDLE ENDED (outgoing)  ************/
     thisSession.on("ended", function () {
-        console.warn('thisSession ended outbound');
-
         delete sessions[outCallId];
         if (activeSession === thisSession) activeSession = null;
         incomingCallAudio.autoplay = false;
@@ -397,8 +391,6 @@ ua.on('newRTCSession', function (ev) {
 
     /************  HANDLE FAILED (outgoing)  ************/
     thisSession.on("failed", function () {
-        console.warn('thisSession failed outbound');
-
         delete sessions[outCallId];
         if (activeSession === thisSession) activeSession = null;
         incomingCallAudio.autoplay = false;
@@ -1034,7 +1026,6 @@ function saveCallLog() {
 
 function logCallEvent(session, ua, status, event = '') {
     // INFOR CALL
-    // console.warn(session);
     let call_id = '';
     let direction = session.direction || '';
     if (direction === "incoming") {
