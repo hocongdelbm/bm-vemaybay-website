@@ -126,6 +126,15 @@ if ($listRights) {
 		"EC_Flight_Bookings"
 	];
 
+	if ($editRights) {
+		$module_menu[] = [
+			"index.php?module=EC_Flight_Bookings&action=recoveryorder&return_module=EC_Flight_Bookings&return_action=recoveryorder",
+			"Phục hồi booking",
+			"recovery-order-16",
+			"EC_Flight_Bookings"
+		];
+	}
+
 	$module_menu[] = [
 		"index.php?module=EC_Flight_Bookings&action=bookerips&return_module=EC_Flight_Bookings&return_action=bookerips",
 		"Booker IPs Whitelist",

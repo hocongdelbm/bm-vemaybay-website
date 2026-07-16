@@ -1024,6 +1024,12 @@ function calculateRevenueOfDate(string $from_date, string $to_date, array $condi
         $sql_role .= " AND bk.assigned_user_id = '{$current_user->id}' ";
     }
 
+    // Chuẩn hoá payment_stt về mảng
+    if (isset($condition_arr['payment_stt']) && !is_array($condition_arr['payment_stt'])) {
+        $pstt = $condition_arr['payment_stt'];
+        $condition_arr['payment_stt'] = ($pstt === '' || (int)$pstt === 0) ? [] : [$pstt];
+    }
+
     // ========== XỬ LÝ PAYMENT_STT (MULTI-SELECT) ==========
     $sql_having = '';
     if (!empty($condition_arr['payment_stt']) && is_array($condition_arr['payment_stt'])) {
