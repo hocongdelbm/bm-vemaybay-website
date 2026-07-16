@@ -155,4 +155,5 @@ $mod_strings = [
     'LBL_SAVEREVENUEBOOKINGJOB' => 'Cập nhật doanh số booking Revenue',
     'LBL_NOTIFYCHECKINJOURNEY' => 'Thông báo hành trình cần checkin',
     'LBL_SAVEBONUSREPORTJOB' => 'Tính dữ liệu thưởng doanh số',
+    'LBL_CHECKSTATUSONLINEUSER' => 'Kiểm tra tương tác user',
 ];
