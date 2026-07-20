@@ -10,7 +10,7 @@ class EC_Working_Process_Helper {
 		'paid'                 => 1,
 		'recheck'              => 1,
 		'support'              => 1,
-		'invoice_issued'       => 3,
+		'invoice_issued'       => 1,
 		'ticket_delivery'      => 1,
 		'checkin_journey'      => 1,
 		'recall'               => 1,
@@ -74,7 +74,7 @@ class EC_Working_Process_Helper {
          * completed: number of completed bookings
          * paid: paid / collected
          * recheck: recheck booking
-         * invoice_issued: output invoice issued * 3
+         * invoice_issued: output invoice issued
          * ticket_delivery: ticket / food delivery
          * checkin_journey: journey check-in
          * recall: call recall / remind (completed call with recording and description)
@@ -97,7 +97,7 @@ class EC_Working_Process_Helper {
                     ,SUM(IFNULL(w.paid,0)) AS paid
                     ,SUM(IFNULL(w.recheck,0)) AS recheck
                     ,SUM(IFNULL(w.support,0)) AS support
-                    ,SUM(IFNULL(w.invoice_issued,0) * 3) AS invoice_issued
+                    ,SUM(IFNULL(w.invoice_issued,0)) AS invoice_issued
                     ,SUM(IFNULL(w.ticket_delivery,0)) AS ticket_delivery
                     ,SUM(IFNULL(w.checkin_journey,0)) AS checkin_journey
                     ,SUM(IFNULL(w.recall,0)) AS recall
@@ -119,7 +119,7 @@ class EC_Working_Process_Helper {
                         + IFNULL(w.paid,0)
                         + IFNULL(w.recheck,0)
                         + IFNULL(w.support,0)
-                        + (IFNULL(w.invoice_issued,0) * 3)
+                        + IFNULL(w.invoice_issued,0)
                         + IFNULL(w.ticket_delivery,0)
                         + IFNULL(w.checkin_journey,0)
                         + IFNULL(w.recall,0)
@@ -166,7 +166,7 @@ class EC_Working_Process_Helper {
                     + IFNULL(w.completed,0)
                     + IFNULL(w.paid,0)
                     + IFNULL(w.recheck,0)
-                    + (IFNULL(w.invoice_issued,0) * 3)
+                    + IFNULL(w.invoice_issued,0)
                     + IFNULL(w.ticket_delivery,0)
                     + IFNULL(w.checkin_journey,0)
                     + IFNULL(w.recall,0)
