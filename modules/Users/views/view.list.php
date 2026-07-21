@@ -2,6 +2,10 @@
 
 class UsersViewList extends ViewList
 {
+    function __construct() {
+		parent::__construct();
+	}
+
     public function preDisplay()
     {
         //bug #46690: Developer Access to Users/Teams/Roles
@@ -13,6 +17,14 @@ class UsersViewList extends ViewList
         $this->lv->delete = false;
         $this->lv->email = false;
     }
+
+    function listViewPrepare() {
+		if (empty($_REQUEST['orderBy']) || isset($_REQUEST['query'])) {
+			$_REQUEST['orderBy'] = 'date_entered';
+			$_REQUEST['sortOrder'] = 'desc';
+		}
+		parent::listViewPrepare();
+	}
 
     public function listViewProcess()
     {
