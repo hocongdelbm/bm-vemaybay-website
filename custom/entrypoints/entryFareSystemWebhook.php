@@ -157,11 +157,6 @@ try {
         $respond(401, 'Unauthorized');
     }
 
-    $payload = json_decode($rawBody, true);
-    if (json_last_error() !== JSON_ERROR_NONE || !is_array($payload)) {
-        $respond(400, 'Invalid JSON payload');
-    }
-
     $departureCode = is_string($payload['departureCode'] ?? null)
         ? strtoupper(trim($payload['departureCode']))
         : '';
