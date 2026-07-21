@@ -141,6 +141,23 @@ class Sugar_Smarty extends Smarty
         $this->assign('APP', $app_strings);
         $this->assign('MOD', $mod_strings);
         $this->assign('APP_CONFIG', $sugar_config);
+
+        // chat_websocket Basic Auth: base64(username:password), computed here
+        // (server-side) instead of handing the raw password to the browser as a
+        // separate field. Password is the real login password captured at auth
+        // time (see AuthenticationController::login()) — relies on the
+        // chat_websocket account for this user already having the same password
+        // set, since chat_websocket only ever verifies against its own stored
+        // hash; nothing here keeps the two in sync automatically. Cached in
+        // session per logged-in user so this only runs once per session.
+        global $current_user;
+        if (!empty($current_user) && !empty($current_user->id) && !empty($_SESSION['chat_login_password'])) {
+            if (empty($_SESSION['chat_credentials_b64'])) {
+                $_SESSION['chat_credentials_b64'] = base64_encode($current_user->id . ':' . $_SESSION['chat_login_password']);
+            }
+            $this->assign('CHAT_CREDENTIALS_B64', $_SESSION['chat_credentials_b64']);
+        }
+
         $errorLevelStored = 0;
 
         if (!empty($sugar_config['developerMode'])) {
