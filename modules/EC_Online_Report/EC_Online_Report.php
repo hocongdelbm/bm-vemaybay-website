@@ -148,15 +148,19 @@ class EC_Online_Report extends Basic
 
 		$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
 
+		// Cùng danh sách loại trừ với isUserEligibleForOnline() (custom/include/custom_utils.php)
+		$excludedUserNames = "'" . implode("','", array_map([$this->db, 'quote'], ONLINE_REPORT_EXCLUDED_USERNAMES)) . "'";
+
 		$sql = "SELECT id, first_name, last_name, title
 			FROM users
 			WHERE deleted = 0
 				AND status = 'Active'
-				AND td_sip IS NOT NULL 
+				AND td_sip IS NOT NULL
 				AND td_sip != ''
 				AND title != 'Bot'
 				AND (is_admin = 0 OR title = 'QuanLy')
-				AND id NOT IN ('e3bbb3e5-6660-0bf7-8976-54869c4ee609') 
+				AND id NOT IN ('e3bbb3e5-6660-0bf7-8976-54869c4ee609')
+				AND user_name NOT IN ({$excludedUserNames})
 			ORDER BY date_entered";
 
 		$res = $this->db->query($sql);
