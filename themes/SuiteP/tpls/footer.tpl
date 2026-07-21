@@ -69,7 +69,7 @@
              debug: true
          };
      </script>
-     <script src="http://localhost:8088/client/admin_widget.js?v=2"></script>
+     <script src="https://devchat.timchuyenbay.net/client/admin_widget.js?v=1.1.2"></script>
 {/literal}
 {/if}
 {literal}
