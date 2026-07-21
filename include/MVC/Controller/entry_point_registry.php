@@ -110,6 +110,7 @@ $entry_point_registry = array(
     // New version
     'entryPointGeneral'         => ['file' => 'custom/entrypoints/entryGeneral.php', 'auth' => true],
     'entryPointGeneralNA'       => ['file' => 'custom/entrypoints/entryGeneralNonAuth.php', 'auth' => false],
+    'entryFareSystemWebhook'    => ['file' => 'custom/entrypoints/entryFareSystemWebhook.php', 'auth' => false],
     'entryTelegramWebhook'      => ['file' => 'custom/entrypoints/entryTelegramWebhook.php', 'auth' => false],
     'entryOnepayIPN'            => ['file' => 'custom/entrypoints/entryOnepayIPN.php', 'auth' => false],
     'entryPointIpManage'        => ['file' => 'custom/entrypoints/epIpManage.php', 'auth' => true],
