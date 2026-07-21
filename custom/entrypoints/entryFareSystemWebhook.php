@@ -49,19 +49,6 @@ $getRequestHeaders = static function () {
     return $normalizedHeaders;
 };
 
-$isValidDate = static function ($value) {
-    if (!is_string($value) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
-        return false;
-    }
-
-    $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
-    $dateErrors = DateTimeImmutable::getLastErrors();
-
-    return $date !== false
-        && ($dateErrors === false || ($dateErrors['warning_count'] === 0 && $dateErrors['error_count'] === 0))
-        && $date->format('Y-m-d') === $value;
-};
-
 $increaseNumericFields = static function (&$data, $fields, $amount) {
     foreach ($fields as $field) {
         if (array_key_exists($field, $data) && (is_int($data[$field]) || is_float($data[$field]))) {
@@ -197,33 +184,11 @@ try {
         $returnDate = null;
     }
 
-    $serviceFee = $payload['serviceFee'] ?? null;
-    $validationErrors = [];
-
-    if (!preg_match('/^[A-Z]{3}$/', $departureCode)) {
-        $validationErrors[] = 'departureCode must be a 3-letter airport code';
-    }
-    if (!preg_match('/^[A-Z]{3}$/', $destinationCode)) {
-        $validationErrors[] = 'destinationCode must be a 3-letter airport code';
-    }
-    if (!preg_match('/^[A-Z0-9]{2,3}$/', $airlineCode)) {
-        $validationErrors[] = 'airlineCode must contain 2 to 3 letters or numbers';
-    }
-    if (!$isValidDate($departureDate)) {
-        $validationErrors[] = 'departureDate must be a valid date in YYYY-MM-DD format';
-    }
-    if ($returnDate === null || ($returnDate !== '' && !$isValidDate($returnDate))) {
-        $validationErrors[] = 'returnDate must be empty, null, or a valid date in YYYY-MM-DD format';
-    } elseif ($returnDate !== '' && $isValidDate($departureDate) && $returnDate < $departureDate) {
-        $validationErrors[] = 'returnDate must not be earlier than departureDate';
-    }
-    if ((!is_int($serviceFee) && !is_float($serviceFee)) || !is_finite((float) $serviceFee) || $serviceFee < 0) {
-        $validationErrors[] = 'serviceFee must be a non-negative JSON number';
-    }
-
-    if (!empty($validationErrors)) {
-        $respond(400, 'Invalid payload: ' . implode('; ', $validationErrors));
-    }
+    $serviceFeeValue = $payload['serviceFee'] ?? 0;
+    $serviceFee = (is_int($serviceFeeValue) || is_float($serviceFeeValue))
+        && is_finite((float) $serviceFeeValue)
+        ? $serviceFeeValue
+        : 0;
 
     $searchParams = [
         'airlineCode' => $airlineCode,
