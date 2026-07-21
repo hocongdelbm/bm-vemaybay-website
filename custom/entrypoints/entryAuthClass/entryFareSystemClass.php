@@ -26,7 +26,7 @@ class entryFareSystemClass extends entryClass
         $desCode = isset($params['desCode']) ? strtoupper(trim($params['desCode'])) : '';
         $departDate = isset($params['departDate']) ? $params['departDate'] : '';
         $returnDate = isset($params['returnDate']) ? $params['returnDate'] : '';
-        $isLive = $params['isLive'];
+        $isLive = $params['isLive'] ?? false;
 
         // Validate required fields
         if (empty($airlineCode) || empty($depCode) || empty($desCode) || empty($departDate)) {
@@ -67,13 +67,13 @@ class entryFareSystemClass extends entryClass
                 'API-Key: ' . $this->key,
                 'Content-Type: application/json'
             ),
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CONNECTTIMEOUT => 10,
         ));
 
         $response = curl_exec($curl);
         $error = curl_error($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
-        curl_close($curl);
 
         // Trả về response từ API
         return $response;
