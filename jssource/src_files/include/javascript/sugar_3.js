@@ -832,17 +832,21 @@ function add_error_style(formname, input, txt, flash) {
 function clear_all_errors() {
   for (var wp = 0; wp < inputsWithErrors.length; wp++) {
     if (typeof(inputsWithErrors[wp]) != 'undefined' && typeof inputsWithErrors[wp].parentNode != 'undefined' && inputsWithErrors[wp].parentNode != null) {
-      if (inputsWithErrors[wp].parentNode.className.indexOf('x-form-field-wrap') != -1) {
-        inputsWithErrors[wp].parentNode.parentNode.removeChild(inputsWithErrors[wp].parentNode.parentNode.lastChild);
-      }
-      else {
-        inputsWithErrors[wp].parentNode.removeChild(inputsWithErrors[wp].parentNode.lastChild);
+      // the error node is always the last thing add_error_style() appended; only remove it
+      // if it's still there and still looks like one of our validation messages, since the
+      // DOM around this field may have changed (tabs, re-renders) since the error was added.
+      var container = inputsWithErrors[wp].parentNode.className.indexOf('x-form-field-wrap') != -1
+        ? inputsWithErrors[wp].parentNode.parentNode
+        : inputsWithErrors[wp].parentNode;
+      var lastChild = container ? container.lastChild : null;
+      if (lastChild && lastChild.className && lastChild.className.indexOf('validation-message') != -1) {
+        container.removeChild(lastChild);
       }
     }
   }
   if (inputsWithErrors.length == 0) return;
 
-  if (YAHOO.util.Dom.getAncestorByTagName(inputsWithErrors[0], "form")) {
+  if (inputsWithErrors[0] && YAHOO.util.Dom.getAncestorByTagName(inputsWithErrors[0], "form")) {
     var formname = YAHOO.util.Dom.getAncestorByTagName(inputsWithErrors[0], "form").getAttribute("name");
     if (typeof (window[formname + "_tabs"]) != "undefined") {
       var tabView = window[formname + "_tabs"];
@@ -854,8 +858,8 @@ function clear_all_errors() {
         }
       }
     }
-    inputsWithErrors = new Array();
   }
+  inputsWithErrors = new Array();
 }
 
 function get_current_bgcolor(input) {

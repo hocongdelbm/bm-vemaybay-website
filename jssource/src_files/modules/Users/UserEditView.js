@@ -264,11 +264,18 @@ function verify_data(form)
 {
 
     var tabsState = saveTabsState();
+    var extraMessages = [];
 
     // handles any errors in the email widget
-    var isError = !check_form("EditView");
+    // check_form() touches shared core validation state (clear_all_errors/inputsWithErrors);
+    // never let a failure in there silently swallow the rest of this form's validation.
+    var isError = false;
+    try {
+        isError = !check_form("EditView");
+    } catch (e) {
+        console.warn('check_form("EditView") failed, continuing with field-level checks only:', e);
+    }
 
-	
     if (trim(form.last_name.value) == "") {
 		add_error_style('EditView',form.last_name.name,
                         SUGAR.language.get('app_strings','ERR_MISSING_REQUIRED_FIELDS') + SUGAR.language.get('Users','LBL_LIST_NAME') );
@@ -279,15 +286,57 @@ function verify_data(form)
                         SUGAR.language.get('app_strings','ERR_MISSING_REQUIRED_FIELDS') + SUGAR.language.get('Users','LBL_USER_NAME') );
         isError = true;
 	}
-	
-    if (document.getElementById("required_password").value=='1' 
+
+    if (document.getElementById("required_password").value=='1'
 	    && document.getElementById("new_password").value == "") {
 		add_error_style('EditView',form.new_password.name,
                         SUGAR.language.get('app_strings','ERR_MISSING_REQUIRED_FIELDS') + SUGAR.language.get('Users','LBL_NEW_PASSWORD') );
         isError = true;
 	}
-	
+
+    // The email widget registers its own required-check into check_form()'s validate[]
+    // array (see SugarEmailAddress.js addToValidate()), keyed to a field name that gets
+    // regenerated every time a row is added/removed. If that registration falls out of
+    // sync with the row currently on screen, check_form() silently stops seeing it as
+    // required at all - so also check the live DOM directly here every time, rather than
+    // trusting that registration alone (this is what let a blank email through on a
+    // second Save click).
+    if ($('#mandatory_email').length && trim($('#mandatory_email').text()) !== '') {
+        var hasEmail = false;
+        var $emailInputs = $('#EditView .email-address-line-container:not(.template) input[type=email]');
+        $emailInputs.each(function () {
+            if (trim($(this).val()) !== '') {
+                hasEmail = true;
+            }
+        });
+        if (!hasEmail) {
+            var emailMissingMsg = SUGAR.language.get('app_strings','ERR_MISSING_REQUIRED_FIELDS') + SUGAR.language.get('app_strings','LBL_EMAIL_ADDRESS_BOOK_EMAIL_ADDR');
+            var $firstEmailInput = $emailInputs.first();
+            if ($firstEmailInput.length) {
+                add_error_style('EditView', $firstEmailInput.get(0), emailMissingMsg);
+            } else {
+                // No row left to attach the red highlight to (e.g. every row was removed) -
+                // still surface the message below even without a field to point at.
+                extraMessages.push(emailMissingMsg);
+            }
+            isError = true;
+        }
+    }
+
  	if (isError == true) {
+        // Field-level red highlighting alone can go unnoticed (e.g. the field is on a
+        // tab that's not showing yet), so give the user an explicit heads-up too. Read the
+        // messages straight off the page (add_error_style already put them there, for every
+        // required field - not just the 3 checked above, e.g. the email widget's own
+        // required-field message from check_form()) so the alert is never blank.
+        var messages = extraMessages.slice();
+        $('#EditView .validation-message').each(function () {
+            var text = trim($(this).text());
+            if (text !== '' && $.inArray(text, messages) === -1) {
+                messages.push(text);
+            }
+        });
+        alert(messages.length > 0 ? messages.join('\n') : SUGAR.language.get('app_strings','ERR_MISSING_REQUIRED_FIELDS'));
         restoreTabsState(tabsState);
         return false;
     }
@@ -399,4 +448,26 @@ function onUserEditView() {
     setSymbolValue(document.getElementById('currency_select').options[document.getElementById('currency_select').selectedIndex].value);
     setSigDigits();
     user_status_display(document.getElementById('UserType'));
+
+    bindPasswordVisibilityToggles();
+}
+
+/**
+ * Adds a show/hide eye toggle next to each password field. The icon itself
+ * (plain eye vs. eye-with-slash) is drawn in CSS from the .is-revealed class,
+ * so this only has to flip the input type and the a11y attributes.
+ */
+function bindPasswordVisibilityToggles() {
+    $('.pwd-toggle').off('click.pwdToggle').on('click.pwdToggle', function () {
+        var $toggle = $(this);
+        var $input = $('#' + $toggle.data('target'));
+        if ($input.length === 0) {
+            return;
+        }
+        var reveal = $input.attr('type') === 'password';
+        $input.attr('type', reveal ? 'text' : 'password');
+        $toggle.toggleClass('is-revealed', reveal)
+            .attr('aria-pressed', reveal ? 'true' : 'false')
+            .attr('aria-label', reveal ? SUGAR.language.get('Users', 'LBL_HIDE_PASSWORD') : SUGAR.language.get('Users', 'LBL_SHOW_PASSWORD'));
+    });
 }

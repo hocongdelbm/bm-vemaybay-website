@@ -42,17 +42,20 @@ function password_confirmation() {
     var new_pwd=document.getElementById('new_password').value;
     var old_pwd=document.getElementById('old_password').value;
     var confirm_pwd=document.getElementById('confirm_pwd');
-    if (confirm_pwd.value != new_pwd)
-        confirm_pwd.style.borderColor= 'red';
-    else
-        confirm_pwd.style.borderColor='';
-    
-    if (confirm_pwd.value != (new_pwd.substring(0,confirm_pwd.value.length)))
-        document.getElementById('comfirm_pwd_match').style.display = 'inline';
-    else
-        document.getElementById('comfirm_pwd_match').style.display = 'none';
-        
-    if (new_pwd != "" || confirm_pwd.value != "" || old_pwd !="" || (document.getElementById('page') && document.getElementById('page').value=="Change"))	
+    var confirm_match_msg=document.getElementById('comfirm_pwd_match');
+
+    if (confirm_pwd.value === '') {
+        // Nothing typed into "confirm" yet - don't flag a mismatch before the
+        // user has had a chance to type anything there (this used to fire as
+        // soon as new_password got a keystroke, turning confirm red on load).
+        confirm_pwd.style.borderColor = '';
+        confirm_match_msg.style.display = 'none';
+    } else {
+        confirm_pwd.style.borderColor = (confirm_pwd.value != new_pwd) ? 'red' : '';
+        confirm_match_msg.style.display = (confirm_pwd.value != new_pwd.substring(0,confirm_pwd.value.length)) ? 'inline' : 'none';
+    }
+
+    if (new_pwd != "" || confirm_pwd.value != "" || old_pwd !="" || (document.getElementById('page') && document.getElementById('page').value=="Change"))
         document.getElementById('password_change').value = 'true';
     else
         document.getElementById('password_change').value = 'false';
@@ -92,69 +95,110 @@ function set_password(form,rules) {
 }
   
     function newrules(minpwdlength,maxpwdlength,customregex){
-    var good_rules=0;	            
+    var good_rules=0;
     var passwd = document.getElementById('new_password').value;
+    var isEmpty = passwd === '';
+    var totalRules = 0;
+    var passedRules = 0;
+
+    // Marks one requirement row: neutral/gray until the user has typed
+    // anything, then green/red once there's something to actually evaluate.
+    // Rules where "passed" means "this is met" (all but the custom regex).
+    var applyRuleState = function (el, passed) {
+        totalRules++;
+        if (isEmpty) {
+            el.className = 'pending';
+        } else if (passed) {
+            el.className = 'good';
+            passedRules++;
+        } else {
+            el.className = 'bad';
+            good_rules = 1;
+        }
+    };
+
         // length
         if(document.getElementById('lengths')){
-        	var length =document.getElementById('new_password').value.length;
-	        if((length < parseInt(minpwdlength) && parseInt(minpwdlength)>0)  || (length > parseInt(maxpwdlength) && parseInt(maxpwdlength)>0 )){
-	            document.getElementById('lengths').className='bad';
-	            good_rules=1;
-	        }
-	        else{document.getElementById('lengths').className='good';}
+        	var length = passwd.length;
+	        var lengthOk = !((length < parseInt(minpwdlength) && parseInt(minpwdlength)>0)  || (length > parseInt(maxpwdlength) && parseInt(maxpwdlength)>0 ));
+	        applyRuleState(document.getElementById('lengths'), lengthOk);
        	}
-       
+
         // One lower case
         if(document.getElementById('1lowcase')){
-	        if(!passwd.match('[abcdefghijklmnopqrstuvwxyz]')){
-	            document.getElementById('1lowcase').className='bad';
-	            good_rules=1;
-	        }
-	        else{document.getElementById('1lowcase').className='good';}
+	        applyRuleState(document.getElementById('1lowcase'), !!passwd.match('[abcdefghijklmnopqrstuvwxyz]'));
         }
-        
+
         // One upper case
         if(document.getElementById('1upcase')){
-	        if(!passwd.match('[ABCDEFGHIJKLMNOPQRSTUVWXYZ]')){
-	            document.getElementById('1upcase').className='bad';
-	            good_rules=1;
-	        }
-	        else{document.getElementById('1upcase').className='good';}
+	        applyRuleState(document.getElementById('1upcase'), !!passwd.match('[ABCDEFGHIJKLMNOPQRSTUVWXYZ]'));
         }
-        
+
         // One number
         if(document.getElementById('1number')){
-	        if(!passwd.match('[0123456789]')){
-	            document.getElementById('1number').className='bad';
-	            good_rules=1;
-	        }
-	        else{document.getElementById('1number').className='good';}
+	        applyRuleState(document.getElementById('1number'), !!passwd.match('[0123456789]'));
         }
-        
+
         // One special character
         if(document.getElementById('1special')){
             var custom_regex= new RegExp('[|}{~!@#$%^&*()_+=-]');
-	        if(!custom_regex.test(passwd)){
-	            document.getElementById('1special').className='bad';
-	            good_rules=1;
-	        }
-	        else{document.getElementById('1special').className='good';}
+	        applyRuleState(document.getElementById('1special'), custom_regex.test(passwd));
         }
-        
-        
-        // Custom regex
+
+
+        // Custom regex (inverted: "bad" when it matches, so handled apart from applyRuleState)
         if(document.getElementById('regex')){
             var regex = new RegExp(customregex);
-	        if(regex.test(passwd)){
+            totalRules++;
+	        if(isEmpty){
+	            document.getElementById('regex').className='pending';
+	        } else if(regex.test(passwd)){
 	            document.getElementById('regex').className='bad';
 	            good_rules=1;
+	        } else {
+	            document.getElementById('regex').className='good';
+	            passedRules++;
 	        }
-	        else{document.getElementById('regex').className='good';}
         }
+
+    updatePasswordStrengthMeter(isEmpty, totalRules, passedRules);
+
     return good_rules;
-    } 
-    
-	
+    }
+
+    // Live strength meter next to the requirement checklist: reflects the
+    // same rule pass count as the checklist above it, so the two never disagree.
+    function updatePasswordStrengthMeter(isEmpty, totalRules, passedRules) {
+        var fill = document.getElementById('pwd_strength_fill');
+        var label = document.getElementById('pwd_strength_label');
+        if (!fill || !label) {
+            return;
+        }
+        if (isEmpty || totalRules === 0) {
+            fill.style.width = '0%';
+            fill.removeAttribute('data-level');
+            label.removeAttribute('data-level');
+            label.textContent = '';
+            return;
+        }
+
+        var ratio = passedRules / totalRules;
+        var level = 'weak';
+        if (ratio >= 1) {
+            level = 'strong';
+        } else if (ratio >= 0.66) {
+            level = 'good';
+        } else if (ratio >= 0.34) {
+            level = 'fair';
+        }
+
+        fill.style.width = Math.max(ratio * 100, 8) + '%';
+        fill.setAttribute('data-level', level);
+        label.setAttribute('data-level', level);
+        label.textContent = (typeof PWD_STRENGTH_LABELS !== 'undefined') ? PWD_STRENGTH_LABELS[level] : '';
+    }
+
+
 function set_focus() {
     if (document.getElementById('error_pwd')){
         if (document.forms.length > 0) {

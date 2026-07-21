@@ -54,6 +54,7 @@
         </div><!-- /.modal-dialog -->
     </div>
     {if $AUTHENTICATED}
+{if $APP_CONFIG.chat_widget.enable}
 {literal}
     <script>
          window.ECChatbotWidgetConfig = {
@@ -69,6 +70,9 @@
          };
      </script>
      <script src="https://chat.timchuyenbay.net/client/admin_widget.js?v=1.1.2"></script>
+{/literal}
+{/if}
+{literal}
      <script>
          // Helper dùng chung: ghi nhận hoạt động cho các thao tác KHÔNG sinh record tracker
          // (AJAX trong-trang, chat widget, cuộc gọi softphone...).

@@ -10,6 +10,14 @@ var ERR_ENTER_OLD_PASSWORD = '{$MOD.ERR_ENTER_OLD_PASSWORD}';
 var ERR_ENTER_NEW_PASSWORD = '{$MOD.ERR_ENTER_NEW_PASSWORD}';
 var ERR_ENTER_CONFIRMATION_PASSWORD = '{$MOD.ERR_ENTER_CONFIRMATION_PASSWORD}';
 var ERR_REENTER_PASSWORDS = '{$MOD.ERR_REENTER_PASSWORDS}';
+{literal}
+var PWD_STRENGTH_LABELS = {
+    weak: '{/literal}{$MOD.LBL_PWD_STRENGTH_WEAK}{literal}',
+    fair: '{/literal}{$MOD.LBL_PWD_STRENGTH_FAIR}{literal}',
+    good: '{/literal}{$MOD.LBL_PWD_STRENGTH_GOOD}{literal}',
+    strong: '{/literal}{$MOD.LBL_PWD_STRENGTH_STRONG}{literal}'
+};
+{/literal}
 </script>
 <script type='text/javascript' src='{sugar_getjspath file='modules/Users/User.js'}'></script>
 <script type='text/javascript' src='{sugar_getjspath file='modules/Users/UserEditView.js'}'></script>
