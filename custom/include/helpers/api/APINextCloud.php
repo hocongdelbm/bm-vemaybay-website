@@ -12,15 +12,46 @@ class APINextCloud
     private $BASE_OCS_URL;
     private $USER_ERROR_CODE = 400;
     private $SYSTEM_ERROR_CODE = 500;
+    private $VERIFY_SSL = false;
+    private $FOLLOW_REDIRECTS = true;
+    private $CONNECT_TIMEOUT_MS = 20000;
+    private $TIMEOUT_MS = 60000;
+    private $DEADLINE_AT_MS;
+    private $CONNECT_TIMEOUT_CONFIGURED = false;
+    private $TIMEOUT_CONFIGURED = false;
 
 
-    public function __construct()
+    public function __construct(array $options = [])
     {
         global $sugar_config;
         $this->USERNAME = $sugar_config['next-cloud']['user'];
         $this->PASSWORD = $sugar_config['next-cloud']['password'];
         $this->ENDPOINT = rtrim($sugar_config['next-cloud']['endpoint'], '/') . '/' . $this->USERNAME;
         $this->BASE_OCS_URL = $sugar_config['next-cloud']['base_url_ocs'];
+
+        if (array_key_exists('verify_ssl', $options)) {
+            $this->VERIFY_SSL = (bool) $options['verify_ssl'];
+        }
+        if (array_key_exists('follow_redirects', $options)) {
+            $this->FOLLOW_REDIRECTS = (bool) $options['follow_redirects'];
+        }
+        if (isset($options['connect_timeout_ms']) && is_numeric($options['connect_timeout_ms'])
+            && (int) $options['connect_timeout_ms'] > 0
+        ) {
+            $this->CONNECT_TIMEOUT_MS = (int) $options['connect_timeout_ms'];
+            $this->CONNECT_TIMEOUT_CONFIGURED = true;
+        }
+        if (isset($options['timeout_ms']) && is_numeric($options['timeout_ms'])
+            && (int) $options['timeout_ms'] > 0
+        ) {
+            $this->TIMEOUT_MS = (int) $options['timeout_ms'];
+            $this->TIMEOUT_CONFIGURED = true;
+        }
+        if (isset($options['deadline_at_ms']) && is_numeric($options['deadline_at_ms'])
+            && (float) $options['deadline_at_ms'] > 0
+        ) {
+            $this->DEADLINE_AT_MS = (float) $options['deadline_at_ms'];
+        }
     }
 
     public function createFolder($remoteFolderPath)
@@ -28,8 +59,7 @@ class APINextCloud
         if ($error = $this->validateRemoteFileName($remoteFolderPath)) {
             return $error;
         }
-        $cleanedPath = $this->encodePath(rtrim($remoteFolderPath, '/'));
-        $url = $this->ENDPOINT . '/' . $cleanedPath . '/'; //For collection, folder must end with '/'
+        $url = $this->buildDavUrl($remoteFolderPath, true);
         $header = [
             "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD)
         ];
@@ -37,7 +67,7 @@ class APINextCloud
     }
 
 
-    public function uploadFile($localFilePath, $remoteFileName)
+    public function uploadFile($localFilePath, $remoteFileName, array $options = [])
     {
 
         if ($error = $this->validateLocalFile($localFilePath)) {
@@ -46,13 +76,23 @@ class APINextCloud
         if ($error = $this->validateRemoteFileName($remoteFileName)) {
             return $error;
         }
-        $url = $this->ENDPOINT . '/' . $this->encodePath($remoteFileName);
+        $url = $this->buildDavUrl($remoteFileName);
         $fileData = file_get_contents($localFilePath); // Read file content
+        if ($fileData === false) {
+            return $this->createErrorResponse(
+                "Unable to read local file",
+                "The specified local file '$localFilePath' could not be read.",
+                $this->SYSTEM_ERROR_CODE
+            );
+        }
         $header = [
             "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD),
             "Content-Type: application/octet-stream",
             "Content-Length: " . strlen($fileData)
         ];
+        if (!empty($options['prevent_overwrite'])) {
+            $header[] = 'If-None-Match: *';
+        }
         return $this->sendRequest('PUT', $url, $header, $fileData);
     }
 
@@ -61,7 +101,7 @@ class APINextCloud
         if ($error = $this->validateRemoteFileName($remoteFileName)) {
             return $error;
         }
-        $url = $this->ENDPOINT . '/' . $this->encodePath($remoteFileName);
+        $url = $this->buildDavUrl($remoteFileName);
         $header = [
             "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD)
         ];
@@ -77,10 +117,10 @@ class APINextCloud
             return $error;
         }
 
-        $url = $this->ENDPOINT . '/' . $this->encodePath($remoteFileName);
+        $url = $this->buildDavUrl($remoteFileName);
         $header = [
             "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD),
-            "Destination: " . rtrim($this->ENDPOINT, '/') . '/' . $this->encodePath($destitationPath)
+            "Destination: " . $this->buildDavUrl($destitationPath)
         ];
         return $this->sendRequest('MOVE', $url, $header);
     }
@@ -240,29 +280,76 @@ class APINextCloud
             ];
         }
 
+        if ($this->isDeadlineExpired()) {
+            return [
+                'success' => false,
+                'data' => null,
+                'contentType' => null,
+                'httpCode' => 504,
+                'error' => 'NextCloud request deadline exceeded',
+                'timedOut' => true
+            ];
+        }
+
         $ch = curl_init();
+        if ($ch === false) {
+            return [
+                'success' => false,
+                'data' => null,
+                'contentType' => null,
+                'httpCode' => 500,
+                'error' => 'cURL failed to initialize',
+                'curlErrorNo' => 0,
+                'timedOut' => false
+            ];
+        }
         curl_setopt($ch, CURLOPT_URL, $publicShareUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, $this->FOLLOW_REDIRECTS);
         // NOTE: No Authorization header - this is PUBLIC access
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        $fetchConnectTimeoutMs = $this->CONNECT_TIMEOUT_CONFIGURED ? $this->CONNECT_TIMEOUT_MS : 10000;
+        $fetchTimeoutMs = $this->TIMEOUT_CONFIGURED ? $this->TIMEOUT_MS : 30000;
+        $this->applyTransportOptions($ch, $fetchConnectTimeoutMs, $fetchTimeoutMs);
 
         $fileData = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $errorNo = curl_errno($ch);
         $error = curl_error($ch);
         curl_close($ch);
 
-        if ($fileData === false || $httpCode != 200) {
+        $deadlineExpired = $this->isDeadlineExpired();
+        if ($fileData === false || $errorNo) {
+            $timedOut = $errorNo === CURLE_OPERATION_TIMEDOUT || $deadlineExpired;
+            return [
+                'success' => false,
+                'data' => null,
+                'contentType' => null,
+                'httpCode' => $timedOut ? 504 : $httpCode,
+                'error' => $error ?: ($timedOut ? 'NextCloud request deadline exceeded' : "HTTP {$httpCode}"),
+                'curlErrorNo' => $errorNo,
+                'timedOut' => $timedOut
+            ];
+        }
+
+        if ($deadlineExpired) {
+            return [
+                'success' => false,
+                'data' => null,
+                'contentType' => null,
+                'httpCode' => 504,
+                'error' => 'NextCloud request deadline exceeded',
+                'timedOut' => true
+            ];
+        }
+
+        if ($httpCode != 200) {
             return [
                 'success' => false,
                 'data' => null,
                 'contentType' => null,
                 'httpCode' => $httpCode,
-                'error' => $error ?: "HTTP {$httpCode}"
+                'error' => "HTTP {$httpCode}"
             ];
         }
 
@@ -293,13 +380,21 @@ class APINextCloud
     private function sendRequest($method, $url, $header = [], $requestBody = null, $curlOptions = [])
     {
         try {
+            if ($this->isDeadlineExpired()) {
+                return $this->createDeadlineExceededResponse();
+            }
+
             $curl = curl_init();
             if ($curl === false) {
                 LoggerHelper::error("$method $url cURL failed to initialize");
                 return $this->createErrorResponse(
                     "Can't connect to NextCloud API",
                     "cURL failed to initialize",
-                    $this->SYSTEM_ERROR_CODE
+                    $this->SYSTEM_ERROR_CODE,
+                    [
+                        'curlErrorNo' => 0,
+                        'timedOut' => false
+                    ]
                 );
             }
             curl_setopt($curl, CURLOPT_URL, $url);
@@ -307,15 +402,12 @@ class APINextCloud
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
             if (!is_null($requestBody)) curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBody);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, $this->FOLLOW_REDIRECTS ? 1 : 0);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 16);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // Skip SSL verification for local dev
-            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
             foreach ($curlOptions as $key => $value) {
                 curl_setopt($curl, $key, $value);
             }
+            $this->applyTransportOptions($curl);
             $response = curl_exec($curl); // JSON
             $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorNo = curl_errno($curl);
@@ -323,12 +415,21 @@ class APINextCloud
             curl_close($curl);
 
             if ($response === false || $errorNo) {
+                $timedOut = $errorNo === CURLE_OPERATION_TIMEDOUT || $this->isDeadlineExpired();
                 LoggerHelper::error("$method $url cURL error $errorNo: $error");
                 return $this->createErrorResponse(
                     "Can't connect to NextCloud API",
                     "cURL error $errorNo: $error",
-                    $this->SYSTEM_ERROR_CODE
+                    $timedOut ? 504 : $this->SYSTEM_ERROR_CODE,
+                    [
+                        'curlErrorNo' => $errorNo,
+                        'timedOut' => $timedOut
+                    ]
                 );
+            }
+
+            if ($this->isDeadlineExpired()) {
+                return $this->createDeadlineExceededResponse();
             }
 
             $responseArr = json_decode($response, true);
@@ -352,6 +453,7 @@ class APINextCloud
                 if ($statusCode == 100 || $statusCode == 200) {
                     $responseArr = [
                         'status' => 1,
+                        'httpCode' => $httpCode,
                         'message' => $meta['message'] ?? 'Success',
                         'data' => $ocsData['data'] ?? null
                     ];
@@ -377,6 +479,7 @@ class APINextCloud
             } else {
                 $responseArr['status'] = 1; // success
             }
+            $responseArr['httpCode'] = $httpCode;
 
             return json_encode($responseArr);
         } catch (Throwable $th) {
@@ -401,15 +504,58 @@ class APINextCloud
      * 
      * @return string JSON
      */
-    private function createErrorResponse($message, $description, $httpCode)
+    private function createErrorResponse($message, $description, $httpCode, array $extra = [])
     {
-        return json_encode([
+        return json_encode(array_merge([
             "status" => 0,
             "httpCode" => $httpCode,
             "message" => $message,
             "data" => null,
             "description" => $description
-        ]);
+        ], $extra));
+    }
+
+    private function createDeadlineExceededResponse()
+    {
+        return $this->createErrorResponse(
+            "NextCloud request deadline exceeded",
+            "The configured deadline elapsed before the request could complete.",
+            504,
+            ['timedOut' => true]
+        );
+    }
+
+    private function applyTransportOptions($curl, $connectTimeoutMs = null, $timeoutMs = null)
+    {
+        $timeoutMs = is_null($timeoutMs) ? $this->TIMEOUT_MS : (int) $timeoutMs;
+        $remainingMs = $this->getRemainingDeadlineMs();
+        if (!is_null($remainingMs)) {
+            $timeoutMs = min($timeoutMs, max(1, $remainingMs));
+        }
+
+        $connectTimeoutMs = is_null($connectTimeoutMs) ? $this->CONNECT_TIMEOUT_MS : (int) $connectTimeoutMs;
+        $connectTimeoutMs = min($connectTimeoutMs, $timeoutMs);
+
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT_MS, $connectTimeoutMs);
+        curl_setopt($curl, CURLOPT_TIMEOUT_MS, $timeoutMs);
+        curl_setopt($curl, CURLOPT_NOSIGNAL, true);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, $this->VERIFY_SSL);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, $this->VERIFY_SSL ? 2 : 0);
+    }
+
+    private function getRemainingDeadlineMs()
+    {
+        if (is_null($this->DEADLINE_AT_MS)) {
+            return null;
+        }
+
+        return (int) floor($this->DEADLINE_AT_MS - (microtime(true) * 1000));
+    }
+
+    private function isDeadlineExpired()
+    {
+        $remainingMs = $this->getRemainingDeadlineMs();
+        return !is_null($remainingMs) && $remainingMs <= 0;
     }
 
     private function validateLocalFile($path)
@@ -435,6 +581,15 @@ class APINextCloud
         }
         return null;
     }
+
+    private function buildDavUrl($path, $isCollection = false)
+    {
+        $normalizedPath = ltrim((string) $path, '/');
+        $url = rtrim($this->ENDPOINT, '/') . '/' . $this->encodePath($normalizedPath);
+
+        return $isCollection ? rtrim($url, '/') . '/' : $url;
+    }
+
     public function ensureFolderExists($remoteFolderPath)
     {
         $parts = explode('/', trim($remoteFolderPath, '/'));

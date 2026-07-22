@@ -27,7 +27,12 @@ class entryNextCloudPreviewClass extends entryClass
 
         try {
             // Check if it's a POST request for uploading
-            if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_FILES['images'])) {
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+            $isMultipartUpload = is_string($contentType)
+                && stripos($contentType, 'multipart/form-data') === 0;
+            if ($_SERVER['REQUEST_METHOD'] === 'POST'
+                && (array_key_exists('images', $_FILES) || $isMultipartUpload)
+            ) {
                 return $this->handleImageUpload();
             }
 
@@ -365,9 +370,14 @@ class entryNextCloudPreviewClass extends entryClass
     {
         $statusMessages = [
             400 => 'Bad Request',
+            401 => 'Unauthorized',
             404 => 'Not Found',
+            405 => 'Method Not Allowed',
+            413 => 'Payload Too Large',
+            415 => 'Unsupported Media Type',
             500 => 'Internal Server Error',
-            502 => 'Bad Gateway'
+            502 => 'Bad Gateway',
+            504 => 'Gateway Timeout',
         ];
         
         $statusText = $statusMessages[$statusCode] ?? 'Error';
@@ -382,69 +392,39 @@ class entryNextCloudPreviewClass extends entryClass
     private function handleImageUpload()
     {
         try {
-            $urls = [];
-            $year = date('Y');
-            $month = date('m');
-            $day = date('d');
-            $folderPath = "/bmvmb/chat_uploads/{$year}/{$month}/{$day}";
-            
-            // Ensure folder exists
-            $this->ocsApi->ensureFolderExists($folderPath);
-            
-            $files = $_FILES['images'];
-            $isMulti = is_array($files['name']);
-            
-            if ($isMulti) {
-                $count = count($files['name']);
-                for ($i = 0; $i < $count; $i++) {
-                    if ($files['error'][$i] === UPLOAD_ERR_OK) {
-                        $tmpPath = $files['tmp_name'][$i];
-                        $originalName = $files['name'][$i];
-                        $urls[] = $this->processSingleUpload($tmpPath, $originalName, $folderPath);
-                    }
-                }
-            } else {
-                if ($files['error'] === UPLOAD_ERR_OK) {
-                    $urls[] = $this->processSingleUpload($files['tmp_name'], $files['name'], $folderPath);
-                }
+            // Load the reusable upload classes from the standalone webhook
+            // without executing that webhook's HTTP receiver in this request.
+            $entryImageUploadWebhookLibraryOnly = true;
+            require_once 'custom/entrypoints/entryImageUploadWebhook.php';
+            unset($entryImageUploadWebhookLibraryOnly);
+
+            $contentLength = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
+            if (!array_key_exists('images', $_FILES)
+                && $contentLength > NextCloudImageUploadService::MAX_BATCH_SIZE
+            ) {
+                return $this->outputError('Image batch exceeds 25 MiB', 413);
             }
-            
-            $result = ['success' => true, 'urls' => $urls];
+
+            $service = new NextCloudImageUploadService();
+            $files = $service->uploadFiles($_FILES['images'] ?? null);
+            $result = [
+                'success' => true,
+                'urls' => array_column($files, 'url'),
+            ];
             header('Content-Type: application/json');
             return json_encode($result);
-            
-        } catch (Exception $e) {
-            $GLOBALS['log']->error("NextCloudPreview Upload: Exception - " . $e->getMessage());
-            return $this->outputError($e->getMessage(), 500);
+        } catch (NextCloudImageUploadException $exception) {
+            $GLOBALS['log']->error(
+                'NextCloudPreview Upload: '
+                . $exception->getErrorCode()
+                . ' - '
+                . $exception->getMessage()
+            );
+            return $this->outputError($exception->getMessage(), $exception->getHttpStatus());
+        } catch (Throwable $throwable) {
+            $GLOBALS['log']->error('NextCloudPreview Upload: Exception - ' . $throwable->getMessage());
+            return $this->outputError('Internal server error', 500);
         }
-    }
-    
-    /**
-     * Process a single file upload to NextCloud and create a public share
-     */
-    private function processSingleUpload($tmpPath, $originalName, $folderPath)
-    {
-        // Generate unique name to prevent collisions
-        $ext = pathinfo($originalName, PATHINFO_EXTENSION);
-        $uniqueName = uniqid() . '_' . time() . '.' . $ext;
-        $remoteFilePath = $folderPath . '/' . $uniqueName;
-        
-        // Upload file
-        $uploadResultJson = $this->ocsApi->uploadFile($tmpPath, $remoteFilePath);
-        $uploadResult = json_decode($uploadResultJson, true);
-        
-        if (empty($uploadResult) || $uploadResult['status'] != 1) {
-            throw new Exception("Failed to upload file: " . $originalName);
-        }
-        
-        // Create share
-        $shareResultJson = $this->ocsApi->createShare($remoteFilePath, 1); // 1 = read
-        $shareResult = json_decode($shareResultJson, true);
-        
-        if (empty($shareResult) || $shareResult['status'] != 1) {
-            throw new Exception("Failed to create share for: " . $originalName);
-        }
-        return $shareResult['data']['url'] . '/preview';
     }
 
 
@@ -466,4 +446,3 @@ class entryNextCloudPreviewClass extends entryClass
         }
     }
 }
-
