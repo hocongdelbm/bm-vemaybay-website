@@ -6,17 +6,10 @@ if (!defined('sugarEntry') || !sugarEntry) {
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 header('Content-Type: application/json; charset=utf-8');
 
-// Receiver keys are configured per webhook in config_override.php:
-// webhook_api_keys: X-Auth-Key, webhook_signature_keys: request HMAC,
-// webhook_secret_keys: optional response acknowledgement HMAC.
-$ackSecretKey = '';
-
-$sendResponse = static function ($httpCode, $body) use (&$ackSecretKey) {
+// Receiver keys are configured in:
+// $sugar_config['webhook']['fare_system']['auth_key|signature_key'].
+$sendResponse = static function ($httpCode, $body) {
     http_response_code($httpCode);
-    if (is_string($ackSecretKey) && $ackSecretKey !== '') {
-        header('X-Ack-Signature: ' . hash('sha256', $body . $ackSecretKey));
-    }
-
     echo $body;
     exit;
 };
@@ -138,22 +131,19 @@ try {
     }
 
     global $sugar_config;
-    $webhookApiKeys = $sugar_config['webhook_api_keys'] ?? [];
-    $webhookSignatureKeys = $sugar_config['webhook_signature_keys'] ?? [];
-    $webhookSecretKeys = $sugar_config['webhook_secret_keys'] ?? [];
+    $webhookConfig = $sugar_config['webhook']['fare_system'] ?? null;
+    if (!is_array($webhookConfig)) {
+        $respond(500, 'Fare System webhook is not configured');
+    }
 
-    $registeredKey = is_array($webhookApiKeys) ? ($webhookApiKeys['fare_system'] ?? '') : '';
-    $signatureKey = is_array($webhookSignatureKeys) ? ($webhookSignatureKeys['fare_system'] ?? '') : '';
-    $ackSecretKey = is_array($webhookSecretKeys) ? ($webhookSecretKeys['fare_system'] ?? '') : '';
+    $registeredKey = $webhookConfig['auth_key'] ?? '';
+    $signatureKey = $webhookConfig['signature_key'] ?? '';
 
     if (!is_string($registeredKey) || $registeredKey === '') {
         $respond(500, 'Fare System webhook auth key is not configured');
     }
     if (!is_string($signatureKey) || $signatureKey === '') {
         $respond(500, 'Fare System webhook signature key is not configured');
-    }
-    if (!is_string($ackSecretKey)) {
-        $respond(500, 'Fare System webhook ack secret key has an invalid configuration');
     }
 
     $requestKey = $headers['x-auth-key'] ?? ($_SERVER['HTTP_X_AUTH_KEY'] ?? '');
