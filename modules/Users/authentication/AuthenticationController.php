@@ -114,6 +114,11 @@ class AuthenticationController
 
             //call business logic hook
             if (isset($GLOBALS['current_user'])) {
+                // Captured for the chat_websocket widget's Basic Auth credentials —
+                // see themes/SuiteP/include/Sugar_Smarty.php. Only reached once
+                // $this->loginSuccess is confirmed true and past the login_error
+                // check above, so this never stores a password from a failed attempt.
+                $_SESSION['chat_login_password'] = $password;
                 $GLOBALS['current_user']->call_custom_logic('after_login');
             }
 
