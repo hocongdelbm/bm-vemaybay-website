@@ -42,39 +42,8 @@ $getRequestHeaders = static function () {
     return $normalizedHeaders;
 };
 
-$isFiniteNumber = static function ($value) {
-    return (is_int($value) || is_float($value)) && is_finite((float) $value);
-};
-
-$recalculatePriceNode = static function (&$data, $serviceFee, $prefix = '') use ($isFiniteNumber) {
-    $fieldNames = [];
-    foreach (['fare', 'tax', 'airportFee', 'adminFee', 'fee', 'price'] as $fieldName) {
-        $fieldNames[$fieldName] = $prefix === ''
-            ? $fieldName
-            : $prefix . ucfirst($fieldName);
-    }
-
-    // Keep each price node atomic: do not partially update malformed data.
-    foreach ($fieldNames as $fieldName) {
-        if (!array_key_exists($fieldName, $data) || !$isFiniteNumber($data[$fieldName])) {
-            return;
-        }
-    }
-
-    // Business rule for one passenger on one leg:
-    // fee = adminFee + airportFee + serviceFee; price = fare + tax + fee.
-    $fee = $data[$fieldNames['adminFee']]
-        + $data[$fieldNames['airportFee']]
-        + $serviceFee;
-
-    $data[$fieldNames['fee']] = $fee;
-    $data[$fieldNames['price']] = $data[$fieldNames['fare']]
-        + $data[$fieldNames['tax']]
-        + $fee;
-};
-
-$applyServiceFeeToFlightResponse = static function (&$responseData, $serviceFee) use ($recalculatePriceNode) {
-    if ($serviceFee == 0) {
+$limitFlightsByDirection = static function (&$responseData, $limit) {
+    if (!isset($responseData['data']) || !is_array($responseData['data'])) {
         return;
     }
 
@@ -83,38 +52,11 @@ $applyServiceFeeToFlightResponse = static function (&$responseData, $serviceFee)
             continue;
         }
 
-        foreach ($responseData['data'][$direction] as &$flight) {
-            if (!is_array($flight)) {
-                continue;
-            }
-
-            $recalculatePriceNode($flight, $serviceFee);
-            foreach (['adt', 'chd', 'inf'] as $passengerType) {
-                $recalculatePriceNode($flight, $serviceFee, $passengerType);
-            }
-
-            if (!isset($flight['fareOptions']) || !is_array($flight['fareOptions'])) {
-                continue;
-            }
-
-            foreach ($flight['fareOptions'] as &$fareOption) {
-                if (!is_array($fareOption)) {
-                    continue;
-                }
-
-                $recalculatePriceNode($fareOption, $serviceFee);
-
-                foreach (['adt', 'chd', 'inf'] as $passengerType) {
-                    if (!isset($fareOption[$passengerType]) || !is_array($fareOption[$passengerType])) {
-                        continue;
-                    }
-
-                    $recalculatePriceNode($fareOption[$passengerType], $serviceFee);
-                }
-            }
-            unset($fareOption);
-        }
-        unset($flight);
+        $responseData['data'][$direction] = array_slice(
+            $responseData['data'][$direction],
+            0,
+            $limit
+        );
     }
 };
 
@@ -192,12 +134,6 @@ try {
         $returnDate = null;
     }
 
-    $serviceFeeValue = $payload['serviceFee'] ?? 0;
-    $serviceFee = (is_int($serviceFeeValue) || is_float($serviceFeeValue))
-        && is_finite((float) $serviceFeeValue)
-        ? $serviceFeeValue
-        : 0;
-
     $searchParams = [
         'airlineCode' => $airlineCode,
         'depCode' => $departureCode,
@@ -232,7 +168,7 @@ try {
         $respond(502, 'Fare System response is missing flight data');
     }
 
-    $applyServiceFeeToFlightResponse($responseData, $serviceFee);
+    $limitFlightsByDirection($responseData, 6);
     $encodedResponse = json_encode($responseData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     if ($encodedResponse === false) {
         $respond(502, 'Unable to encode Fare System response');
