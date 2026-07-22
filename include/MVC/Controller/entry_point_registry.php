@@ -86,6 +86,7 @@ $entry_point_registry = array(
     // ONLINE - OFFLINE
     'entryPointUpdateTimeUserClick'         => array('file' => 'custom/entrypoints/epUpdateTimeUserClick.php', 'auth' => true),
     'entryPointBehaviorUser'                => array('file' => 'custom/entrypoints/epBehaviorUser.php', 'auth' => true),
+    'entryPointRecordActivity'              => array('file' => 'custom/entrypoints/epRecordActivity.php', 'auth' => true),
 
     // Tracker
     'entryPointTracker'                     => array('file' => 'custom/entrypoints/epTracker.php', 'auth' => true),
@@ -109,6 +110,7 @@ $entry_point_registry = array(
     // New version
     'entryPointGeneral'         => ['file' => 'custom/entrypoints/entryGeneral.php', 'auth' => true],
     'entryPointGeneralNA'       => ['file' => 'custom/entrypoints/entryGeneralNonAuth.php', 'auth' => false],
+    'entryFareSystemWebhook'    => ['file' => 'custom/entrypoints/entryFareSystemWebhook.php', 'auth' => false],
     'entryTelegramWebhook'      => ['file' => 'custom/entrypoints/entryTelegramWebhook.php', 'auth' => false],
     'entryOnepayIPN'            => ['file' => 'custom/entrypoints/entryOnepayIPN.php', 'auth' => false],
     'entryPointIpManage'        => ['file' => 'custom/entrypoints/epIpManage.php', 'auth' => true],

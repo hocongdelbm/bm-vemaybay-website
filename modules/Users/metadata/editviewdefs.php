@@ -18,7 +18,7 @@ $viewdefs['Users']['EditView'] = array(
                     'name' => 'user_name',
                     'displayParams' => array('required' => true),
                 ),
-                'first_name'
+                'last_name'
             ),
             array(
                 array(
@@ -26,7 +26,7 @@ $viewdefs['Users']['EditView'] = array(
                     'customCode' => '{if $IS_ADMIN}@@FIELD@@{else}{$STATUS_READONLY}{/if}',
                     'displayParams' => array('required' => true),
                 ),
-                'last_name'
+                array()
             ),
             array(
                 array(

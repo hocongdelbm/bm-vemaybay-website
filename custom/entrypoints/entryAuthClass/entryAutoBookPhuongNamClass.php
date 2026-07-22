@@ -945,6 +945,8 @@ class entryAutoBookPhuongNamClass extends entryClass {
             $inListItineraryId  = "'".implode("','", $listItineraryId)."'";
             $inListDetailId     = "'".implode("','", $listDetailId)."'";
 
+            $isFailOneWay = false;
+            $failMessageOneWay = '';
             foreach(($responseArr["data"] ?? []) as $i => $f) {
                 if(isset($f["ID"]) && $f["ID"] == 1) {
                     $bookingCode = explode(":", $f["BookingCode"]); // "VJ: XUBK2G"
@@ -999,6 +1001,8 @@ class entryAutoBookPhuongNamClass extends entryClass {
                         if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
                     }
                     else {
+                        $isOkOneWay = false;    
+
                         $direction = '0';
                         $roundText = 'outbound';
                         if($bookingType == 'twoway') {
@@ -1040,6 +1044,14 @@ class entryAutoBookPhuongNamClass extends entryClass {
                         if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
                     }
                 }
+                else {
+                    $isFailOneWay = true;
+                    $failMessageOneWay = $f["Message"] ?? "";
+                }
+            }
+            if($isFailOneWay && ($bookingType == 'roundtrip' || $bookingType == 'oneway')) {
+                $responseArr["status"]  = 0;
+                $responseArr["message"] = $failMessageOneWay;
             }
         }
         else {

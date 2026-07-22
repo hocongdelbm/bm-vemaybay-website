@@ -31,6 +31,7 @@ class EC_Online_Report extends Basic
 	public $status;
 	public $booking_id;
 	public $last_online;
+	public $last_activity;
 	public $start_assign;
 	public $total_qty;
 	public $title;
@@ -46,19 +47,11 @@ class EC_Online_Report extends Basic
 	}
 
 	// Quy trình giao booking 
-	public function assignBooking($booking_id, $total_qty, $is_test = 0) {
+	public function assignBooking($booking_id, $total_qty) {
 		global $db, $timedate;
 		
 		$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
         $current_datetime_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d H:i:s'); 
-
-		$arr_id_admin = [
-			'1', //ducpham
-			'168889bb-54c2-59c7-8b3f-649102530d3c', // hungnh
-			'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', // panda
-			'9eb0f65f-a9f6-65bb-1985-637ca8511491', // trinh
-			'622ecf27-f729-7187-7e27-6520e0dab882', // quangnd
-		];
 		$ksnb_user_id = 'e3bbb3e5-6660-0bf7-8976-54869c4ee609';
 
 		// Nhân viên Telesale không xử lý booking -> loại khỏi danh sách được auto-assign
@@ -69,100 +62,105 @@ class EC_Online_Report extends Basic
 			)
 		';
 
-		// Lấy người online đầu hàng
-		$sql_assign = 
-			"SELECT id, assigned_user_id
-			FROM ec_online_report
-			WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
-				AND status = 1
-				AND deleted = 0
-				$sql_exclude_telesale
-			ORDER BY last_online
-			LIMIT 1";
+		$assigned_user_id = '';
 
-		$res_assign = $this->db->query($sql_assign);
-		$row_assign = $this->db->fetchByAssoc($res_assign);
-
-		if ($row_assign) {
-			$assigned_user_id = $row_assign['assigned_user_id'];
-
-			if (!$is_test) {
-				$online = new EC_Online_Report;
-				$online->retrieve($row_assign['id']);
-				$online->status       = 2;
-				$online->booking_id   = $booking_id;
-				// current time in the user's timezone/format; save() converts datetime fields back to DB format (UTC)
-				$online->last_online  = $timedate->now();
-				$online->start_assign = $timedate->now();
-				$online->total_qty    = $total_qty;
-				$online->save();
-
-				if (!in_array($assigned_user_id, $arr_id_admin)) {
-					content_log($assigned_user_id, $current_datetime_vn, 0);
-				}
-			}
-		} else {
-			// Không có ai online, thử lấy người busy
-			$sql_assign_busy = 
+		try {
+			// Lấy người online đầu hàng (khóa row)
+			$sql_assign =
 				"SELECT id, assigned_user_id
 				FROM ec_online_report
 				WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
-					AND status = 2
+					AND status = 1
 					AND deleted = 0
 					$sql_exclude_telesale
-				ORDER BY last_online
+				ORDER BY last_online IS NULL, last_online
 				LIMIT 1";
 
-			$res_assign_busy = $this->db->query($sql_assign_busy);
-			$row_assign      = $this->db->fetchByAssoc($res_assign_busy);
+			$res_assign = $this->db->query($sql_assign);
+			$row_assign = $this->db->fetchByAssoc($res_assign);
 
 			if ($row_assign) {
 				$assigned_user_id = $row_assign['assigned_user_id'];
 
-				if (!$is_test) {
+				$online = new EC_Online_Report;
+				$online->retrieve($row_assign['id']);
+				// $online->status       = 2; // Không chuyển người được giao sang Busy nữa - giữ Online để tiếp tục xoay vòng
+				$online->booking_id   = $booking_id;
+				$online->last_online  = $timedate->nowDb();
+				$online->start_assign = $timedate->nowDb();
+				$online->total_qty    = $total_qty;
+				$online->save();
+
+				content_log($assigned_user_id, $current_datetime_vn, 0);
+			} else {
+				// Không có ai online, thử lấy người busy (khóa row)
+				$sql_assign_busy =
+					"SELECT id, assigned_user_id
+					FROM ec_online_report
+					WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
+						AND status = 2
+						AND deleted = 0
+						$sql_exclude_telesale
+					ORDER BY last_online IS NULL, last_online
+					LIMIT 1";
+
+				$res_assign_busy = $this->db->query($sql_assign_busy);
+				$row_assign      = $this->db->fetchByAssoc($res_assign_busy);
+
+				if ($row_assign) {
+					$assigned_user_id = $row_assign['assigned_user_id'];
+
 					$online = new EC_Online_Report;
 					$online->retrieve($row_assign['id']);
 					$online->booking_id   = $booking_id;
-					$online->start_assign = $timedate->now();
-					$online->last_online  = $timedate->now();
+					$online->start_assign = $timedate->nowDb();
+					$online->last_online  = $timedate->nowDb();
 					$online->total_qty    = $total_qty;
 					$online->save();
 
-					if (!in_array($assigned_user_id, $arr_id_admin)) {
-						content_log($assigned_user_id, $current_datetime_vn, 0);
-					}
+					content_log($assigned_user_id, $current_datetime_vn, 0);
+				} else {
+					$assigned_user_id = $ksnb_user_id;
 				}
-			} else {
-				// Fallback: user ksnb
+			}
+
+			if ($assigned_user_id == '') {
 				$assigned_user_id = $ksnb_user_id;
 			}
-		}
 
-		if ($assigned_user_id == '') {
-			// Fallback: user ksnb
-			$assigned_user_id = $ksnb_user_id;
+			// CẬP NHẬT ASSIGN BOOKING
+			$db->query("UPDATE ec_flight_bookings SET assigned_user_id = '$assigned_user_id' WHERE id = '$booking_id' AND deleted = 0");
+		} catch (\Throwable $e) {
+			LoggerHelper::error(
+				"assignBooking: lỗi khi gán booking {$booking_id}: {$e->getMessage()}",
+				['booking_id' => $booking_id]
+			);
 		}
-
-		// CẬP NHẬT ASSIGN BOOKING
-		$db->query("UPDATE ec_flight_bookings SET assigned_user_id = '$assigned_user_id' WHERE id = '$booking_id' AND deleted = 0");
 
 		return $assigned_user_id;
 	}
 
 	// Tạo record ec_online_report cho hôm nay với những user chưa có
+	// Không bao gồm Admin (Admin QuanLy tạo record)
 	public function populateOnlineReport()
 	{
+		global $timedate;
+
 		$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
+
+		// Cùng danh sách loại trừ với isUserEligibleForOnline() (custom/include/custom_utils.php)
+		$excludedUserNames = "'" . implode("','", array_map([$this->db, 'quote'], ONLINE_REPORT_EXCLUDED_USERNAMES)) . "'";
 
 		$sql = "SELECT id, first_name, last_name, title
 			FROM users
 			WHERE deleted = 0
 				AND status = 'Active'
-				AND td_sip IS NOT NULL 
+				AND td_sip IS NOT NULL
 				AND td_sip != ''
 				AND title != 'Bot'
 				AND (is_admin = 0 OR title = 'QuanLy')
-				AND id NOT IN ('e3bbb3e5-6660-0bf7-8976-54869c4ee609') 
+				AND id NOT IN ('e3bbb3e5-6660-0bf7-8976-54869c4ee609')
+				AND user_name NOT IN ({$excludedUserNames})
 			ORDER BY date_entered";
 
 		$res = $this->db->query($sql);
@@ -181,6 +179,7 @@ class EC_Online_Report extends Basic
 				$online->assigned_user_id = $row['id'];
 				$online->status           = 0;
 				$online->title            = $row['title'];
+				$online->last_online      = $timedate->nowDb();
 				$online->save();
 			}
 		}
@@ -197,6 +196,19 @@ class EC_Online_Report extends Basic
 		$change_type = in_array($change_type, ['up', 'down', 'off', 'busy', 'delete']) ? $change_type : '';
 		if (empty($onl_id) || empty($change_type)) return '';
 
+		// Đồng bộ trạng thái agent (checked busy / pill + tổng đài) theo nút admin bấm.
+		// Làm TRƯỚC phần đổi vị trí để logic 'up' giữ quyền quyết định cuối với last_online.
+		//   up / down -> Online (Available) | busy -> Busy (On Break) | off / delete -> Offline (Logged Out)
+		$agent_status_map = [
+			'up'     => 'Available',
+			'down'   => 'Available',
+			'busy'   => 'On Break',
+			'off'    => 'Logged Out',
+			'delete' => 'Logged Out',
+		];
+		$assigned_user_id = $this->db->getOne("SELECT assigned_user_id FROM ec_online_report WHERE id = '$onl_id' AND deleted = 0");
+		$this->syncAgentStatus($assigned_user_id, $agent_status_map[$change_type] ?? '');
+
 		if ($change_type == 'delete') {
 			$this->db->query("UPDATE ec_online_report SET deleted = 1, date_modified = NOW() WHERE id = '$onl_id'");
 			return '';
@@ -210,7 +222,7 @@ class EC_Online_Report extends Basic
 			$onl = new EC_Online_Report;
 			$onl->retrieve($onl_id);
 			$onl->status = 0;
-			$onl->last_online = $timedate->now();
+			$onl->last_online = $timedate->nowDb();
 			$onl->booking_id = '';
 			$onl->start_assign = '';
 			$onl->save();
@@ -218,7 +230,7 @@ class EC_Online_Report extends Basic
 			$onl = new EC_Online_Report;
 			$onl->retrieve($onl_id);
 			$onl->status = 2;
-			$onl->last_online = $timedate->now();
+			$onl->last_online = $timedate->nowDb();
 			$onl->save();
 		} else if ($change_type == 'up' || $change_type == 'down') {
 			// kt còn người Online
@@ -238,7 +250,7 @@ class EC_Online_Report extends Basic
 					WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) >= '$today_vn'
 						AND status = 1
 						AND deleted = 0
-					ORDER BY last_online
+					ORDER BY last_online IS NULL, last_online
 					LIMIT 1";
 
 				$res1 = $this->db->query($sql1);
@@ -257,7 +269,7 @@ class EC_Online_Report extends Basic
 				$onl = new EC_Online_Report;
 				$onl->retrieve($onl_id);
 				$onl->status = 1;
-				$onl->last_online = $timedate->now();
+				$onl->last_online = $timedate->nowDb();
 				$onl->booking_id = '';
 				$onl->start_assign = '';
 				$onl->save();
@@ -265,5 +277,52 @@ class EC_Online_Report extends Basic
 		}
 
 		return '';
+	}
+
+	// OFF 1 user: Offline (status = 0), trả booking đang giữ về hàng chờ,
+	// đồng bộ agent (checked busy / pill + softphone/tổng đài) về Logged Out.
+	// Dùng chung cho checkBookingHandle (quá hạn xử lý booking) và checkStatusOnlineUser (idle).
+	public function setOffline($onl_id)
+	{
+		global $timedate;
+
+		$onl_id = preg_replace('/[^a-f0-9\-]/i', '', (string)$onl_id);
+		if (empty($onl_id)) return '';
+
+		$onl = new EC_Online_Report;
+		$onl->retrieve($onl_id);
+		if (empty($onl->id)) return '';
+
+		$assigned_user_id = $onl->assigned_user_id;
+
+		$onl->status       = 0;
+		$onl->booking_id   = '';
+		$onl->start_assign = '';
+		$onl->last_online  = $timedate->nowDb();
+		$onl->save();
+
+		$this->syncAgentStatus($assigned_user_id, 'Logged Out');
+
+		return $assigned_user_id;
+	}
+
+	// Đồng bộ users.agent_status (checked busy / pill + softphone) + tổng đài cho 1 user.
+	// agent_change_status tự lo content_log + cập nhật ec_online_report.status theo agent_status.
+	private function syncAgentStatus($user_id, $agent_status)
+	{
+		if (empty($user_id) || empty($agent_status)) return;
+
+		// Luôn cập nhật users.agent_status trực tiếp
+		$this->db->query("UPDATE users SET agent_status = '" . $this->db->quote($agent_status) . "' WHERE id = '" . $this->db->quote($user_id) . "' AND deleted = 0");
+
+		// ồng bộ trạng thái agent trên tổng đài
+		$sip = function_exists('custom_get_sip_number') ? custom_get_sip_number($user_id) : '';
+		if (!empty($sip) && function_exists('agent_change_status')) {
+			try {
+				agent_change_status($sip, $agent_status);
+			} catch (\Throwable $e) {
+				LoggerHelper::error("changeOnlinePosition: agent_change_status error - " . $e->getMessage());
+			}
+		}
 	}
 }

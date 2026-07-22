@@ -34,6 +34,9 @@ class EC_Flight_BookingsController extends SugarController
             case "debtopay":
                 $this->action = "debtopay";
                 break;
+            case "recoveryorder":
+                $this->action = "recoveryorder";
+                break;
             case "airportstatistics":
                 $this->action = "airportstatistics";
                 break;
@@ -103,6 +106,8 @@ class EC_Flight_BookingsController extends SugarController
             $this->action = "checkflydate";
         if ($this->return_action == "debtopay")
             $this->action = "debtopay";
+        if ($this->return_action == "recoveryorder")
+            $this->action = "recoveryorder";
         if ($this->return_action == "sendconfirm")
             $this->action = "sendconfirm";
         if ($this->return_action == "airportstatistics")

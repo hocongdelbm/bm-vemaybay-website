@@ -15,7 +15,6 @@ class Viewtest extends SugarView
 		// $this->updateBkQty();
 		// $this->updateBkTicket();
 		// $this->createBKCompleted();
-		// $this->checkStatusOnlineUser();
 	}
 
 	function updateWorkingDays()

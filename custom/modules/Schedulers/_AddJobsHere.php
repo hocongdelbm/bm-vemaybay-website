@@ -14,9 +14,8 @@ $job_strings[] = 'lockSalaryAtEndMonth'; // khoá bảng lương vào cuối m�
 $job_strings[] = 'updateWorkingDays'; // cập nhật ngày công trong bảng lương
 $job_strings[] = 'updateMissingEfforts'; // cập nhật nỗ lực thật sự của tháng nếu bảng lương khoá trước ngày cuối tháng
 $job_strings[] = 'updateOnlineReport'; // cập nhật ds online mỗi ngày
-// $job_strings[] = 'checkOnlineUser'; // Kiểm tra xem booking giao đã được xử lý, để biết user còn online hay không
 $job_strings[] = 'checkBookingHandle'; // Kiểm tra xem booking đã giao được xử lý hay chưa
-$job_strings[] = 'checkStatusOnlineUser'; // Kiểm tra user còn online hay không
+$job_strings[] = 'checkStatusOnlineUser'; // OFF user Online nhưng không thao tác gì (tracker) trong 5 phút
 $job_strings[] = 'reAssignBooking'; // lặp lại việc giao booking nếu gặp booking chưa được giao
 $job_strings[] = 'calculateCashFlow'; // Tính toán dòng tiền trong 3 ngày trước
 $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
@@ -1532,44 +1531,13 @@ function updateMissingEfforts()
 	return true;
 }
 
-
-// Kiểm tra user còn online hay không
-function checkStatusOnlineUser()
-{
-	global $db;
-
-	// 0: Offline
-	// 1: Online
-	// 2: Busy
-	$path           = "secure_sessions/check_online_logs/";
-	$timestamp_now 	= strtotime('+7 hours');
-
-	foreach (array_diff(scandir($path), ['.', '..', 'Thumbs.db', basename(__FILE__)]) as $file) {
-		$user_id 		= str_replace('_', '-', pathinfo($file, PATHINFO_FILENAME));
-		$data_user 		= json_decode(read_file_logs_online($user_id), true);
-		$diffInSeconds 	= abs($timestamp_now - strtotime($data_user['last_time']));
-		$agent 			= custom_get_sip_number($user_id);
-
-		if ($user_id == 'c57196c6-e211-9856-43d5-6695498f39ae') continue; //tiennguyen
-
-		// Kiểm tra trạng thái busy (10 phút) và không tương tác (2 phút 30 giây)
-		if (($data_user['busy'] == 1 && $diffInSeconds > 600) || ($data_user['busy'] == 0 && $diffInSeconds > 150)) {
-			if ($agent) agent_change_status($agent, 'Logged Out');
-		}
-	}
-
-	return true;
-}
-
-
 // Kiểm tra xem booking giao cho booker đã được xử lý hay chưa? 
-// Thời gian xử lý tối đa là 2 phút
+// Thời gian xử lý tối đa là 5 phút
 function checkBookingHandle() {
 	global $db, $timedate;
 
-	$now_vn = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
-	$today_vn = $now_vn->format('Y-m-d');
-	$current_minute_vn = $now_vn->format('Y-m-d H:i');
+	$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
+	$now_gmt = $timedate->nowDb();
 
 	$sql = "SELECT
 			onl.id, onl.booking_id,
@@ -1587,13 +1555,15 @@ function checkBookingHandle() {
 		WHERE onl.deleted = 0
 			AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= '$today_vn'
 			AND (onl.booking_id <> '' AND onl.booking_id IS NOT NULL)
-			AND TIMESTAMPDIFF(MINUTE, DATE_FORMAT(DATE_ADD(onl.start_assign, INTERVAL 7 HOUR), '%Y-%m-%d %H:%i'), '$current_minute_vn') >= 2
+			AND onl.start_assign IS NOT NULL
+			AND TIMESTAMPDIFF(SECOND, onl.start_assign, '$now_gmt') >= 300
 			AND b.deleted = 0";
 
 	$res = $db->query($sql);
 	$clear_bk_onl 		= [];
 	$reassign_bk_arr 	= [];
 	$user_off_arr 		= [];
+	$booking_off 		= [];
 
 	while ($row = $db->fetchByAssoc($res)) {
 		if ($row['is_processed']) {
@@ -1606,39 +1576,40 @@ function checkBookingHandle() {
 				'contact_name' 	=> $row['contact_name'],
 				'phone' 		=> $row['phone']
 			];
+			$user_off_arr[] = $db->getOne("SELECT name FROM ec_online_report WHERE id = '{$row['id']}' AND deleted = 0");
+			$booking_off[]  = $row['booking_name'];
+
+			// OFF user + đồng bộ agent (Logged Out) qua logic dùng chung
 			$onl = new EC_Online_Report;
-			$onl->retrieve($row['id']);
-			$onl->booking_id = '';
-			$onl->start_assign = '';
-			$onl->status = 0;
-			$onl->last_online = $timedate->now();
-
-			$user_off_arr[]  = $onl->name;
-			$booking_off[] = $row['booking_name'];
-
-			$onl->save();
+			$onl->setOffline($row['id']);
 		}
 	}
 
-	// Nếu booking đã giao được xử lý -> user online 
-	// -> Xoá thông tin đã giao trong bảng online
+	// Nếu booking đã giao được xử lý -> user online -> Xoá thông tin Booking đã giao trong bảng online của user đó
+	// Update từng row với last_online tăng dần (không dùng 1 câu UPDATE chung NOW() cho nhiều id) để tránh trùng last_online giữa nhiều user trong cùng 1 lượt cron
 	if (count($clear_bk_onl) > 0) {
-		$sql1 = '
-			UPDATE ec_online_report
-			SET booking_id = NULL
-				,start_assign = NULL
-				,status = 1
-				,last_online = NOW()
-				,date_modified = NOW()
-			WHERE id IN ("' . implode('","', $clear_bk_onl) . '")
-				AND deleted = 0
-		';
-		$db->query($sql1);
+		$clear_base_gmt = new DateTime($timedate->nowDb(), new DateTimeZone('UTC'));
+
+		foreach ($clear_bk_onl as $idx => $clear_onl_id) {
+			$clear_last_online = (clone $clear_base_gmt)->modify("+{$idx} seconds")->format('Y-m-d H:i:s');
+
+			$sql1 = '
+				UPDATE ec_online_report
+				SET booking_id = NULL
+					,start_assign = NULL
+					,status = 1
+					,last_online = "' . $clear_last_online . '"
+					,date_modified = NOW()
+				WHERE id = "' . $clear_onl_id . '"
+					AND deleted = 0
+			';
+			$db->query($sql1);
+		}
 	}
 
 	// user off thì thông báo
 	if (count($user_off_arr) > 0) {
-		$message = 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr);
+		$message = 'User này đã bị Off vì quá 5 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr);
 		NotificationService::sendWarningMessage($message, 'cty');
 	}
 
@@ -1655,6 +1626,72 @@ function checkBookingHandle() {
 			$message = 'Booking ' . $reassign_bk['booking_name'] . " được giao lại cho $user->last_name $user->first_name";
 			NotificationService::sendMessage($message, 'cty');
 		}
+	}
+
+	return true;
+}
+
+// OFF user đang Online nhưng KHÔNG thao tác gì trong 5 phút.
+// Tín hiệu hoạt động = bảng tracker (mọi thao tác/điều hướng trong CRM đều sinh record).
+// Bỏ qua: user đang giữ booking (checkBookingHandle lo), user vừa Online < 5 phút (grace),
+// và user admin không phải QuanLy (không tham gia cơ chế online).
+function checkStatusOnlineUser()
+{
+	global $db, $timedate;
+
+	$today_vn = (new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
+	$now_gmt  = $timedate->nowDb();
+	$thr_gmt  = date('Y-m-d H:i:s', strtotime('-5 minutes', strtotime($now_gmt))); // ngưỡng 5 phút (GMT)
+
+	// (1) Tập user còn hoạt động trong 5 phút gần nhất (tracker.date_modified lưu GMT)
+	$active_user_ids = [];
+	$res_active = $db->query("SELECT DISTINCT user_id FROM tracker WHERE deleted = 0 AND date_modified >= '$thr_gmt'");
+	while ($row_active = $db->fetchByAssoc($res_active)) {
+		if (!empty($row_active['user_id'])) {
+			$active_user_ids[$row_active['user_id']] = true;
+		}
+	}
+
+	// (2) User Online hôm nay cần xét OFF
+	$sql = "SELECT onl.id, onl.assigned_user_id, onl.last_online, onl.last_activity, onl.name
+		FROM ec_online_report onl
+			JOIN users u ON u.id = onl.assigned_user_id AND u.deleted = 0
+		WHERE onl.deleted = 0
+			AND onl.status = 1
+			AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= '$today_vn'
+			AND (onl.booking_id IS NULL OR onl.booking_id = '')
+			AND u.title != 'Bot'
+			AND (u.is_admin = 0 OR u.title = 'QuanLy')";
+
+	$res = $db->query($sql);
+	$user_off_arr = [];
+
+	while ($row = $db->fetchByAssoc($res)) {
+		// Grace: vừa Online / đổi trạng thái < 5 phút -> chưa tính idle
+		if (!empty($row['last_online']) && $row['last_online'] >= $thr_gmt) {
+			continue;
+		}
+
+		// Heartbeat (thao tác AJAX trong-trang, chat widget, cuộc gọi) còn mới -> bỏ qua
+		if (!empty($row['last_activity']) && $row['last_activity'] >= $thr_gmt) {
+			continue;
+		}
+
+		// Có hoạt động trong tracker (điều hướng trang module) -> còn làm việc, bỏ qua
+		if (isset($active_user_ids[$row['assigned_user_id']])) {
+			continue;
+		}
+
+		// Idle -> OFF (dùng logic dùng chung, đồng bộ luôn agent/tổng đài)
+		$onl = new EC_Online_Report;
+		$onl->setOffline($row['id']);
+
+		$user_off_arr[] = $row['name'];
+	}
+
+	if (count($user_off_arr) > 0) {
+		$message = 'User bị Off vì quá 5 phút không thao tác chứng từ / tương tác khách hàng: ' . implode(', ', $user_off_arr);
+		NotificationService::sendWarningMessage($message, 'cty');
 	}
 
 	return true;
@@ -1700,7 +1737,6 @@ function reAssignBooking()
 								WHERE id = '{$row['id']}' AND deleted = 0";
 					$db->query($sql_upd);
 
-					// assignBooking() đã cập nhật ec_online_report (status, booking_id, total_qty)
 					$reassign_bk[] = "Booking: {$row['name']} giao cho: " . trim("$user->last_name $user->first_name");
 				}
 			}

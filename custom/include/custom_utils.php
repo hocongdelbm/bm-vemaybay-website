@@ -1118,6 +1118,34 @@ function global_test_input($data)
 }
 
 
+// Danh sách user_name không áp dụng cơ chế Online/Offline.
+if (!defined('ONLINE_REPORT_EXCLUDED_USERNAMES')) {
+    define('ONLINE_REPORT_EXCLUDED_USERNAMES', ['phuonglm', 'thintu']);
+}
+
+/**
+ * Cơ chế Online/Offline (tạo record ec_online_report, check online/off) KHÔNG áp dụng cho:
+ *   - user title 'Bot'
+ *   - user admin mà title khác 'QuanLy'
+ *   - user_name nằm trong ONLINE_REPORT_EXCLUDED_USERNAMES (loại trừ riêng theo yêu cầu nghiệp vụ)
+ * Tương đương điều kiện SQL trong populateOnlineReport: title != 'Bot' AND (is_admin = 0 OR title = 'QuanLy')
+ * AND user_name NOT IN (...).
+ *
+ * @param User $user Bean user (thường là $current_user)
+ * @return bool true nếu user tham gia cơ chế online/offline
+ */
+function isUserEligibleForOnline($user): bool
+{
+    if (empty($user) || empty($user->id)) return false;
+
+    $title = $user->title ?? '';
+    if ($title === 'Bot') return false;               // loại Bot
+
+    if (in_array($user->user_name ?? '', ONLINE_REPORT_EXCLUDED_USERNAMES, true)) return false;
+
+    return !is_admin($user) || ($title === 'QuanLy'); // loại admin không phải QuanLy
+}
+
 function custom_get_sip_number($key = '')
 {
     global $db;

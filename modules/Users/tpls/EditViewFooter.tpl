@@ -61,7 +61,7 @@
         <div id="generate_password">
             <table width="100%" border="0" cellspacing="0" cellpadding="0" class="edit view table-profile table-profile--generate_password">
                 <tr>
-                    <td width='40%'>
+                    <td width='50%'>
                         <table width='100%' cellspacing='0' cellpadding='0' border='0'>
                             <tr>
                                 <th align="left" scope="row" colspan="4">
@@ -79,7 +79,15 @@
                                         {$MOD.LBL_OLD_PASSWORD}
                                     </td>
                                     <td>
-                                        <input name='old_password' id='old_password' type='password' tabindex='2' onkeyup="password_confirmation();" autocomplete="new-password">
+                                        <div class="pwd-field">
+                                            <input name='old_password' id='old_password' type='password' tabindex='2' onkeyup="password_confirmation();" autocomplete="new-password">
+                                            <button type="button" class="pwd-toggle" data-target="old_password" aria-label="{$MOD.LBL_SHOW_PASSWORD}" aria-pressed="false">
+                                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                                                    <path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+                                                    <path class="pwd-toggle-slash" d="M3 3l18 18" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             </table>
@@ -92,25 +100,55 @@
                                           id="mandatory_pwd">{if ($REQUIRED_PASSWORD)}{$APP.LBL_REQUIRED_SYMBOL}{/if}</span>
                                 </td>
                                 <td class='dataField'>
-                                    <input name='new_password' id="new_password" type='password' tabindex='2' onkeyup="password_confirmation();newrules('{$PWDSETTINGS.minpwdlength}','{$PWDSETTINGS.maxpwdlength}','{$REGEX}');"/>
+                                    <div class="pwd-field">
+                                        <input name='new_password' id="new_password" type='password' tabindex='2' onkeyup="password_confirmation();newrules('{$PWDSETTINGS.minpwdlength}','{$PWDSETTINGS.maxpwdlength}','{$REGEX}');"/>
+                                        <button type="button" class="pwd-toggle" data-target="new_password" aria-label="{$MOD.LBL_SHOW_PASSWORD}" aria-pressed="false">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                                                <path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+                                                <path class="pwd-toggle-slash" d="M3 3l18 18" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
+                            {if $PWDSETTINGS.minpwdlength || $PWDSETTINGS.maxpwdlength || $PWDSETTINGS.onelower || $PWDSETTINGS.oneupper || $PWDSETTINGS.onenumber || $PWDSETTINGS.onespecial}
+                            <tr>
+                                <td></td>
+                                <td class="dataField">
+                                    <div id="password_requirement_box">
+                                        <div class="pwd-strength">
+                                            <div class="pwd-strength-track">
+                                                <div class="pwd-strength-fill" id="pwd_strength_fill"></div>
+                                            </div>
+                                            <span class="pwd-strength-label" id="pwd_strength_label"></span>
+                                        </div>
+                                        <ul>
+                                            {if $PWDSETTINGS.minpwdlength || $PWDSETTINGS.maxpwdlength}<li><span id="lengths" class="pending"></span> {$PWD_LENGTH_LABEL}</li>{/if}
+                                            {if $PWDSETTINGS.onelower}<li><span id="1lowcase" class="pending"></span> {$MOD.ERR_PASSWORD_ONELOWER}</li>{/if}
+                                            {if $PWDSETTINGS.oneupper}<li><span id="1upcase" class="pending"></span> {$MOD.ERR_PASSWORD_ONEUPPER}</li>{/if}
+                                            {if $PWDSETTINGS.onenumber}<li><span id="1number" class="pending"></span> {$MOD.ERR_PASSWORD_ONENUMBER}</li>{/if}
+                                            {if $PWDSETTINGS.onespecial}<li><span id="1special" class="pending"></span> {$MOD.ERR_PASSWORD_SPECCHARS}</li>{/if}
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {/if}
                             <tr>
                                 <td scope="row" width='35%'>
                                     {$MOD.LBL_CONFIRM_PASSWORD}
                                 </td>
                                 <td class='dataField'>
-                                    <input name='confirm_new_password' id='confirm_pwd' type='password' tabindex='2' onkeyup="password_confirmation();">
+                                    <div class="pwd-field">
+                                        <input name='confirm_new_password' id='confirm_pwd' type='password' tabindex='2' onkeyup="password_confirmation();">
+                                        <button type="button" class="pwd-toggle" data-target="confirm_pwd" aria-label="{$MOD.LBL_SHOW_PASSWORD}" aria-pressed="false">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                                                <path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+                                                <path class="pwd-toggle-slash" d="M3 3l18 18" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div id="comfirm_pwd_match" class="error" style="display: none;">{$MOD.ERR_PASSWORD_MISMATCH}</div>
                                 </td>
-                            </tr>
-                            <tr>
-                                <div id="comfirm_pwd_match" class="error" style="display: none;">{$MOD.ERR_PASSWORD_MISMATCH}</div>
-                                {*<span id="ext-gen63" class="x-panel-header-text">
-                                   Requirements
-                                   <span id="Filter.1_help" onclick="return SUGAR.util.showHelpTips(this,help());">
-                                       <img src="themes/default/images/help.gif"/>
-                                   </span>
-                               </span>*}
                             </tr>
                             <tr>
                                 <td class='dataLabel'></td>
@@ -132,8 +170,7 @@
                             </tr>
                         </table>
                     </td>
-                    <td width='60%' style="vertical-align:middle;">
-                    </td>
+                    <td width='50%'></td>
                 </tr>
             </table>
         </div>

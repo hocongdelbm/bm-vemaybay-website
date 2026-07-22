@@ -6,37 +6,6 @@
           const currentURLQuery = window.location.search;
           const AGENT_STATUS = $('#agent_status').val();
 
-          // if(currentURLQuery.indexOf('module=EC_Zalo&action=index') === -1) {
-          //      // BEHAVIOR USER
-          //      $.ajax({
-          //           url: "index.php?entryPoint=entryPointBehaviorUser",
-          //           type: "POST",
-          //           cache: false,
-          //           data: {
-          //                url_behavior: currentURL,
-          //                for: "saveBehaviorUser",
-          //           },
-          //           success: function(response) {}
-          //      });
-          // }
-
-          // $('body').on('click', function(e) {
-          //      const currentTime = new Date(new Date().toString().split('GMT')[0]+' UTC').toISOString().split('.')[0].replace('T',' ');
-              
-          //      if(e.target.id != 'busy_stt'){
-          //           $.ajax({
-          //                url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
-          //                type: "POST",
-          //                cache: false,
-          //                data: {
-          //                     time: currentTime,
-          //                     for: "saveLastClickUser",
-          //                },
-          //                success: function(response) {}
-          //           });
-          //      }
-          // });
-
           const themeToggleItems = document.querySelectorAll("[data-bs-theme-value]");
           const htmlElement = document.documentElement; 
           const themeIcon = document.querySelector(".theme-icon-active");
@@ -221,19 +190,29 @@
                               <ul class="navbar-nav navbar-nav-right">
                                    <!-- ONLINE STATUS -->
                                    {if $AUTHENTICATED}
-                                   <li id="change_user_status">
-                                        <div class="container_checkbox">
-                                            <div class="switch-holder d-flex align-items-center gap-2">
-                                                <div class="switch-toggle d-flex align-items-center">
-                                                       <label class="switch" for="busy_stt">
-                                                            <input type="checkbox" id="busy_stt" class="usr_stt" stt_opt="2">
-                                                       </label>
-                                                </div>
-                                                  <div class="switch-label">
-                                                       <span class="text-black">Busy</span>
-                                                  </div>
-                                            </div>
-                                        </div>
+                                   <li id="change_user_status" class="agent-status" style="display:none;">
+                                        <button type="button" class="agent-status__pill" id="agent_status_pill">
+                                             <span class="agent-status__dot" id="agent_status_dot"></span>
+                                             <span class="agent-status__text" id="agent_status_text">Online</span>
+                                             <svg class="agent-status__caret" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                                        </button>
+                                        <ul class="agent-status__menu" id="agent_status_menu">
+                                             <li class="agent-status__option" data-status="Available">
+                                                  <span class="agent-status__dot agent-status__dot--online"></span>
+                                                  <span class="agent-status__label">Online</span>
+                                                  <svg class="agent-status__tick" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M13.485 1.929a.75.75 0 0 1 .086 1.056l-7 8.5a.75.75 0 0 1-1.11.05l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.93 2.93 6.478-7.87a.75.75 0 0 1 1.056-.086z"/></svg>
+                                             </li>
+                                             <li class="agent-status__option" data-status="On Break">
+                                                  <span class="agent-status__dot agent-status__dot--busy"></span>
+                                                  <span class="agent-status__label">Busy</span>
+                                                  <svg class="agent-status__tick" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M13.485 1.929a.75.75 0 0 1 .086 1.056l-7 8.5a.75.75 0 0 1-1.11.05l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.93 2.93 6.478-7.87a.75.75 0 0 1 1.056-.086z"/></svg>
+                                             </li>
+                                             <li class="agent-status__option" data-status="Logged Out">
+                                                  <span class="agent-status__dot agent-status__dot--offline"></span>
+                                                  <span class="agent-status__label">Offline</span>
+                                                  <svg class="agent-status__tick" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M13.485 1.929a.75.75 0 0 1 .086 1.056l-7 8.5a.75.75 0 0 1-1.11.05l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.93 2.93 6.478-7.87a.75.75 0 0 1 1.056-.086z"/></svg>
+                                             </li>
+                                        </ul>
                                    </li>
 
                                    <li class="call-phone__wrap">

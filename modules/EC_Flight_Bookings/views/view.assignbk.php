@@ -2,13 +2,13 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class Viewassignbk extends SugarView {
+    // Version asset (JS/CSS) - tăng khi cần bust cache
+    private const ASSET_VERSION = '1.0.0';
+
     public string $timezone;
     public string $date_format;
     public string $time_format;
 
-	// Khởi tạo timezone/định dạng ngày giờ từ preference của user.
-	// Tách riêng để cả display() lẫn getUserSttInf() (gọi trực tiếp từ epFlightBookings)
-	// đều khởi tạo được typed property, tránh "must not be accessed before initialization".
 	private function initFormats() {
 		global $current_user, $sugar_config;
 
@@ -18,9 +18,12 @@ class Viewassignbk extends SugarView {
 	}
 
 	public function display() {
+		global $current_user;
+
 		$this->initFormats();
 
 		$smartyCont = new Sugar_Smarty();
+		$smartyCont->assign('VERSION', self::ASSET_VERSION);
 		$smartyCont->assign('IS_ALLOWED_USER', is_admin($current_user));
 		$smartyCont->assign('ONLINE_DATA', $this->getUserSttInf());
 		$smartyCont->assign('LIST_USER', $this->getListUsers());
@@ -42,7 +45,7 @@ class Viewassignbk extends SugarView {
 				LEFT JOIN users u ON u.id = eor.assigned_user_id AND u.deleted = 0
 			WHERE eor.deleted = 0
 				AND DATE(DATE_ADD(eor.date_entered, INTERVAL 7 HOUR)) = '$today_vn'
-			ORDER BY FIELD(eor.status, 1, 2, 0), eor.last_online";
+			ORDER BY FIELD(eor.status, 1, 2, 0), eor.last_online IS NULL, eor.last_online";
 
 		$arr_group_badge = [
 			'Booker'   => '<span class="badge bg-primary">Booker</span>',
@@ -73,15 +76,22 @@ class Viewassignbk extends SugarView {
 		$res = $this->bean->db->query($sql);
 		$i   = 0;
 
+		// Cột "Hoạt động gần nhất" chỉ hiện cho admin KHÔNG phải QuanLy (mục đích theo dõi/kỹ thuật)
+		$can_see_activity = is_admin($current_user) && (($current_user->title ?? '') !== 'QuanLy');
+
 		$html 	 = '<table id="online_tbl" class="table-online_tbl table-details__booking" cellpadding="0" cellspacing="0">
 						<thead>
 							<th class="hide-mobile" width="5%">#</th>
 							<th width="15%">Họ tên</th>
-							<th width="10%">SIP</th>
-							<th width="10%">Tình trạng</th>
-							<th class="hide-mobile" width="10%">Chức vụ</th>
-							<th class="hide-mobile" width="15%">Check-in</th>
-							<th class="hide-mobile text-nowrap" width="10%">Nhận cuộc gọi</th>';
+							<th width="8%">SIP</th>
+							<th width="8%">Tình trạng</th>
+							<th class="hide-mobile" width="8%">Chức vụ</th>
+							<th class="hide-mobile" width="10%">Check-in</th>
+							<th class="hide-mobile text-nowrap" width="8%">Nhận cuộc gọi</th>';
+
+		if ($can_see_activity) {
+			$html .= '<th class="hide-mobile text-nowrap">Hoạt động gần nhất</th>';
+		}
 
 		if (is_admin($current_user)) {
 			$html .= '<th></th>';
@@ -100,6 +110,14 @@ class Viewassignbk extends SugarView {
 				$start_online = '';
 				if (isset($row['start_online']) && !empty($row['start_online']) && strtotime($row['start_online']) !== false) {
 					$start_online = DatetimeHelper::convert_datetime($row['start_online']
+						, DatetimeHelper::DB_FORMAT, "$this->date_format $this->time_format"
+						, DatetimeHelper::DB_TIMEZONE, $this->timezone
+					);
+				}
+
+				$last_activity = '';
+				if ($can_see_activity && !empty($row['last_activity']) && strtotime($row['last_activity']) !== false) {
+					$last_activity = DatetimeHelper::convert_datetime($row['last_activity']
 						, DatetimeHelper::DB_FORMAT, "$this->date_format $this->time_format"
 						, DatetimeHelper::DB_TIMEZONE, $this->timezone
 					);
@@ -127,6 +145,10 @@ class Viewassignbk extends SugarView {
 						<td class="hide-mobile text-center group_sip">' . ($arr_group_badge[$row['user_title']] ?? $row['user_title']) . '</td>
 						<td class="hide-mobile text-center start_online">' . $start_online . '</td>
 						<td class="hide-mobile text-center fw-semibold call_inbound">' . ($arr_inbound[$row['assigned_user_id']] ?? '') . '</td>';
+
+				if ($can_see_activity) {
+					$html .= '<td class="hide-mobile text-center last_activity">' . $last_activity . '</td>';
+				}
 
 				if (is_admin($current_user)) {
 					// các nút thao tác

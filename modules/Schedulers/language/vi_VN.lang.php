@@ -135,8 +135,6 @@ $mod_strings = [
     'LBL_KETCHUYENCONGNOPHAITHU' => 'Kết chuyển công nợ phải thu',
     'LBL_KETCHUYENCONGNOPHAITRA' => 'Kết chuyển công nợ phải trả',
     'LBL_UPDATEONLINEREPORT' => 'Cập nhật danh sách Online hằng ngày',
-    // 'LBL_CHECKONLINEUSER' => 'Kiểm tra người dùng còn Online',
-    'LBL_CHECKSTATUSONLINEUSER' => 'Kiểm tra người dùng còn Online hay không',
     'LBL_REASSIGNBOOKING' => 'Tiếp tục giao những booking chưa giao cho booker',
     'LBL_CALCULATECASHFLOW' => 'Tính toán báo cáo dòng tiền hằng ngày',
     'LBL_TUDONGTAOBANG' => 'Tự động tạo bảng',
@@ -145,8 +143,8 @@ $mod_strings = [
     'LBL_LOOPCHECKIFBOOKINGOVER24H' => 'Loop check booking > 24h',
     'LBL_TESTCRON' => 'Test cron',
     'LBL_CHECKBOOKINGHANDLE' => 'Kiểm tra booking được giao đã được xử lý hay chưa',
-    // Voucher checkExpirationDateVoucher
     'LBL_CHECKEXPIRATIONDATEVOUCHER' => 'Kiểm tra hạn sử dụng của voucher',
+  
     // REPORT PROFIT
     'LBL_SAVEREPORTWEEKLY' => 'Lưu thông tin doanh số vào cuối ngày.',
     'LBL_SENDAUTOCHEAPPRICEMESSAGEZALO' => 'Gửi tin tự động về giá vé rẻ qua ZBS template Zalo',
@@ -157,4 +155,5 @@ $mod_strings = [
     'LBL_SAVEREVENUEBOOKINGJOB' => 'Cập nhật doanh số booking Revenue',
     'LBL_NOTIFYCHECKINJOURNEY' => 'Thông báo hành trình cần checkin',
     'LBL_SAVEBONUSREPORTJOB' => 'Tính dữ liệu thưởng doanh số',
+    'LBL_CHECKSTATUSONLINEUSER' => 'Kiểm tra tương tác user',
 ];
