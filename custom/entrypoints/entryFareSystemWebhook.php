@@ -49,26 +49,41 @@ $getRequestHeaders = static function () {
     return $normalizedHeaders;
 };
 
-$increaseNumericFields = static function (&$data, $fields, $amount) {
-    foreach ($fields as $field) {
-        if (array_key_exists($field, $data) && (is_int($data[$field]) || is_float($data[$field]))) {
-            $data[$field] += $amount;
-        }
-    }
+$isFiniteNumber = static function ($value) {
+    return (is_int($value) || is_float($value)) && is_finite((float) $value);
 };
 
-$applyServiceFeeToFlightResponse = static function (&$responseData, $serviceFee) use ($increaseNumericFields) {
+$recalculatePriceNode = static function (&$data, $serviceFee, $prefix = '') use ($isFiniteNumber) {
+    $fieldNames = [];
+    foreach (['fare', 'tax', 'airportFee', 'adminFee', 'fee', 'price'] as $fieldName) {
+        $fieldNames[$fieldName] = $prefix === ''
+            ? $fieldName
+            : $prefix . ucfirst($fieldName);
+    }
+
+    // Keep each price node atomic: do not partially update malformed data.
+    foreach ($fieldNames as $fieldName) {
+        if (!array_key_exists($fieldName, $data) || !$isFiniteNumber($data[$fieldName])) {
+            return;
+        }
+    }
+
+    // Business rule for one passenger on one leg:
+    // fee = adminFee + airportFee + serviceFee; price = fare + tax + fee.
+    $fee = $data[$fieldNames['adminFee']]
+        + $data[$fieldNames['airportFee']]
+        + $serviceFee;
+
+    $data[$fieldNames['fee']] = $fee;
+    $data[$fieldNames['price']] = $data[$fieldNames['fare']]
+        + $data[$fieldNames['tax']]
+        + $fee;
+};
+
+$applyServiceFeeToFlightResponse = static function (&$responseData, $serviceFee) use ($recalculatePriceNode) {
     if ($serviceFee == 0) {
         return;
     }
-
-    $flightPriceFields = [
-        'adminFee', 'fee', 'price',
-        'adtAdminFee', 'adtFee', 'adtPrice',
-        'chdAdminFee', 'chdFee', 'chdPrice',
-        'infAdminFee', 'infFee', 'infPrice',
-    ];
-    $priceFields = ['adminFee', 'fee', 'price'];
 
     foreach (['dep', 'ret'] as $direction) {
         if (!isset($responseData['data'][$direction]) || !is_array($responseData['data'][$direction])) {
@@ -80,7 +95,10 @@ $applyServiceFeeToFlightResponse = static function (&$responseData, $serviceFee)
                 continue;
             }
 
-            $increaseNumericFields($flight, $flightPriceFields, $serviceFee);
+            $recalculatePriceNode($flight, $serviceFee);
+            foreach (['adt', 'chd', 'inf'] as $passengerType) {
+                $recalculatePriceNode($flight, $serviceFee, $passengerType);
+            }
 
             if (!isset($flight['fareOptions']) || !is_array($flight['fareOptions'])) {
                 continue;
@@ -91,14 +109,14 @@ $applyServiceFeeToFlightResponse = static function (&$responseData, $serviceFee)
                     continue;
                 }
 
-                $increaseNumericFields($fareOption, $priceFields, $serviceFee);
+                $recalculatePriceNode($fareOption, $serviceFee);
 
                 foreach (['adt', 'chd', 'inf'] as $passengerType) {
                     if (!isset($fareOption[$passengerType]) || !is_array($fareOption[$passengerType])) {
                         continue;
                     }
 
-                    $increaseNumericFields($fareOption[$passengerType], $priceFields, $serviceFee);
+                    $recalculatePriceNode($fareOption[$passengerType], $serviceFee);
                 }
             }
             unset($fareOption);
