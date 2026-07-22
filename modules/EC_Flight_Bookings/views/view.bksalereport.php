@@ -230,7 +230,7 @@ class Viewbksalereport extends SugarView {
 						<td class="text-center">' . $row['voucher_date'] . '</td>
 						<td class="text-center">
 						<a target="_blank" href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '">' . $row['booking_name'] . '</a>
-						' . (!empty($row['parent_name'] && $row['parent_type'] != 'EC_Flight_Bookings') ? '/ <a target="_blank" href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['voucher_id'] . '">' . $row['parent_name'] . '</a>' : '') . '
+						' . ((!empty($row['parent_name']) && $row['parent_type'] != 'EC_Flight_Bookings') ? '/ <a target="_blank" href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '">' . $row['parent_name'] . '</a>' : '') . '
 						</td>
 						<td class="text-center">' . $row['date_ticket_issue'] . '</td>
 						<td class="text-center">' . $row['total_quantity'] . '</td>

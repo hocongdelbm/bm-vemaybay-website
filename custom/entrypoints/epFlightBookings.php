@@ -1674,19 +1674,20 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 				<thead>
 					<th width="5%">#</th>
 					<th width="10%">Booking</th>
-					<th width="10%">Trạng thái</th>
-					<th width="10%" class="hide-mobile">Phí DV</th>
+					<th width="9%">Trạng thái</th>
+					<th width="14%">Hành trình</th>
+					<th width="9%" class="hide-mobile">Phí DV</th>
 					<th width="5%">Vé</th>
-					<th width="10%">Doanh số</th>
-					<th width="10%">Phí bình quân</th>
+					<th width="9%">Doanh số</th>
+					<th width="9%">Phí bình quân</th>
 					<th width="8%" class="hide-mobile">Giao cho</th>
-					<th width="15%" class="hide-mobile">Ngày đặt</th>
+					<th width="12%" class="hide-mobile">Ngày đặt</th>
 					<th class="hide-mobile">Ngày xuất vé</th>
 				</thead>
 				<tbody>
 		';
 	$sql = '
-			SELECT 
+			SELECT
 				bk.id AS bk_id, bk.name AS bk_name, bk.booking_status
 				, DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS bk_date_entered
 				, bk.date_ticket_issue AS bk_date_ticket_issue
@@ -1695,11 +1696,34 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 				, bk.id as booking_id
 				, (SELECT GROUP_CONCAT(DISTINCT service_fee) FROM ec_booking_details WHERE deleted = 0 AND booking_id = bk.id) AS service_fee
 				, u.user_name
+				, rt.departure, rt.arrival
+				, ap_dep.city_name AS dep_city
+				, ap_dep.country AS dep_country
+				, ap_arr.city_name AS arr_city
+				, ap_arr.country AS arr_country
+				, IFNULL(rtn.cnt, 0) AS return_leg_count
 			FROM ec_flight_bookings bk
 			LEFT JOIN ec_revenue rv ON rv.booking_id = bk.id AND rv.deleted = 0
 			LEFT JOIN ec_booking_details d ON d.booking_id = bk.id AND d.deleted = 0
 			INNER JOIN users u ON u.id = bk.assigned_user_id
-			WHERE bk.deleted = 0 
+			LEFT JOIN (
+				SELECT
+					i.booking_id
+					, SUBSTRING_INDEX(GROUP_CONCAT(i.departure ORDER BY i.departure_date ASC), ",", 1) AS departure
+					, SUBSTRING_INDEX(GROUP_CONCAT(i.arrival ORDER BY i.departure_date DESC), ",", 1) AS arrival
+				FROM ec_booking_itineraries i
+				WHERE i.deleted = 0 AND i.direction = 0
+				GROUP BY i.booking_id
+			) rt ON rt.booking_id = bk.id
+			LEFT JOIN ec_airports ap_dep ON ap_dep.iata_code = rt.departure AND ap_dep.deleted = 0
+			LEFT JOIN ec_airports ap_arr ON ap_arr.iata_code = rt.arrival AND ap_arr.deleted = 0
+			LEFT JOIN (
+				SELECT booking_id, COUNT(*) AS cnt
+				FROM ec_booking_itineraries
+				WHERE deleted = 0 AND direction = 1
+				GROUP BY booking_id
+			) rtn ON rtn.booking_id = bk.id
+			WHERE bk.deleted = 0
 			AND bk.ticket_type = 2
 			AND DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN "' . date('Y-m-d', strtotime($_POST['fdate'])) . '" AND "' . date('Y-m-d', strtotime($_POST['tdate'])) . '"
 			AND bk.created_by = "' . $db->quote($_POST['user']) . '"
@@ -1718,6 +1742,23 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 		// Ngày xuất vé
 		$date_ticket_issue = ($row['bk_date_ticket_issue'] == '') ? '' : date('d-m-Y', strtotime($row['bk_date_ticket_issue']));
 
+		// Hành trình: mã sân bay đi/đến (ec_booking_itineraries) + thành phố/quốc gia điểm đến (ec_airports)
+		$itinerary_html = '';
+		if (!empty($row['departure']) && !empty($row['arrival'])) {
+			$arr_country_name = !empty($row['arr_country']) && isset($app_list_strings['region_dom'][$row['arr_country']])
+				? $app_list_strings['region_dom'][$row['arr_country']]
+				: $row['arr_country'];
+			$dep_country_name = !empty($row['dep_country']) && isset($app_list_strings['region_dom'][$row['dep_country']])
+				? $app_list_strings['region_dom'][$row['dep_country']]
+				: $row['dep_country'];
+
+			$itinerary_html = '<div class="fw-semibold">' . $row['departure'] . ' → ' . $row['arrival'] . '</div>';
+			$itinerary_html .= '<div>' . $row['dep_city'] . ($dep_country_name ? ' (' . $dep_country_name . ')' : '') . ' → ' . $row['arr_city'] . ($arr_country_name ? ' (' . $arr_country_name . ')' : '') . '</div>';
+			if ($row['return_leg_count'] > 0) {
+				$itinerary_html .= '<div class="fw-semibold text-primary">Khứ hồi</div>';
+			}
+		}
+
 		$html2 .= '
 				<tr>
 					<td class="text-center fw-semibold">' . ($i + 1) . '</td>
@@ -1727,6 +1768,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 					<td class="text-center fw-semibold">
 						<font color="' . $app_list_strings['booking_status_color_list'][$row['booking_status']] . '">' . $app_list_strings['booking_status_list'][$row['booking_status']] . '</font>
 					</td>
+					<td class="text-center" data-field="itinerary">' . $itinerary_html . '</td>
 					<td class="text-center hide-mobile" data-field="service_fee">' . $service_fee . '</td>
 					<td class="text-center" data-field="total_ticket">' . format_number($row['total_ticket']) . '</td>
 					<td class="text-center" data-field="bk_sales">' . format_number($row['bk_sales']) . '</td>
