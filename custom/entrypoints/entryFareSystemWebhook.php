@@ -11,7 +11,6 @@ header('Content-Type: application/json; charset=utf-8');
 // returned in the fare response or written to logs.
 const FARE_WEBHOOK_AUTH_KEY_ENV = 'FARE_WEBHOOK_AUTH_KEY';
 const FARE_WEBHOOK_SIGNATURE_KEY_ENV = 'FARE_WEBHOOK_SIGNATURE_KEY';
-const FARE_WEBHOOK_EVENT_ENV = 'FARE_WEBHOOK_EVENT';
 
 $sendResponse = static function ($httpCode, $body) {
     http_response_code($httpCode);
@@ -91,7 +90,6 @@ try {
 
     $registeredKey = $getEnvironmentValue(FARE_WEBHOOK_AUTH_KEY_ENV);
     $signatureKey = $getEnvironmentValue(FARE_WEBHOOK_SIGNATURE_KEY_ENV);
-    $registeredEvent = $getEnvironmentValue(FARE_WEBHOOK_EVENT_ENV);
 
     if (!preg_match('/^[a-f0-9]{64}$/i', $registeredKey)) {
         $respond(500, 'Fare System webhook auth key is not configured');
@@ -99,31 +97,10 @@ try {
     if (!preg_match('/^[a-f0-9]{64}$/i', $signatureKey)) {
         $respond(500, 'Fare System webhook signature key is not configured');
     }
-    if ($registeredEvent === '') {
-        $respond(500, 'Fare System webhook event is not configured');
-    }
 
     $requestKey = $headers['x-auth-key'] ?? ($_SERVER['HTTP_X_AUTH_KEY'] ?? '');
     if (!is_string($requestKey) || $requestKey === '' || !hash_equals($registeredKey, $requestKey)) {
         $respond(401, 'Unauthorized');
-    }
-
-    $requestSignatureKey = $headers['x-chat-signaturekey']
-        ?? ($_SERVER['HTTP_X_CHAT_SIGNATUREKEY'] ?? '');
-    if (!is_string($requestSignatureKey)
-        || $requestSignatureKey === ''
-        || !hash_equals($signatureKey, $requestSignatureKey)
-    ) {
-        $respond(401, 'Unauthorized');
-    }
-
-    $requestEvent = $headers['x-chat-event'] ?? ($_SERVER['HTTP_X_CHAT_EVENT'] ?? '');
-    $requestEvent = is_string($requestEvent) ? trim($requestEvent) : '';
-    if ($requestEvent === '') {
-        $respond(400, 'X-Chat-Event header is required');
-    }
-    if (!hash_equals($registeredEvent, $requestEvent)) {
-        $respond(403, 'Webhook event is not supported');
     }
 
     $rawBody = file_get_contents('php://input');
@@ -131,9 +108,18 @@ try {
         $respond(400, 'Request body is required');
     }
 
+    $requestSignature = $headers['x-signature'] ?? ($_SERVER['HTTP_X_SIGNATURE'] ?? '');
+    $requestSignature = is_string($requestSignature) ? strtolower(trim($requestSignature)) : '';
+    $expectedSignature = hash_hmac('sha256', $rawBody, $signatureKey);
+    if (!preg_match('/^[a-f0-9]{64}$/', $requestSignature)
+        || !hash_equals($expectedSignature, $requestSignature)
+    ) {
+        $respond(401, 'Unauthorized');
+    }
+
     $payload = json_decode($rawBody, true);
-    if (!is_array($payload)) {
-        $payload = [];
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($payload)) {
+        $respond(400, 'Invalid JSON payload');
     }
 
     $departureCode = is_string($payload['departureCode'] ?? null)
