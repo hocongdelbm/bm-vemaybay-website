@@ -44,24 +44,6 @@ $getRequestHeaders = static function () {
     return $normalizedHeaders;
 };
 
-$limitFlightsByDirection = static function (&$responseData, $limit) {
-    if (!isset($responseData['data']) || !is_array($responseData['data'])) {
-        return;
-    }
-
-    foreach (['dep', 'ret'] as $direction) {
-        if (!isset($responseData['data'][$direction]) || !is_array($responseData['data'][$direction])) {
-            continue;
-        }
-
-        $responseData['data'][$direction] = array_slice(
-            $responseData['data'][$direction],
-            0,
-            $limit
-        );
-    }
-};
-
 try {
     $requestMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? '');
     if ($requestMethod !== 'POST') {
@@ -170,13 +152,7 @@ try {
         $respond(502, 'Fare System response is missing flight data');
     }
 
-    $limitFlightsByDirection($responseData, 6);
-    $encodedResponse = json_encode($responseData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    if ($encodedResponse === false) {
-        $respond(502, 'Unable to encode Fare System response');
-    }
-
-    $sendResponse(200, $encodedResponse);
+    $sendResponse(200, $response);
 } catch (Throwable $throwable) {
     $logMessage = sprintf(
         'Fare System webhook failed: %s on line %d in %s',
