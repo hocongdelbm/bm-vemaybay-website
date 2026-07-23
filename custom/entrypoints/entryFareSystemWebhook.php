@@ -123,19 +123,36 @@ try {
         'depCode' => $departureCode,
         'desCode' => $destinationCode,
         'departDate' => $departureDate,
-        'returnDate' => $returnDate,
-        'isLive' => true,
+        'returnDate' => $returnDate
     ];
+
+    require_once 'modules/EC_Airports/EC_Airports.php';
+
+    $allAirports = EC_Airports::getAirportList(EC_Airports::AIRPORT_SCOPE_ALL);
+    if (
+        !array_key_exists($departureCode, $allAirports)
+        || !array_key_exists($destinationCode, $allAirports)
+    ) {
+        $respond(400, 'Airport code is not supported');
+    }
+
+    $domesticAirports = EC_Airports::getAirportList(EC_Airports::AIRPORT_SCOPE_DOMESTIC);
+    $isInternational = !array_key_exists($departureCode, $domesticAirports)
+        || !array_key_exists($destinationCode, $domesticAirports);
+
+    $searchMethod = $isInternational
+        ? 'searchInterFlightBM'
+        : 'searchFlightBM';
 
     require_once 'custom/entrypoints/entryFactory.php';
 
     $className = 'entryFareSystemClass';
     $entryClass = entryFactory::create($className);
-    if (!$entryClass || !method_exists($entryClass, 'searchFlightBM')) {
+    if (!$entryClass || !method_exists($entryClass, $searchMethod)) {
         $respond(500, 'Unable to initialize Fare System service');
     }
 
-    $response = $entryClass->searchFlightBM($searchParams);
+    $response = $entryClass->$searchMethod($searchParams);
     if (!is_string($response) || trim($response) === '') {
         $respond(502, 'Fare System returned an empty response');
     }
