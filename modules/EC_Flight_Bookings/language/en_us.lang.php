@@ -42,4 +42,6 @@ $mod_strings = array (
 
   'LBL_RECALL_C'   => 'Recall',
   'LBL_IV_IDENTITY_NUMBER' => 'CCCD/Passport',
+  'LBL_EXTERNAL_REQUEST_ID' => 'External request ID',
+  'LBL_EXTERNAL_PAYLOAD_HASH' => 'External payload hash',
 );

@@ -276,5 +276,7 @@ $mod_strings = array(
   'LBL_TRANSACTION_HISTORY' => 'Lịch sử thanh toán',
   'LBL_PAYMENT' => 'Thanh toán',
   'LBL_ZALO' => 'Thông tin Zalo',
+  'LBL_EXTERNAL_REQUEST_ID' => 'Mã request ngoài',
+  'LBL_EXTERNAL_PAYLOAD_HASH' => 'Hash payload ngoài',
   'LNK_BONUS' => 'Thưởng doanh số',
 );
