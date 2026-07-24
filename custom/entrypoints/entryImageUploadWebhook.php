@@ -673,9 +673,8 @@ if (!empty($entryImageUploadWebhookLibraryOnly)) {
     return;
 }
 
-// Server-to-server image upload receiver. Clients are configured per system in:
-// $sugar_config['webhook']['image_upload']['clients'][<client-id>]
-// with auth_key and signature_key.
+// Server-to-server image upload receiver. The chat_websocket client uses:
+// $sugar_config['webhook']['image_upload']['enabled|auth_key|signature_key'].
 header('Content-Type: application/json; charset=utf-8');
 
 $responseRequestId = null;
@@ -775,9 +774,6 @@ try {
 
     global $sugar_config;
     $webhookConfig = $sugar_config['webhook']['image_upload'] ?? null;
-    $configuredClients = is_array($webhookConfig)
-        ? ($webhookConfig['clients'] ?? null)
-        : null;
 
     $requestMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? '');
     if ($requestMethod !== 'POST') {
@@ -790,25 +786,20 @@ try {
         $respondError(415, 'UNSUPPORTED_MEDIA_TYPE', 'Content-Type must be multipart/form-data');
     }
 
-    if (!is_array($configuredClients)) {
-        $respondError(500, 'CONFIGURATION_ERROR', 'Image upload clients are not configured');
+    if (!is_array($webhookConfig)) {
+        $respondError(500, 'CONFIGURATION_ERROR', 'Image upload webhook is not configured');
     }
 
-    if ($clientId === '' || !array_key_exists($clientId, $configuredClients)) {
+    if ($clientId !== 'chat_websocket') {
         $respondError(401, 'UNAUTHORIZED', 'Unauthorized');
     }
 
-    $clientConfig = $configuredClients[$clientId];
-    if (!is_array($clientConfig)) {
-        $respondError(500, 'CONFIGURATION_ERROR', 'Image upload client configuration is invalid');
-    }
-
-    if (($clientConfig['enabled'] ?? false) !== true) {
+    if (($webhookConfig['enabled'] ?? false) !== true) {
         $respondError(401, 'UNAUTHORIZED', 'Unauthorized');
     }
 
-    $registeredAuthKey = $clientConfig['auth_key'] ?? '';
-    $signatureKey = $clientConfig['signature_key'] ?? '';
+    $registeredAuthKey = $webhookConfig['auth_key'] ?? '';
+    $signatureKey = $webhookConfig['signature_key'] ?? '';
 
     if (!is_string($registeredAuthKey) || $registeredAuthKey === '') {
         $respondError(500, 'CONFIGURATION_ERROR', 'Image upload auth key is not configured');
