@@ -9,6 +9,358 @@ use custom\services\Notification\NotificationService;
  * Xử lý ajax cho booking
  */
 class entryBookingClass extends entryClass {
+    private const BOOKING_WEBHOOK_NOTE_MAX_LENGTH = 2000;
+
+    /**
+     * Validate and normalize a Booking Webhook payload.
+     *
+     * @return array{valid: bool, payload: array, errors: array}
+     */
+    public function validate(array $payload): array
+    {
+        $errors = [];
+
+        $depCode = $this->normalizeWebhookCode($payload['depCode'] ?? null);
+        $desCode = $this->normalizeWebhookCode($payload['desCode'] ?? null);
+        if (!preg_match('/^[A-Z]{3}$/', $depCode)) {
+            $errors[] = 'depCode';
+        }
+        if (!preg_match('/^[A-Z]{3}$/', $desCode) || $desCode === $depCode) {
+            $errors[] = 'desCode';
+        }
+
+        $depDate = $this->parseWebhookDate($payload['depDate'] ?? null);
+        if ($depDate === null) {
+            $errors[] = 'depDate';
+        }
+
+        $retDateValue = array_key_exists('retDate', $payload) ? $payload['retDate'] : null;
+        $retDate = $retDateValue === null ? null : $this->parseWebhookDate($retDateValue);
+        if ($retDateValue !== null && $retDate === null) {
+            $errors[] = 'retDate';
+        } elseif ($depDate !== null && $retDate !== null && $retDate < $depDate) {
+            $errors[] = 'retDate';
+        }
+
+        $airlineCodeDep = $this->normalizeWebhookAirlineCode($payload['airlineCodeDep'] ?? null);
+        if (!preg_match('/^[A-Z0-9]{2,20}$/', $airlineCodeDep)) {
+            $errors[] = 'airlineCodeDep';
+        }
+
+        $airlineCodeRetValue = $payload['airlineCodeRet'] ?? null;
+        $airlineCodeRet = $airlineCodeRetValue === null
+            ? ''
+            : $this->normalizeWebhookAirlineCode($airlineCodeRetValue);
+        if (($airlineCodeRetValue !== null && !is_string($airlineCodeRetValue))
+            || ($airlineCodeRet !== '' && !preg_match('/^[A-Z0-9]{2,20}$/', $airlineCodeRet))
+            || ($retDate !== null && $airlineCodeRet === '')
+        ) {
+            $errors[] = 'airlineCodeRet';
+        }
+
+        $contactName = $this->normalizeWebhookString($payload['contactName'] ?? null);
+        if ($contactName === '' || $this->webhookStringLength($contactName) > 128) {
+            $errors[] = 'contactName';
+        }
+
+        $contactPhone = $this->normalizeWebhookString($payload['contactPhone'] ?? null);
+        if ($contactPhone === '' || $this->webhookStringLength($contactPhone) > 30) {
+            $errors[] = 'contactPhone';
+        }
+
+        $contactEmailValue = $payload['contactEmail'] ?? null;
+        $contactEmail = $contactEmailValue === null
+            ? ''
+            : $this->normalizeWebhookString($contactEmailValue);
+        if (($contactEmailValue !== null && !is_string($contactEmailValue))
+            || $this->webhookStringLength($contactEmail) > 50
+            || ($contactEmail !== '' && filter_var($contactEmail, FILTER_VALIDATE_EMAIL) === false)
+        ) {
+            $errors[] = 'contactEmail';
+        }
+
+        $identityNumberValue = $payload['identityNumber'] ?? null;
+        $identityNumber = $identityNumberValue === null
+            ? ''
+            : $this->normalizeWebhookString($identityNumberValue);
+        if (($identityNumberValue !== null && !is_string($identityNumberValue))
+            || $this->webhookStringLength($identityNumber) > 16
+        ) {
+            $errors[] = 'identityNumber';
+        }
+
+        $ticketType = $payload['ticketType'] ?? null;
+        if (!is_int($ticketType) || !in_array($ticketType, [1, 2], true)) {
+            $errors[] = 'ticketType';
+        }
+
+        $bookingNoteValue = $payload['bookingNote'] ?? null;
+        $bookingNote = $bookingNoteValue === null
+            ? ''
+            : $this->normalizeWebhookString($bookingNoteValue);
+        if (($bookingNoteValue !== null && !is_string($bookingNoteValue))
+            || $this->webhookStringLength($bookingNote) > self::BOOKING_WEBHOOK_NOTE_MAX_LENGTH
+        ) {
+            $errors[] = 'bookingNote';
+        }
+
+        return [
+            'valid' => $errors === [],
+            'payload' => [
+                'depCode' => $depCode,
+                'desCode' => $desCode,
+                'depDate' => $depDate ? $depDate->format('Y-m-d 00:00:00') : null,
+                'retDate' => $retDate ? $retDate->format('Y-m-d 00:00:00') : null,
+                'airlineCodeDep' => $airlineCodeDep,
+                'airlineCodeRet' => $airlineCodeRet,
+                'contactName' => $contactName,
+                'contactPhone' => $contactPhone,
+                'contactEmail' => $contactEmail,
+                'identityNumber' => $identityNumber,
+                'ticketType' => $ticketType,
+                'bookingNote' => $bookingNote,
+            ],
+            'errors' => array_values(array_unique($errors)),
+        ];
+    }
+
+    private function parseWebhookDate($value): ?DateTimeImmutable
+    {
+        if (!is_string($value) || trim($value) !== $value || $value === '') {
+            return null;
+        }
+
+        $date = DateTimeImmutable::createFromFormat('!d/m/Y', $value);
+        $dateErrors = DateTimeImmutable::getLastErrors();
+        if ($date === false
+            || ($dateErrors !== false && ($dateErrors['warning_count'] > 0 || $dateErrors['error_count'] > 0))
+            || $date->format('d/m/Y') !== $value
+        ) {
+            return null;
+        }
+
+        return $date;
+    }
+
+    private function normalizeWebhookCode($value): string
+    {
+        return is_string($value) ? strtoupper(trim($value)) : '';
+    }
+
+    private function normalizeWebhookAirlineCode($value): string
+    {
+        $value = is_string($value) ? strtoupper(trim($value)) : '';
+        return $this->webhookStringLength($value) <= 20 ? $value : '';
+    }
+
+    private function normalizeWebhookString($value): string
+    {
+        return is_string($value) ? trim($value) : '';
+    }
+
+    private function webhookStringLength(string $value): int
+    {
+        return function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
+    }
+
+    /**
+     * Create a draft booking received from the Chat webhook.
+     *
+     * X-Request-Id is optional until Chat supports it. When present, it is used
+     * together with the raw payload hash to make retries idempotent.
+     *
+     * @return array{success: bool, http_code: int, booking_id?: string, booking_name?: string}
+     */
+    public function createBookingFromWebhook(
+        array $payload,
+        ?string $requestId,
+        string $payloadHash
+    ): array {
+        global $current_user, $db;
+
+        $existingBooking = $requestId
+            ? $this->findBookingByExternalRequestId($requestId)
+            : null;
+        if ($existingBooking !== null) {
+            return hash_equals((string) $existingBooking['external_payload_hash'], $payloadHash)
+                ? [
+                    'success' => true,
+                    'http_code' => 200,
+                    'booking_id' => $existingBooking['id'],
+                    'booking_name' => $existingBooking['name'],
+                ]
+                : ['success' => false, 'http_code' => 409];
+        }
+
+        if (empty($current_user->id)
+            || !empty($current_user->deleted)
+            || (isset($current_user->status) && $current_user->status !== 'Active')
+        ) {
+            $GLOBALS['log']->fatal('Booking webhook current user is missing or inactive');
+            return ['success' => false, 'http_code' => 401];
+        }
+        $currentUserId = $current_user->id;
+
+        require_once 'modules/EC_Flight_Bookings/EC_Flight_Bookings.php';
+        require_once 'modules/EC_Booking_Itineraries/EC_Booking_Itineraries.php';
+        require_once 'modules/EC_Booking_Passengers/EC_Booking_Passengers.php';
+
+        $transactionStarted = false;
+
+        try {
+            if ($db->query('START TRANSACTION') === false) {
+                throw new RuntimeException('Unable to start database transaction');
+            }
+            $transactionStarted = true;
+
+            $booking = new EC_Flight_Bookings();
+            $booking->contact_name = $payload['contactName'];
+            $booking->phone = $payload['contactPhone'];
+            $booking->email = $payload['contactEmail'];
+            $booking->ticket_type = (string) $payload['ticketType'];
+            $booking->description = $payload['bookingNote'];
+            $booking->airline = $payload['airlineCodeDep'];
+            $booking->airline_inbound = $payload['airlineCodeRet'];
+            $booking->journey = $payload['depCode'] . '-' . $payload['desCode'];
+            $booking->flight_type = $payload['retDate'] === null ? '1' : '0';
+            $booking->booking_status = '1';
+            $booking->customer_source = 'chat';
+            $booking->created_by = $currentUserId;
+            $booking->modified_user_id = $currentUserId;
+            $booking->external_payload_hash = $payloadHash;
+            if ($requestId !== null) {
+                $booking->external_request_id = $requestId;
+            }
+
+            $bookingId = $booking->save();
+            if (!is_string($bookingId) || $bookingId === '') {
+                throw new RuntimeException('Unable to save booking');
+            }
+
+            $this->saveWebhookItinerary(
+                $bookingId,
+                '0',
+                $payload['depCode'],
+                $payload['desCode'],
+                $payload['airlineCodeDep'],
+                $payload['depDate'],
+                $currentUserId
+            );
+
+            if ($payload['retDate'] !== null) {
+                $this->saveWebhookItinerary(
+                    $bookingId,
+                    '1',
+                    $payload['desCode'],
+                    $payload['depCode'],
+                    $payload['airlineCodeRet'],
+                    $payload['retDate'],
+                    $currentUserId
+                );
+            }
+
+            $passenger = new EC_Booking_Passengers();
+            $passenger->name = $payload['contactName'];
+            $passenger->type = '0';
+            $passenger->cic = $payload['identityNumber'];
+            $passenger->booking_id = $bookingId;
+            $passenger->assigned_user_id = $currentUserId;
+            $passenger->created_by = $currentUserId;
+            $passenger->modified_user_id = $currentUserId;
+            $passengerId = $passenger->save();
+            if (!is_string($passengerId) || $passengerId === '') {
+                throw new RuntimeException('Unable to save booking passenger');
+            }
+
+            if ($db->query('COMMIT') === false) {
+                throw new RuntimeException('Unable to commit database transaction');
+            }
+            $transactionStarted = false;
+
+            return [
+                'success' => true,
+                'http_code' => 200,
+                'booking_id' => $bookingId,
+                'booking_name' => $booking->name,
+            ];
+        } catch (Throwable $throwable) {
+            if ($transactionStarted) {
+                $db->query('ROLLBACK');
+            }
+
+            $GLOBALS['log']->fatal(sprintf(
+                'Booking webhook create failed: %s on line %d in %s',
+                $throwable->getMessage(),
+                $throwable->getLine(),
+                $throwable->getFile()
+            ));
+
+            // Resolve the race where another request committed the same unique
+            // request ID after the initial lookup.
+            $existingBooking = $requestId
+                ? $this->findBookingByExternalRequestId($requestId)
+                : null;
+            if ($existingBooking !== null) {
+                return hash_equals((string) $existingBooking['external_payload_hash'], $payloadHash)
+                    ? [
+                        'success' => true,
+                        'http_code' => 200,
+                        'booking_id' => $existingBooking['id'],
+                        'booking_name' => $existingBooking['name'],
+                    ]
+                    : ['success' => false, 'http_code' => 409];
+            }
+
+            return ['success' => false, 'http_code' => 500];
+        }
+    }
+
+    private function saveWebhookItinerary(
+        string $bookingId,
+        string $direction,
+        string $departure,
+        string $arrival,
+        string $airlineCode,
+        string $departureDate,
+        string $currentUserId
+    ): void {
+        $itinerary = new EC_Booking_Itineraries();
+        $itinerary->name = $departure . '-' . $arrival;
+        $itinerary->direction = $direction;
+        $itinerary->departure = $departure;
+        $itinerary->arrival = $arrival;
+        $itinerary->airline_code = $airlineCode;
+        $itinerary->departure_date = $departureDate;
+        $itinerary->arrival_date = '';
+        $itinerary->booking_id = $bookingId;
+        $itinerary->assigned_user_id = $currentUserId;
+        $itinerary->created_by = $currentUserId;
+        $itinerary->modified_user_id = $currentUserId;
+
+        $itinerary->save();
+        if (empty($itinerary->id)) {
+            throw new RuntimeException('Unable to save booking itinerary');
+        }
+    }
+
+    private function findBookingByExternalRequestId(string $requestId): ?array
+    {
+        global $db;
+
+        $sql = "SELECT id, name, external_payload_hash
+            FROM ec_flight_bookings
+            WHERE external_request_id = '" . $db->quote($requestId) . "'
+                AND deleted = 0
+            LIMIT 1";
+        $result = $db->query($sql);
+        if ($result === false) {
+            throw new RuntimeException('Unable to check booking request ID');
+        }
+
+        $row = $db->fetchByAssoc($result);
+        return is_array($row) ? $row : null;
+    }
+
     /**
      * Update fields
      *

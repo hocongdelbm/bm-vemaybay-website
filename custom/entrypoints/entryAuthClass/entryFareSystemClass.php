@@ -78,6 +78,65 @@ class entryFareSystemClass extends entryClass
         // Trả về response từ API
         return $response;
     }
+    public function searchInterFlightBM($params = []) {
+        // Lấy parameters từ request
+        $airlineCode = isset($params['airlineCode']) ? trim($params['airlineCode']) : '';
+        $depCode = isset($params['depCode']) ? strtoupper(trim($params['depCode'])) : '';
+        $desCode = isset($params['desCode']) ? strtoupper(trim($params['desCode'])) : '';
+        $departDate = isset($params['departDate']) ? $params['departDate'] : '';
+        $returnDate = isset($params['returnDate']) ? $params['returnDate'] : '';
+        $isLive = $params['isLive'] ?? false;
+
+        // Validate required fields
+        if (empty($airlineCode) || empty($depCode) || empty($desCode) || empty($departDate)) {
+            return json_encode([
+                'error' => 1,
+                'message' => 'Missing required parameters',
+                'data' => null
+            ], JSON_UNESCAPED_UNICODE);
+        }
+
+        // Chuẩn bị data để gửi đến API
+        $postData = [
+            "airlineCode" => $airlineCode,
+            "depCode" => $depCode,
+            "desCode" => $desCode,
+            "departDate" => $departDate,
+            "returnDate" => $returnDate,
+            "adt" => 1,
+            "chd" => 1,
+            "inf" => 1,
+            "options" => [
+                "isLive" => $isLive,
+                "promoCode" => "VJSALE20"
+            ]
+        ];
+
+        // Khởi tạo CURL
+        $curl = curl_init();
+        $url = $this->endpoint . '/getInterFlights';
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($postData),
+            CURLOPT_HTTPHEADER => array(
+                'API-Key: ' . $this->key,
+                'Content-Type: application/json'
+            ),
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CONNECTTIMEOUT => 10,
+        ));
+
+        $response = curl_exec($curl);
+        $error = curl_error($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        // Trả về response từ API
+        return $response;
+    }
 
     public function updateFlight($params = [])
     {
