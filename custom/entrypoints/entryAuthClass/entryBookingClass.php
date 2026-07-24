@@ -10,6 +10,206 @@ use custom\services\Notification\NotificationService;
  */
 class entryBookingClass extends entryClass {
     /**
+     * Create a draft booking received from the Chat webhook.
+     *
+     * X-Request-Id is optional until Chat supports it. When present, it is used
+     * together with the raw payload hash to make retries idempotent.
+     *
+     * @return array{success: bool, http_code: int, booking_id?: string}
+     */
+    public function createBookingFromWebhook(
+        array $payload,
+        ?string $requestId,
+        string $payloadHash,
+        string $serviceUserId
+    ): array {
+        global $current_user, $db;
+
+        $existingBooking = $requestId
+            ? $this->findBookingByExternalRequestId($requestId)
+            : null;
+        if ($existingBooking !== null) {
+            return hash_equals((string) $existingBooking['external_payload_hash'], $payloadHash)
+                ? [
+                    'success' => true,
+                    'http_code' => 200,
+                    'booking_id' => $existingBooking['id'],
+                ]
+                : ['success' => false, 'http_code' => 409];
+        }
+
+        $serviceUser = BeanFactory::getBean('Users', $serviceUserId);
+        if (empty($serviceUser->id)
+            || !empty($serviceUser->deleted)
+            || (isset($serviceUser->status) && $serviceUser->status !== 'Active')
+        ) {
+            $GLOBALS['log']->fatal('Booking webhook service user is missing or inactive');
+            return ['success' => false, 'http_code' => 500];
+        }
+
+        require_once 'modules/EC_Flight_Bookings/EC_Flight_Bookings.php';
+        require_once 'modules/EC_Booking_Itineraries/EC_Booking_Itineraries.php';
+        require_once 'modules/EC_Booking_Passengers/EC_Booking_Passengers.php';
+
+        $previousUser = $current_user ?? null;
+        $transactionStarted = false;
+
+        try {
+            $current_user = $serviceUser;
+            if ($db->query('START TRANSACTION') === false) {
+                throw new RuntimeException('Unable to start database transaction');
+            }
+            $transactionStarted = true;
+
+            $booking = new EC_Flight_Bookings();
+            $booking->contact_name = $payload['contactName'];
+            $booking->phone = $payload['contactPhone'];
+            $booking->email = $payload['contactEmail'];
+            $booking->ticket_type = (string) $payload['ticketType'];
+            $booking->description = $payload['bookingNote'];
+            $booking->airline = $payload['airlineCodeDep'];
+            $booking->airline_inbound = $payload['airlineCodeRet'];
+            $booking->journey = $payload['depCode'] . '-' . $payload['desCode'];
+            $booking->flight_type = $payload['retDate'] === null ? '1' : '0';
+            $booking->booking_status = '1';
+            $booking->customer_source = 'chat';
+            $booking->created_by = $serviceUserId;
+            $booking->modified_user_id = $serviceUserId;
+            $booking->external_payload_hash = $payloadHash;
+            if ($requestId !== null) {
+                $booking->external_request_id = $requestId;
+            }
+
+            $bookingId = $booking->save();
+            if (!is_string($bookingId) || $bookingId === '') {
+                throw new RuntimeException('Unable to save booking');
+            }
+
+            $this->saveWebhookItinerary(
+                $bookingId,
+                '0',
+                $payload['depCode'],
+                $payload['desCode'],
+                $payload['airlineCodeDep'],
+                $payload['depDate'],
+                $serviceUserId
+            );
+
+            if ($payload['retDate'] !== null) {
+                $this->saveWebhookItinerary(
+                    $bookingId,
+                    '1',
+                    $payload['desCode'],
+                    $payload['depCode'],
+                    $payload['airlineCodeRet'],
+                    $payload['retDate'],
+                    $serviceUserId
+                );
+            }
+
+            $passenger = new EC_Booking_Passengers();
+            $passenger->name = $payload['contactName'];
+            $passenger->type = '0';
+            $passenger->cic = $payload['identityNumber'];
+            $passenger->booking_id = $bookingId;
+            $passenger->assigned_user_id = $serviceUserId;
+            $passenger->created_by = $serviceUserId;
+            $passenger->modified_user_id = $serviceUserId;
+            $passengerId = $passenger->save();
+            if (!is_string($passengerId) || $passengerId === '') {
+                throw new RuntimeException('Unable to save booking passenger');
+            }
+
+            if ($db->query('COMMIT') === false) {
+                throw new RuntimeException('Unable to commit database transaction');
+            }
+            $transactionStarted = false;
+
+            return [
+                'success' => true,
+                'http_code' => 200,
+                'booking_id' => $bookingId,
+            ];
+        } catch (Throwable $throwable) {
+            if ($transactionStarted) {
+                $db->query('ROLLBACK');
+            }
+
+            $GLOBALS['log']->fatal(sprintf(
+                'Booking webhook create failed: %s on line %d in %s',
+                $throwable->getMessage(),
+                $throwable->getLine(),
+                $throwable->getFile()
+            ));
+
+            // Resolve the race where another request committed the same unique
+            // request ID after the initial lookup.
+            $existingBooking = $requestId
+                ? $this->findBookingByExternalRequestId($requestId)
+                : null;
+            if ($existingBooking !== null) {
+                return hash_equals((string) $existingBooking['external_payload_hash'], $payloadHash)
+                    ? [
+                        'success' => true,
+                        'http_code' => 200,
+                        'booking_id' => $existingBooking['id'],
+                    ]
+                    : ['success' => false, 'http_code' => 409];
+            }
+
+            return ['success' => false, 'http_code' => 500];
+        } finally {
+            $current_user = $previousUser;
+        }
+    }
+
+    private function saveWebhookItinerary(
+        string $bookingId,
+        string $direction,
+        string $departure,
+        string $arrival,
+        string $airlineCode,
+        string $departureDate,
+        string $serviceUserId
+    ): void {
+        $itinerary = new EC_Booking_Itineraries();
+        $itinerary->name = $departure . '-' . $arrival;
+        $itinerary->direction = $direction;
+        $itinerary->departure = $departure;
+        $itinerary->arrival = $arrival;
+        $itinerary->airline_code = $airlineCode;
+        $itinerary->departure_date = $departureDate;
+        $itinerary->arrival_date = '';
+        $itinerary->booking_id = $bookingId;
+        $itinerary->assigned_user_id = $serviceUserId;
+        $itinerary->created_by = $serviceUserId;
+        $itinerary->modified_user_id = $serviceUserId;
+
+        $itineraryId = $itinerary->save();
+        if (!is_string($itineraryId) || $itineraryId === '') {
+            throw new RuntimeException('Unable to save booking itinerary');
+        }
+    }
+
+    private function findBookingByExternalRequestId(string $requestId): ?array
+    {
+        global $db;
+
+        $sql = "SELECT id, external_payload_hash
+            FROM ec_flight_bookings
+            WHERE external_request_id = '" . $db->quote($requestId) . "'
+                AND deleted = 0
+            LIMIT 1";
+        $result = $db->query($sql);
+        if ($result === false) {
+            throw new RuntimeException('Unable to check booking request ID');
+        }
+
+        $row = $db->fetchByAssoc($result);
+        return is_array($row) ? $row : null;
+    }
+
+    /**
      * Update fields
      *
      * @param array $params

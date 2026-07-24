@@ -1164,6 +1164,7 @@ $app_list_strings['booking_customer_source_list'] = [
   'is_reference' => 'Tham khảo',
   'care' => 'Chăm sóc KH',
   'receipt_voucher' => 'Phiếu thu',
+  'chat' => 'Chat',
 ];
 
 $app_list_strings['booking_checkin_status_list'] = [
