@@ -20,9 +20,13 @@ class entryBookingClass extends entryClass {
     {
         $errors = [];
 
-        $userIdProvided = array_key_exists('user_id', $payload);
-        $userId = is_string($payload['user_id'] ?? null)
-            ? trim($payload['user_id'])
+        $userIdProvided = array_key_exists('userId', $payload)
+            || array_key_exists('user_id', $payload);
+        $userIdValue = array_key_exists('userId', $payload)
+            ? $payload['userId']
+            : ($payload['user_id'] ?? null);
+        $userId = is_string($userIdValue)
+            ? trim($userIdValue)
             : '';
         if ($userIdProvided
             && !preg_match(
@@ -30,7 +34,7 @@ class entryBookingClass extends entryClass {
                 $userId
             )
         ) {
-            $errors[] = 'user_id';
+            $errors[] = 'userId';
         }
 
         $depCode = $this->normalizeWebhookCode($payload['depCode'] ?? null);
@@ -120,7 +124,7 @@ class entryBookingClass extends entryClass {
         return [
             'valid' => $errors === [],
             'payload' => [
-                'user_id' => $userId,
+                'userId' => $userId,
                 'depCode' => $depCode,
                 'desCode' => $desCode,
                 'depDate' => $depDate ? $depDate->format('Y-m-d 00:00:00') : null,

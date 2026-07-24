@@ -129,8 +129,8 @@ try {
         && hash_equals($serverUniqueKey, $sessionUniqueKey);
 
     $bookingUser = null;
-    if ($validation['payload']['user_id'] !== '') {
-        $payloadUser = BeanFactory::getBean('Users', $validation['payload']['user_id']);
+    if ($validation['payload']['userId'] !== '') {
+        $payloadUser = BeanFactory::getBean('Users', $validation['payload']['userId']);
         if (is_object($payloadUser)
             && !empty($payloadUser->id)
             && empty($payloadUser->deleted)
@@ -153,7 +153,7 @@ try {
 
     if ($bookingUser === null) {
         $bookingWebhookLog(
-            'Booking webhook requires an active payload user_id or an active session user'
+            'Booking webhook requires an active payload userId or an active session user'
         );
         $bookingWebhookRespond(401, false);
     }
@@ -171,12 +171,23 @@ try {
         $bookingWebhookRespond((int) ($result['http_code'] ?? 500), false);
     }
 
-    $siteUrl = rtrim((string) ($sugar_config['site_url'] ?? ''), '/');
-    if ($siteUrl === '') {
-        $bookingWebhookLog('Booking webhook site_url is not configured');
+    $requestHost = $_SERVER['HTTP_HOST'] ?? '';
+    if (!is_string($requestHost)
+        || !preg_match('/^[a-z0-9.-]+(?::[0-9]{1,5})?$/i', $requestHost)
+    ) {
+        $bookingWebhookLog('Booking webhook request host is invalid');
         $bookingWebhookRespond(500, false);
     }
 
+    $isHttps = !empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off';
+    if (!$isHttps && !empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+        $forwardedProto = strtolower(trim(
+            explode(',', (string) $_SERVER['HTTP_X_FORWARDED_PROTO'])[0]
+        ));
+        $isHttps = $forwardedProto === 'https';
+    }
+
+    $siteUrl = ($isHttps ? 'https' : 'http') . '://' . $requestHost;
     $detailUrl = $siteUrl
         . '/index.php?module=EC_Flight_Bookings&action=DetailView&record='
         . rawurlencode($result['booking_id']);
