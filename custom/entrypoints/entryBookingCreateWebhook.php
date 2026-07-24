@@ -66,30 +66,6 @@ try {
         $bookingWebhookRespond(500, false);
     }
 
-    $authenticatedUserId = $_SESSION['authenticated_user_id'] ?? '';
-    $sessionUniqueKey = $_SESSION['unique_key'] ?? '';
-    $serverUniqueKey = $sugar_config['unique_key'] ?? '';
-    if (!is_string($authenticatedUserId)
-        || $authenticatedUserId === ''
-        || !is_string($sessionUniqueKey)
-        || !is_string($serverUniqueKey)
-        || $serverUniqueKey === ''
-        || !hash_equals($serverUniqueKey, $sessionUniqueKey)
-    ) {
-        $bookingWebhookRespond(401, false);
-    }
-
-    global $current_user;
-    $authenticatedUser = BeanFactory::getBean('Users', $authenticatedUserId);
-    if (empty($authenticatedUser->id)
-        || !empty($authenticatedUser->deleted)
-        || (isset($authenticatedUser->status) && $authenticatedUser->status !== 'Active')
-    ) {
-        $bookingWebhookLog('Booking webhook authenticated user is missing or inactive');
-        $bookingWebhookRespond(401, false);
-    }
-    $current_user = $authenticatedUser;
-
     $requestAuthKey = $headers['x-auth-key'] ?? ($_SERVER['HTTP_X_AUTH_KEY'] ?? '');
     if (!is_string($requestAuthKey) || !hash_equals($authKey, $requestAuthKey)) {
         $bookingWebhookRespond(401, false);
@@ -141,6 +117,49 @@ try {
         );
         $bookingWebhookRespond(400, false);
     }
+
+    $sessionUserId = $_SESSION['authenticated_user_id'] ?? '';
+    $sessionUniqueKey = $_SESSION['unique_key'] ?? '';
+    $serverUniqueKey = $sugar_config['unique_key'] ?? '';
+    $hasValidSession = is_string($sessionUserId)
+        && $sessionUserId !== ''
+        && is_string($sessionUniqueKey)
+        && is_string($serverUniqueKey)
+        && $serverUniqueKey !== ''
+        && hash_equals($serverUniqueKey, $sessionUniqueKey);
+
+    $bookingUser = null;
+    if ($hasValidSession) {
+        $sessionUser = BeanFactory::getBean('Users', $sessionUserId);
+        if (is_object($sessionUser)
+            && !empty($sessionUser->id)
+            && empty($sessionUser->deleted)
+            && (!isset($sessionUser->status) || $sessionUser->status === 'Active')
+        ) {
+            $bookingUser = $sessionUser;
+        }
+    }
+
+    if ($bookingUser === null && $validation['payload']['user_id'] !== '') {
+        $payloadUser = BeanFactory::getBean('Users', $validation['payload']['user_id']);
+        if (is_object($payloadUser)
+            && !empty($payloadUser->id)
+            && empty($payloadUser->deleted)
+            && (!isset($payloadUser->status) || $payloadUser->status === 'Active')
+        ) {
+            $bookingUser = $payloadUser;
+        }
+    }
+
+    if ($bookingUser === null) {
+        $bookingWebhookLog(
+            'Booking webhook requires an active session user or an active payload user_id'
+        );
+        $bookingWebhookRespond(401, false);
+    }
+
+    global $current_user;
+    $current_user = $bookingUser;
 
     $result = $entryClass->createBookingFromWebhook(
         $validation['payload'],

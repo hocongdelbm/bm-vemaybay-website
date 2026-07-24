@@ -20,6 +20,19 @@ class entryBookingClass extends entryClass {
     {
         $errors = [];
 
+        $userIdProvided = array_key_exists('user_id', $payload);
+        $userId = is_string($payload['user_id'] ?? null)
+            ? trim($payload['user_id'])
+            : '';
+        if ($userIdProvided
+            && !preg_match(
+                '/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i',
+                $userId
+            )
+        ) {
+            $errors[] = 'user_id';
+        }
+
         $depCode = $this->normalizeWebhookCode($payload['depCode'] ?? null);
         $desCode = $this->normalizeWebhookCode($payload['desCode'] ?? null);
         if (!preg_match('/^[A-Z]{3}$/', $depCode)) {
@@ -107,6 +120,7 @@ class entryBookingClass extends entryClass {
         return [
             'valid' => $errors === [],
             'payload' => [
+                'user_id' => $userId,
                 'depCode' => $depCode,
                 'desCode' => $desCode,
                 'depDate' => $depDate ? $depDate->format('Y-m-d 00:00:00') : null,
@@ -225,6 +239,7 @@ class entryBookingClass extends entryClass {
             $booking->flight_type = $payload['retDate'] === null ? '1' : '0';
             $booking->booking_status = '1';
             $booking->customer_source = 'chat';
+            $booking->assigned_user_id = $currentUserId;
             $booking->created_by = $currentUserId;
             $booking->modified_user_id = $currentUserId;
             $booking->external_payload_hash = $payloadHash;
