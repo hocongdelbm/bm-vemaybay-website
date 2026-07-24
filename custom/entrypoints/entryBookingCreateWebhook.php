@@ -129,18 +129,7 @@ try {
         && hash_equals($serverUniqueKey, $sessionUniqueKey);
 
     $bookingUser = null;
-    if ($hasValidSession) {
-        $sessionUser = BeanFactory::getBean('Users', $sessionUserId);
-        if (is_object($sessionUser)
-            && !empty($sessionUser->id)
-            && empty($sessionUser->deleted)
-            && (!isset($sessionUser->status) || $sessionUser->status === 'Active')
-        ) {
-            $bookingUser = $sessionUser;
-        }
-    }
-
-    if ($bookingUser === null && $validation['payload']['user_id'] !== '') {
+    if ($validation['payload']['user_id'] !== '') {
         $payloadUser = BeanFactory::getBean('Users', $validation['payload']['user_id']);
         if (is_object($payloadUser)
             && !empty($payloadUser->id)
@@ -151,9 +140,20 @@ try {
         }
     }
 
+    if ($bookingUser === null && $hasValidSession) {
+        $sessionUser = BeanFactory::getBean('Users', $sessionUserId);
+        if (is_object($sessionUser)
+            && !empty($sessionUser->id)
+            && empty($sessionUser->deleted)
+            && (!isset($sessionUser->status) || $sessionUser->status === 'Active')
+        ) {
+            $bookingUser = $sessionUser;
+        }
+    }
+
     if ($bookingUser === null) {
         $bookingWebhookLog(
-            'Booking webhook requires an active session user or an active payload user_id'
+            'Booking webhook requires an active payload user_id or an active session user'
         );
         $bookingWebhookRespond(401, false);
     }
