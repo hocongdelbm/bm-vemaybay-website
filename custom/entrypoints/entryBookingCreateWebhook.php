@@ -124,21 +124,22 @@ try {
         }
     }
 
-    require_once 'custom/services/BookingWebhook/BookingWebhookPayloadValidator.php';
-    $validator = new \custom\services\BookingWebhook\BookingWebhookPayloadValidator();
-    $validation = $validator->validate($payload);
+    require_once 'custom/entrypoints/entryFactory.php';
+    $entryClass = entryFactory::create('entryBookingClass');
+    if (!$entryClass
+        || !method_exists($entryClass, 'validate')
+        || !method_exists($entryClass, 'createBookingFromWebhook')
+    ) {
+        $bookingWebhookLog('Unable to initialize booking webhook service');
+        $bookingWebhookRespond(500, false);
+    }
+
+    $validation = $entryClass->validate($payload);
     if (!$validation['valid']) {
         $bookingWebhookLog(
             'Booking webhook validation failed for fields: ' . implode(', ', $validation['errors'])
         );
         $bookingWebhookRespond(400, false);
-    }
-
-    require_once 'custom/entrypoints/entryFactory.php';
-    $entryClass = entryFactory::create('entryBookingClass');
-    if (!$entryClass || !method_exists($entryClass, 'createBookingFromWebhook')) {
-        $bookingWebhookLog('Unable to initialize booking webhook service');
-        $bookingWebhookRespond(500, false);
     }
 
     $result = $entryClass->createBookingFromWebhook(
