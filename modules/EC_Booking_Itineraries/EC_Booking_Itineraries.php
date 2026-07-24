@@ -59,13 +59,10 @@ class EC_Booking_Itineraries extends Basic {
         /*
          Hành trình lưu từ website xuống bị thiếu 7 hours
          */
-        if (!empty($this->departure_date)) {
-            $this->departure_date = date('Y-m-d H:i:s', strtotime($this->departure_date));
-        }
-        if (!empty($this->arrival_date)) {
-            $this->arrival_date = date('Y-m-d H:i:s', strtotime($this->arrival_date));
-        }
+        $this->departure_date   = date('Y-m-d H:i:s', strtotime($this->departure_date));
+        $this->arrival_date     = date('Y-m-d H:i:s', strtotime($this->arrival_date));
 
-		return parent::save($check_notify);
+		parent::save($check_notify);
+
     }
 }

@@ -5,14 +5,22 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 header('Content-Type: application/json; charset=utf-8');
 
-$bookingWebhookRespond = static function (int $httpCode, bool $success, ?string $bookingDetail = null): void {
+$bookingWebhookRespond = static function (
+    int $httpCode,
+    bool $success,
+    ?string $bookingDetail = null,
+    ?string $bookingName = null
+): void {
     http_response_code($httpCode);
     $body = json_encode([
         'success' => $success,
         'booking_detail' => $bookingDetail,
+        'booking_name' => $bookingName,
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-    echo $body === false ? '{"success":false,"booking_detail":null}' : $body;
+    echo $body === false
+        ? '{"success":false,"booking_detail":null,"booking_name":null}'
+        : $body;
     exit;
 };
 
@@ -50,15 +58,37 @@ try {
     $config = $sugar_config['webhook']['booking'] ?? [];
     $authKey = is_string($config['auth_key'] ?? null) ? trim($config['auth_key']) : '';
     $signatureKey = is_string($config['signature_key'] ?? null) ? trim($config['signature_key']) : '';
-    $serviceUserId = is_string($config['service_user_id'] ?? null) ? trim($config['service_user_id']) : '';
 
     if (!preg_match('/^[a-f0-9]{64}$/i', $authKey)
         || !preg_match('/^[a-f0-9]{64}$/i', $signatureKey)
-        || !preg_match('/^[a-f0-9-]{36}$/i', $serviceUserId)
     ) {
         $bookingWebhookLog('Booking webhook configuration is incomplete or invalid');
         $bookingWebhookRespond(500, false);
     }
+
+    $authenticatedUserId = $_SESSION['authenticated_user_id'] ?? '';
+    $sessionUniqueKey = $_SESSION['unique_key'] ?? '';
+    $serverUniqueKey = $sugar_config['unique_key'] ?? '';
+    if (!is_string($authenticatedUserId)
+        || $authenticatedUserId === ''
+        || !is_string($sessionUniqueKey)
+        || !is_string($serverUniqueKey)
+        || $serverUniqueKey === ''
+        || !hash_equals($serverUniqueKey, $sessionUniqueKey)
+    ) {
+        $bookingWebhookRespond(401, false);
+    }
+
+    global $current_user;
+    $authenticatedUser = BeanFactory::getBean('Users', $authenticatedUserId);
+    if (empty($authenticatedUser->id)
+        || !empty($authenticatedUser->deleted)
+        || (isset($authenticatedUser->status) && $authenticatedUser->status !== 'Active')
+    ) {
+        $bookingWebhookLog('Booking webhook authenticated user is missing or inactive');
+        $bookingWebhookRespond(401, false);
+    }
+    $current_user = $authenticatedUser;
 
     $requestAuthKey = $headers['x-auth-key'] ?? ($_SERVER['HTTP_X_AUTH_KEY'] ?? '');
     if (!is_string($requestAuthKey) || !hash_equals($authKey, $requestAuthKey)) {
@@ -114,8 +144,7 @@ try {
     $result = $entryClass->createBookingFromWebhook(
         $validation['payload'],
         $requestId,
-        hash('sha256', $rawBody),
-        $serviceUserId
+        hash('sha256', $rawBody)
     );
 
     if (empty($result['success'])) {
@@ -131,7 +160,7 @@ try {
     $detailUrl = $siteUrl
         . '/index.php?module=EC_Flight_Bookings&action=DetailView&record='
         . rawurlencode($result['booking_id']);
-    $bookingWebhookRespond(200, true, $detailUrl);
+    $bookingWebhookRespond(200, true, $detailUrl, $result['booking_name']);
 } catch (Throwable $throwable) {
     $bookingWebhookLog(sprintf(
         'Booking webhook failed: %s on line %d in %s',
