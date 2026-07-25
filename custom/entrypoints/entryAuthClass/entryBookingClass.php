@@ -59,8 +59,13 @@ class entryBookingClass extends entryClass {
             $errors[] = 'retDate';
         }
 
-        $airlineCodeDep = $this->normalizeWebhookAirlineCode($payload['airlineCodeDep'] ?? null);
-        if (!preg_match('/^[A-Z0-9]{2,20}$/', $airlineCodeDep)) {
+        $airlineCodeDepValue = $payload['airlineCodeDep'] ?? null;
+        $airlineCodeDep = $airlineCodeDepValue === null
+            ? ''
+            : $this->normalizeWebhookAirlineCode($airlineCodeDepValue);
+        if (($airlineCodeDepValue !== null && !is_string($airlineCodeDepValue))
+            || ($airlineCodeDep !== '' && !preg_match('/^[A-Z0-9]{2,20}$/', $airlineCodeDep))
+        ) {
             $errors[] = 'airlineCodeDep';
         }
 
@@ -70,7 +75,6 @@ class entryBookingClass extends entryClass {
             : $this->normalizeWebhookAirlineCode($airlineCodeRetValue);
         if (($airlineCodeRetValue !== null && !is_string($airlineCodeRetValue))
             || ($airlineCodeRet !== '' && !preg_match('/^[A-Z0-9]{2,20}$/', $airlineCodeRet))
-            || ($retDate !== null && $airlineCodeRet === '')
         ) {
             $errors[] = 'airlineCodeRet';
         }
@@ -167,8 +171,7 @@ class entryBookingClass extends entryClass {
 
     private function normalizeWebhookAirlineCode($value): string
     {
-        $value = is_string($value) ? strtoupper(trim($value)) : '';
-        return $this->webhookStringLength($value) <= 20 ? $value : '';
+        return is_string($value) ? strtoupper(trim($value)) : '';
     }
 
     private function normalizeWebhookString($value): string
