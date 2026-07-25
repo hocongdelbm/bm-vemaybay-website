@@ -20,6 +20,23 @@ class entryBookingClass extends entryClass {
     {
         $errors = [];
 
+        $userIdProvided = array_key_exists('userId', $payload)
+            || array_key_exists('user_id', $payload);
+        $userIdValue = array_key_exists('userId', $payload)
+            ? $payload['userId']
+            : ($payload['user_id'] ?? null);
+        $userId = is_string($userIdValue)
+            ? trim($userIdValue)
+            : '';
+        if ($userIdProvided
+            && !preg_match(
+                '/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i',
+                $userId
+            )
+        ) {
+            $errors[] = 'userId';
+        }
+
         $depCode = $this->normalizeWebhookCode($payload['depCode'] ?? null);
         $desCode = $this->normalizeWebhookCode($payload['desCode'] ?? null);
         if (!preg_match('/^[A-Z]{3}$/', $depCode)) {
@@ -42,8 +59,13 @@ class entryBookingClass extends entryClass {
             $errors[] = 'retDate';
         }
 
-        $airlineCodeDep = $this->normalizeWebhookAirlineCode($payload['airlineCodeDep'] ?? null);
-        if (!preg_match('/^[A-Z0-9]{2,20}$/', $airlineCodeDep)) {
+        $airlineCodeDepValue = $payload['airlineCodeDep'] ?? null;
+        $airlineCodeDep = $airlineCodeDepValue === null
+            ? ''
+            : $this->normalizeWebhookAirlineCode($airlineCodeDepValue);
+        if (($airlineCodeDepValue !== null && !is_string($airlineCodeDepValue))
+            || ($airlineCodeDep !== '' && !preg_match('/^[A-Z0-9]{2,20}$/', $airlineCodeDep))
+        ) {
             $errors[] = 'airlineCodeDep';
         }
 
@@ -53,7 +75,6 @@ class entryBookingClass extends entryClass {
             : $this->normalizeWebhookAirlineCode($airlineCodeRetValue);
         if (($airlineCodeRetValue !== null && !is_string($airlineCodeRetValue))
             || ($airlineCodeRet !== '' && !preg_match('/^[A-Z0-9]{2,20}$/', $airlineCodeRet))
-            || ($retDate !== null && $airlineCodeRet === '')
         ) {
             $errors[] = 'airlineCodeRet';
         }
@@ -107,6 +128,7 @@ class entryBookingClass extends entryClass {
         return [
             'valid' => $errors === [],
             'payload' => [
+                'userId' => $userId,
                 'depCode' => $depCode,
                 'desCode' => $desCode,
                 'depDate' => $depDate ? $depDate->format('Y-m-d 00:00:00') : null,
@@ -149,8 +171,7 @@ class entryBookingClass extends entryClass {
 
     private function normalizeWebhookAirlineCode($value): string
     {
-        $value = is_string($value) ? strtoupper(trim($value)) : '';
-        return $this->webhookStringLength($value) <= 20 ? $value : '';
+        return is_string($value) ? strtoupper(trim($value)) : '';
     }
 
     private function normalizeWebhookString($value): string
@@ -225,6 +246,7 @@ class entryBookingClass extends entryClass {
             $booking->flight_type = $payload['retDate'] === null ? '1' : '0';
             $booking->booking_status = '1';
             $booking->customer_source = 'chat';
+            $booking->assigned_user_id = $currentUserId;
             $booking->created_by = $currentUserId;
             $booking->modified_user_id = $currentUserId;
             $booking->external_payload_hash = $payloadHash;

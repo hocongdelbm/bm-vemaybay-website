@@ -66,30 +66,6 @@ try {
         $bookingWebhookRespond(500, false);
     }
 
-    $authenticatedUserId = $_SESSION['authenticated_user_id'] ?? '';
-    $sessionUniqueKey = $_SESSION['unique_key'] ?? '';
-    $serverUniqueKey = $sugar_config['unique_key'] ?? '';
-    if (!is_string($authenticatedUserId)
-        || $authenticatedUserId === ''
-        || !is_string($sessionUniqueKey)
-        || !is_string($serverUniqueKey)
-        || $serverUniqueKey === ''
-        || !hash_equals($serverUniqueKey, $sessionUniqueKey)
-    ) {
-        $bookingWebhookRespond(401, false);
-    }
-
-    global $current_user;
-    $authenticatedUser = BeanFactory::getBean('Users', $authenticatedUserId);
-    if (empty($authenticatedUser->id)
-        || !empty($authenticatedUser->deleted)
-        || (isset($authenticatedUser->status) && $authenticatedUser->status !== 'Active')
-    ) {
-        $bookingWebhookLog('Booking webhook authenticated user is missing or inactive');
-        $bookingWebhookRespond(401, false);
-    }
-    $current_user = $authenticatedUser;
-
     $requestAuthKey = $headers['x-auth-key'] ?? ($_SERVER['HTTP_X_AUTH_KEY'] ?? '');
     if (!is_string($requestAuthKey) || !hash_equals($authKey, $requestAuthKey)) {
         $bookingWebhookRespond(401, false);
@@ -142,6 +118,49 @@ try {
         $bookingWebhookRespond(400, false);
     }
 
+    $sessionUserId = $_SESSION['authenticated_user_id'] ?? '';
+    $sessionUniqueKey = $_SESSION['unique_key'] ?? '';
+    $serverUniqueKey = $sugar_config['unique_key'] ?? '';
+    $hasValidSession = is_string($sessionUserId)
+        && $sessionUserId !== ''
+        && is_string($sessionUniqueKey)
+        && is_string($serverUniqueKey)
+        && $serverUniqueKey !== ''
+        && hash_equals($serverUniqueKey, $sessionUniqueKey);
+
+    $bookingUser = null;
+    if ($validation['payload']['userId'] !== '') {
+        $payloadUser = BeanFactory::getBean('Users', $validation['payload']['userId']);
+        if (is_object($payloadUser)
+            && !empty($payloadUser->id)
+            && empty($payloadUser->deleted)
+            && (!isset($payloadUser->status) || $payloadUser->status === 'Active')
+        ) {
+            $bookingUser = $payloadUser;
+        }
+    }
+
+    if ($bookingUser === null && $hasValidSession) {
+        $sessionUser = BeanFactory::getBean('Users', $sessionUserId);
+        if (is_object($sessionUser)
+            && !empty($sessionUser->id)
+            && empty($sessionUser->deleted)
+            && (!isset($sessionUser->status) || $sessionUser->status === 'Active')
+        ) {
+            $bookingUser = $sessionUser;
+        }
+    }
+
+    if ($bookingUser === null) {
+        $bookingWebhookLog(
+            'Booking webhook requires an active payload userId or an active session user'
+        );
+        $bookingWebhookRespond(401, false);
+    }
+
+    global $current_user;
+    $current_user = $bookingUser;
+
     $result = $entryClass->createBookingFromWebhook(
         $validation['payload'],
         $requestId,
@@ -152,12 +171,23 @@ try {
         $bookingWebhookRespond((int) ($result['http_code'] ?? 500), false);
     }
 
-    $siteUrl = rtrim((string) ($sugar_config['site_url'] ?? ''), '/');
-    if ($siteUrl === '') {
-        $bookingWebhookLog('Booking webhook site_url is not configured');
+    $requestHost = $_SERVER['HTTP_HOST'] ?? '';
+    if (!is_string($requestHost)
+        || !preg_match('/^[a-z0-9.-]+(?::[0-9]{1,5})?$/i', $requestHost)
+    ) {
+        $bookingWebhookLog('Booking webhook request host is invalid');
         $bookingWebhookRespond(500, false);
     }
 
+    $isHttps = !empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off';
+    if (!$isHttps && !empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+        $forwardedProto = strtolower(trim(
+            explode(',', (string) $_SERVER['HTTP_X_FORWARDED_PROTO'])[0]
+        ));
+        $isHttps = $forwardedProto === 'https';
+    }
+
+    $siteUrl = ($isHttps ? 'https' : 'http') . '://' . $requestHost;
     $detailUrl = $siteUrl
         . '/index.php?module=EC_Flight_Bookings&action=DetailView&record='
         . rawurlencode($result['booking_id']);

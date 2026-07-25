@@ -674,7 +674,7 @@ if (!empty($entryImageUploadWebhookLibraryOnly)) {
 }
 
 // Server-to-server image upload receiver. The chat_websocket client uses:
-// $sugar_config['webhook']['image_upload']['enabled|auth_key|signature_key'].
+// $sugar_config['webhook']['image_upload']['auth_key|signature_key'].
 header('Content-Type: application/json; charset=utf-8');
 
 $responseRequestId = null;
@@ -791,10 +791,6 @@ try {
     }
 
     if ($clientId !== 'chat_websocket') {
-        $respondError(401, 'UNAUTHORIZED', 'Unauthorized');
-    }
-
-    if (($webhookConfig['enabled'] ?? false) !== true) {
         $respondError(401, 'UNAUTHORIZED', 'Unauthorized');
     }
 
