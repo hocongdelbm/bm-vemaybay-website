@@ -63,6 +63,7 @@
              restUrl: '{/literal}{$APP_CONFIG.chat_widget.restUrl|escape:'javascript'}{literal}',
              credentials: '{/literal}{$CHAT_CREDENTIALS_B64|escape:'javascript'}{literal}',
              crmUrl: '{/literal}{$APP_CONFIG.chat_widget.crmUrl|escape:'javascript'}{literal}',
+             attachmentMode: 'all',
              adminId: '{/literal}{$CURRENT_USER_ID|escape:'javascript'}{literal}',
              adminName: '{/literal}{$CURRENT_USER|escape:'javascript'}{literal}',
              autoConnect: true,
