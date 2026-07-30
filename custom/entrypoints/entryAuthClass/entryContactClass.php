@@ -151,7 +151,7 @@ class entryContactClass extends entryClass
             $con->contact_type = (string) ($params['contact_type'] ?? '');
             $con->salutation = (string) ($params['salutation'] ?? '');
             $con->description = (string) ($params['description'] ?? '');
-            $con->assigned_user_id = $this->currentUser->id;
+            $con->assigned_user_id = $this->currentUser->id ?? '';
             $con->save();
 
             $dto = $this->toDto($con);
