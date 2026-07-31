@@ -24,7 +24,7 @@ class entryContactClass extends entryClass
 
     private const PHONE_COLUMNS = ['phone_mobile', 'phone_work', 'phone_home', 'phone_other'];
 
-    private const UPDATABLE_FIELDS = ['first_name', 'last_name', 'phone_mobile', 'email', 'contact_type', 'salutation', 'description'];
+    private const UPDATABLE_FIELDS = ['last_name', 'phone_mobile', 'email', 'contact_type', 'salutation', 'description'];
 
     /** @var CacheHelper */
     private $cache;
@@ -143,7 +143,6 @@ class entryContactClass extends entryClass
 
             $con = BeanFactory::newBean('Contacts');
             $con->phone_mobile = trim((string) $rawPhone); // raw human-entered format; normalization is match-only
-            $con->first_name = (string) ($params['first_name'] ?? '');
             $con->last_name = (string) ($params['last_name'] ?? '');
             if (!empty($params['email'])) {
                 $con->email1 = (string) $params['email']; // Contact bean's email-relationship convention
@@ -320,7 +319,7 @@ class entryContactClass extends entryClass
                 // contacts created in the same browser session were editable. See
                 // CONTACT_ENTRY_MODAL_PLAN.md's "Open Questions" #4 in the chat_websocket repo.
                 'id'           => $bean->id,
-                'name'         => trim(($row['last_name'] ?? '') . ' ' . ($row['first_name'] ?? '')),
+                'name'         => trim($row['last_name'] ?? ''),
                 'email'        => $row['email'] ?? '',
                 'contact_type' => $row['contact_type'] ?? '',
                 'salutation'   => $row['salutation'] ?? '',
@@ -405,7 +404,7 @@ class entryContactClass extends entryClass
     {
         return [
             'id'           => $bean->id,
-            'name'         => trim(($bean->last_name ?? '') . ' ' . ($bean->first_name ?? '')),
+            'name'         => trim($bean->last_name ?? ''),
             'email'        => $bean->email1 ?? '',
             'contact_type' => $bean->contact_type ?? '',
             'salutation'   => $bean->salutation ?? '',

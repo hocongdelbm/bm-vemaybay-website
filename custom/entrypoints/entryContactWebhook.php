@@ -78,23 +78,7 @@ try {
     // no SuiteCRM session, so fall back to the configured integration user — otherwise
     // every operation would come back as "Access denied".
     global $current_user, $sugar_config;
-    $actingUserId = $_SESSION['authenticated_user_id'] ?? '';
-    $actingUser = is_string($actingUserId) && $actingUserId !== ''
-        ? BeanFactory::getBean('Users', $actingUserId)
-        : null;
-
-    if (empty($actingUser->id)) {
-        $integrationUserName = $sugar_config['webhook']['contact']['user_name'] ?? '';
-        if (is_string($integrationUserName) && $integrationUserName !== '') {
-            $actingUser = BeanFactory::newBean('Users');
-            $actingUser->retrieve_by_string_fields(['user_name' => $integrationUserName, 'deleted' => 0]);
-        }
-    }
-
-    if (!empty($actingUser->id) && (!isset($actingUser->status) || $actingUser->status === 'Active')) {
-        $GLOBALS['current_user'] = $current_user = $actingUser;
-    }
-
+    
     require_once 'custom/entrypoints/entryFactory.php';
     $entryClass = entryFactory::create('entryContactClass');
     if (!$entryClass || !method_exists($entryClass, $method)) {
