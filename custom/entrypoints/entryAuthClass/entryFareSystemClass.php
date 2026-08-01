@@ -11,6 +11,9 @@ class entryFareSystemClass extends entryClass
     private $endpoint;
     private $key;
 
+    // 01-08-2026 => 08-08-2026
+    private $promoCode = "Eco88";
+
     public function __construct()
     {
         parent::__construct();
@@ -49,7 +52,7 @@ class entryFareSystemClass extends entryClass
             "inf" => 1,
             "options" => [
                 "isLive" => $isLive,
-                "promoCode" => "VJSALE20"
+                "promoCode" => $this->promoCode
             ]
         ];
 
