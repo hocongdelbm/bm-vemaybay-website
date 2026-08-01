@@ -10,6 +10,7 @@ class entryFareSystemClass extends entryClass
 {
     private $endpoint;
     private $key;
+    private $promoCode = "Eco88";
 
     public function __construct()
     {
@@ -49,7 +50,7 @@ class entryFareSystemClass extends entryClass
             "inf" => 1,
             "options" => [
                 "isLive" => $isLive,
-                "promoCode" => "VJSALE20"
+                "promoCode" => $this->promoCode
             ]
         ];
 
@@ -108,7 +109,7 @@ class entryFareSystemClass extends entryClass
             "inf" => 1,
             "options" => [
                 "isLive" => $isLive,
-                "promoCode" => "VJSALE20"
+                "promoCode" => $this->promoCode
             ]
         ];
 
