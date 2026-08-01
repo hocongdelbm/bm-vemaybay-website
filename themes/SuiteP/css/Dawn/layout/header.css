@@ -11,6 +11,28 @@
     height: var(--height-header-bottom);
 }
 
+#messenger-chat-widget {
+    position: relative;
+}
+
+#messenger-chat-widget .messenger-chat-unread-badge {
+    position: absolute;
+    top: -5px;
+    right: -7px;
+    display: none;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    border-radius: 99px;
+    background: #ec2029;
+    color: #fff;
+    font: 700 10px/1 Arial, sans-serif;
+    pointer-events: none;
+}
+
 @media screen and (max-width: 575px),
 (orientation: landscape) and (max-width: 950px) {
     .header-navbar__bottom {
