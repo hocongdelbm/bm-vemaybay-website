@@ -121,12 +121,18 @@ final class ChatFileUploadWebhook
     public static function upload(array $files)
     {
         $api = new APINextCloud(['verify_ssl' => true, 'follow_redirects' => false, 'connect_timeout_ms' => 5000, 'timeout_ms' => 25000]);
-        $folder = '/bmvmb/chat_files/' . date('Y/m/d');
+        // Share the existing chat upload tree with image uploads.
+        $folder = '/bmvmb/chat_uploads/' . date('Y/m/d');
         self::ensureFolders($api, $folder);
         $uploaded = [];
         try {
             foreach ($files as $file) {
-                $remotePath = $folder . '/' . bin2hex(random_bytes(16)) . '_' . time() . '.' . $file['extension'];
+                // Nextcloud derives Content-Disposition from its stored file
+                // name. Keep the user-facing name, but isolate each upload in
+                // a random folder so same-name files never overwrite each other.
+                $remoteFolder = $folder . '/' . bin2hex(random_bytes(16));
+                self::ensureFolders($api, $remoteFolder);
+                $remotePath = $remoteFolder . '/' . $file['name'];
                 $put = self::decode($api->uploadFile($file['tmpPath'], $remotePath, ['prevent_overwrite' => true]));
                 if ((int) ($put['httpCode'] ?? 0) !== 201 || (int) ($put['status'] ?? 0) !== 1) throw new RuntimeException('NEXTCLOUD_UPLOAD_FAILED');
                 $share = self::decode($api->createShare($remotePath, 1));
