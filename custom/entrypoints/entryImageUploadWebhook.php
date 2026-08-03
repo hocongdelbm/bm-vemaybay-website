@@ -31,8 +31,8 @@ class NextCloudImageUploadException extends RuntimeException
 class NextCloudImageUploadService
 {
     const MAX_FILE_COUNT = 5;
-    const MAX_FILE_SIZE = 5242880;
-    const MAX_BATCH_SIZE = 26214400;
+    const MAX_FILE_SIZE = 16777216;
+    const MAX_BATCH_SIZE = 83886080;
     const DEFAULT_DEADLINE_SECONDS = 25;
     const CLEANUP_RESERVE_SECONDS = 3;
     const MAX_FILENAME_ATTEMPTS = 3;
