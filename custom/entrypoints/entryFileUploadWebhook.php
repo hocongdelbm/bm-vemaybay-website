@@ -11,7 +11,6 @@ final class ChatFileUploadWebhook
     const MAX_FILE_COUNT = 5;
     const MAX_FILE_SIZE = 27262976; // 26 MiB
     const MAX_BATCH_SIZE = 27262976; // 26 MiB
-    const MAX_NAME_COLLISION_ATTEMPTS = 1000;
 
     private static $extensions = [
         'pdf' => 'application/pdf', 'doc' => 'application/msword',
@@ -128,25 +127,15 @@ final class ChatFileUploadWebhook
         $uploaded = [];
         try {
             foreach ($files as $file) {
-                // The stored name becomes Nextcloud's download name. Keep the
-                // original when available, then use the familiar " (n)" form
-                // for collisions without ever overwriting an existing file.
+                // Keep files directly in the daily chat upload folder. A
+                // microsecond timestamp prevents collisions while retaining a
+                // recognizable original name in Nextcloud.
                 $baseName = pathinfo($file['name'], PATHINFO_FILENAME) ?: 'attachment';
-                $storedName = null;
-                $remotePath = null;
-                for ($attempt = 0; $attempt < self::MAX_NAME_COLLISION_ATTEMPTS; $attempt++) {
-                    $suffix = $attempt ? ' (' . $attempt . ')' : '';
-                    $candidateName = $baseName . $suffix . '.' . $file['extension'];
-                    $candidatePath = $folder . '/' . $candidateName;
-                    $put = self::decode($api->uploadFile($file['tmpPath'], $candidatePath, ['prevent_overwrite' => true]));
-                    if ((int) ($put['httpCode'] ?? 0) === 201 && (int) ($put['status'] ?? 0) === 1) {
-                        $storedName = $candidateName;
-                        $remotePath = $candidatePath;
-                        break;
-                    }
-                    if ((int) ($put['httpCode'] ?? 0) !== 412) throw new RuntimeException('NEXTCLOUD_UPLOAD_FAILED');
-                }
-                if ($remotePath === null || $storedName === null) throw new RuntimeException('NEXTCLOUD_NAME_COLLISION_LIMIT');
+                $timestamp = str_replace('.', '', sprintf('%.6F', microtime(true)));
+                $storedName = $baseName . '_' . $timestamp . '.' . $file['extension'];
+                $remotePath = $folder . '/' . $storedName;
+                $put = self::decode($api->uploadFile($file['tmpPath'], $remotePath, ['prevent_overwrite' => true]));
+                if ((int) ($put['httpCode'] ?? 0) !== 201 || (int) ($put['status'] ?? 0) !== 1) throw new RuntimeException('NEXTCLOUD_UPLOAD_FAILED');
                 $share = self::decode($api->createShare($remotePath, 1));
                 $data = is_array($share['data'] ?? null) ? $share['data'] : [];
                 $url = isset($data['url']) ? rtrim((string) $data['url'], '/') : '';
