@@ -63,6 +63,7 @@ class EC_Flight_Bookings extends Basic
 	public $nganluong_info;
 	public $nganluong_code;
 	public $nganluong_datepaid;
+	public $journey;
 
 	public $lydothangthua_id;
 	public $ghichuthangthua;
@@ -741,9 +742,7 @@ class EC_Flight_Bookings extends Basic
 			'eticket_inbound' => $_POST['psg_eticket_inbound'][$i] ?? '',
 			'add_type' => $_POST['psg_add_type'][$i] ?? '',
 			'parent_detail_id' => $_POST['psg_parent_detail_id'][$i] ?? null,
-			'id_number' => $_POST['psg_id_number'][$i] ?? '',
 			'deleted' => (int) ($_POST['psg_deleted'][$i] ?? 0),
-
 			// Baggage
 			'luggage_purchase_text' => $_POST['psg_luggage_purchase_text'][$i] ?? '',
 			'luggage_purchase_text_inbound' => $_POST['psg_luggage_purchase_text_inbound'][$i] ?? '',
@@ -778,16 +777,6 @@ class EC_Flight_Bookings extends Basic
 				$psg->mark_deleted($psg->id);
 			}
 			return;
-		}
-
-		// CCCD (12 số) hoặc Passport
-		$idNumber = trim($data['id_number']);
-		if (ctype_digit($idNumber) && strlen($idNumber) === 12) {
-			$psg->cic = $idNumber;
-			$psg->passport_number = '';
-		} else {
-			$psg->passport_number = $idNumber;
-			$psg->cic = '';
 		}
 
 		// Baggage costs — ép float trước khi tính

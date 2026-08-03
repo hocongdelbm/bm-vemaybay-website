@@ -85,6 +85,73 @@ trait TemplatesTrait
 		return $html;
 	}
 
+	private function populatePassportInfoModal()
+	{
+		global $app_list_strings;
+
+		// Popup nhập/sửa thông tin giấy tờ (CCCD/Passport) của hành khách, lưu qua entryBookingClass::updatePassengerFields.
+		$passportTypeOptions = $this->buildSelectOptions($app_list_strings['passport_type_list'] ?? []);
+		$nationalityOptions = $this->buildSelectOptions($app_list_strings['nationality_list'] ?? []);
+
+		$html = '
+		<div class="modal fade" id="passportInfoModal" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content passport-card-modal">
+					<button type="button" class="btn-close btn-close-white passport-card-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					<div class="passport-card">
+						<input type="hidden" id="passport_passenger_id" value="" />
+						<div class="passport-card__header">
+							<div class="passport-card__emblem">&#9733;</div>
+							<div class="passport-card__titles">
+								<span class="passport-card__title">Thông tin giấy tờ hành khách</span>
+							</div>
+						</div>
+						<div class="passport-card__body">
+							<div class="passport-field passport-field--half">
+								<label class="passport-field__label">Loại giấy tờ <b title="Bắt buộc">*</b></label>
+								<select id="passport_type" class="passport-field__select select2-field">' . $passportTypeOptions . '</select>
+							</div>
+							<div class="passport-field passport-field--half">
+								<label class="passport-field__label">Số giấy tờ / No. <b title="Bắt buộc">*</b></label>
+								<input type="text" id="passport_number" class="passport-field__input passport-field__input--mono" minlength="5" maxlength="16" autocomplete="off" />
+							</div>
+							<div class="passport-field passport-field--half">
+								<label class="passport-field__label">Quốc tịch / Nationality</label>
+								<select id="passport_nationality" class="passport-field__select select2-field">' . $nationalityOptions . '</select>
+							</div>
+							<div class="passport-field passport-field--half">
+								<label class="passport-field__label">Nơi cấp / Issuing country</label>
+								<select id="passport_issue_country" class="passport-field__select select2-field">' . $nationalityOptions . '</select>
+							</div>
+							<div class="passport-field passport-field--half">
+								<label class="passport-field__label">Ngày hết hạn / Expiry date <b title="Bắt buộc">*</b></label>
+								<input type="text" id="passport_expired_date" class="passport-field__input passport-field__input--mono passport-date-input" placeholder="yyyy-mm-dd" maxlength="10" autocomplete="off" />
+							</div>
+							<div class="passport-field passport-field--half">
+								<label class="passport-field__label">Ngày cấp / Issue date</label>
+								<input type="text" id="passport_issue_date" class="passport-field__input passport-field__input--mono passport-date-input" placeholder="yyyy-mm-dd" maxlength="10" autocomplete="off" />
+							</div>
+						</div>
+						<div class="passport-card__footer">
+							<button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Hủy</button>
+							<button type="button" class="btn btn-warning btn-sm fw-semibold" id="btnSavePassportInfo">Lưu thông tin</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>';
+		return $html;
+	}
+
+	private function buildSelectOptions($options, $emptyLabel = '-- Chọn --')
+	{
+		$html = '<option value="">' . $emptyLabel . '</option>';
+		foreach ($options as $key => $label) {
+			$html .= '<option value="' . htmlspecialchars((string) $key, ENT_QUOTES) . '">' . htmlspecialchars((string) $label, ENT_QUOTES) . '</option>';
+		}
+		return $html;
+	}
+
 	private function getWinLoseReasonRadio($select, $reason_type)
 	{
 		// Query danh sách lý do thắng/thua theo loại lý do để đổ vào popup xác nhận.

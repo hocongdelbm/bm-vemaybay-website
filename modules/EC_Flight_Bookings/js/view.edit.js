@@ -680,16 +680,6 @@ function insertPassengerLine(ln) {
 		</div>
 	</td>`;
 
-	// CCCD/Passport
-	html += `<td data-label="CCCD/Passport">
-		<input type="text" name="psg_id_number[]"
-			id="psg_id_number${ln}"
-			class="text-start"
-			maxlength="16"
-			style="padding-left:8px !important; letter-spacing:1px;"
-		/>
-	</td>`;
-
 	// PNR lượt đi
 	html += `<td data-label="PNR lượt đi"><input type="text" name="psg_pnr_outbound[]" id="psg_pnr_outbound${ln}" class="text-center" maxlength="30" /></td>`;
 	// PNR lượt về

@@ -7,6 +7,62 @@ const MAPPING_SYSTEM_CODE = {
   BBA: "QH",
   VTA: "VU",
 };
+const DATACOM_DOCUMENT_TYPE_MAP = {
+  I: "identity",
+  P: "passport",
+};
+
+// Policy details shown by the "Xem chi tiết" links in the auto-book note section.
+// Content is a placeholder until the real policy wording is provided.
+const POLICY_INFO = {
+  "identity-docs": {
+    title: "Quy định giấy tờ tùy thân",
+    content: `
+      <ul>
+        <li>Bắt buộc bổ sung <b>Ngày hết hạn</b> của giấy tờ sử dụng.</li>
+        <li>Bắt buộc bổ sung <b>Mã quốc tịch</b>, <b>Mã quốc gia cấp</b> đối với Passport.</li>
+        <li>Họ, Tên, Ngày sinh giữ chỗ phải trùng khớp chính xác với giấy tờ tùy thân.</li>
+        <li>Giấy tờ tùy thân phải còn hạn cho đến thời điểm bay.</li>
+      </ul>
+    `,
+  },
+  "baby-name": {
+    title: "Quy định điền tên quá dài khi giữ chỗ",
+    content: `
+      <h6>Hãng Sun PhuQuoc Airways (9G)</h6>
+      <p>Nguyên tắc chung:</p>
+      <ul>
+        <li>Tên khách thông thường hoặc tên khách đi cùng trẻ sơ sinh có tổng ký tự vượt quá 59, có thể viết tắt phần tên đệm của khách người lớn và trẻ sơ sinh sao cho không vượt quá tổng số ký tự cho phép.</li>
+        <li>Giữ đầy đủ phần họ và tên gọi của hành khách người lớn và trẻ sơ sinh.</li>
+        <li>Viết tắt bằng cách lấy chữ cái đầu của từng tên đệm, không sử dụng dấu chấm hoặc ký tự đặc biệt.</li>   
+      </ul>
+      <p style="margin-top:6px">Thứ tự ưu tiên lược bớt:</p>
+      <ul>
+        <li>Lược bỏ khoảng trắng giữa tên và tên đệm.</li>
+        <li>Lược bỏ danh xưng nếu có (Ví dụ: Ông, Bà, Mr, Ms, Mrs,...)</li>
+        <li>Viết tắt tên đệm của trẻ sơ sinh.</li>
+        <li>Viết tắt tên đệm của người lớn.</li>
+      </ul>
+      <p style="margin-top:6px">Ví dụ: <b>NGUYEN TRUNG QUAN NGOC VAN HO ANH TUAN TU NAM</b> => <b>N T Q N V H A TUAN TU NAM</b></p>
+
+      <hr />
+
+      <h6>Hãng Bamboo Airways (QH)</h6>
+      <p>Nguyên tắc chung:</p>
+      <ul>
+        <li>Hệ thống của BAV cho phép tối đa 53 ký tự trong trường tên, bao gồm họ, tên đệm, title, Passenger Type Code (PTC), DOB, và Identification code (ID or CR), dấu trống,… </li>
+        <li>Đối với hành khách là người lớn đi kèm em bé dưới 2 tuổi: tối đa kí tự trường tên, bao gồm cả tên, ngày sinh của em bé đi kèm người lớn.</li>
+      </ul>
+      <p style="margin-top:6px">Thứ tự ưu tiên lược bớt:</p>
+      <ul>
+        <li>Ưu tiên bỏ dấu cách trong tên của đối tượng khách em bé.</li>
+        <li>Trong trường hợp vẫn vượt quá số lượng kí tự, viết tắt kí tự đầu tiên của tên đệm của em bé (tên người lớn viết đầy đủ) sao cho tổng số kí tự tối đa có thể và không vượt quá số lượng kí tự cho phép.</li>
+        <li>Trường hợp số lượng kí tự vẫn vượt và báo lỗi không xuất được vé, Đại lý ưu tiên giữ chỗ với tên đầy đủ của người lớn và liên hệ Hãng để được hỗ trợ thêm thông tin em bé.</li>
+      </ul>
+      <p style="margin-top:6px">Ví dụ: <b> NGUYEN BAO NGOC MINH CHAU</b> => <b>NGUYEN B N MINH CHAU</b></p>
+    `,
+  },
+};
 
 var bookingId = "";
 var isInter = 0;
@@ -163,8 +219,11 @@ $(document).ready(function () {
       var passDateOfBirthInputs = document.querySelectorAll(
         `input[name="${PREFIX}PassengerDateOfBirth[]"]`,
       );
-      var passFullnameInputs = document.querySelectorAll(
-        `input[name="${PREFIX}PassengerFullname[]"]`,
+      var passLastNameInputs = document.querySelectorAll(
+        `input[name="${PREFIX}PassengerLastName[]"]`,
+      );
+      var passFirstNameInputs = document.querySelectorAll(
+        `input[name="${PREFIX}PassengerFirstName[]"]`,
       );
 
       // Validate passenger type against date of birth: inf (< 2y), chd (< 12y), adt (>= 12y).
@@ -185,8 +244,8 @@ $(document).ready(function () {
         if (expectedType && expectedType != passType) {
           typeMismatches.push({
             index: index,
-            name: passFullnameInputs[index]
-              ? passFullnameInputs[index].value
+            name: passLastNameInputs[index]
+              ? `${passLastNameInputs[index].value} ${passFirstNameInputs[index].value}`.trim()
               : "",
             birthdate: passDateOfBirthInputs[index].value,
             oldType: passType,
@@ -593,11 +652,26 @@ $(document).ready(function () {
             let passTitleInputs = document.querySelectorAll(
               `input[name="${PREFIX}PassengerTitle[]"]`,
             );
-            let passFullnameInputs = document.querySelectorAll(
-              `input[name="${PREFIX}PassengerFullname[]"]`,
+            let passLastNameInputs = document.querySelectorAll(
+              `input[name="${PREFIX}PassengerLastName[]"]`,
+            );
+            let passFirstNameInputs = document.querySelectorAll(
+              `input[name="${PREFIX}PassengerFirstName[]"]`,
+            );
+            let passPassportTypeInputs = document.querySelectorAll(
+              `input[name="${PREFIX}PassengerPassportType[]"]`,
             );
             let passPassportInputs = document.querySelectorAll(
-              `input[name="${PREFIX}PassengerPassport[]"]`,
+              `input[name="${PREFIX}PassengerPassportNum[]"]`,
+            );
+            let passPassportExpiredDateInputs = document.querySelectorAll(
+              `input[name="${PREFIX}PassengerPassportExpiredDate[]"]`,
+            );
+            let passPassportNationalityInputs = document.querySelectorAll(
+              `input[name="${PREFIX}PassengerPassportNationality[]"]`,
+            );
+            let passPassportIssueCountryInputs = document.querySelectorAll(
+              `input[name="${PREFIX}PassengerPassportIssueCountry[]"]`,
             );
             let passParentIdInputs = document.querySelectorAll(
               `select[name="${PREFIX}PassengerParentId[]"]`,
@@ -623,21 +697,22 @@ $(document).ready(function () {
 
               listPassenger.push({
                 PersonOrgId: (index + 1).toString(),
+                RowNumber: index + 1,
+                SortOrder: index + 1,
                 PassengerTypeId: passengerTypeId,
                 ParentGuestId: parentId,
-                FirstName: getMiddleAndFirstName(
-                  passFullnameInputs[index].value,
-                ),
-                LastName: getLastName(passFullnameInputs[index].value),
-                BirthDay: passDateOfBirthInputs[index].value,
-                Gender: gender,
-                Title: "",
-                Phone: type != "inf" ? contactInfo.Phone : null,
-                Email: type != "inf" ? contactInfo.Email : null,
-                RowNumber: index + 1,
-                Passport:
-                  type != "inf" ? passPassportInputs[index].value : null,
-                SortOrder: index + 1,
+                FirstName   : passFirstNameInputs[index].value.trim(),
+                LastName    : passLastNameInputs[index].value.trim(),
+                BirthDay    : passDateOfBirthInputs[index].value,
+                Gender      : gender,
+                Title       : "",
+                Phone       : type != "inf" ? contactInfo.Phone : null,
+                Email       : type != "inf" ? contactInfo.Email : null,
+                PassportType    : passPassportTypeInputs[index].value || null,
+                Passport        : passPassportInputs[index].value || null,
+                PassportExpired : passPassportExpiredDateInputs[index].value || null,
+                Nationality     : passPassportNationalityInputs[index].value || null,
+                PassportIssuer  : passPassportIssueCountryInputs[index].value || null,
               });
             });
 
@@ -748,8 +823,11 @@ $(document).ready(function () {
           let passTitleInputs = document.querySelectorAll(
             `input[name="${PREFIX}PassengerTitle[]"]`,
           );
-          let passFullnameInputs = document.querySelectorAll(
-            `input[name="${PREFIX}PassengerFullname[]"]`,
+          let passLastNameInputs = document.querySelectorAll(
+            `input[name="${PREFIX}PassengerLastName[]"]`,
+          );
+          let passFirstNameInputs = document.querySelectorAll(
+            `input[name="${PREFIX}PassengerFirstName[]"]`,
           );
           let passDateOfBirthInputs = document.querySelectorAll(
             `input[name="${PREFIX}PassengerDateOfBirth[]"]`,
@@ -757,18 +835,32 @@ $(document).ready(function () {
           let passParentIdInputs = document.querySelectorAll(
             `select[name="${PREFIX}PassengerParentId[]"]`,
           );
+          let passPassportNumInputs = document.querySelectorAll(
+            `input[name="${PREFIX}PassengerPassportNum[]"]`,
+          );
+          let passPassportTypeInputs = document.querySelectorAll(
+            `input[name="${PREFIX}PassengerPassportType[]"]`,
+          );
+          let passPassportExpiredDateInputs = document.querySelectorAll(
+            `input[name="${PREFIX}PassengerPassportExpiredDate[]"]`,
+          );
+          let passPassportNationalityInputs = document.querySelectorAll(
+            `input[name="${PREFIX}PassengerPassportNationality[]"]`,
+          );
+          let passPassportIssueCountryInputs = document.querySelectorAll(
+            `input[name="${PREFIX}PassengerPassportIssueCountry[]"]`,
+          );
           passIdInputs.forEach((input, index) => {
             let title = passTitleInputs[index].value;
             let gender = title == "Ms" ? 0 : 1;
             let type = passTypeInputs[index].value.toUpperCase();
-            let firstName = getMiddleAndFirstName(
-              passFullnameInputs[index].value,
-            );
+            let firstName = passFirstNameInputs[index].value.trim();
             let parentId = parseInt(passParentIdInputs[index].value);
+
             if (type == "INF") {
               parentId++;
               if (airlineCodes.includes("QH")) {
-                firstName = getFirstName(passFullnameInputs[index].value);
+                firstName = getFirstName(passFirstNameInputs[index].value);
               } else if (airlineCodes.includes("9G")) {
                 title = title == "Mr" ? "MSTR" : "MISS";
               }
@@ -783,9 +875,16 @@ $(document).ready(function () {
               Type: type,
               Title: title,
               Gender: gender,
-              Surname: getLastName(passFullnameInputs[index].value),
+              Surname: passLastNameInputs[index].value.trim(),
               GivenName: firstName,
               DateOfBirth: passDateOfBirthInputs[index].value.replace(/-/g, ""),
+              Passport: {
+                "DocumentType": DATACOM_DOCUMENT_TYPE_MAP[passPassportTypeInputs[index].value.trim()] || null,
+                "DocumentCode": passPassportNumInputs[index].value.trim() || null,
+                "DocumentExpiry": passPassportExpiredDateInputs[index].value.replace(/-/g, "") || null,
+                "Nationality": passPassportNationalityInputs[index].value.trim() || null,
+                "IssueCountry": passPassportIssueCountryInputs[index].value.trim() || null
+              }
             });
           });
 
@@ -929,6 +1028,13 @@ $(document).ready(function () {
     }
   });
 
+  // Show policy details related to a note in the auto-book dialog
+  $(document).on("click", ".policy-info-trigger", function () {
+    const policy = POLICY_INFO[$(this).data("policy")];
+    if (!policy) return;
+    showPolicyInfoNotify(policy.title, policy.content);
+  });
+
   // Update data (flight datetime, fares) to BM
   $(document).on("click", ".btn-update-auto-book", function () {
     const data = $(this).attr("data");
@@ -1018,6 +1124,7 @@ function showDialogAutoBook(bookingData) {
   const retFare = bookingData.fareDetails.ret ?? [];
   const passengerTypes = { 0: "Người lớn", 1: "Trẻ em", 2: "Em bé" };
   const passengerTextTypes = { 0: "Adt", 1: "Chd", 2: "Inf" };
+  const passportTypeLabels = { I: "CCCD/ID", P: "Passport" };
 
   /**
    * Render flight and fare HTML
@@ -1198,51 +1305,69 @@ function showDialogAutoBook(bookingData) {
     }
 
     passengersHTML += `<div class="passenger-info">
-            <input type="hidden" name="autobookPassengerId[]" value="${value.id}" readonly />
-            <input type="hidden" name="autobookPassengerType[]" value="${passengerTextTypes[value.type]}" readonly />
-            <input type="hidden" name="autobookPassengerTitle[]" value="${value.salutation}" readonly />
-            <input type="hidden" name="autobookPassengerFullname[]" value="${value.name}" readonly />
-            <input type="hidden" name="autobookPassengerDateOfBirth[]" value="${value.dateOfBirth}" readonly />
-            <input type="hidden" name="autobookPassengerPassport[]" value="${value.passportNumber || value.cic}" readonly />
-
-            <div class="info-row d-flex justify-content-between">
-                <div><b><span style="font-weight:700;color:${value.salutation == "Ms" ? "#f7689e" : "#2d87d5"}">${value.salutation}.</span> ${value.name}</b></div>
-                <div><b class="passenger-type-label">${passengerTypes[value.type]}</b></div>
-            </div>
-            <div class="info-row d-flex justify-content-between">
-                <div>CCCD/Passport: <b>${value.passportNumber || value.cic}</b></div>
-                <div>Ngày sinh: <b>${value.dateOfBirth}</b></div>
-            </div>
-            ${parentIdHTML}
-        </div>`;
+      <input type="hidden" name="autobookPassengerId[]" value="${value.id}" readonly />
+      <input type="hidden" name="autobookPassengerType[]" value="${passengerTextTypes[value.type]}" readonly />
+      <input type="hidden" name="autobookPassengerTitle[]" value="${value.salutation}" readonly />
+      <input type="hidden" name="autobookPassengerDateOfBirth[]" value="${value.dateOfBirth}" readonly />
+      <input type="hidden" name="autobookPassengerPassportNum[]" value="${value.passportNumber}" readonly />
+      <input type="hidden" name="autobookPassengerPassportType[]" value="${value.passportType}" readonly />
+      <input type="hidden" name="autobookPassengerPassportExpiredDate[]" value="${value.passportExpiredDate}" readonly />
+      <input type="hidden" name="autobookPassengerPassportIssueDate[]" value="${value.passportIssueDate}" readonly />
+      <input type="hidden" name="autobookPassengerPassportIssueCountry[]" value="${value.passportIssueCountry}" readonly />
+      <input type="hidden" name="autobookPassengerPassportNationality[]" value="${value.passportNational}" readonly />
+      <div class="info-row d-flex align-items-center gap-2">
+        <span style="font-weight:700;color:${value.salutation == "Ms" ? "#f7689e" : "#2d87d5"}">${value.salutation}.</span>
+        <input type="text" name="autobookPassengerLastName[]" class="passenger-name-input passenger-lastname-input" value="${getLastName(value.name)}" placeholder="Họ" />
+        <input type="text" name="autobookPassengerFirstName[]" class="passenger-name-input passenger-firstname-input" value="${getMiddleAndFirstName(value.name)}" placeholder="Tên" />
+      </div>
+      <div class="info-row passenger-detail-row">
+        <div>Loại: <b class="passenger-type-label">${passengerTypes[value.type]}</b></div>
+        <div>Ngày sinh: <b>${value.dateOfBirth}</b></div>
+        <div>${passportTypeLabels[value.passportType] || "CCCD/Passport"}: <b>${value.passportNumber || "-"}</b></div>
+        <div>Hết hạn: <b>${value.passportExpiredDate || "-"}</b></div>
+        <div>Quốc tịch: <b>${value.passportNational || "-"}</b></div>
+        <div>Nơi cấp: <b>${value.passportIssueCountry || "-"}</b></div>
+        <div>Ngày cấp: <b>${value.passportIssueDate || "-"}</b></div>
+      </div>
+      ${parentIdHTML}
+    </div>`;
   });
   content.innerHTML += `<div class="section">
-        <div class="section-title">Thông tin hành khách</div>
-        ${passengersHTML}
-    </div>`;
+    <div class="section-title">Thông tin hành khách</div>
+    ${passengersHTML}
+  </div>`;
 
   // Contact
   const contactInfo = bookingData.contact;
   const contactHTML = `<div class="contact-info">
-        <input type="hidden" name="autobookContactTitle" value="${contactInfo.title || ""}" readonly />
-        <input type="hidden" name="autobookContactName" value="${contactInfo.name || ""}" readonly />
-        <input type="hidden" name="autobookContactPhone" value="${contactInfo.phone || ""}" readonly />
-        <input type="hidden" name="autobookContactEmail" value="${contactInfo.email || ""}" readonly />
-        <input type="hidden" name="autobookContactAddress" value="${contactInfo.address || ""}" readonly />
-        <div class="section-title">Thông tin liên hệ</div>
-        <div class="info-row">Tên liên hệ: <b>${contactInfo.title || ""} ${contactInfo.name || ""}</b></div>
-        <div class="info-row">Số điện thoại: <b>${contactInfo.phone || ""}</b></div>
-        <div class="info-row">Email: <b>${contactInfo.email || ""}</b></div>
-        <div class="info-row">Địa chỉ: <b>${contactInfo.address || ""}</b></div>
-    </div>`;
+  <div class="section-title">Thông tin liên hệ</div>
+  <div class="info-row contact-field">
+    <label>Tên liên hệ</label>
+    <input type="text" name="autobookContactName" value="${contactInfo.title || ''} ${contactInfo.name || ''}" class="contact-input" maxlength="60" readonly />
+    <input type="hidden" name="autobookContactTitle" value="${contactInfo.title || ''}" readonly />
+  </div>
+  <div class="info-row contact-field">
+    <label>Số điện thoại</label>
+    <input type="text" name="autobookContactPhone" value="${contactInfo.phone || ''}" class="contact-input" maxlength="12" />
+  </div>
+  <div class="info-row contact-field">
+    <label>Email</label>
+    <input type="text" name="autobookContactEmail" value="${contactInfo.email || ''}" class="contact-input" />
+  </div>
+  <div class="info-row contact-field">
+    <label>Địa chỉ</label>
+    <input type="text" name="autobookContactAddress" value="${contactInfo.address || ''}" class="contact-input" />
+  </div>
+  </div>`;
   content.innerHTML += contactHTML;
 
   // Note
   let noteHTML = `<div class="note p-2 mt-3" style="background:#e0ecfc">
-        ${BookingWithin24h ? '<p style="color:red">- Đây là <b>vé cận</b>, sẽ tiến hành thanh toán ngay.</p>' : "<p>- <b>Vé cận Vietjet</b> sẽ tiến hành thanh toán ngay.</p>"}
-        <p>- Các hãng còn lại vé cận nếu gặp lỗi trong quá trình giữ chỗ khả năng đại lý không cho giữ mà phải xuất ngay.</p>
-        <p>- Kiểm tra kỹ càng thông tin trước khi xác nhận.</p>
-    </div>`;
+    ${BookingWithin24h ? '<p style="color:red">- Đây là <b>vé cận</b>, sẽ tiến hành thanh toán ngay.</p>' : "<p>- <b>Vé cận VJ, VU, QH</b> sẽ tiến hành thanh toán ngay.</p>"}
+    <p>- Vui lòng bổ sung đầy đủ thông tin ngày sinh, giấy tờ thùy thân đối với hãng <b>VJ</b>, <b>VN</b>. <a class="policy-info-trigger" data-policy="identity-docs">Xem chi tiết</a></p>
+    <p>- Tên hành khách hoặc em bé đi cùng quá dài vui lòng điều chỉnh theo quy định. <a class="policy-info-trigger" data-policy="baby-name">Xem chi tiết</a></p>
+    <p>- Kiểm tra kỹ càng thông tin trước khi xác nhận.</p>
+  </div>`;
   content.innerHTML += noteHTML;
 
   // More input data
@@ -1704,6 +1829,34 @@ function showConfirmNotify(text_modal, text_detail = "") {
       e.preventDefault();
       settle(false);
     });
+  });
+}
+
+function showPolicyInfoNotify(title, content) {
+  const existing = document.getElementById("policyInfoDialog");
+  if (existing) existing.remove();
+
+  const dialog = document.createElement("dialog");
+  dialog.id = "policyInfoDialog";
+  dialog.style.cssText =
+    "border:none; border-radius:8px; padding:0; max-width:440px; box-shadow:0 8px 30px rgba(0,0,0,.25)";
+  dialog.innerHTML = `<div style="padding:20px">
+        <h5 style="margin:0 0 10px">${title}</h5>
+        <div class="policy-info-content" style="text-align:left; background:#f7f9fb; border-radius:4px; padding:8px">${content}</div>
+        <button type="button" id="btnPolicyInfoClose" class="btn btn-warning" style="width:100%; margin-top:16px">Đã hiểu</button>
+    </div>`;
+
+  document.body.appendChild(dialog);
+  dialog.showModal();
+
+  const close = () => {
+    dialog.close();
+    dialog.remove();
+  };
+  dialog.querySelector("#btnPolicyInfoClose").addEventListener("click", close);
+  dialog.addEventListener("cancel", (e) => {
+    e.preventDefault();
+    close();
   });
 }
 

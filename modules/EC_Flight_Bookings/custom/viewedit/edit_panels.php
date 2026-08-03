@@ -318,11 +318,6 @@ trait EditPanelsTrait
 				$birthday = date($date_format, strtotime($row['birthday']));
 			}
 
-			$id_number_value = trim($row['passport_number'] ?? '');
-			if (empty($id_number_value)) {
-				$id_number_value = trim($row['cic'] ?? '');
-			}
-
 			$passengers_data[] = [
 				'id' => $passenger_id,
 				'db_id' => $row['id'],
@@ -330,7 +325,6 @@ trait EditPanelsTrait
 				'salutation' => (int) $row['salutation'],
 				'name' => $row['name'],
 				'birthday' => $birthday,
-				'id_number' => $id_number_value,
 				'pnr_outbound' => $row['pnr_outbound'],
 				'pnr_inbound' => $row['pnr_inbound'],
 				'eticket_outbound' => $row['eticket_outbound'],
@@ -364,15 +358,14 @@ trait EditPanelsTrait
 		$html = '<table id="tbl_line_passengers" class="table-vertical__mobile table-edit__booking table-config table-details__booking" cellpadding="0" cellspacing="0" border="0">';
 		$html .= '<thead>';
 		$html .= '<tr id="psg_first_row">';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">Loại HK</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:10%;">Loại HK</th>';
 		$html .= '<th scope="col" class="text-center fw-semibold" style="width:8%;">Danh xưng</th>';
 		$html .= '<th scope="col" class="text-center fw-semibold" style="width:20%;">Họ tên</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:10%;">Ngày sinh</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:12%;">CCCD/Passport</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">PNR lượt đi</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:9%;">PNR lượt về</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:11%;">Số vé lượt đi</th>';
-		$html .= '<th scope="col" class="text-center fw-semibold" style="width:11%;">Số vé lượt về</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:12%;">Ngày sinh</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:10%;">PNR lượt đi</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:10%;">PNR lượt về</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:12%;">Số vé lượt đi</th>';
+		$html .= '<th scope="col" class="text-center fw-semibold" style="width:12%;">Số vé lượt về</th>';
 		$html .= '<th scope="col">&nbsp;</th>';
 		$html .= '</tr>';
 		$html .= '</thead>';

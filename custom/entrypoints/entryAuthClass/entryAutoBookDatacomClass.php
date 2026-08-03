@@ -156,8 +156,12 @@ class entryAutoBookDatacomClass extends entryClass {
                     ,p.salutation
                     ,p.name
                     ,p.birthday
-                    ,p.cic
                     ,p.passport_number
+                    ,p.passport_type
+                    ,p.passport_nationality
+                    ,p.passport_issue_country
+                    ,p.passport_issue_date
+                    ,p.passport_expired_date
                 FROM ec_booking_passengers p
                 WHERE p.booking_id = '$bookingId' AND p.deleted = 0
                 ORDER BY p.type";
@@ -174,8 +178,12 @@ class entryAutoBookDatacomClass extends entryClass {
                         'salutation' => $row['salutation'] == 0 ? 'Mr' : 'Ms', // 0:Mr ; 1:Ms
                         'name'=> $row['name'],
                         'dateOfBirth' => !is_null($row['birthday']) && !empty($row['birthday']) ? date('d-m-Y', strtotime($row['birthday'])) : '',
-                        'cic' => $row['cic'] ?? '',
-                        'passportNumber' => $row['passport_number'] ?? ''
+                        'passportNumber'        => $row['passport_number'] ?? '',
+                        'passportType'          => $row['passport_type'] ?? '',
+                        'passportNationality'   => $row['passport_nationality'] ?? '',
+                        'passportIssueCountry'  => $row['passport_issue_country'] ?? '',
+                        'passportIssueDate'     => !empty($row['passport_issue_date']) && $row['passport_issue_date'] !== '0000-00-00' ? date('d-m-Y', strtotime($row['passport_issue_date'])) : '',
+                        'passportExpiredDate'   => !empty($row['passport_expired_date']) && $row['passport_expired_date'] !== '0000-00-00' ? date('d-m-Y', strtotime($row['passport_expired_date'])) : '',
                     ];
                 }
             }

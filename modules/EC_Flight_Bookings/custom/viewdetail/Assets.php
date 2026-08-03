@@ -16,7 +16,7 @@ trait AssetsTrait
 	private function displayJSTrait() {
 		global $current_user;
 
-		$jsVer = inDeveloperMode() ? time() : '1.3.3';
+		$jsVer = inDeveloperMode() ? time() : '1.3.4';
 
 		$js = '
 			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=' . $jsVer . '"></script>
@@ -47,7 +47,7 @@ trait AssetsTrait
 			
 			const all_ticket_class = [].concat(bba_ticket_class, vja_ticket_class, vna_ticket_class, vta_ticket_class);
 			const is_current_user_admin = ' . (is_admin($current_user) ? 'true' : 'false') . ';
-			const can_edit_completed_line_details = ' . (isManagerUser($current_user->id) ? 'true' : 'false') . ';
+			const can_edit_completed_line_details = ' . (isManagerUser() ? 'true' : 'false') . ';
 		</script>';
 
 		// Phải tạo phiếu thu trước rồi mới nhấn đã thanh toán.

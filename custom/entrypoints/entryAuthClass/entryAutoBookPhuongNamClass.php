@@ -144,8 +144,12 @@ class entryAutoBookPhuongNamClass extends entryClass {
                     ,p.salutation
                     ,p.name
                     ,p.birthday
-                    ,p.cic
                     ,p.passport_number
+                    ,p.passport_type
+                    ,p.passport_nationality
+                    ,p.passport_issue_country
+                    ,p.passport_issue_date
+                    ,p.passport_expired_date
                 FROM ec_booking_passengers p
                 WHERE p.booking_id = '$bookingId' AND p.deleted = 0
                 ORDER BY p.type";
@@ -157,13 +161,17 @@ class entryAutoBookPhuongNamClass extends entryClass {
                     elseif($row['type'] === '2') $infCount++;
 
                     $dataPassengers[$row['id']] = [
-                        'id' => $row['id'],
-                        'type' => $row['type'], // 0:Adt ; 1:Chd ; 2:Inf
-                        'salutation' => $row['salutation'] == 0 ? 'Mr' : 'Ms', // 0:Mr ; 1:Ms
-                        'name'=> $row['name'],
-                        'dateOfBirth' => !is_null($row['birthday']) && !empty($row['birthday']) ? date('d-m-Y', strtotime($row['birthday'])) : '',
-                        'cic' => $row['cic'] ?? '',
-                        'passportNumber' => $row['passport_number'] ?? ''
+                        'id'                    => $row['id'],
+                        'type'                  => $row['type'], // 0:Adt ; 1:Chd ; 2:Inf
+                        'salutation'            => $row['salutation'] == 0 ? 'Mr' : 'Ms', // 0:Mr ; 1:Ms
+                        'name'                  => $row['name'],
+                        'dateOfBirth'           => !is_null($row['birthday']) && !empty($row['birthday']) ? date('d-m-Y', strtotime($row['birthday'])) : '',
+                        'passportNumber'        => $row['passport_number'] ?? '',
+                        'passportType'          => $row['passport_type'] ?? '',
+                        'passportNationality'   => $row['passport_nationality'] ?? '',
+                        'passportIssueCountry'  => $row['passport_issue_country'] ?? '',
+                        'passportIssueDate'     => !empty($row['passport_issue_date']) && $row['passport_issue_date'] !== '0000-00-00' ? date('d-m-Y', strtotime($row['passport_issue_date'])) : '',
+                        'passportExpiredDate'   => !empty($row['passport_expired_date']) && $row['passport_expired_date'] !== '0000-00-00' ? date('d-m-Y', strtotime($row['passport_expired_date'])) : '',
                     ];
                 }
             }
@@ -748,15 +756,18 @@ class entryAutoBookPhuongNamClass extends entryClass {
         $airlineCodes = [];
         foreach($flights as $f) $airlineCodes[] = $f['SystemCode'];
 
-        if($isWithin24h === 1 && count(array_unique($airlineCodes)) === 2) {
+        if(count(array_unique($airlineCodes)) === 2) {
             return [
                 "status" => 0,
-                "message" => "Vé cận phải giữ chung 1 hãng",
+                "message" => "Vui lòng thao tác 1 lần 1 hãng",
             ];
         }
+
+        $airlineCode = $airlineCodes[0];
+        
         // The other domestic airlines allow close-in ticket holds
         $isIssueTicket = $isWithin24h;
-        if($isWithin24h === 1 && !in_array($airlineCodes[0], ['VJ'])) $isIssueTicket === 0;
+        if($isWithin24h === 1 && !in_array($airlineCode, ['VJ'])) $isIssueTicket = 0;
 
         // Contact info
         $contactRequiredFields = [
@@ -778,26 +789,28 @@ class entryAutoBookPhuongNamClass extends entryClass {
         // Passengers info
         $customerInfos = [];
         foreach($listPassenger as $num => $pass) {
+            if(!$this->checkPassport($pass, $airlineCode)) {
+                return ["status" => 0, "message" => "Vui lòng bổ sung giấy tờ tùy thân hành khách đầy đủ theo quy định"];
+            }
+
             $birthday = isset($pass['BirthDay']) && !empty($pass['BirthDay']) && strtotime($pass['BirthDay']) ? $pass['BirthDay'] : null;
             if($birthday) $birthday = date('Y-m-d', strtotime(str_replace("/", "-", $birthday)));
 
-            if(in_array('QH', $airlineCodes) && $pass['PassengerTypeId'] === 5) {
-                $pass['FirstName'] = $phuongnamapi->getOnlyFirstName($pass['FirstName'] ?? '');
-            }
+            $passportExpired = isset($pass['PassportExpired']) && !empty($pass['PassportExpired']) && strtotime(str_replace("/", "-", $pass['PassportExpired'])) ? $pass['PassportExpired'] : null;
+            if($passportExpired) $passportExpired = date('Y-m-d', strtotime(str_replace("/", "-", $passportExpired)));
 
             $customerInfos[$num] = $pass;
+            // Format value
             $customerInfos[$num]["BirthDay"] = $birthday;
+            $customerInfos[$num]["PassportExpired"] = $passportExpired;
             $customerInfos[$num]["Age"] = $phuongnamapi->getAge($birthday);
+            // Hard code
+            $customerInfos[$num]["PassportCode"] = null;
+            $customerInfos[$num]["IsContract"] = true;
             $customerInfos[$num]["PersonOrgIdConfirmed"] = null;
             $customerInfos[$num]["PersonOrgCode"] = null;
             $customerInfos[$num]["CustomerKey"] = null;
             $customerInfos[$num]["AddressFull"] = null;
-            $customerInfos[$num]["IsContract"] = true;
-            $customerInfos[$num]["PassportType"] = null;
-            $customerInfos[$num]["PassportCode"] = null;
-            $customerInfos[$num]["PassportIssuer"] = null;
-            $customerInfos[$num]["PassportExpired"] = null;
-            $customerInfos[$num]["Nationality"] = null;
             $customerInfos[$num]["ParentGuestIdConfirmed"] = null; // QH uses
             $customerInfos[$num]["ParentGuestCode"] = null; // VJ uses
             $customerInfos[$num]["LoyaltyNumber"] = null;
@@ -889,6 +902,32 @@ class entryAutoBookPhuongNamClass extends entryClass {
 
         $responseArr['isWithin24h'] = $isWithin24h;
         return $responseArr;
+    }
+
+    /**
+     * Check whether a passenger has the identity/passport info required by VJ, VN:
+     * passport type, passport number, and a not-yet-expired expiry date.
+     *
+     * @param array $pass Passenger data
+     * @param string $airlineCode
+     * @return bool
+     */
+    protected function checkPassport($pass, $airlineCode) {
+        if(in_array($airlineCode, ['VJ', 'VN'])) {
+            if($pass['passengerTypeId'] != 1 && empty($pass['Passport'])) return true;
+
+            if($pass['PassportExpired'] === null || $pass['PassportExpired'] === '' || strtotime($pass['PassportExpired']) === false) return false;
+
+            if($pass['PassportType'] == 'P' && 
+                (
+                    $pass['PassportIssuer'] === null || $pass['PassportIssuer'] === ''
+                    || $pass['Nationality'] === null || $pass['Nationality'] === ''
+                )
+            ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

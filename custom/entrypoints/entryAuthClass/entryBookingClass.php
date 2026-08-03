@@ -391,8 +391,9 @@ class entryBookingClass extends entryClass {
             return ['status' => 0, 'message' => 'Thao tác không thành công, vui lòng thử lại'];
         }
         catch (Throwable $th) {
-            $GLOBALS['log']->fatal("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
-            return ["status" => 0, "message" => "Có lỗi xảy ra trong quá trình thao tác"];
+            $logId = LoggerHelper::generateLogId();
+            $GLOBALS['log']->fatal("[{$logId}] {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+            return ["status" => 0, "message" => "Lỗi $logId"];
         }
     }
 
@@ -411,7 +412,20 @@ class entryBookingClass extends entryClass {
             return ['status' => 0, 'message' => 'Không tìm thấy hành khách'];
         if (empty($fields))
             return ['status' => 0, 'message' => 'Dữ liệu không hợp lệ'];
-        $list_allowed_fields = ['type'];
+        $list_allowed_fields = [
+            'type',
+            'passport_type',
+            'passport_number',
+            'passport_nationality',
+            'passport_issue_country',
+            'passport_issue_date',
+            'passport_expired_date',
+        ];
+
+        if (array_key_exists('passport_type', $fields) || array_key_exists('passport_number', $fields)) {
+            if (empty($fields['passport_type']) || empty($fields['passport_number']))
+                return ['status' => 0, 'message' => 'Vui lòng nhập loại giấy tờ và số giấy tờ'];
+        }
 
         try {
             $passengerBean = new EC_Booking_Passengers();
@@ -426,8 +440,9 @@ class entryBookingClass extends entryClass {
             }
             return ['status' => 0, 'message' => 'Thao tác không thành công, vui lòng thử lại'];
         } catch (Throwable $th) {
-            $GLOBALS['log']->fatal("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
-            return ["status" => 0, "message" => "Có lỗi xảy ra trong quá trình thao tác"];
+            $logId = LoggerHelper::generateLogId();
+            $GLOBALS['log']->error("[{$logId}] {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+            return ["status" => 0, "message" => "Lỗi $logId"];
         }
     }
 
@@ -459,12 +474,12 @@ class entryBookingClass extends entryClass {
                 d.doc_url as doc_url,
                 dr.doc_url as revision_doc_url,
                 u.user_name as created_by
-        FROM documents d
-        LEFT JOIN users u ON d.created_by = u.id
-        LEFT JOIN document_revisions dr ON d.document_revision_id = dr.id
-        WHERE d.booking_id = '" . $db->quote($booking_id) . "'
-        AND d.deleted = 0
-        ORDER BY d.date_entered DESC";
+            FROM documents d
+            LEFT JOIN users u ON d.created_by = u.id
+            LEFT JOIN document_revisions dr ON d.document_revision_id = dr.id
+            WHERE d.booking_id = '" . $db->quote($booking_id) . "'
+            AND d.deleted = 0
+            ORDER BY d.date_entered DESC";
 
         $result = $db->query($query);
         $documents = [];
@@ -529,8 +544,7 @@ class entryBookingClass extends entryClass {
                     $city = trim(str_replace("Thành phố", "", $city));
                     $city = trim(str_replace("Thành Phố", "", $city));
                     $city = trim(str_replace("Tỉnh", "", $city));
-                    if ($city == "Thủ Đức")
-                        $city = "Hồ Chí Minh";
+                    if ($city == "Thủ Đức") $city = "Ho Chi Minh";
                     $city = $this->removeVietnameseTones($city);
                     $sql = "UPDATE ec_flight_bookings SET city = '$city' WHERE id = '$bookingId' AND deleted = 0";
                     if ($db->query($sql)) {
