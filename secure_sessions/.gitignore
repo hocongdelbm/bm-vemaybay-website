@@ -1,2 +1,5 @@
 *
+!logs
+!request_logs
+!save_call_logs
 !.gitignore
