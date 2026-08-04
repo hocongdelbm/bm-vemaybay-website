@@ -115,23 +115,18 @@ $sugar_config = array(
     'min_cron_interval' => 0,
     'allowed_cron_users' =>
     array(
-      0 => 'bmvmb2005',
+      0 => '',
       1 => 'root',
     ),
   ),
   'date_formats' =>
   array(
-    'Y-m-d' => '2010-12-23',
-    'm-d-Y' => '12-23-2010',
     'd-m-Y' => '23-12-2010',
-    'Y/m/d' => '2010/12/23',
-    'm/d/Y' => '12/23/2010',
     'd/m/Y' => '23/12/2010',
-    'Y.m.d' => '2010.12.23',
-    'd.m.Y' => '23.12.2010',
-    'm.d.Y' => '12.23.2010',
+    'Y-m-d' => '2010-12-23',
+    'Y/m/d' => '2010/12/23',
   ),
-  'datef' => 'm/d/Y',
+  'datef' => 'd-m-Y',
   'dbconfig' =>
   array(
     'db_host_name' => 'localhost',
@@ -160,7 +155,7 @@ $sugar_config = array(
   'default_charset' => 'UTF-8',
   'default_currency_iso4217' => 'VND',
   'default_currency_name' => 'VND',
-  'default_currency_significant_digits' => 2,
+  'default_currency_significant_digits' => 0,
   'default_currency_symbol' => '',
   'default_date_format' => 'd-m-Y',
   'default_decimal_seperator' => '.',
@@ -287,7 +282,7 @@ $sugar_config = array(
   'lock_default_user_name' => false,
   'lock_homepage' => true,
   'lock_subpanels' => true,
-  'log_dir' => 'secure_sessions/log',
+  'log_dir' => 'secure_sessions/logs',
   'log_file' => 'suitecrm.log',
   'log_memory_usage' => false,
   'logger' =>
@@ -300,7 +295,7 @@ $sugar_config = array(
       'dateFormat' => '%c',
       'maxSize' => '100MB',
       'maxLogs' => 10,
-      'suffix' => '%m_%d_%y',
+      'suffix' => '%y_%m_%d',
     ),
   ),
   'name_formats' =>
@@ -309,12 +304,8 @@ $sugar_config = array(
     's f l' => 's f l',
     'f l' => 'f l',
     's l' => 's l',
-    'l, s f' => 'l, s f',
-    'l, f' => 'l, f',
-    's l, f' => 's l, f',
-    'l s f' => 'l s f',
   ),
-  'oauth2_encryption_key' => 'QWxwCaH7ix0PN1fm9dAcLx9wN+bu7wY/+0CHl9eDxTg=',
+  'oauth2_encryption_key' => '',
   'passwordsetting' =>
   array(
     'SystemGeneratedPasswordON' => '',
@@ -393,7 +384,7 @@ $sugar_config = array(
   ),
   'showDetailData' => true,
   'showThemePicker' => true,
-  'site_url' => 'http://bm.vemaybay.website',
+  'site_url' => 'http://localhost',
   'slow_query_time_msec' => '1000',
   'stackTrace' => false,
   'stack_trace_errors' => false,
