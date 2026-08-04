@@ -13,12 +13,7 @@ custom/modules/*/Ext/
 custom/application/Ext/*
 !custom/application/Ext/Api
 custom/Extension/application/Ext/Language/*
-# Custom configs
-custom/configs/*
-!custom/configs/.gitkeep
-# Templates export
-custom/templates_export/*
-!custom/templates_export/.gitkeep
+
 # JSON config
 custom/json_files/**/*.json
 custom/jssip_webrtc/blacklist.json
@@ -35,12 +30,6 @@ custom/jssip_webrtc/blacklist.json
 !/upload/index.html
 /upload_backup/
 
-# Logs, sessions
-secure_sessions/*
-!secure_sessions/.gitkeep
-secure_sessions/logs/*
-!secure_sessions/logs/.gitkeep
-
 # Images
 themes/SuiteP/images/zalo_messages/*
 !themes/SuiteP/images/zalo_messages/.gitkeep
@@ -51,11 +40,6 @@ modules/EC_Zalo/nohup.out
 # Ignore local system
 .vscode
 .DS_Store
-
-# Docker configurations
-docker
-Dockerfile
-docker-compose.yml
 
 # Claude configurations
 CLAUDE.local.md
