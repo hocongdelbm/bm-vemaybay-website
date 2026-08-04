@@ -16,7 +16,7 @@ trait AssetsTrait
 	private function displayJSTrait() {
 		global $current_user;
 
-		$jsVer = inDeveloperMode() ? time() : '1.3.4';
+		$jsVer = inDeveloperMode() ? time() : '1.3.5';
 
 		$js = '
 			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=' . $jsVer . '"></script>

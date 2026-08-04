@@ -771,14 +771,13 @@ $(document).ready(function () {
 
           if (
             !isInter &&
-            isWithin24h === 1 &&
             airlineCodes.length > 1 &&
             airlineCodes[0] != airlineCodes[1]
           ) {
             showStepsInDialogAutoBook(
               step,
               caption,
-              "Vé cận phải giữ chung 1 hãng",
+              "Phải giữ chung 1 hãng",
             );
             return;
           }
@@ -877,11 +876,11 @@ $(document).ready(function () {
               Gender: gender,
               Surname: passLastNameInputs[index].value.trim(),
               GivenName: firstName,
-              DateOfBirth: passDateOfBirthInputs[index].value.replace(/-/g, ""),
+              DateOfBirth: passDateOfBirthInputs[index].value.split("-").reverse().join(""),
               Passport: {
                 "DocumentType": DATACOM_DOCUMENT_TYPE_MAP[passPassportTypeInputs[index].value.trim()] || null,
                 "DocumentCode": passPassportNumInputs[index].value.trim() || null,
-                "DocumentExpiry": passPassportExpiredDateInputs[index].value.replace(/-/g, "") || null,
+                "DocumentExpiry": passPassportExpiredDateInputs[index].value.split("-").reverse().join("") || null,
                 "Nationality": passPassportNationalityInputs[index].value.trim() || null,
                 "IssueCountry": passPassportIssueCountryInputs[index].value.trim() || null
               }
@@ -1293,15 +1292,14 @@ function showDialogAutoBook(bookingData) {
       optionParentId += `<option value="${index}" data-id="${key}">${index + 1}. ${value.name}</option>`;
     }
 
-    let parentIdHTML =
-      '<select name="autobookPassengerParentId[]" style="display:none"><option value="-1" selected></option></select>';
+    let parentIdHTML = '<select name="autobookPassengerParentId[]" style="display:none"><option value="-1" selected></option></select>';
     if (value.type === "2") {
       parentIdHTML = `<div class="info-row d-flex align-items-center gap-2">
-                <label for="selectparent${index}" class="form-label fw-normal m-0">Đi kèm người lớn:</label>
-                <select name="autobookPassengerParentId[]" id="selectparent${index}" class="form-select form-select-sm w-50">
-                    ${optionParentId}
-                </select>
-            </div>`;
+        <label for="selectparent${index}" class="form-label fw-normal m-0">Đi kèm người lớn:</label>
+        <select name="autobookPassengerParentId[]" id="selectparent${index}" class="form-select form-select-sm w-50">
+          ${optionParentId}
+        </select>
+      </div>`;
     }
 
     passengersHTML += `<div class="passenger-info">
@@ -1314,7 +1312,7 @@ function showDialogAutoBook(bookingData) {
       <input type="hidden" name="autobookPassengerPassportExpiredDate[]" value="${value.passportExpiredDate}" readonly />
       <input type="hidden" name="autobookPassengerPassportIssueDate[]" value="${value.passportIssueDate}" readonly />
       <input type="hidden" name="autobookPassengerPassportIssueCountry[]" value="${value.passportIssueCountry}" readonly />
-      <input type="hidden" name="autobookPassengerPassportNationality[]" value="${value.passportNational}" readonly />
+      <input type="hidden" name="autobookPassengerPassportNationality[]" value="${value.passportNationality}" readonly />
       <div class="info-row d-flex align-items-center gap-2">
         <span style="font-weight:700;color:${value.salutation == "Ms" ? "#f7689e" : "#2d87d5"}">${value.salutation}.</span>
         <input type="text" name="autobookPassengerLastName[]" class="passenger-name-input passenger-lastname-input" value="${getLastName(value.name)}" placeholder="Họ" />
@@ -1325,7 +1323,7 @@ function showDialogAutoBook(bookingData) {
         <div>Ngày sinh: <b>${value.dateOfBirth}</b></div>
         <div>${passportTypeLabels[value.passportType] || "CCCD/Passport"}: <b>${value.passportNumber || "-"}</b></div>
         <div>Hết hạn: <b>${value.passportExpiredDate || "-"}</b></div>
-        <div>Quốc tịch: <b>${value.passportNational || "-"}</b></div>
+        <div>Quốc tịch: <b>${value.passportNationality || "-"}</b></div>
         <div>Nơi cấp: <b>${value.passportIssueCountry || "-"}</b></div>
         <div>Ngày cấp: <b>${value.passportIssueDate || "-"}</b></div>
       </div>

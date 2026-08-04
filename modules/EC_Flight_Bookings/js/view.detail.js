@@ -496,7 +496,7 @@ $(document).ready(function () {
             '.btn-passport-info[data-id="' + passengerId + '"]',
           );
           PASSPORT_INFO_FIELDS.forEach(function (field) {
-            $trigger.attr("data-" + field, fields[field]);
+            $trigger.attr("data-" + field, fields[field]).data(field, fields[field]);
           });
 
           const passportTypeLabels = { P: "Passport", I: "CCCD/ID" };

@@ -292,7 +292,6 @@ trait EditPanelsTrait
 			p.luggage_index_inbound,
 			p.hand_baggage_outbound,
 			p.hand_baggage_inbound,
-			p.cic,
 			p.passport_number
 		FROM ec_booking_passengers p
 		WHERE p.booking_id = '{$this->bean->id}'
@@ -422,9 +421,7 @@ trait EditPanelsTrait
 					p.supplier_id,
 					p.supplier_inbound_id,
 					p.luggage_index_outbound,
-					p.luggage_index_inbound,
-					p.cic,
-					p.passport_number
+					p.luggage_index_inbound
 				FROM ec_booking_passengers p
 				WHERE p.booking_id = '{$this->bean->id}'
 					AND p.booking_id IS NOT NULL
@@ -512,8 +509,6 @@ trait EditPanelsTrait
 			// Họ tên
 			$html .= '<td data-label="Họ tên">
 				<input type="text" name="psg_full_name[]" id="psg_full_name' . $i . '" value="' . $row['name'] . '" class="text-start" maxlength="128" />
-				<label class="mt-1 fw-bold">CCCD:</label>
-				<input type="text" name="psg_cic[]" id="psg_cic' . $i . '" value="' . $row['cic'] . '" class="text-start" maxlength="16" />
 			</td>';
 
 			// Ngày sinh
@@ -523,8 +518,6 @@ trait EditPanelsTrait
 						value="' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') . '" maxlength="10" />
 					<img class="flex-fill cursor-pointer" border="0" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="psg_birthday_trigger' . $i . '" align="absmiddle" />
 				</div>
-				<label class="mt-1 fw-bold">Passport:</label>
-				<input type="text" name="psg_passport_number[]" id="psg_passport_number' . $i . '" value="' . $row['passport_number'] . '" class="text-start" maxlength="10" />
 			</td>';
 
 			// Số vé lượt đi

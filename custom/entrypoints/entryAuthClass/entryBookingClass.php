@@ -262,7 +262,6 @@ class entryBookingClass extends entryClass {
             $passenger = new EC_Booking_Passengers();
             $passenger->name = $payload['contactName'];
             $passenger->type = '0';
-            $passenger->cic = $payload['identityNumber'];
             $passenger->booking_id = $bookingId;
             $passenger->assigned_user_id = $currentUserId;
             $passenger->created_by = $currentUserId;
@@ -413,13 +412,13 @@ class entryBookingClass extends entryClass {
         if (empty($fields))
             return ['status' => 0, 'message' => 'Dữ liệu không hợp lệ'];
         $list_allowed_fields = [
-            'type',
-            'passport_type',
-            'passport_number',
-            'passport_nationality',
-            'passport_issue_country',
-            'passport_issue_date',
-            'passport_expired_date',
+            'type' => 'enum',
+            'passport_type' => 'enum',
+            'passport_number' => 'varchar',
+            'passport_nationality' => 'enum',
+            'passport_issue_country' => 'enum',
+            'passport_issue_date' => 'date',
+            'passport_expired_date' => 'date',
         ];
 
         if (array_key_exists('passport_type', $fields) || array_key_exists('passport_number', $fields)) {
@@ -431,15 +430,26 @@ class entryBookingClass extends entryClass {
             $passengerBean = new EC_Booking_Passengers();
             $passengerBean->retrieve($passengerId);
             foreach ($fields as $name => $value) {
-                if (in_array($name, $list_allowed_fields)) {
-                    $passengerBean->$name = $value;
+                if (!array_key_exists($name, $list_allowed_fields)) {
+                    continue;
                 }
+
+                if ($list_allowed_fields[$name] === 'date' && !empty($value)) {
+                    $value = $GLOBALS['timedate']->to_display(
+                        $value,
+                        TimeDate::DB_DATE_FORMAT,
+                        $GLOBALS['timedate']->get_date_format()
+                    );
+                }
+
+                $passengerBean->$name = $value;
             }
             if ($passengerBean->save()) {
                 return ['status' => 1, 'message' => 'Thao tác thành công'];
             }
             return ['status' => 0, 'message' => 'Thao tác không thành công, vui lòng thử lại'];
-        } catch (Throwable $th) {
+        }
+        catch (Throwable $th) {
             $logId = LoggerHelper::generateLogId();
             $GLOBALS['log']->error("[{$logId}] {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             return ["status" => 0, "message" => "Lỗi $logId"];

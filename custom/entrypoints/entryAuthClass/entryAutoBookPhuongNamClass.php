@@ -10,18 +10,20 @@ use custom\services\Notification\NotificationService;
  * Using for booking by Phuong Nam API
  */
 class entryAutoBookPhuongNamClass extends entryClass {
-    public $mappingSystemCodeName;
-    public $mappingSystemCode;
-    public $interSystemCode;
-    public $vatPercentage;
-    public $supplierId;
-    public $supplierCode;
-    public $supplierName;
+    public string $dateFormat;
+    public string $supplierId;
+    public string $supplierCode;
+    public string $supplierName;
+    public string $interSystemCode;
+    public float $vatPercentage;
+    public array $mappingSystemCodeName;
+    public array $mappingSystemCode;
 
     public function __construct() {
         parent::__construct();
         global $sugar_config;
 
+        $this->dateFormat = "Y-m-d";
         $this->vatPercentage = $sugar_config['flight_config']['vat_percentage'] ?? 0.08;
         $this->interSystemCode = $sugar_config['api_autobook']['InterSystemCode'] ?? '1A';
 
@@ -38,7 +40,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
             'VNP' => 'VN',
             'BBA' => 'QH',
             'VTA' => 'VU',
-            '9G' => '9G'
+            '9G'  => '9G'
         ];
         // BM database
         $this->supplierId = "7eafb1bc-6ac2-3816-3ea9-6455f638436e";
@@ -165,13 +167,13 @@ class entryAutoBookPhuongNamClass extends entryClass {
                         'type'                  => $row['type'], // 0:Adt ; 1:Chd ; 2:Inf
                         'salutation'            => $row['salutation'] == 0 ? 'Mr' : 'Ms', // 0:Mr ; 1:Ms
                         'name'                  => $row['name'],
-                        'dateOfBirth'           => !is_null($row['birthday']) && !empty($row['birthday']) ? date('d-m-Y', strtotime($row['birthday'])) : '',
+                        'dateOfBirth'           => !is_null($row['birthday']) && !empty($row['birthday']) ? $row['birthday'] : '',
                         'passportNumber'        => $row['passport_number'] ?? '',
                         'passportType'          => $row['passport_type'] ?? '',
                         'passportNationality'   => $row['passport_nationality'] ?? '',
                         'passportIssueCountry'  => $row['passport_issue_country'] ?? '',
-                        'passportIssueDate'     => !empty($row['passport_issue_date']) && $row['passport_issue_date'] !== '0000-00-00' ? date('d-m-Y', strtotime($row['passport_issue_date'])) : '',
-                        'passportExpiredDate'   => !empty($row['passport_expired_date']) && $row['passport_expired_date'] !== '0000-00-00' ? date('d-m-Y', strtotime($row['passport_expired_date'])) : '',
+                        'passportIssueDate'     => !is_null($row['passport_issue_date'])  && !empty($row['passport_issue_date']) ? $row['passport_issue_date'] : '',
+                        'passportExpiredDate'   => !is_null($row['passport_expired_date'])  && !empty($row['passport_expired_date']) ? $row['passport_expired_date'] : '',
                     ];
                 }
             }
@@ -790,7 +792,10 @@ class entryAutoBookPhuongNamClass extends entryClass {
         $customerInfos = [];
         foreach($listPassenger as $num => $pass) {
             if(!$this->checkPassport($pass, $airlineCode)) {
-                return ["status" => 0, "message" => "Vui lòng bổ sung giấy tờ tùy thân hành khách đầy đủ theo quy định"];
+                return [
+                    "status" => 0,
+                    "message" => "Vui lòng bổ sung giấy tờ tùy thân hành khách ". ($num + 1) ." đầy đủ theo quy định."
+                ];
             }
 
             $birthday = isset($pass['BirthDay']) && !empty($pass['BirthDay']) && strtotime($pass['BirthDay']) ? $pass['BirthDay'] : null;
@@ -914,8 +919,9 @@ class entryAutoBookPhuongNamClass extends entryClass {
      */
     protected function checkPassport($pass, $airlineCode) {
         if(in_array($airlineCode, ['VJ', 'VN'])) {
-            if($pass['passengerTypeId'] != 1 && empty($pass['Passport'])) return true;
-
+            if($pass['PassengerTypeId'] != 1 && $pass['Passport'] === null || $pass['Passport'] === '') return true;
+            
+            // if($pass['Passport'] === null || $pass['Passport'] === '') return false;
             if($pass['PassportExpired'] === null || $pass['PassportExpired'] === '' || strtotime($pass['PassportExpired']) === false) return false;
 
             if($pass['PassportType'] == 'P' && 
