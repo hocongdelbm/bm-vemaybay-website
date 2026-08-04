@@ -135,8 +135,12 @@ trait PassengerTrait
 				,p.parent_detail_id
 				,p.date_entered
 				,p.go_with
-				,p.cic
+				,p.passport_type
 				,p.passport_number
+				,p.passport_nationality
+				,p.passport_issue_country
+				,p.passport_issue_date
+				,p.passport_expired_date
 				,p.description
 				,(
 					SELECT ticket_class FROM ec_booking_itineraries
@@ -185,10 +189,7 @@ trait PassengerTrait
 			$html = '';
 			$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
 
-			$hide_cic = ($this->bean->ticket_type == 2 || $row['type'] == 2 || empty($row['cic'])) ? ' style="display:none" ' : '';
-			$hide_passport = empty($row['passport_number']) ? ' style="display:none" ' : '';
-			if (!empty($row['passport_number']) && empty($row['cic']) && $this->bean->ticket_type == 1 && $row['type'] != 2)
-				$hide_cic = ' style="display:none" ';
+			$passportTrigger = $this->renderPassportInfoTrigger($row);
 
 			// Line 1
 			$html .= '<tr class="psg-line ' . $even_or_odd . '" data-id="' . $row['id'] . '">
@@ -205,12 +206,7 @@ trait PassengerTrait
 							<p class="birthdate">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') . '</p>
 						</td>
 						<td data-label="Giấy tờ" class="passenger_id text-center">
-							<p class="cic text-nowrap" data="' . $row['cic'] . '" ' . $hide_cic . ' title="CCCD">
-								<span style="letter-spacing:0.65px">' . $row['cic'] . '</span>
-							</p>
-							<p class="passport text-nowrap" data="' . $row['passport_number'] . '" ' . $hide_passport . ' title="Passport">
-								<span style="letter-spacing:0.65px">' . $row['passport_number'] . '</span>
-							</p>
+							' . $passportTrigger . '
 						</td>
 						<td data-label="Số vé đi" class="text-center" class="eticket_outbound" content="' . strtoupper($row['eticket_outbound']) . '" row_no="' . $row['id'] . '">
 							' . strtoupper($row['eticket_outbound']) . '
@@ -241,6 +237,49 @@ trait PassengerTrait
 
 
 		return $html;
+	}
+
+	/**
+	 * Renders the CCCD/Passport cell as a single trigger "card" button. Clicking it opens
+	 * the passport info popup (see TemplatesTrait::populatePassportInfoModal) instead
+	 * of showing the passport number value directly.
+	 */
+	private function renderPassportInfoTrigger(array $row) {
+		$displayValue = $row['passport_number'] ?? '';
+		$hasValue = $displayValue !== '';
+		$displayLabel = $hasValue ? $displayValue : 'Bổ sung';
+
+		$typeLabels = ['P' => 'Passport', 'I' => 'CCCD/ID'];
+		$passportType = $row['passport_type'] ?? '';
+		$tooltip = ($hasValue && isset($typeLabels[$passportType])) ? $typeLabels[$passportType] : 'Nhập/Sửa thông tin giấy tờ';
+
+		$dataAttrs = '';
+		foreach (['passport_type', 'passport_number', 'passport_nationality', 'passport_issue_country', 'passport_issue_date', 'passport_expired_date'] as $field) {
+			$value = $row[$field] ?? '';
+			if ($value === '0000-00-00') $value = '';
+			$dataAttrs .= ' data-' . $field . '="' . htmlspecialchars((string) $value, ENT_QUOTES) . '"';
+		}
+
+		$chipClass = 'passport-chip' . ($hasValue ? '' : ' passport-chip--empty') . ($passportType === 'P' ? ' passport-chip--type-p' : '');
+
+		return '<button type="button" class="btn-passport-info ' . $chipClass . '" data-id="' . $row['id'] . '"' . $dataAttrs . ' title="' . htmlspecialchars($tooltip, ENT_QUOTES) . '">
+			<span class="passport-chip__icon">
+				<svg class="passport-chip__icon-id" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+					<path d="M14 3H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zm0 9H2V4h12v8z"></path>
+					<circle cx="5" cy="7.4" r="1.4"></circle>
+					<path d="M2.6 10.8c.3-1.1 1.4-1.9 2.4-1.9s2.1.8 2.4 1.9H2.6z"></path>
+					<path d="M9 6h4v1H9zM9 8.2h4v1H9z"></path>
+				</svg>
+				<svg class="passport-chip__icon-passport" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M5 5C5 4.59334 4.75727 4.24338 4.40879 4.0871C4.55271 3.97374 4.72712 3.89615 4.91959 3.86865L15.7172 2.32614C16.922 2.15402 18 3.08894 18 4.30604V5.12602C17.6804 5.04375 17.3453 5 17 5H5Z" fill="#1C274D"></path>
+					<path d="M9.75 13C9.75 11.7574 10.7574 10.75 12 10.75C13.2426 10.75 14.25 11.7574 14.25 13C14.25 14.2426 13.2426 15.25 12 15.25C10.7574 15.25 9.75 14.2426 9.75 13Z" fill="#1C274D"></path>
+					<path fill-rule="evenodd" clip-rule="evenodd" d="M18 6.17071C19.1652 6.58254 20 7.69378 20 9V19C20 20.6569 18.6569 22 17 22H7C5.34315 22 4 20.6569 4 19V5C4 5.18214 4.0487 5.35291 4.13378 5.5C4.30669 5.7989 4.62986 6 5 6H17C17.3506 6 17.6872 6.06015 18 6.17071ZM12 9.25C9.92893 9.25 8.25 10.9289 8.25 13C8.25 15.0711 9.92893 16.75 12 16.75C14.0711 16.75 15.75 15.0711 15.75 13C15.75 10.9289 14.0711 9.25 12 9.25ZM10 18.25C9.58579 18.25 9.25 18.5858 9.25 19C9.25 19.4142 9.58579 19.75 10 19.75H14C14.4142 19.75 14.75 19.4142 14.75 19C14.75 18.5858 14.4142 18.25 14 18.25H10Z" fill="#1C274D"></path>
+				</svg>
+			</span>
+			<span class="passport-chip__body">
+				<span class="passport-chip__value">' . htmlspecialchars($displayLabel, ENT_QUOTES) . '</span>
+			</span>
+		</button>';
 	}
 
 	private function renderEditedPassengerRows($rows)

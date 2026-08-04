@@ -10,18 +10,20 @@ use custom\services\Notification\NotificationService;
  * Using for booking by Datacom API
  */
 class entryAutoBookDatacomClass extends entryClass {
-    public $mappingSystemCodeName;
-    public $mappingSystemCode;
-    public $interSystemCode;
-    public $vatPercentage;
-    public $supplierId;
-    public $supplierCode;
-    public $supplierName;
+    public string $dateFormat;
+    public string $supplierId;
+    public string $supplierCode;
+    public string $supplierName;
+    public string $interSystemCode;
+    public float $vatPercentage;
+    public array $mappingSystemCodeName;
+    public array $mappingSystemCode;
 
     public function __construct() {
         parent::__construct();
         global $sugar_config;
 
+        $this->dateFormat = "dmY";
         $this->vatPercentage = $sugar_config['flight_config']['vat_percentage'] ?? 0.08;
         $this->interSystemCode = $sugar_config['api_autobook']['InterSystemCode'] ?? '1A';
 
@@ -156,8 +158,12 @@ class entryAutoBookDatacomClass extends entryClass {
                     ,p.salutation
                     ,p.name
                     ,p.birthday
-                    ,p.cic
                     ,p.passport_number
+                    ,p.passport_type
+                    ,p.passport_nationality
+                    ,p.passport_issue_country
+                    ,p.passport_issue_date
+                    ,p.passport_expired_date
                 FROM ec_booking_passengers p
                 WHERE p.booking_id = '$bookingId' AND p.deleted = 0
                 ORDER BY p.type";
@@ -173,9 +179,13 @@ class entryAutoBookDatacomClass extends entryClass {
                         'type' => $row['type'], // 0:Adt ; 1:Chd ; 2:Inf
                         'salutation' => $row['salutation'] == 0 ? 'Mr' : 'Ms', // 0:Mr ; 1:Ms
                         'name'=> $row['name'],
-                        'dateOfBirth' => !is_null($row['birthday']) && !empty($row['birthday']) ? date('d-m-Y', strtotime($row['birthday'])) : '',
-                        'cic' => $row['cic'] ?? '',
-                        'passportNumber' => $row['passport_number'] ?? ''
+                        'dateOfBirth' => !is_null($row['birthday']) && !empty($row['birthday']) ? date('Y-m-d', strtotime($row['birthday'])) : '',
+                        'passportNumber'        => $row['passport_number'] ?? '',
+                        'passportType'          => $row['passport_type'] ?? '',
+                        'passportNationality'   => $row['passport_nationality'] ?? '',
+                        'passportIssueCountry'  => $row['passport_issue_country'] ?? '',
+                        'passportIssueDate'     => !empty($row['passport_issue_date']) && !empty($row['passport_issue_date']) ? date('Y-m-d', strtotime($row['passport_issue_date'])) : '',
+                        'passportExpiredDate'   => !empty($row['passport_expired_date']) && !empty($row['passport_expired_date']) ? date('Y-m-d', strtotime($row['passport_expired_date'])) : '',
                     ];
                 }
             }

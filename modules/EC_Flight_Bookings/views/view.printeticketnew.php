@@ -147,7 +147,7 @@ class Viewprinteticketnew extends SugarView
 				p.luggage_index_outbound, p.luggage_index_inbound,
 				p.luggage_purchase_text, p.luggage_purchase_text_inbound,
 				p.hand_baggage_outbound, p.hand_baggage_inbound,
-				p.cic, p.passport_number, p.date_entered";
+				p.passport_number, p.date_entered";
 
 		// Collect ALL IDs that appear as parent_detail_id (= have been superseded)
 		$supersededIds = "SELECT parent_detail_id FROM ec_booking_passengers
@@ -181,7 +181,7 @@ class Viewprinteticketnew extends SugarView
 				COALESCE(NULLIF(p.luggage_price, 0), bag.luggage_price) AS luggage_price,
 				COALESCE(NULLIF(p.luggage_price_inbound, 0), bag.luggage_price_inbound) AS luggage_price_inbound,
 				p.hand_baggage_outbound, p.hand_baggage_inbound,
-				p.cic, p.passport_number, p.date_entered, NULL AS parent_detail_id,
+				p.passport_number, p.date_entered, NULL AS parent_detail_id,
 				(SELECT DATE_ADD(fb.date_entered, INTERVAL 7 HOUR) FROM ec_flight_bookings fb WHERE fb.id = p.booking_id LIMIT 1) AS bk_date_entered,
 				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS aircode_outbound,
 				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS ticket_class_outbound,
@@ -229,7 +229,7 @@ class Viewprinteticketnew extends SugarView
 				COALESCE(NULLIF(p.luggage_price_inbound, 0), NULLIF(bag_renamed.luggage_price_inbound, 0), NULLIF(bag_orig.luggage_price_inbound, 0), orig.luggage_price_inbound) AS luggage_price_inbound,
 				COALESCE(NULLIF(p.hand_baggage_outbound,''), orig.hand_baggage_outbound) AS hand_baggage_outbound,
 				COALESCE(NULLIF(p.hand_baggage_inbound,''), orig.hand_baggage_inbound) AS hand_baggage_inbound,
-				p.cic, p.passport_number, p.date_entered, p.parent_detail_id,
+				p.passport_number, p.date_entered, p.parent_detail_id,
 				(SELECT DATE_ADD(fb.date_entered, INTERVAL 7 HOUR) FROM ec_flight_bookings fb WHERE fb.id = p.booking_id LIMIT 1) AS bk_date_entered,
 				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS aircode_outbound,
 				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS ticket_class_outbound,
@@ -327,11 +327,11 @@ class Viewprinteticketnew extends SugarView
 
 		while ($row = $db->fetchByAssoc($res)) {
 			// PHP-level deduplication: skip if same name+pnr+type already added
-			$cicKey   = trim($row['cic'] ?? '') ?: trim($row['passport_number'] ?? '');
+			$passportNum = trim($row['passport_number'] ?? '');
 			$dedupKey = mb_strtoupper(trim($row['name']), 'UTF-8')
 				. '|' . trim($row['pnr_outbound'] ?? '')
 				. '|' . $row['type']
-				. '|' . $cicKey;
+				. '|' . $passportNum;
 			if (isset($seen[$dedupKey])) continue;
 			$seen[$dedupKey] = true;
 
@@ -421,7 +421,6 @@ class Viewprinteticketnew extends SugarView
 				'hand_baggage_inbound' => $baggageDetails['hand_baggage_inbound'],
 				'baggage_outbound' => $baggageDetails['baggage_outbound'],
 				'baggage_inbound' => $baggageDetails['baggage_inbound'],
-				'cic' => $row['cic'] ?? '',
 				'passport' => $row['passport_number'] ?? '',
 			];
 		}

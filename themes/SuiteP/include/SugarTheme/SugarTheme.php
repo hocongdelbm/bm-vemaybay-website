@@ -633,7 +633,6 @@ class SugarTheme
 
         // LOAD CSS CỦA MODULE EC_FLIGHT_BOOKING TRƯỚC
         $html .= '<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/line_notes.css?v='.date('Y-m-d H:i').'">';
-		$html .= '<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/api_vietjet.css?v='.date('Y-m-d H:i').'">';
 
         $html .= '<link rel="stylesheet" type="text/css" href="' . $this->getCSSURL('bootstrap.min.css') . '" />';
         $html .= '<link rel="stylesheet" type="text/css" href="'.$this->getCSSURL('style.css').'" />';

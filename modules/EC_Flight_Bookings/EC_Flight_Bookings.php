@@ -63,6 +63,7 @@ class EC_Flight_Bookings extends Basic
 	public $nganluong_info;
 	public $nganluong_code;
 	public $nganluong_datepaid;
+	public $journey;
 
 	public $lydothangthua_id;
 	public $ghichuthangthua;
@@ -741,9 +742,7 @@ class EC_Flight_Bookings extends Basic
 			'eticket_inbound' => $_POST['psg_eticket_inbound'][$i] ?? '',
 			'add_type' => $_POST['psg_add_type'][$i] ?? '',
 			'parent_detail_id' => $_POST['psg_parent_detail_id'][$i] ?? null,
-			'id_number' => $_POST['psg_id_number'][$i] ?? '',
 			'deleted' => (int) ($_POST['psg_deleted'][$i] ?? 0),
-
 			// Baggage
 			'luggage_purchase_text' => $_POST['psg_luggage_purchase_text'][$i] ?? '',
 			'luggage_purchase_text_inbound' => $_POST['psg_luggage_purchase_text_inbound'][$i] ?? '',
@@ -778,16 +777,6 @@ class EC_Flight_Bookings extends Basic
 				$psg->mark_deleted($psg->id);
 			}
 			return;
-		}
-
-		// CCCD (12 số) hoặc Passport
-		$idNumber = trim($data['id_number']);
-		if (ctype_digit($idNumber) && strlen($idNumber) === 12) {
-			$psg->cic = $idNumber;
-			$psg->passport_number = '';
-		} else {
-			$psg->passport_number = $idNumber;
-			$psg->cic = '';
 		}
 
 		// Baggage costs — ép float trước khi tính
@@ -1038,7 +1027,6 @@ class EC_Flight_Bookings extends Basic
 		$pass->add_type = 2;
 		$pass->parent_detail_id = $original->id;
 		$pass->go_with = $goWith;
-		$pass->cic = trim($original->cic ?? '');
 		$pass->passport_number = trim($original->passport_number ?? '');
 
 		$this->_applyLuggageOutbound($pass, $i, $vat_rate, $original);
@@ -2090,7 +2078,6 @@ class EC_Flight_Bookings extends Basic
 				,p.luggage_index_inbound
 				,p.luggage_purchase_text
 				,p.luggage_purchase_text_inbound
-				,p.cic
 				,p.passport_number
 			FROM ec_booking_passengers p
 			WHERE p.booking_id = '$booking_id'
@@ -2118,7 +2105,8 @@ class EC_Flight_Bookings extends Basic
 		$html .= '</tr>';
 
 		while ($row = $db->fetchByAssoc($res)) {
-			$cic_pass = !empty($row['cic']) ? $row['cic'] : $row['passport_number'];
+			$passport_number = $row['passport_number'] ?? '';
+
 			$dob = '';
 			if (!is_null($dob) && $row['pax_dob'] != '' && $row['pax_dob'] != '0000-00-00') {
 				try {
@@ -2161,7 +2149,7 @@ class EC_Flight_Bookings extends Basic
 				<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">' . $app_list_strings['passenger_type_list'][$row['pax_type']] . '</td>
 				<td style="border:1px solid #e7e7e7; padding:5px;"><label style="text-transform:uppercase;">' . $row['pax_name'] . '</label></td>
 				<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">' . $dob . '</td>
-				<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">' . $cic_pass . '</td>
+				<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">' . $passport_number . '</td>
 				' . $tdBaggage . '
 			</tr>';
 		}
@@ -2479,9 +2467,6 @@ class EC_Flight_Bookings extends Basic
 			$psg->vat_luggage_purchase = unformat_number($_POST['psg_detail_lug_pur_vat'][$i]);
 			$psg->luggage_purchase_inbound_no_vat = unformat_number($_POST['psg_detail_lug_pur_ib_no_vat'][$i]);
 			$psg->vat_luggage_purchase_inbound = unformat_number($_POST['psg_detail_lug_pur_ib_vat'][$i]);
-
-			$psg->cic = trim($_POST['psg_cic'][$i]) ?? '';
-			$psg->passport_number = trim($_POST['psg_passport_number'][$i]) ?? '';
 
 			if ((int) $psg->deleted === 1) {
 				if (!empty($psg->id))

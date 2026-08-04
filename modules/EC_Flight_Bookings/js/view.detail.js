@@ -1,6 +1,22 @@
 $(document).ready(function () {
   const formDetailView = $("#formDetailView");
   const bookingId = formDetailView.find('input[name="record"]').val();
+  
+  // Nhập / sửa thông tin giấy tờ (CCCD/Passport) hành khách qua popup
+  const PASSPORT_INFO_FIELDS = [
+    "passport_type",
+    "passport_number",
+    "passport_nationality",
+    "passport_issue_country",
+    "passport_issue_date",
+    "passport_expired_date",
+  ];
+  const PASSPORT_INFO_REQUIRED_FIELDS = ["passport_type", "passport_number"];
+  const PASSPORT_INFO_DEFAULTS = {
+    passport_type: "I",
+    passport_nationality: "VNM",
+    passport_issue_country: "VNM",
+  };
 
   // Sửa yêu cầu xuất hoá đơn - inline ngay trong panel "Thông tin hoá đơn" (không qua nút toolbar + modal)
   const INVOICE_INF_FIELDS = [
@@ -399,6 +415,123 @@ $(document).ready(function () {
       ...getResponsiveDialogOptions(1023),
       title: "Sửa thông tin hành khách / hành lý / số vé",
     });
+  });
+
+  $(document).on("click", ".btn-passport-info", function () {
+    const $btn = $(this);
+    const $modal = $("#passportInfoModal");
+    const isUpdate = !!$btn.data("passport_number");
+
+    $("#passport_passenger_id").val($btn.data("id") || "");
+    PASSPORT_INFO_FIELDS.forEach(function (field) {
+      const value =
+        $btn.data(field) || (isUpdate ? "" : PASSPORT_INFO_DEFAULTS[field]) || "";
+      $("#" + field)
+        .val(value)
+        .trigger("change");
+    });
+
+    new bootstrap.Modal($modal[0]).show();
+  });
+
+  $("#passportInfoModal").on("shown.bs.modal", function () {
+    $(this)
+      .find("select.select2-field")
+      .each(function () {
+        if ($(this).hasClass("select2-hidden-accessible")) return;
+
+        const options = { dropdownParent: $("#passportInfoModal"), width: "100%" };
+        if ($(this).attr("id") === "passport_type") {
+          options.minimumResultsForSearch = Infinity;
+        }
+        $(this).select2(options);
+      });
+  });
+
+  // Auto-format date text inputs into the yyyy-mm-dd template as the user types
+  $(document).on("input", ".passport-date-input", function () {
+    const digits = $(this).val().replace(/[^0-9]/g, "").slice(0, 8);
+    let formatted = digits;
+    if (digits.length > 6) {
+      formatted = digits.slice(0, 4) + "-" + digits.slice(4, 6) + "-" + digits.slice(6);
+    } else if (digits.length > 4) {
+      formatted = digits.slice(0, 4) + "-" + digits.slice(4);
+    }
+    $(this).val(formatted);
+  });
+
+  $(document).on("click", "#btnSavePassportInfo", function () {
+    const passengerId = $("#passport_passenger_id").val();
+    if (!passengerId) return;
+
+    const fields = {};
+    PASSPORT_INFO_FIELDS.forEach(function (field) {
+      fields[field] = ($("#" + field).val() || "").trim();
+    });
+
+    const missingRequired = PASSPORT_INFO_REQUIRED_FIELDS.some(function (field) {
+      return !fields[field];
+    });
+    if (missingRequired) {
+      showToastNotify("warning", "Vui lòng nhập loại giấy tờ và số giấy tờ");
+      return;
+    }
+
+    const $btnSave = $(this).prop("disabled", true);
+
+    $.ajax({
+      url: "index.php?entryPoint=entryPointGeneral",
+      method: "POST",
+      contentType: "application/json",
+      dataType: "json",
+      data: JSON.stringify({
+        class: "entryBookingClass",
+        method: "updatePassengerFields",
+        params: { passengerId: passengerId, fields: fields },
+      }),
+    })
+      .done(function (resp) {
+        if (resp && resp.status == 1) {
+          const $trigger = $(
+            '.btn-passport-info[data-id="' + passengerId + '"]',
+          );
+          PASSPORT_INFO_FIELDS.forEach(function (field) {
+            $trigger.attr("data-" + field, fields[field]).data(field, fields[field]);
+          });
+
+          const passportTypeLabels = { P: "Passport", I: "CCCD/ID" };
+          const hasValue = !!fields.passport_number;
+          const typeLabel = passportTypeLabels[fields.passport_type] || "";
+
+          $trigger
+            .toggleClass("passport-chip--empty", !hasValue)
+            .toggleClass("passport-chip--type-p", fields.passport_type === "P")
+            .attr("title", hasValue && typeLabel ? typeLabel : "Nhập/Sửa thông tin giấy tờ")
+            .find(".passport-chip__value")
+            .text(hasValue ? fields.passport_number : "Bổ sung");
+
+          const bsModal = bootstrap.Modal.getInstance(
+            $("#passportInfoModal")[0],
+          );
+          if (bsModal) bsModal.hide();
+
+          showToastNotify("success", "Cập nhật thông tin giấy tờ thành công");
+        } else {
+          showToastNotify(
+            "warning",
+            (resp && resp.message) || "Cập nhật thông tin giấy tờ thất bại",
+          );
+        }
+      })
+      .fail(function () {
+        showToastNotify(
+          "warning",
+          "Có lỗi xảy ra khi cập nhật thông tin giấy tờ",
+        );
+      })
+      .always(function () {
+        $btnSave.prop("disabled", false);
+      });
   });
 
   if (

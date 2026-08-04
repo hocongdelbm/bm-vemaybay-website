@@ -641,7 +641,6 @@ class SugarTheme
 
         // LOAD CSS CỦA MODULE EC_FLIGHT_BOOKING TRƯỚC
         $html .= '<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/line_notes.css">';
-        $html .= '<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/api_vietjet.css">';
 
         return $html;
     }
