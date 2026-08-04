@@ -90,16 +90,6 @@ try {
         $bookingWebhookRespond(400, false);
     }
 
-    // Chat does not currently send this header. It remains optional so the
-    // endpoint can provide idempotency without another API change later.
-    $requestId = $headers['x-request-id'] ?? ($_SERVER['HTTP_X_REQUEST_ID'] ?? null);
-    if ($requestId !== null) {
-        $requestId = is_string($requestId) ? strtolower(trim($requestId)) : '';
-        if (!preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/', $requestId)) {
-            $bookingWebhookRespond(400, false);
-        }
-    }
-
     require_once 'custom/entrypoints/entryFactory.php';
     $entryClass = entryFactory::create('entryBookingClass');
     if (!$entryClass
@@ -161,11 +151,7 @@ try {
     global $current_user;
     $current_user = $bookingUser;
 
-    $result = $entryClass->createBookingFromWebhook(
-        $validation['payload'],
-        $requestId,
-        hash('sha256', $rawBody)
-    );
+    $result = $entryClass->createBookingFromWebhook($validation['payload']);
 
     if (empty($result['success'])) {
         $bookingWebhookRespond((int) ($result['http_code'] ?? 500), false);
