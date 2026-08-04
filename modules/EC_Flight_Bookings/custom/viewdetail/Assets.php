@@ -5,7 +5,7 @@ trait AssetsTrait
 {
 	private function displayCSSTrait()
 	{
-		$cssVer = inDeveloperMode() ? time() : '1.3.2';
+		$cssVer = inDeveloperMode() ? time() : '1.3.3';
 		$css = '<link type="text/css" rel="stylesheet" href="themes/SuiteP/libs/css/select2.min.css" />' .
 			'<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/view.detail.css?v=' . $cssVer . '" />' .
 			'<link type="text/css" rel="stylesheet" href="modules/' . $this->bean->module_dir . '/css/api_zalo.css?v=' . $cssVer . '" />' .
@@ -16,7 +16,7 @@ trait AssetsTrait
 	private function displayJSTrait() {
 		global $current_user;
 
-		$jsVer = inDeveloperMode() ? time() : '1.3.5';
+		$jsVer = inDeveloperMode() ? time() : '1.3.6';
 
 		$js = '
 			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=' . $jsVer . '"></script>
