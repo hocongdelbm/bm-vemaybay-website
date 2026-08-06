@@ -71,9 +71,7 @@
         };
     </script>
     <script type="module" src="{/literal}{$APP_CONFIG.chat_widget.restUrl|escape}{literal}/client/messenger/src/bootstrap/embed.js?v=1.1.2"></script>
-    <script src="{/literal}{$APP_CONFIG.chat_widget.restUrl|escape}{literal}/client/messenger/plugins/flight-booking/kit.js?v=1.0.1"></script>
-    <script src="{/literal}{$APP_CONFIG.chat_widget.restUrl|escape}{literal}/client/messenger/plugins/flight-booking/slash-quote.js?v=1.0.1"></script>
-    <script src="{/literal}{$APP_CONFIG.chat_widget.restUrl|escape}{literal}/client/messenger/plugins/flight-booking/slash-booking.js?v=1.0.1"></script>
+    <script src="{/literal}{$APP_CONFIG.chat_widget.restUrl|escape}{literal}/client/messenger/plugins.config.js?v=1.0.1"></script>
 {/literal}
 {/if}
 {literal}
