@@ -184,34 +184,9 @@ class entryBookingClass extends entryClass {
         return function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
     }
 
-    /**
-     * Create a draft booking received from the Chat webhook.
-     *
-     * X-Request-Id is optional until Chat supports it. When present, it is used
-     * together with the raw payload hash to make retries idempotent.
-     *
-     * @return array{success: bool, http_code: int, booking_id?: string, booking_name?: string}
-     */
-    public function createBookingFromWebhook(
-        array $payload,
-        ?string $requestId,
-        string $payloadHash
-    ): array {
+    /** @return array{success: bool, http_code: int, booking_id?: string, booking_name?: string} */
+    public function createBookingFromWebhook(array $payload): array {
         global $current_user, $db;
-
-        $existingBooking = $requestId
-            ? $this->findBookingByExternalRequestId($requestId)
-            : null;
-        if ($existingBooking !== null) {
-            return hash_equals((string) $existingBooking['external_payload_hash'], $payloadHash)
-                ? [
-                    'success' => true,
-                    'http_code' => 200,
-                    'booking_id' => $existingBooking['id'],
-                    'booking_name' => $existingBooking['name'],
-                ]
-                : ['success' => false, 'http_code' => 409];
-        }
 
         if (empty($current_user->id)
             || !empty($current_user->deleted)
@@ -249,11 +224,6 @@ class entryBookingClass extends entryClass {
             $booking->assigned_user_id = $currentUserId;
             $booking->created_by = $currentUserId;
             $booking->modified_user_id = $currentUserId;
-            $booking->external_payload_hash = $payloadHash;
-            if ($requestId !== null) {
-                $booking->external_request_id = $requestId;
-            }
-
             $bookingId = $booking->save();
             if (!is_string($bookingId) || $bookingId === '') {
                 throw new RuntimeException('Unable to save booking');
@@ -316,22 +286,6 @@ class entryBookingClass extends entryClass {
                 $throwable->getFile()
             ));
 
-            // Resolve the race where another request committed the same unique
-            // request ID after the initial lookup.
-            $existingBooking = $requestId
-                ? $this->findBookingByExternalRequestId($requestId)
-                : null;
-            if ($existingBooking !== null) {
-                return hash_equals((string) $existingBooking['external_payload_hash'], $payloadHash)
-                    ? [
-                        'success' => true,
-                        'http_code' => 200,
-                        'booking_id' => $existingBooking['id'],
-                        'booking_name' => $existingBooking['name'],
-                    ]
-                    : ['success' => false, 'http_code' => 409];
-            }
-
             return ['success' => false, 'http_code' => 500];
         }
     }
@@ -362,24 +316,6 @@ class entryBookingClass extends entryClass {
         if (empty($itinerary->id)) {
             throw new RuntimeException('Unable to save booking itinerary');
         }
-    }
-
-    private function findBookingByExternalRequestId(string $requestId): ?array
-    {
-        global $db;
-
-        $sql = "SELECT id, name, external_payload_hash
-            FROM ec_flight_bookings
-            WHERE external_request_id = '" . $db->quote($requestId) . "'
-                AND deleted = 0
-            LIMIT 1";
-        $result = $db->query($sql);
-        if ($result === false) {
-            throw new RuntimeException('Unable to check booking request ID');
-        }
-
-        $row = $db->fetchByAssoc($result);
-        return is_array($row) ? $row : null;
     }
 
     /**

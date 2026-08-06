@@ -81,8 +81,6 @@ class EC_Flight_Bookings extends Basic
 	public $discount_percent;
 	public $customer_source;
 	public $zalo_id;
-	public $external_request_id;
-	public $external_payload_hash;
 
 	public $is_agent;
 	public $is_prior;
