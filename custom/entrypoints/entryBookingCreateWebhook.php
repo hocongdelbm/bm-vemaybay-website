@@ -45,6 +45,8 @@ $bookingWebhookLog = static function (string $message): void {
 
 final class BookingCreateWebhookHandler
 {
+    public static $isSavingChatBooking = false;
+
     private const MAX_ITINERARIES = 20;
     private const MAX_PASSENGERS = 30;
     private const NOTE_MAX_LENGTH = 2000;
@@ -299,7 +301,12 @@ final class BookingCreateWebhookHandler
             $booking->customer_source = 'chat';
             $this->assignAuditUser($booking, $currentUserId);
 
-            $bookingId = $booking->save();
+            self::$isSavingChatBooking = true;
+            try {
+                $bookingId = $booking->save();
+            } finally {
+                self::$isSavingChatBooking = false;
+            }
             if (!is_string($bookingId) || $bookingId === '') {
                 throw new RuntimeException('Unable to save booking');
             }

@@ -292,6 +292,16 @@ class EC_Flight_BookingsLogicHook
 	public function autoAssignBooking($focus, $event, $arguments)
 	{
 		global $sugar_config;
+
+		$isChatWebhookBooking = class_exists('BookingCreateWebhookHandler', false)
+			&& BookingCreateWebhookHandler::$isSavingChatBooking === true
+			&& ($focus->customer_source ?? '') === 'chat'
+			&& !empty($focus->assigned_user_id);
+
+		if ($isChatWebhookBooking) {
+			return;
+		}
+
 		// Nếu là nhân đôi không tự động giao booking
 		if (empty($focus->fetched_row)
 			// && in_array($focus->created_by, $allow_site)
