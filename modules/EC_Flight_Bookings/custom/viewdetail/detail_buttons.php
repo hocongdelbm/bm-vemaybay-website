@@ -399,23 +399,18 @@ trait DetailButtonsTrait
 		if (!isTelesaleUser($current_user->id) && in_array((int)$this->bean->booking_status, [1, 2, 3, 6])) {
 			$agencyOptions = '
 				<li>
-					<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookDatacomClass">
-						<span class="ms-1">Hồng Ngọc Hà</span>
-					</a>
-				</li>
-				<li>
 					<a type="button" id="auto-book-phuongnam" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookPhuongNamClass">
 						<span class="ms-1">Phương Nam</span>
 					</a>
 				</li>
 			';
-			if ($this->bean->ticket_type == '2') {
-				$agencyOptions = '<li>
-					<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookDatacomClass">
-						<span class="ms-1">Hồng Ngọc Hà</span>
-					</a>
-				</li>';
-			}
+			// if ($this->bean->ticket_type == '2') {
+			// 	$agencyOptions = '<li>
+			// 		<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookDatacomClass">
+			// 			<span class="ms-1">Hồng Ngọc Hà</span>
+			// 		</a>
+			// 	</li>';
+			// }
 
 			$this->ss->assign(
 				'BUTTON_AUTO_BOOK',
