@@ -791,12 +791,12 @@ class entryAutoBookPhuongNamClass extends entryClass {
         // Passengers info
         $customerInfos = [];
         foreach($listPassenger as $num => $pass) {
-            if(!$this->checkPassport($pass, $airlineCode)) {
-                return [
-                    "status" => 0,
-                    "message" => "Vui lòng bổ sung giấy tờ tùy thân hành khách ". ($num + 1) ." đầy đủ theo quy định."
-                ];
-            }
+            // if(!$this->checkPassport($pass, $airlineCode)) {
+            //     return [
+            //         "status" => 0,
+            //         "message" => "Vui lòng bổ sung giấy tờ tùy thân hành khách ". ($num + 1) ." đầy đủ theo quy định."
+            //     ];
+            // }
 
             $birthday = isset($pass['BirthDay']) && !empty($pass['BirthDay']) && strtotime($pass['BirthDay']) ? $pass['BirthDay'] : null;
             if($birthday) $birthday = date('Y-m-d', strtotime(str_replace("/", "-", $birthday)));
@@ -1121,7 +1121,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
         $airlineCode = $params['airlineCode'] ?? '';
 
         $agency = new APIPhuongNam();
-        $jsonBooking = $agency->getBooking($pnr, $systemCode, $airlineCode);
+        $jsonBooking = $agency->getBooking($pnr, $systemCode);
         $arrBooking = json_decode($jsonBooking, true);
         if(isset($arrBooking["status"]) && $arrBooking["status"] == 1) {
             $supplier = strtolower($arrBooking['supplier'] ?? '');

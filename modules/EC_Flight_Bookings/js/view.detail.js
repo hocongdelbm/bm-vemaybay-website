@@ -492,23 +492,27 @@ $(document).ready(function () {
     })
       .done(function (resp) {
         if (resp && resp.status == 1) {
+          // Server may normalize values or auto-generate some (e.g. CCCD expiry),
+          // so prefer the values it actually persisted over the submitted ones.
+          const updatedFields = $.extend({}, fields, resp.data || {});
           const $trigger = $(
             '.btn-passport-info[data-id="' + passengerId + '"]',
           );
           PASSPORT_INFO_FIELDS.forEach(function (field) {
-            $trigger.attr("data-" + field, fields[field]).data(field, fields[field]);
+            const value = updatedFields[field] != null ? updatedFields[field] : "";
+            $trigger.attr("data-" + field, value).data(field, value);
           });
 
           const passportTypeLabels = { P: "Passport", I: "CCCD/ID" };
-          const hasValue = !!fields.passport_number;
-          const typeLabel = passportTypeLabels[fields.passport_type] || "";
+          const hasValue = !!updatedFields.passport_number;
+          const typeLabel = passportTypeLabels[updatedFields.passport_type] || "";
 
           $trigger
             .toggleClass("passport-chip--empty", !hasValue)
-            .toggleClass("passport-chip--type-p", fields.passport_type === "P")
+            .toggleClass("passport-chip--type-p", updatedFields.passport_type === "P")
             .attr("title", hasValue && typeLabel ? typeLabel : "Nhập/Sửa thông tin giấy tờ")
             .find(".passport-chip__value")
-            .text(hasValue ? fields.passport_number : "Bổ sung");
+            .text(hasValue ? updatedFields.passport_number : "Bổ sung");
 
           const bsModal = bootstrap.Modal.getInstance(
             $("#passportInfoModal")[0],
