@@ -51,33 +51,40 @@ class entryBookingClass extends entryClass {
      * @param array $params
      * @return array
      */
-    public function updatePassengerFields($params = [])
-    {
-        $passengerId = $params['passengerId'] ?? '';
-        $fields = $params['fields'] ?? [];
+    public function updatePassengerFields($params = []) {
+        $passengerId = $params["passengerId"] ?? "";
+        $fields = $params["fields"] ?? [];
 
-        if (empty($passengerId))
-            return ['status' => 0, 'message' => 'Không tìm thấy hành khách'];
-        if (empty($fields))
-            return ['status' => 0, 'message' => 'Dữ liệu không hợp lệ'];
+        if (empty($passengerId)) {
+            return ["status" => 0, "message" => "Không tìm thấy hành khách"];
+        }
+        if (empty($fields)) {
+            return ["status" => 0, "message" => "Dữ liệu không hợp lệ"];
+        }
+
         $list_allowed_fields = [
-            'type' => 'enum',
-            'passport_type' => 'enum',
-            'passport_number' => 'varchar',
-            'passport_nationality' => 'enum',
-            'passport_issue_country' => 'enum',
-            'passport_issue_date' => 'date',
-            'passport_expired_date' => 'date',
+            "type" => "enum",
+            "passport_type" => "enum",
+            "passport_number" => "varchar",
+            "passport_nationality" => "enum",
+            "passport_issue_country" => "enum",
+            "passport_issue_date" => "date",
+            "passport_expired_date" => "date",
         ];
 
-        if (array_key_exists('passport_type', $fields) || array_key_exists('passport_number', $fields)) {
-            if (empty($fields['passport_type']) || empty($fields['passport_number']))
-                return ['status' => 0, 'message' => 'Vui lòng nhập loại giấy tờ và số giấy tờ'];
+        if (array_key_exists("passport_type", $fields) || array_key_exists("passport_number", $fields)) {
+            if (empty($fields["passport_type"]) || empty($fields["passport_number"])) {
+                return ["status" => 0, "message" => "Vui lòng nhập loại giấy tờ và số giấy tờ"];
+            }
         }
 
         try {
             $passengerBean = new EC_Booking_Passengers();
             $passengerBean->retrieve($passengerId);
+            if (empty($passengerBean->id)) {
+                return ["status" => 0, "message" => "Không tìm thấy hành khách"];
+            }
+            $updatedFields = [];
             foreach ($fields as $name => $value) {
                 if (!array_key_exists($name, $list_allowed_fields)) {
                     continue;
@@ -91,16 +98,30 @@ class entryBookingClass extends entryClass {
                     );
                 }
 
+                // Auto generated expired date of National ID
+                if($name == "passport_expired_date"
+                    && (is_null($value) || empty($value))
+                    && isset($fields['passport_type']) && $fields['passport_type'] == 'I'
+                    && !empty($passengerBean->birthday)
+                ) {
+                    $value = EC_Booking_Passengers_Helper::calculatePassportExpiryDate($passengerBean->birthday);
+                }
+
                 $passengerBean->$name = $value;
+                $updatedFields[$name] = $value;
             }
             if ($passengerBean->save()) {
-                return ['status' => 1, 'message' => 'Thao tác thành công'];
+                return [
+                    "status" => 1,
+                    "message" => "Thao tác thành công",
+                    "data" => $updatedFields,
+                ];
             }
-            return ['status' => 0, 'message' => 'Thao tác không thành công, vui lòng thử lại'];
+            return ["status" => 0, "message" => "Thao tác không thành công, vui lòng thử lại"];
         }
         catch (Throwable $th) {
             $logId = LoggerHelper::generateLogId();
-            $GLOBALS['log']->error("[{$logId}] {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+            $GLOBALS["log"]->error("[{$logId}] {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             return ["status" => 0, "message" => "Lỗi $logId"];
         }
     }
