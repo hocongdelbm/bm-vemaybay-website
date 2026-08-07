@@ -109,10 +109,6 @@ class entryBookingClass extends entryClass {
             $errors,
             true
         );
-        if ($firstAdult !== null && $contactName !== $firstAdult['fullName']) {
-            $errors[] = 'contactName';
-        }
-
         $contactPhone = $this->readRequiredString(
             $payload,
             'contactPhone',
