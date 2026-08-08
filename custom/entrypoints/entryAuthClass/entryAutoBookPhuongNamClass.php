@@ -1074,6 +1074,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                                     AND id IN ($inListPassengerId)
                                     AND deleted = 0";
                         if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
+                        else $this->sendSQLDebugNotification($sqlUpdate);
 
                         // Update supplier
                         $sqlUpdate = "UPDATE ec_booking_details
@@ -1087,6 +1088,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                                     AND direction = '$direction'
                                     AND deleted = 0";
                         if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
+                        else $this->sendSQLDebugNotification($sqlUpdate);
                     }
                 }
                 else {
