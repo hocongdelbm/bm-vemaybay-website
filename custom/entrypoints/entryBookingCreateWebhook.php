@@ -819,21 +819,13 @@ try {
         $bookingWebhookRespond(415, false);
     }
 
-    global $sugar_config;
-    $config = $sugar_config['webhook']['booking'] ?? [];
-    $authKey = is_string($config['auth_key'] ?? null) ? trim($config['auth_key']) : '';
-    $signatureKey = is_string($config['signature_key'] ?? null) ? trim($config['signature_key']) : '';
-
-    if (!preg_match('/^[a-f0-9]{64}$/i', $authKey)
-        || !preg_match('/^[a-f0-9]{64}$/i', $signatureKey)
-    ) {
+    $authenticator = \custom\services\Webhook\WebhookAuthenticator::fromConfig('booking');
+    if ($authenticator === null) {
         $bookingWebhookLog('Booking webhook configuration is incomplete or invalid');
         $bookingWebhookRespond(500, false);
     }
-
-    $requestAuthKey = $headers['x-auth-key'] ?? ($_SERVER['HTTP_X_AUTH_KEY'] ?? '');
-    if (!is_string($requestAuthKey) || !hash_equals($authKey, $requestAuthKey)) {
-        $bookingWebhookRespond(401, false);
+    if (!$authenticator->verifyAuthKey($headers)) {
+      $bookingWebhookRespond(401, false);
     }
 
     $rawBody = file_get_contents('php://input');
@@ -841,13 +833,8 @@ try {
         $bookingWebhookRespond(400, false);
     }
 
-    $requestSignature = $headers['x-signature'] ?? ($_SERVER['HTTP_X_SIGNATURE'] ?? '');
-    $requestSignature = is_string($requestSignature) ? strtolower(trim($requestSignature)) : '';
-    $expectedSignature = hash_hmac('sha256', $rawBody, $signatureKey);
-    if (!preg_match('/^[a-f0-9]{64}$/', $requestSignature)
-        || !hash_equals($expectedSignature, $requestSignature)
-    ) {
-        $bookingWebhookRespond(401, false);
+    if (!$authenticator->verifySignature($headers, $rawBody)) {
+      $bookingWebhookRespond(401, false);
     }
 
     $payload = json_decode($rawBody, true);
