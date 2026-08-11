@@ -182,10 +182,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	 * Notes panel.
 	 */
 	public function populateLineNotesMessage() {
-		list($row_content, $note_username) = $this->renderNoteMessageRows();
+		$row_content = $this->renderNoteMessageRows();
 
 		// Notes panel
-		$html = $this->renderLineNotesPanel($row_content, $note_username);
+		$html = $this->renderLineNotesPanel($row_content);
 
 		// Delete note dialog
 		$html .= $this->renderDeleteMessageDialog();

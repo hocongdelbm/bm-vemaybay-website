@@ -9,11 +9,7 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  */
 trait NotesTrait {
 	private function renderNoteMessageRows() {
-		global $current_user, $locale;
-
-		if (empty($locale)) {
-			$locale = new Localization();
-		}
+		global $current_user;
 
 		$typemap = [
 			'called' => 'Ghi chú "Đã gọi"',
@@ -59,10 +55,9 @@ trait NotesTrait {
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$id_wprocess = $row['working_process_id'] ?? '';
 
-			// Real name from the joined users row (falls back to user_name).
-			$note_username 	= isset($row['last_name'])
-				? $locale->getLocaleFormattedName($row['first_name'], $row['last_name'])
-				: $row['user_name'];
+			// Display "last_name first_name" from the joined users row (falls back to user_name).
+			$full_name = trim($row['last_name'] . ' ' . $row['first_name']);
+			$note_username = $full_name !== '' ? $full_name : $row['user_name'];
 
 			$class_of_row = "row-mess";
 			if ($row['user_id'] == $current_user->id) {
@@ -101,7 +96,7 @@ trait NotesTrait {
 					$icon_action = <<<HTML
 						<span class="icon-action">
 							<svg width="16px" height="16px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#808080"><path d="M7 12.5l3 3 7-7" stroke="#808080" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="#808080" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-						</span>'
+						</span>
 					HTML;
 				}
 
@@ -126,10 +121,13 @@ trait NotesTrait {
 			</div>';
 		}
 
-		return [$row_content, $note_username];
+		return $row_content;
 	}
 
-	private function renderLineNotesPanel($row_content, $note_username) {
+	private function renderLineNotesPanel($row_content) {
+		global $current_user;
+		$note_username = $current_user->name;
+
 		return <<<HTML
 			<div class="menu-control__tablet-wrap" id="line-notes">
 				<input type="checkbox" id="slide-menu" />
