@@ -12,4 +12,25 @@ class UsersLogicHook
 
 		SugarApplication::redirect($url);
 	}
+
+	function SyncToChat($bean, $event, $arguments)
+	{
+		if (empty($bean->id) || empty($bean->user_name)) {
+			return;
+		}
+
+		require_once 'custom/include/helpers/api/APIChatUserSync.php';
+
+		$fields = array(
+			'Username' => $bean->user_name,
+			'FullName' => trim($bean->first_name . ' ' . $bean->last_name),
+			'Email' => $bean->email1,
+			'Phone' => $bean->phone_work ?: $bean->phone_mobile,
+			'Title' => $bean->title,
+			'Status' => strtolower($bean->status) === 'inactive' ? 'inactive' : 'active',
+			'IsAdmin' => !empty($bean->is_admin),
+		);
+
+		(new APIChatUserSync())->upsertUser($bean->id, $fields);
+	}
 }
