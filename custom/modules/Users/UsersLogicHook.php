@@ -22,11 +22,11 @@ class UsersLogicHook
 		require_once 'custom/include/helpers/api/APIChatUserSync.php';
 
 		$fields = array(
-			'Username' => $bean->user_name,
-			'FullName' => trim($bean->first_name . ' ' . $bean->last_name),
-			'Email' => $bean->email1,
+			'Username' => from_html($bean->user_name),
+			'FullName' => trim(from_html($bean->first_name) . ' ' . from_html($bean->last_name)),
+			'Email' => from_html($bean->email1),
 			'Phone' => $bean->phone_work ?: $bean->phone_mobile,
-			'Title' => $bean->title,
+			'Title' => from_html($bean->title),
 			'Status' => strtolower($bean->status) === 'inactive' ? 'inactive' : 'active',
 			'IsAdmin' => !empty($bean->is_admin),
 		);
