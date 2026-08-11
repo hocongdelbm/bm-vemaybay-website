@@ -9,11 +9,7 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  */
 trait NotesTrait {
 	private function renderNoteMessageRows() {
-		global $current_user, $locale;
-
-		if (empty($locale)) {
-			$locale = new Localization();
-		}
+		global $current_user;
 
 		$typemap = [
 			'called' => 'Ghi chú "Đã gọi"',
@@ -59,10 +55,9 @@ trait NotesTrait {
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$id_wprocess = $row['working_process_id'] ?? '';
 
-			// Real name from the joined users row (falls back to user_name).
-			$note_username 	= isset($row['last_name'])
-				? $locale->getLocaleFormattedName($row['first_name'], $row['last_name'])
-				: $row['user_name'];
+			// Display "last_name first_name" from the joined users row (falls back to user_name).
+			$full_name = trim($row['last_name'] . ' ' . $row['first_name']);
+			$note_username = $full_name !== '' ? $full_name : $row['user_name'];
 
 			$class_of_row = "row-mess";
 			if ($row['user_id'] == $current_user->id) {
@@ -126,10 +121,13 @@ trait NotesTrait {
 			</div>';
 		}
 
-		return [$row_content, $note_username];
+		return $row_content;
 	}
 
-	private function renderLineNotesPanel($row_content, $note_username) {
+	private function renderLineNotesPanel($row_content) {
+		global $current_user;
+		$note_username = $current_user->name;
+
 		return <<<HTML
 			<div class="menu-control__tablet-wrap" id="line-notes">
 				<input type="checkbox" id="slide-menu" />
