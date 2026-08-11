@@ -181,13 +181,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	/**
 	 * Notes panel.
 	 */
-	public function populateLineNotesMessage()
-	{
-		// KPI actions
-		$actions_kpi = $this->getWorkingProcessNoteActions();
-
-		// Note rows
-		list($row_content, $note_username) = $this->renderNoteMessageRows($actions_kpi);
+	public function populateLineNotesMessage() {
+		list($row_content, $note_username) = $this->renderNoteMessageRows();
 
 		// Notes panel
 		$html = $this->renderLineNotesPanel($row_content, $note_username);
