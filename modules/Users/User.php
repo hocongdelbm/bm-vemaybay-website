@@ -1264,6 +1264,11 @@ EOQ;
         
         require_once 'custom/include/helpers/api/APIChatUserSync.php';
         (new APIChatUserSync())->syncPassword($this->id, $new_password);
+        
+        global $current_user;
+        if (!empty($current_user->id) && $current_user->id === $this->id) {
+            unset($_SESSION['authenticated_user_id']);
+        }
     }
 
     /**
