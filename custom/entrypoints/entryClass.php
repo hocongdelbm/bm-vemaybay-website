@@ -56,4 +56,16 @@ abstract class entryClass {
         $m .= "\n<pre>$sqlQuery</pre>";
         NotificationService::sendErrorMessage($m, "default", ["threadKey" => 'logs']);
     }
+
+    /**
+     * Send SQL error notification
+     * 
+     * @param string $sqlQuery
+     * @return void
+     */
+    public function sendSQLDebugNotification($sqlQuery) {
+        $m = "Debug query in auth entrypoint";
+        $m .= "\n<pre>$sqlQuery</pre>";
+        NotificationService::sendMessage($m, "default", ["threadKey" => 'logs']);
+    }
 }

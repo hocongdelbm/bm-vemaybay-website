@@ -617,7 +617,9 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeCheckinStatus') {
 
 	// Lấy tình trạng checkin trước đó để chỉ tính KPI khi thực sự chuyển sang "đã checkin"
 	// (tránh tạo KPI trùng nếu bấm checkin nhiều lần / request bị gửi lại cho cùng 1 journey)
-	$prev_checkin_status = (int) $db->getOne("SELECT checkin_status FROM ec_booking_itineraries WHERE id = '{$journey_id}'");
+	$row = $db->fetchByAssoc($db->query("SELECT checkin_status, description FROM ec_booking_itineraries WHERE id = '{$journey_id}' AND deleted = 0"));
+	$prev_checkin_status = (int) ($row['checkin_status'] ?? 0);
+	$itinerary_note = trim($row['description'] ?? '');
 
 	$sql = "
         UPDATE ec_booking_itineraries
@@ -630,6 +632,9 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeCheckinStatus') {
 		if ($status === 2 && $prev_checkin_status !== 2) {
 			// Lưu KPI
 			$description = 'Đã Check in hành trình ' . $journey_name . ' (Checkin)';
+			if (!empty($itinerary_note)) {
+				$description .= ' - Ghi chú: ' . $itinerary_note;
+			}
 			myCreateWorkingProcess($module_name, $booking_id, $record_name, $description, $current_user->id, 'checkin_journey');
 
 			$note = new Note();
@@ -696,7 +701,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveItineraryNotes') {
 				$note = new Note();
 				$note->id = '';
 				$note->name = $row_booking['booking_name'] ?? '';
-				$note->description = $notes;
+				$note->description = $notes . ' (Note checkin)';
 				$note->parent_type = 'EC_Flight_Bookings';
 				$note->parent_id = $row_booking['booking_id'];
 				$note->save();

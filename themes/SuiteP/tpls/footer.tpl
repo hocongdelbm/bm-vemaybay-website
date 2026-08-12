@@ -57,20 +57,21 @@
 {if $APP_CONFIG.chat_widget.enable}
 {literal}
     <script>
-         window.ECChatbotWidgetConfig = {
-             role: 'admin',
-             wsUrl: '{/literal}{$APP_CONFIG.chat_widget.wsUrl|escape:'javascript'}{literal}',
-             restUrl: '{/literal}{$APP_CONFIG.chat_widget.restUrl|escape:'javascript'}{literal}',
-             credentials: '{/literal}{$CHAT_CREDENTIALS_B64|escape:'javascript'}{literal}',
-             crmUrl: '{/literal}{$APP_CONFIG.chat_widget.crmUrl|escape:'javascript'}{literal}',
-             attachmentMode: 'all',
-             adminId: '{/literal}{$CURRENT_USER_ID|escape:'javascript'}{literal}',
-             adminName: '{/literal}{$CURRENT_USER|escape:'javascript'}{literal}',
-             autoConnect: true,
-             debug: true
-         };
-     </script>
-     <script src="{/literal}{$APP_CONFIG.chat_widget.restUrl|escape}{literal}/client/admin_widget_v2.js?v=1.1.3"></script>
+        window.ECChatbotWidgetConfig = {
+            role: 'admin',
+            wsUrl: '{/literal}{$APP_CONFIG.chat_widget.wsUrl|escape:'javascript'}{literal}',
+            restUrl: '{/literal}{$APP_CONFIG.chat_widget.restUrl|escape:'javascript'}{literal}',
+            credentials: '{/literal}{$CHAT_CREDENTIALS_B64|escape:'javascript'}{literal}',
+            crmUrl: '{/literal}{$APP_CONFIG.chat_widget.crmUrl|escape:'javascript'}{literal}',
+            attachmentMode: 'all',
+            adminId: '{/literal}{$CURRENT_USER_ID|escape:'javascript'}{literal}',
+            adminName: '{/literal}{$CURRENT_USER|escape:'javascript'}{literal}',
+            autoConnect: true,
+            debug: true
+        };
+    </script>
+    <script type="module" src="{/literal}{$APP_CONFIG.chat_widget.restUrl|escape}{literal}/client/messenger/src/bootstrap/embed.js?v=1.1.2"></script>
+    <script src="{/literal}{$APP_CONFIG.chat_widget.restUrl|escape}{literal}/client/messenger/plugins.config.js?v=1.0.1"></script>
 {/literal}
 {/if}
 {literal}

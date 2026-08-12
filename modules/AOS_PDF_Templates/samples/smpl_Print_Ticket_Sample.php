@@ -294,7 +294,7 @@ class smpl_Print_Ticket_Sample
                                                         Công ty TNHH TM Travelpass, 119 Nguyễn Thượng Hiền, P.6, Q. Bình Thạnh
                                                     </p>
                                                     <p style=" margin: 0; font-size: 12px; line-height: 20px;">
-                                                        MST: 0317103646 &nbsp;&nbsp;|&nbsp;&nbsp;Tel: 1900 63 6060 - 0919 330 802 - 0947 954 666&nbsp;&nbsp;|&nbsp;&nbsp;Email: info@timchuyenbay.com
+                                                        MST: 0317103646 &nbsp;&nbsp;|&nbsp;&nbsp;Tel: 1900 63 6060 - 0919 330 802 - 0947 954 666&nbsp;&nbsp;|&nbsp;&nbsp;Email: kd@giaonhanh.vn
                                                     </p>
                                                 </div>
                                             </td>

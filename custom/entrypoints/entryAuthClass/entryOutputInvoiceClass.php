@@ -81,8 +81,8 @@ class entryOutputInvoiceClass extends entryClass
      */
     public function sign($params = [])
     {
-        $invRef     = global_test_input($params['invRef'] ?? ''); // HD-250603-020
-        $recordId   = global_test_input($params['recordId'] ?? ''); // Record ID in database
+        $invRef     = $this->cleanInput($params['invRef'] ?? ''); // HD-250603-020
+        $recordId   = $this->cleanInput($params['recordId'] ?? ''); // Record ID in database
 
         if (empty($invRef) || empty($recordId)) {
             return [
@@ -136,25 +136,33 @@ class entryOutputInvoiceClass extends entryClass
 
                         if ($db->query($sqlUpdate)) {
                             // Save working process & note (KPI)
+                            $arrBookingId = [];
+                            $sql = 
+                                "SELECT ct.booking_id
+                                    , ct.booking
+                                    , bk.booking_status
+                                    , MAX(CASE WHEN wp.id IS NOT NULL THEN 1 ELSE 0 END) AS wp_invoice_issued
+                                FROM ec_chitiethoadon ct
+                                    LEFT JOIN ec_flight_bookings bk ON bk.id = ct.booking_id
+                                    LEFT JOIN ec_working_process wp ON wp.parent_id = ct.booking_id
+                                        AND wp.parent_type = 'EC_Flight_Bookings'
+                                        AND wp.invoice_issued = 1
+                                        AND wp.deleted = 0
+                                WHERE ct.parent_id = '$recordId'
+                                    AND ct.parent_type = 'EC_HoaDonBan'
+                                    AND ct.deleted = 0
+                                GROUP BY ct.booking_id, ct.booking, bk.booking_status";
+
                             try {
-                                $arrBookingId = [];
-                                $sql = "SELECT DISTINCT ct.booking_id, ct.booking, bk.booking_status
-                                    FROM ec_chitiethoadon ct
-                                        LEFT JOIN ec_flight_bookings bk ON bk.id = ct.booking_id
-                                    WHERE ct.parent_id = '$recordId'
-                                        AND ct.parent_type = 'EC_HoaDonBan'
-                                        AND ct.deleted = 0";
                                 $res = $db->query($sql);
 
                                 while ($row = $db->fetchByAssoc($res)) {
                                     $booking_id = $row['booking_id'] ?? '';
                                     $booking = $row['booking'] ?? '';
                                     $booking_status = $row['booking_status'] ?? '';
+                                    $workProcessExists = !empty($row['wp_invoice_issued']);
 
-                                    if (
-                                        !empty($booking_id) && !empty($booking)
-                                        && !isWorkingProcessExisting('EC_Flight_Bookings', $booking_id, 'invoice_issued')
-                                    ) {
+                                    if (!empty($booking_id) && !empty($booking) && !$workProcessExists) {
                                         $work = new EC_Working_Process();
                                         $work->id               = '';
                                         $work->name             = $booking;
@@ -178,6 +186,11 @@ class entryOutputInvoiceClass extends entryClass
                                             $note->save();
                                             $arrBookingId[] = $booking_id;
                                         }
+                                        else {
+                                            $message = "SAVE WORKING PROCESS FOR KPI FAIL (SIGN INVOICE)";
+                                            $message .= "\nInvoice number is $invNumber";
+                                            NotificationService::sendErrorMessage($message, '', ['threadKey' => 'logs']);
+                                        }
                                     }
                                 }
 
@@ -188,10 +201,6 @@ class entryOutputInvoiceClass extends entryClass
                                             ,modified_user_id = '{$this->currentUser->id}'
                                             ,date_modified = NOW()
                                         WHERE id IN ($listBookingId) AND deleted = 0");
-                                } else {
-                                    $message = "SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)";
-                                    $message .= "\n<pre>$sql</pre>";
-                                    NotificationService::sendErrorMessage($message, '', ['threadKey' => 'logs']);
                                 }
                             } catch (Throwable $th) {
                                 $message = "SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)";

@@ -71,9 +71,6 @@ class CustomController extends BaseController
             if ($upper_contact_name === 'THAM KHAO' || in_array($contact_name_prefix, $domain_short_code, true)){
                 $booking->is_reference = 1;
             }
-            // if (strtoupper(trim($booking->contact_name)) === 'THAM KHAO') {
-            //     $booking->is_reference = 1;
-            // }
             $booking->save();
             $booking_id = $booking->id;
             $assigned_user_id_bk = $booking->assigned_user_id;
@@ -148,13 +145,13 @@ class CustomController extends BaseController
                     $itinerary = BeanFactory::newBean("EC_Booking_Itineraries");
                     foreach ($i as $key => $value) {
                         $itinerary->$key = $value;
-                        $itinerary->booking_id = $booking->id;
-                        $itinerary->update_modified_by = false;
-                        $itinerary->set_created_by = false;
-                        $itinerary->created_by = $user_id;
-                        $itinerary->modified_user_id = $user_id;
-                        $itinerary->save();
                     }
+                    $itinerary->booking_id = $booking->id;
+                    $itinerary->update_modified_by = false;
+                    $itinerary->set_created_by = false;
+                    $itinerary->created_by = $user_id;
+                    $itinerary->modified_user_id = $user_id;
+                    $itinerary->save();
                 }
             }
 
@@ -171,14 +168,24 @@ class CustomController extends BaseController
                      */
                     $pass = BeanFactory::newBean("EC_Booking_Passengers");
                     foreach ($p as $key => $value) {
-                        $pass->$key = $value;
-                        $pass->booking_id = $booking->id;
-                        $pass->update_modified_by = false;
-                        $pass->set_created_by = false;
-                        $pass->created_by = $user_id;
-                        $pass->modified_user_id = $user_id;
-                        $pass->save();
+                        if($key == 'cic' && !empty($value)) {
+                            $pass->passport_type = 'I';
+                            $pass->passport_number = trim($value);
+                            $pass->passport_nationality = 'VNM';
+                            $pass->passport_issue_country = 'VNM';
+                        }
+                        else if($key == 'passport_number' && !empty($value)) {
+                            $pass->passport_type = 'P';
+                            $pass->passport_number = trim($value);
+                        }
+                        else if($key != 'cic' && $key != 'passport_number') $pass->$key = $value;
                     }
+                    $pass->booking_id = $booking->id;
+                    $pass->update_modified_by = false;
+                    $pass->set_created_by = false;
+                    $pass->created_by = $user_id;
+                    $pass->modified_user_id = $user_id;
+                    $pass->save();
                 }
             }
 
@@ -191,13 +198,13 @@ class CustomController extends BaseController
                     $detail = BeanFactory::newBean("EC_Booking_Details");
                     foreach ($d as $key => $value) {
                         $detail->$key = $value;
-                        $detail->booking_id = $booking->id;
-                        $detail->update_modified_by = false;
-                        $detail->set_created_by = false;
-                        $detail->created_by = $user_id;
-                        $detail->modified_user_id = $user_id;
-                        $detail->save();
                     }
+                    $detail->booking_id = $booking->id;
+                    $detail->update_modified_by = false;
+                    $detail->set_created_by = false;
+                    $detail->created_by = $user_id;
+                    $detail->modified_user_id = $user_id;
+                    $detail->save();
                 }
             }
 

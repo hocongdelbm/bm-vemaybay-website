@@ -848,8 +848,8 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body)
 
         $mail->AddAddress($to_email, $to_name);
         $mail->AddReplyTo($mail->From);
-        $mail->AddReplyTo("info@timchuyenbay.com");
-        $mail->AddBCC("info@timchuyenbay.com");  
+        $mail->AddReplyTo("kd@giaonhanh.vn");
+        $mail->AddBCC("kd@giaonhanh.vn");  
         // Add Bcc, ReplyTo for user admin
         // if(isset($department_info['com_email_bcc']) && trim($department_info['com_email_bcc']) != ''){
         //     $bcc_arr = explode(';', $department_info['com_email_bcc']);

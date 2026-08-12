@@ -11,7 +11,7 @@
 @import url("../../../../../themes/SuiteP/css/Dawn/components/spinner.css");
 
 /* LAYOUT */
-@import url("../../../../../themes/SuiteP/css/Dawn/layout/header.css");
+@import url("../../../../../themes/SuiteP/css/Dawn/layout/header.css?v=1.1.0");
 @import url("../../../../../themes/SuiteP/css/Dawn/layout/sidebar.css");
 
 /* VIEWS */

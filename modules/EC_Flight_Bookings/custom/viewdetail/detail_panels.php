@@ -77,6 +77,9 @@ trait DetailPanelsTrait
 		$html .= $this->renderEditedPassengerRows($passengerRows['edited']);
 		$html .= '</tbody></table>';
 
+		/* POPUP THÔNG TIN GIẤY TỜ */
+		$html .= $this->populatePassportInfoModal();
+
 		return $html;
 	}
 

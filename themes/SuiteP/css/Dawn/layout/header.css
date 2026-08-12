@@ -11,6 +11,35 @@
     height: var(--height-header-bottom);
 }
 
+#messenger-chat-widget {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    color: #0a58ca;
+    cursor: pointer;
+    border: 0;
+}
+
+#messenger-chat-widget .messenger-chat-unread-badge {
+    position: absolute;
+    top: 0px;
+    right: -9px;
+    display: none;
+    min-width: 20px;
+    height: 20px;
+    box-sizing: border-box;
+    padding: 0 5px;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    border-radius: 99px;
+    background: #ec2029;
+    color: #fff;
+    font: 700 11px/1 Arial, sans-serif;
+    text-align: center;
+    pointer-events: none;
+}
+
 @media screen and (max-width: 575px),
 (orientation: landscape) and (max-width: 950px) {
     .header-navbar__bottom {
