@@ -43,7 +43,7 @@ try {
         $contactWebhookFail(415, 'Content-Type must be application/json');
     }
 
-    $authenticator = WebhookAuthenticator::fromConfig('contact');
+    $authenticator = WebhookAuthenticator::fromConfig();
     if ($authenticator === null) {
         $contactWebhookLog('Contact webhook keys are not configured');
         $contactWebhookFail(500, 'Contact webhook is not configured');

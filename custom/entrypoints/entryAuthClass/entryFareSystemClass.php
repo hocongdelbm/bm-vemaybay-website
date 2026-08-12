@@ -12,9 +12,6 @@ class entryFareSystemClass extends entryClass
     private $key;
     private $promoCode = "Eco88";
 
-    // 01-08-2026 => 08-08-2026
-    private $promoCode = "Eco88";
-
     public function __construct()
     {
         parent::__construct();

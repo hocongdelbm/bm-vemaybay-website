@@ -27,14 +27,14 @@ final class WebhookAuthenticator
     }
 
     /**
-     * Build from $sugar_config['webhook'][$name]. Returns null when either key is
+     * Build from $sugar_config['webhook']['chatsystem']. Returns null when either key is
      * missing or malformed, so the caller can answer 500 in its own format.
      */
-    public static function fromConfig(string $name): ?self
+    public static function fromConfig(): ?self
     {
         global $sugar_config;
 
-        $config = $sugar_config['webhook'][$name] ?? [];
+        $config = $sugar_config['webhook']['chatsystem'] ?? [];
         if (!is_array($config)) {
             return null;
         }
