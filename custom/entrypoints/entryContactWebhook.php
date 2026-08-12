@@ -46,7 +46,7 @@ try {
     // Contact now uses the one global webhook credential pair. Unlike the
     // other receivers, this endpoint has no deployed per-contact key to keep
     // as a rollout fallback.
-    $authenticator = WebhookAuthenticator::fromConfig();
+    $authenticator = WebhookAuthenticator::fromConfig('chatsystem');
     if ($authenticator === null) {
         $contactWebhookLog('Contact webhook keys are not configured');
         $contactWebhookFail(500, 'Contact webhook is not configured');
