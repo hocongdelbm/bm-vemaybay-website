@@ -111,6 +111,7 @@ $entry_point_registry = array(
     'entryPointGeneral'         => ['file' => 'custom/entrypoints/entryGeneral.php', 'auth' => true],
     'entryPointGeneralNA'       => ['file' => 'custom/entrypoints/entryGeneralNonAuth.php', 'auth' => false],
     'entryFareSystemWebhook'    => ['file' => 'custom/entrypoints/entryFareSystemWebhook.php', 'auth' => false],
+    'entrySlashQuoteWebhook'    => ['file' => 'custom/entrypoints/entrySlashQuoteWebhook.php', 'auth' => false],
     'entryBookingCreateWebhook' => ['file' => 'custom/entrypoints/entryBookingCreateWebhook.php', 'auth' => false],
     'entryImageUploadWebhook'   => ['file' => 'custom/entrypoints/entryImageUploadWebhook.php', 'auth' => false],
     'entryContactWebhook'       => ['file' => 'custom/entrypoints/entryContactWebhook.php', 'auth' => false],
