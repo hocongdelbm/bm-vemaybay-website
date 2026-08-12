@@ -772,8 +772,7 @@ try {
     $clientId = trim($getHeader($headers, 'X-Client-Id', 'HTTP_X_CLIENT_ID'));
     $clientIdForLog = $sanitizeLogValue($clientId);
 
-    global $sugar_config;
-    $webhookConfig = $sugar_config['webhook']['image_upload'] ?? null;
+    $authenticator = \custom\services\Webhook\WebhookAuthenticator::fromConfig('image_upload');
 
     $requestMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? '');
     if ($requestMethod !== 'POST') {
@@ -786,7 +785,7 @@ try {
         $respondError(415, 'UNSUPPORTED_MEDIA_TYPE', 'Content-Type must be multipart/form-data');
     }
 
-    if (!is_array($webhookConfig)) {
+    if ($authenticator === null) {
         $respondError(500, 'CONFIGURATION_ERROR', 'Image upload webhook is not configured');
     }
 
@@ -794,18 +793,7 @@ try {
         $respondError(401, 'UNAUTHORIZED', 'Unauthorized');
     }
 
-    $registeredAuthKey = $webhookConfig['auth_key'] ?? '';
-    $signatureKey = $webhookConfig['signature_key'] ?? '';
-
-    if (!is_string($registeredAuthKey) || $registeredAuthKey === '') {
-        $respondError(500, 'CONFIGURATION_ERROR', 'Image upload auth key is not configured');
-    }
-    if (!is_string($signatureKey) || $signatureKey === '') {
-        $respondError(500, 'CONFIGURATION_ERROR', 'Image upload signature key is not configured');
-    }
-
-    $requestAuthKey = $getHeader($headers, 'X-Auth-Key', 'HTTP_X_AUTH_KEY');
-    if ($requestAuthKey === '' || !hash_equals($registeredAuthKey, $requestAuthKey)) {
+    if (!$authenticator->verifyAuthKey($headers)) {
         $respondError(401, 'UNAUTHORIZED', 'Unauthorized');
     }
 
@@ -851,11 +839,7 @@ try {
         $prepared
     );
 
-    $requestSignature = trim($getHeader($headers, 'X-Signature', 'HTTP_X_SIGNATURE'));
-    $expectedSignature = hash_hmac('sha256', $canonicalManifest, $signatureKey);
-    if (!preg_match('/^[a-f0-9]{64}$/D', $requestSignature)
-        || !hash_equals($expectedSignature, $requestSignature)
-    ) {
+    if (!$authenticator->verifySignature($headers, $canonicalManifest)) {
         $respondError(401, 'UNAUTHORIZED', 'Unauthorized');
     }
 

@@ -169,11 +169,10 @@ try {
     $headers = array_change_key_case(is_array($headers) ? $headers : [], CASE_LOWER);
     if (strtoupper($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') ChatFileUploadWebhook::fail(405, 'METHOD_NOT_ALLOWED', 'Method not allowed');
     if (!preg_match('/^multipart\/form-data(?:\s*;|$)/i', ChatFileUploadWebhook::headerValue($headers, 'Content-Type', 'CONTENT_TYPE'))) ChatFileUploadWebhook::fail(415, 'UNSUPPORTED_MEDIA_TYPE', 'Content-Type must be multipart/form-data');
-    global $sugar_config;
-    $config = $sugar_config['webhook']['file_upload'] ?? null;
-    if (!is_array($config) || !is_string($config['auth_key'] ?? null) || !is_string($config['signature_key'] ?? null)) ChatFileUploadWebhook::fail(500, 'CONFIGURATION_ERROR', 'File upload webhook is not configured');
+    $authenticator = \custom\services\Webhook\WebhookAuthenticator::fromConfig('file_upload');
+    if ($authenticator === null) ChatFileUploadWebhook::fail(500, 'CONFIGURATION_ERROR', 'File upload webhook is not configured');
     $clientId = ChatFileUploadWebhook::headerValue($headers, 'X-Client-Id', 'HTTP_X_CLIENT_ID');
-    if ($clientId !== 'chat_websocket' || !hash_equals($config['auth_key'], ChatFileUploadWebhook::headerValue($headers, 'X-Auth-Key', 'HTTP_X_AUTH_KEY'))) ChatFileUploadWebhook::fail(401, 'UNAUTHORIZED', 'Unauthorized');
+    if ($clientId !== 'chat_websocket' || !$authenticator->verifyAuthKey($headers)) ChatFileUploadWebhook::fail(401, 'UNAUTHORIZED', 'Unauthorized');
     $requestId = ChatFileUploadWebhook::headerValue($headers, 'X-Request-Id', 'HTTP_X_REQUEST_ID');
     if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/D', $requestId)) ChatFileUploadWebhook::fail(400, 'INVALID_REQUEST_ID', 'X-Request-Id must be a lowercase UUID');
     $timestamp = ChatFileUploadWebhook::headerValue($headers, 'X-Timestamp', 'HTTP_X_TIMESTAMP');
@@ -181,8 +180,7 @@ try {
     if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > ChatFileUploadWebhook::MAX_BATCH_SIZE + 1048576) ChatFileUploadWebhook::fail(413, 'BATCH_TOO_LARGE', 'File batch exceeds 26 MiB', $requestId);
     $files = ChatFileUploadWebhook::prepare(ChatFileUploadWebhook::normalizedFiles($_FILES['files'] ?? null));
     $manifest = implode("\n", array_merge(['file-upload-v1', $clientId, $requestId, $timestamp, (string) count($files)], array_map(static function ($file) { return $file['index'] . ':' . $file['size'] . ':' . $file['sha256']; }, $files)));
-    $signature = ChatFileUploadWebhook::headerValue($headers, 'X-Signature', 'HTTP_X_SIGNATURE');
-    if (!preg_match('/^[a-f0-9]{64}$/D', $signature) || !hash_equals(hash_hmac('sha256', $manifest, $config['signature_key']), $signature)) ChatFileUploadWebhook::fail(401, 'UNAUTHORIZED', 'Unauthorized', $requestId);
+    if (!$authenticator->verifySignature($headers, $manifest)) ChatFileUploadWebhook::fail(401, 'UNAUTHORIZED', 'Unauthorized', $requestId);
     $uploaded = ChatFileUploadWebhook::upload($files);
     ChatFileUploadWebhook::respond(200, true, 'OK', 'Files uploaded successfully', $requestId, array_column($uploaded, 'url'), $uploaded);
 } catch (RuntimeException $error) {

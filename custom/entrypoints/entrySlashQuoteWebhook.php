@@ -46,7 +46,7 @@ try {
         $slashQuoteFail(415, 'Content-Type must be application/json');
     }
 
-    $authenticator = WebhookAuthenticator::fromConfig();
+    $authenticator = WebhookAuthenticator::fromConfig('chatsystem');
     if ($authenticator === null) {
         $slashQuoteLog('Slash quote webhook keys are not configured');
         $slashQuoteFail(500, 'Slash quote webhook is not configured');

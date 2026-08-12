@@ -56,24 +56,11 @@ try {
         $respond(415, 'Content-Type must be application/json');
     }
 
-    global $sugar_config;
-    $fareWebhookConfig = $sugar_config['webhook']['fare_system'] ?? [];
-    $registeredKey = is_string($fareWebhookConfig['auth_key'] ?? null)
-        ? trim($fareWebhookConfig['auth_key'])
-        : '';
-    $signatureKey = is_string($fareWebhookConfig['signature_key'] ?? null)
-        ? trim($fareWebhookConfig['signature_key'])
-        : '';
-
-    if (!preg_match('/^[a-f0-9]{64}$/i', $registeredKey)) {
-        $respond(500, 'Fare System webhook auth key is not configured');
+    $authenticator = \custom\services\Webhook\WebhookAuthenticator::fromConfig('fare_system');
+    if ($authenticator === null) {
+        $respond(500, 'Fare System webhook credentials are not configured');
     }
-    if (!preg_match('/^[a-f0-9]{64}$/i', $signatureKey)) {
-        $respond(500, 'Fare System webhook signature key is not configured');
-    }
-
-    $requestKey = $headers['x-auth-key'] ?? ($_SERVER['HTTP_X_AUTH_KEY'] ?? '');
-    if (!is_string($requestKey) || $requestKey === '' || !hash_equals($registeredKey, $requestKey)) {
+    if (!$authenticator->verifyAuthKey($headers)) {
         $respond(401, 'Unauthorized');
     }
 
@@ -82,13 +69,8 @@ try {
         $respond(400, 'Request body is required');
     }
 
-    $requestSignature = $headers['x-signature'] ?? ($_SERVER['HTTP_X_SIGNATURE'] ?? '');
-    $requestSignature = is_string($requestSignature) ? strtolower(trim($requestSignature)) : '';
-    $expectedSignature = hash_hmac('sha256', $rawBody, $signatureKey);
-    if (!preg_match('/^[a-f0-9]{64}$/', $requestSignature)
-        || !hash_equals($expectedSignature, $requestSignature)
-    ) {
-        $respond(401, 'Unauthorized');
+    if (!$authenticator->verifySignature($headers, $rawBody)) {
+      $respond(401, 'Unauthorized');
     }
 
     $payload = json_decode($rawBody, true);
