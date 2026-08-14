@@ -394,9 +394,9 @@ class entryNextCloudPreviewClass extends entryClass
         try {
             // Load the reusable upload classes from the standalone webhook
             // without executing that webhook's HTTP receiver in this request.
-            $entryImageUploadWebhookLibraryOnly = true;
-            require_once 'custom/entrypoints/entryImageUploadWebhook.php';
-            unset($entryImageUploadWebhookLibraryOnly);
+            $entryUploadWebhookLibraryOnly = true;
+            require_once 'custom/entrypoints/entryUploadWebhook.php';
+            unset($entryUploadWebhookLibraryOnly);
 
             $contentLength = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
             if (!array_key_exists('images', $_FILES)

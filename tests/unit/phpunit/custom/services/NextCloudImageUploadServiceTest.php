@@ -6,9 +6,9 @@ if (!defined('sugarEntry')) {
     define('sugarEntry', true);
 }
 
-$entryImageUploadWebhookLibraryOnly = true;
-require_once dirname(__DIR__, 5) . '/custom/entrypoints/entryImageUploadWebhook.php';
-unset($entryImageUploadWebhookLibraryOnly);
+$entryUploadWebhookLibraryOnly = true;
+require_once dirname(__DIR__, 5) . '/custom/entrypoints/entryUploadWebhook.php';
+unset($entryUploadWebhookLibraryOnly);
 
 final class NextCloudImageUploadFakeApi
 {
